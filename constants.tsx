@@ -60,8 +60,12 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {
   "yuan_earth_grapefruit": `${BASE_PROD_URL}earth/Grapefruit%20Pomona.png`,
   "yuan_earth_oakmoss": `${BASE_PROD_URL}earth/Oakmoss%20Taiga.png`,
 
-  // 其他覆盖
-  "yuan_fire_rose": `${BASE_PROD_URL}rose.png`,
+  // 元 · 火 系列 (Fire Series)
+  "yuan_fire_rose": `${BASE_PROD_URL}fire/Damask%20Rose%20Aureate.png`,
+  "yuan_fire_ylang": `${BASE_PROD_URL}fire/Ylang%20Equatorial.png`,
+  "yuan_fire_jasmine": `${BASE_PROD_URL}fire/Jasminum%20Grandiflorum.png`,
+  "yuan_fire_neroli": `${BASE_PROD_URL}fire/Neroli%20Soleil.png`,
+  "yuan_fire_geranium": `${BASE_PROD_URL}fire/Geranium%20Ros%C3%A9.png`,
 };
 
 export const ASSETS = {
@@ -182,7 +186,7 @@ const WORLD_DATA = {
     { n: '波兰', c: 5, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '法国', c: 5, p: ['yuan_fire_jasmine'], d: '格拉斯（世界香水之都：玫瑰、茉莉、薰衣草）', s: 'arrived' },
     { n: '德国', c: 4, p: [], d: '洋甘菊、草药提取物技术中心', s: 'arrived' },
-    { n: '意大利', c: 2, p: ['yuan_earth_bergamot'], d: '柠檬（卡拉布里亚）、迷迭香、鼠尾草', s: 'arrived' },
+    { n: '意大利', c: 2, p: ['yuan_earth_bergamot'], d: '柠檬（卡拉布里亚）、迷迭香、鼠耳草', s: 'arrived' },
     { n: '奥地利', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '丹麦', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '匈牙利', c: 2, p: [], d: '薰衣草、鼠尾草', s: 'arrived' },
