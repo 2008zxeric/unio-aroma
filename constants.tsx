@@ -46,6 +46,13 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {
   "yuan_wood_pine": `${BASE_PROD_URL}wood/Boreal%20Pine.png`,
   "yuan_wood_rosewood": `${BASE_PROD_URL}wood/Sacred%20Rosewood%20Isle.png`,
 
+  // 元 · 水 系列 (Water Series)
+  "yuan_water_juniper": `${BASE_PROD_URL}water/Juniper%20by%20the%20Loch.png`,
+  "yuan_water_vetiver": `${BASE_PROD_URL}water/Deep%20Root%20Vetiver.png`,
+  "yuan_water_patchouli": `${BASE_PROD_URL}water/Patchouli%20Nocturne.png`,
+  "yuan_water_myrrh": `${BASE_PROD_URL}water/Myrrh%20Secreta.png`,
+  "yuan_water_benzoin": `${BASE_PROD_URL}water/Benzoin%20Ambrosia.png`,
+
   // 其他覆盖
   "yuan_fire_rose": `${BASE_PROD_URL}rose.png`,
 };
@@ -85,7 +92,7 @@ YUAN_DEFS.forEach((group) => {
       hero: PRODUCT_OVERRIDES[id] || ASSET_REGISTRY.visual_anchors.yuan,
       shortDesc: '极境高纯度单方萃取 / 99.9% 纯度',
       narrative: '每一滴液体，都曾是植物为了在极境生存而进化的防御意志。',
-      benefits: ['频率修复', '感官平衡'], aliceLabDiary: 'GC-MS 质谱分析显示该单方成分纯净度极高。',
+      benefits: ['频率修复', '感官平衡'], aliceLabDiary: 'GC-MS质谱分析显示该单方成分纯净度极高。',
       recommendation: '直接扩香。', usage: '取1滴于掌心嗅吸。', precautions: '高浓度请勿直涂。'
     };
   });
