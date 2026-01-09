@@ -2,18 +2,26 @@ import { ScentItem, Destination } from './types';
 
 /**
  * ------------------------------------------------------------------
- * 品牌资产注册表 (Media Registry)
+ * 1. 品牌全局资产区 (Brand Global Assets)
  * ------------------------------------------------------------------
+ * 这里管理网站最核心的视觉：Logo、首页大图、二维码等。
  */
 export const ASSET_REGISTRY = {
   brand: {
+    // 品牌 Logo (显示在左上角)
     logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/logo.png',
+    // 小红书二维码
     qr_code: 'https://images.unsplash.com/photo-1557838923-2985c318be48?q=80&w=400',
+    // 首页第一屏大图 (极境图)
     hero_home: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920', 
+    // 品牌故事页大图 (森林图)
     hero_story: 'https://images.unsplash.com/photo-1471922694854-ff1b63b20054?q=80&w=1200',
+    // 默认备用图
     fallback: 'https://images.unsplash.com/photo-1493246507139-91e8bef99c02?q=80&w=1200',
+    // 小红书链接
     xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd'
   },
+  // 以下是各系列在未上传图片时的默认占位图
   visual_anchors: {
     yuan: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800',
     he: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=800',
@@ -25,12 +33,20 @@ export const ASSET_REGISTRY = {
 };
 
 /**
- * 产品图片覆盖配置
- * 在此处添加 ID 和对应的 GitHub Raw 链接
+ * ------------------------------------------------------------------
+ * 2. 单品图片自定义区 (Product Image Overrides)
+ * ------------------------------------------------------------------
+ * 以后你要换某个产品的图片，就在这里添加或修改！
+ * 格式： "产品ID": "你的图片链接"
  */
 export const PRODUCT_OVERRIDES: Record<string, string> = {
+  // 元 · 火 · 大马士革玫瑰 (已替换)
   "yuan_fire_rose": "https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/rose.png",
+  
+  // 元 · 火 · 极境橙花 (示例：如果你想换橙花，就填在后面)
   "yuan_fire_neroli": "",
+  
+  // 你可以继续按照产品 ID 往下加...
 };
 
 export const ASSETS = {
@@ -42,6 +58,9 @@ export const ASSETS = {
   xhs_link: ASSET_REGISTRY.brand.xhs_link
 };
 
+/**
+ * 以下是系统生成的随机图逻辑，不用修改。
+ */
 const getPic = (i: number, sig: string) => {
   const ids = ['1464822759023-fed622ff2c3b', '1506744038136-46273834b3fb', '1441974231531-c6227db76b6e', '1499002238440-d264edd596ec', '1530789253388-582c481c54b0', '1519681393784-d120267933ba', '1501785888041-af3ef285b470', '1500530855697-b586d89ba3ee'];
   const id = ids[i % ids.length];
@@ -50,7 +69,7 @@ const getPic = (i: number, sig: string) => {
 
 export const DATABASE: Record<string, ScentItem> = {};
 
-// 1. 元系列 (Origin) - 25款
+// 1. 元系列 (Origin) - 25款定义区 (无需在此处修改图片，请去上方的 PRODUCT_OVERRIDES)
 const YUAN_DEFS = [
   { g: '金 · 肃降', slug: 'gold', items: [{ n: '神圣乳香', e: 'frankincense' }, { n: '极境薄荷', e: 'mint' }, { n: '极境尤加利', e: 'eucalyptus' }, { n: '极境茶树', e: 'teatree' }, { n: '极境香茅', e: 'lemongrass' }] },
   { g: '木 · 生发', slug: 'wood', items: [{ n: '老山檀香', e: 'sandalwood' }, { n: '极境丝柏', e: 'cypress' }, { n: '极境雪松', e: 'cedar' }, { n: '极境松针', e: 'pine' }, { n: '神圣花梨木', e: 'rosewood' }] },
@@ -119,8 +138,9 @@ JING_DEFS.forEach((group) => {
 
 /**
  * ------------------------------------------------------------------
- * 寻香坐标库 (DESTINATIONS)
+ * 3. 全球寻香坐标区 (DESTINATIONS)
  * ------------------------------------------------------------------
+ * 这里管理地图上每一个国家/省份的详情文字和图片。
  */
 export const DESTINATIONS: Record<string, Destination> = {};
 
@@ -160,10 +180,7 @@ const WORLD_DATA = {
     { n: '摩纳哥', c: 1, p: [], d: '高端香水文化与市场窗口', s: 'arrived' },
     { n: '卢森堡', c: 1, p: [], d: '欧洲内陆特色森林植被', s: 'arrived' },
     { n: '保加利亚', c: 0, p: [], d: '大马士革玫瑰核心产区 (待解锁)', s: 'locked' },
-    { n: '英国', c: 0, p: [], d: '现代芳疗发源地 (待解锁)', s: 'locked' },
-    { n: '葡萄牙', c: 0, p: [], d: '岩蔷薇、桉树、橙花 (建议待解锁)', s: 'locked' },
-    { n: '克罗地亚', c: 0, p: [], d: '薰衣草、鼠尾草、松树 (建议待解锁)', s: 'locked' },
-    { n: '希腊', c: 0, p: [], d: '香桃木、橄榄油、马郁兰 (建议待解锁)', s: 'locked' }
+    { n: '英国', c: 0, p: [], d: '现代芳疗发源地 (待解锁)', s: 'locked' }
   ],
   '非洲 & 中东': [
     { n: '南非', c: 12, p: ['yuan_fire_geranium'], d: '路易波士、天竺葵、布枯', s: 'arrived' },
@@ -177,8 +194,6 @@ const WORLD_DATA = {
     { n: '巴西', c: 8, p: ['yuan_earth_mandarin'], d: '甜橙、玫瑰木、巴西莓', s: 'arrived' },
     { n: '美国', c: 7, p: ['yuan_gold_mint'], d: '薄荷、留兰香、加州柑橘', s: 'arrived' },
     { n: '墨西哥', c: 4, p: [], d: '香草、莱姆、Copaiba', s: 'arrived' },
-    { n: '海地', c: 0, p: [], d: '岩兰草 (西印度檀香) 重要产区 (待解锁)', s: 'locked' },
-    { n: '阿根廷', c: 0, p: [], d: '柠檬、绿花白千层、马黛茶 (待解锁)', s: 'locked' },
     { n: '澳大利亚', c: 0, p: [], d: '茶树、尤加利、檀香 (待解锁)', s: 'locked' }
   ]
 };
