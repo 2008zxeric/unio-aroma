@@ -39,7 +39,14 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {
   "yuan_gold_teatree": `${BASE_PROD_URL}Tea%20Tree%20Antiseptic.png`,
   "yuan_gold_lemongrass": `${BASE_PROD_URL}Citronella%20Clarissima.png`,
   
-  // 原有覆盖
+  // 元 · 木 系列 (Wood Series)
+  "yuan_wood_sandalwood": `${BASE_PROD_URL}wood/Aged%20Sandalwood.png`,
+  "yuan_wood_cypress": `${BASE_PROD_URL}wood/Misty%20Cypress.png`,
+  "yuan_wood_cedar": `${BASE_PROD_URL}wood/Himalayan%20Cedar.png`,
+  "yuan_wood_pine": `${BASE_PROD_URL}wood/Boreal%20Pine.png`,
+  "yuan_wood_rosewood": `${BASE_PROD_URL}wood/Sacred%20Rosewood%20Isle.png`,
+
+  // 其他覆盖
   "yuan_fire_rose": `${BASE_PROD_URL}rose.png`,
 };
 
