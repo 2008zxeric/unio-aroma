@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Wind, Shield, Heart, Home, Droplets, Flame, Mountain, Sparkles, Quote } from 'lucide-react';
 import { ViewState, Category, ScentItem } from '../types';
@@ -55,7 +54,7 @@ const CollectionsView: React.FC<{
     <div className={`pt-28 md:pt-48 pb-64 min-h-screen transition-all duration-1000 ${themes[filter].bg}`}>
       <div className="max-w-[1440px] mx-auto px-4 md:px-16 space-y-8 md:space-y-32">
         
-        {/* 顶部导航 - 优化手机端溢出 */}
+        {/* 顶部导航 */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-black/5 pb-8">
           <div className="w-full md:w-auto space-y-6">
             <div className="flex w-full overflow-hidden bg-stone-100/50 p-1 rounded-2xl md:bg-transparent md:p-0 md:overflow-visible">
@@ -80,20 +79,16 @@ const CollectionsView: React.FC<{
           <p className="max-w-md text-xs md:text-2xl font-serif-zh text-black/60 text-left md:text-right leading-relaxed italic">{themes[filter].desc}</p>
         </div>
 
-        {/* 2x3 棋盘格渲染逻辑 */}
+        {/* 渲染逻辑 */}
         <div className="space-y-16 md:space-y-64">
-          {/* Fix: Explicitly type Object.entries to resolve 'unknown' type error for groupItems */}
           {(Object.entries(groups) as [string, ScentItem[]][]).map(([groupName, groupItems]) => (
             <section key={groupName} className="space-y-6 md:space-y-16">
-              {/* 分组标题 */}
               <div className="flex items-center gap-3 md:gap-8 border-b border-black/5 pb-3">
                  {getGroupIcon(groupName)}
                  <h3 className="text-lg md:text-4xl font-serif-zh font-bold tracking-[0.1em] md:tracking-[0.2em] text-black/80">{groupName}</h3>
               </div>
 
-              {/* 棋盘格布局：1 引言 + 5 产品 = 6 格 */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
-                {/* 第一格：引言内容 */}
                 <div className="flex flex-col justify-center p-5 md:p-12 bg-[#F9F9F7] rounded-[1.8rem] md:rounded-[3rem] border border-black/5 space-y-4 md:space-y-8 animate-in fade-in zoom-in-95">
                   <Quote size={24} className="text-[#D75437] opacity-20 md:w-10 md:h-10" />
                   <p className="text-xs md:text-3xl font-serif-zh font-bold text-black/70 leading-relaxed italic">
@@ -102,7 +97,6 @@ const CollectionsView: React.FC<{
                   <div className="w-6 h-1 bg-[#D75437]/20" />
                 </div>
 
-                {/* 随后 5 格：产品列表 */}
                 {groupItems.map(item => (
                   <div 
                     key={item.id} 
@@ -110,7 +104,12 @@ const CollectionsView: React.FC<{
                     className="group cursor-pointer space-y-2 md:space-y-6 animate-in fade-in slide-in-from-bottom-4"
                   >
                     <div className="aspect-[3/4] rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-lg border border-black/5 bg-stone-50 relative">
-                       <img src={item.hero} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" alt={item.herb} />
+                       <img 
+                         src={item.hero} 
+                         className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110 img-fade-in" 
+                         alt={item.herb}
+                         loading="lazy" 
+                       />
                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                     </div>
                     <div className="px-1 md:px-2 space-y-1 md:space-y-2">
