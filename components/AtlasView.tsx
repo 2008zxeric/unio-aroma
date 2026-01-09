@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Globe, MapPin, CheckCircle2, Lock, Sparkles } from 'lucide-react';
 import { ViewState } from '../types';
@@ -71,7 +70,7 @@ const AtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12">
             {filteredList.map(dest => {
               const productCount = dest.productIds ? dest.productIds.length : 0;
-              const isUnlocked = productCount > 0;
+              const isUnlocked = dest.status === 'arrived';
               
               return (
                 <div 
@@ -87,12 +86,12 @@ const AtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: 
                     />
                     
                     {/* Status Badge */}
-                    <div className="absolute top-4 right-4 flex items-center gap-2 glass px-3 py-1.5 rounded-full border border-white/20 shadow-lg transition-transform group-hover:scale-110">
+                    <div className="absolute top-4 right-4 z-20 flex items-center gap-2 glass px-3 py-1.5 rounded-full border border-white/20 shadow-lg transition-transform group-hover:scale-110">
                       {isUnlocked ? (
                         <div className="flex items-center gap-1.5">
-                          <Sparkles size={10} className="text-[#D4AF37]" />
+                          <CheckCircle2 size={10} className="text-[#2C3E28]" />
                           <span className="text-[8px] font-bold tracking-widest uppercase text-black">
-                            寻香已锁定 × {productCount}
+                            寻香已锁定 {productCount > 0 ? `× ${productCount}` : ''}
                           </span>
                         </div>
                       ) : (
