@@ -24,8 +24,12 @@ export const ASSET_REGISTRY = {
   }
 };
 
+/**
+ * 产品图片覆盖配置
+ * 在此处添加 ID 和对应的 GitHub Raw 链接
+ */
 export const PRODUCT_OVERRIDES: Record<string, string> = {
-  "yuan_fire_rose": "",
+  "yuan_fire_rose": "https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/rose.png",
   "yuan_fire_neroli": "",
 };
 
@@ -156,7 +160,10 @@ const WORLD_DATA = {
     { n: '摩纳哥', c: 1, p: [], d: '高端香水文化与市场窗口', s: 'arrived' },
     { n: '卢森堡', c: 1, p: [], d: '欧洲内陆特色森林植被', s: 'arrived' },
     { n: '保加利亚', c: 0, p: [], d: '大马士革玫瑰核心产区 (待解锁)', s: 'locked' },
-    { n: '英国', c: 0, p: [], d: '现代芳疗发源地 (待解锁)', s: 'locked' }
+    { n: '英国', c: 0, p: [], d: '现代芳疗发源地 (待解锁)', s: 'locked' },
+    { n: '葡萄牙', c: 0, p: [], d: '岩蔷薇、桉树、橙花 (建议待解锁)', s: 'locked' },
+    { n: '克罗地亚', c: 0, p: [], d: '薰衣草、鼠尾草、松树 (建议待解锁)', s: 'locked' },
+    { n: '希腊', c: 0, p: [], d: '香桃木、橄榄油、马郁兰 (建议待解锁)', s: 'locked' }
   ],
   '非洲 & 中东': [
     { n: '南非', c: 12, p: ['yuan_fire_geranium'], d: '路易波士、天竺葵、布枯', s: 'arrived' },
@@ -170,7 +177,9 @@ const WORLD_DATA = {
     { n: '巴西', c: 8, p: ['yuan_earth_mandarin'], d: '甜橙、玫瑰木、巴西莓', s: 'arrived' },
     { n: '美国', c: 7, p: ['yuan_gold_mint'], d: '薄荷、留兰香、加州柑橘', s: 'arrived' },
     { n: '墨西哥', c: 4, p: [], d: '香草、莱姆、Copaiba', s: 'arrived' },
-    { n: '澳大利亚', c: 0, p: [], d: '茶树、尤加利 (待解锁)', s: 'locked' }
+    { n: '海地', c: 0, p: [], d: '岩兰草 (西印度檀香) 重要产区 (待解锁)', s: 'locked' },
+    { n: '阿根廷', c: 0, p: [], d: '柠檬、绿花白千层、马黛茶 (待解锁)', s: 'locked' },
+    { n: '澳大利亚', c: 0, p: [], d: '茶树、尤加利、檀香 (待解锁)', s: 'locked' }
   ]
 };
 
@@ -197,7 +206,8 @@ const CHINA_PROVINCES = [
   { n: '浙江', sub: '华东' }, { n: '江苏', sub: '华东' }, { n: '安徽', sub: '华东' },
   { n: '新疆', sub: '西北' }, { n: '甘肃', sub: '西北' }, { n: '陕西', sub: '西北' },
   { n: '北京', sub: '华北' }, { n: '山西', sub: '华北' }, { n: '湖北', sub: '华中' },
-  { n: '上海', sub: '华东' }, { n: '山东', sub: '华东' }, { n: '湖南', sub: '华中' }
+  { n: '上海', sub: '华东' }, { n: '山东', sub: '华东' }, { n: '湖南', sub: '华中' },
+  { n: '广西', sub: '华南' }, { n: '江西', sub: '华东' }, { n: '吉林', sub: '华北' }
 ];
 
 CHINA_PROVINCES.forEach((prov, i) => {
