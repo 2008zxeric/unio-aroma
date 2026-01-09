@@ -82,7 +82,8 @@ const CollectionsView: React.FC<{
 
         {/* 2x3 棋盘格渲染逻辑 */}
         <div className="space-y-16 md:space-y-64">
-          {Object.entries(groups).map(([groupName, groupItems]) => (
+          {/* Fix: Explicitly type Object.entries to resolve 'unknown' type error for groupItems */}
+          {(Object.entries(groups) as [string, ScentItem[]][]).map(([groupName, groupItems]) => (
             <section key={groupName} className="space-y-6 md:space-y-16">
               {/* 分组标题 */}
               <div className="flex items-center gap-3 md:gap-8 border-b border-black/5 pb-3">
