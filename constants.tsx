@@ -2,11 +2,14 @@
 import { ScentItem, Destination } from './types';
 
 /**
+ * ------------------------------------------------------------------
  * 品牌资产注册表 (Media Registry)
+ * ------------------------------------------------------------------
+ * 这里定义了网站的核心视觉资产。
  */
 export const ASSET_REGISTRY = {
   brand: {
-    logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/logo.png',
+    logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/logo.png',
     qr_code: 'https://images.unsplash.com/photo-1557838923-2985c318be48?q=80&w=400',
     hero_home: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920', 
     hero_story: 'https://images.unsplash.com/photo-1471922694854-ff1b63b20054?q=80&w=1200',
@@ -27,8 +30,7 @@ export const ASSET_REGISTRY = {
  * ------------------------------------------------------------------
  * 产品图片手动覆盖区 (Manual Overrides)
  * ------------------------------------------------------------------
- * Eric，如果你想直接改代码，在这里填入你 rose 图片的 GitHub 链接即可。
- * 格式示例: "yuan_fire_rose": "https://raw.githubusercontent.com/..."
+ * Eric，如果你想换掉某个产品的图片，直接在下面填入链接即可。
  */
 export const PRODUCT_OVERRIDES: Record<string, string> = {
   "yuan_fire_rose": "", // <--- 在这里填入你的 rose 图片链接
