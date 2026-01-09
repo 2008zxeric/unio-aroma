@@ -1,0 +1,145 @@
+
+import React, { useState } from 'react';
+import { 
+  ArrowLeft, ShoppingBag, CheckCircle2, MapPin, Wind, Microscope, Zap, 
+  BookOpen, Sparkles, Share2, Home
+} from 'lucide-react';
+import { ScentItem, ViewState } from '../types';
+import { ASSETS } from '../constants';
+
+const ProductDetail: React.FC<{ 
+  item: ScentItem, 
+  setView: (v: ViewState) => void, 
+  previousView: ViewState 
+}> = ({ item, setView, previousView }) => {
+  return (
+    <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden">
+      
+      {/* 顶部导航 */}
+      <div className="fixed top-24 md:top-36 left-0 w-full px-6 md:px-20 z-[400] pointer-events-none flex justify-between items-center">
+        <button 
+          onClick={() => setView(previousView)} 
+          className="pointer-events-auto flex items-center gap-4 text-black/40 hover:text-[#D75437] transition-all uppercase tracking-[1em] font-bold text-[10px] md:text-xs group glass px-6 py-3 rounded-full border border-white/40"
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" /> BACK
+        </button>
+        <button onClick={() => setView('home')} className="pointer-events-auto glass p-3 md:p-5 rounded-full text-black hover:text-[#D75437] border border-white/40 shadow-xl active:scale-90"><Home size={18} /></button>
+      </div>
+
+      <div className="max-w-7xl mx-auto mt-12 md:mt-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-32 items-start">
+          
+          {/* 左侧：视觉呈现 */}
+          <div className="space-y-12 lg:sticky lg:top-48">
+            <div className="aspect-[3/4] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-2xl border border-black/5 bg-[#F9FAFB] group relative">
+              <img 
+                src={item.hero} 
+                className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110 img-fade-in" 
+                alt={item.herb} 
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 md:gap-8 py-10 md:py-14 border-y border-black/5">
+              <div className="text-center space-y-3">
+                <MapPin size={20} className="mx-auto opacity-20 text-[#D75437]" />
+                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Origin / 产地</span>
+                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.location || item.region || 'GLOBAL'}</span>
+              </div>
+              <div className="text-center space-y-3 border-x border-black/5">
+                <Wind size={20} className="mx-auto opacity-20 text-[#1C39BB]" />
+                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Intensity / 强度</span>
+                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">MED-HIGH</span>
+              </div>
+              <div className="text-center space-y-3">
+                <Microscope size={20} className="mx-auto opacity-20 text-[#2C3E28]" />
+                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Purity / 纯度</span>
+                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">GC/MS Cert.</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 右侧：专业处方 */}
+          <div className="space-y-16 md:space-y-24 py-4">
+            <div className="space-y-10 md:space-y-12">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                     <div className="h-px w-8 bg-[#D75437]" />
+                     <span className="text-[10px] md:text-[12px] tracking-[0.8em] uppercase text-[#D75437] font-bold">{item.herbEn}</span>
+                  </div>
+                  <button className="p-2 md:p-3 rounded-full hover:bg-stone-50 text-black/20 hover:text-black transition-all"><Share2 size={20} /></button>
+                </div>
+                <h2 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-[0.1em] text-black leading-tight">{item.herb}</h2>
+                {item.shortDesc && (
+                  <p className="text-sm md:text-2xl font-serif-zh text-[#D75437] font-bold tracking-widest uppercase">
+                    核心成分：{item.shortDesc}
+                  </p>
+                )}
+              </div>
+              <p className="text-lg md:text-3xl font-serif-zh opacity-80 leading-relaxed italic border-l-4 border-black/5 pl-8">
+                “{item.narrative}”
+              </p>
+            </div>
+
+            {/* Alice's Lab Diary */}
+            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden">
+               <div className="flex items-center gap-6 mb-10">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-[#1C39BB]/10 rounded-full flex items-center justify-center text-[#1C39BB]">
+                     <Microscope size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl md:text-3xl font-serif-zh font-bold tracking-widest text-[#1C39BB]">Alice's Lab Diary</h3>
+                    <p className="text-[8px] md:text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold mt-1">实验室分析日记</p>
+                  </div>
+               </div>
+               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2">
+                 {item.aliceLabDiary}
+               </p>
+            </section>
+
+            {/* 功效与用法 */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
+               <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                     <Sparkles size={20} className="text-[#D75437]" />
+                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Benefits / 功效</h5>
+                  </div>
+                  <div className="space-y-4">
+                     {item.benefits.map(b => (
+                        <div key={b} className="flex items-center gap-4 p-5 rounded-2xl bg-stone-50 border border-black/5 group hover:border-[#D75437] transition-all">
+                           <CheckCircle2 size={16} className="text-[#D75437]" />
+                           <span className="text-sm md:text-lg font-serif-zh font-bold text-black/70">{b}</span>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+
+               <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                     <BookOpen size={20} className="text-[#1C39BB]" />
+                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Usage / 使用</h5>
+                  </div>
+                  <div className="p-8 bg-white border border-black/5 rounded-[2rem] shadow-sm">
+                     <p className="text-sm md:text-lg font-serif-zh text-black/70 leading-[2] whitespace-pre-wrap">
+                        {item.usage}
+                     </p>
+                  </div>
+               </div>
+            </section>
+
+            <div className="pt-12 md:pt-20 border-t border-black/5">
+              <button 
+                className="w-full py-12 md:py-16 bg-[#1a1a1a] text-white rounded-full text-sm md:text-xl tracking-[1.5em] uppercase font-bold btn-rednote shadow-2xl flex items-center justify-center gap-6 group"
+                onClick={() => window.open(ASSETS.xhs_link, '_blank')}
+              >
+                <ShoppingBag size={24} className="group-hover:rotate-12 transition-transform" /> SHOP ON REDNOTE / 极速购
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductDetail;
