@@ -4,24 +4,16 @@ import { ScentItem, Destination } from './types';
  * ------------------------------------------------------------------
  * 1. 品牌全局资产区 (Brand Global Assets)
  * ------------------------------------------------------------------
- * 这里管理网站最核心的视觉：Logo、首页大图、二维码等。
  */
 export const ASSET_REGISTRY = {
   brand: {
-    // 品牌 Logo (显示在左上角)
     logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/logo.png',
-    // 小红书二维码
     qr_code: 'https://images.unsplash.com/photo-1557838923-2985c318be48?q=80&w=400',
-    // 首页第一屏大图 (极境图)
     hero_home: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920', 
-    // 品牌故事页大图 (森林图)
     hero_story: 'https://images.unsplash.com/photo-1471922694854-ff1b63b20054?q=80&w=1200',
-    // 默认备用图
     fallback: 'https://images.unsplash.com/photo-1493246507139-91e8bef99c02?q=80&w=1200',
-    // 小红书链接
     xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd'
   },
-  // 以下是各系列在未上传图片时的默认占位图
   visual_anchors: {
     yuan: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800',
     he: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=800',
@@ -36,17 +28,9 @@ export const ASSET_REGISTRY = {
  * ------------------------------------------------------------------
  * 2. 单品图片自定义区 (Product Image Overrides)
  * ------------------------------------------------------------------
- * 以后你要换某个产品的图片，就在这里添加或修改！
- * 格式： "产品ID": "你的图片链接"
  */
 export const PRODUCT_OVERRIDES: Record<string, string> = {
-  // 元 · 火 · 大马士革玫瑰 (已替换)
   "yuan_fire_rose": "https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/rose.png",
-  
-  // 元 · 火 · 极境橙花 (示例：如果你想换橙花，就填在后面)
-  "yuan_fire_neroli": "",
-  
-  // 你可以继续按照产品 ID 往下加...
 };
 
 export const ASSETS = {
@@ -58,9 +42,6 @@ export const ASSETS = {
   xhs_link: ASSET_REGISTRY.brand.xhs_link
 };
 
-/**
- * 以下是系统生成的随机图逻辑，不用修改。
- */
 const getPic = (i: number, sig: string) => {
   const ids = ['1464822759023-fed622ff2c3b', '1506744038136-46273834b3fb', '1441974231531-c6227db76b6e', '1499002238440-d264edd596ec', '1530789253388-582c481c54b0', '1519681393784-d120267933ba', '1501785888041-af3ef285b470', '1500530855697-b586d89ba3ee'];
   const id = ids[i % ids.length];
@@ -69,7 +50,7 @@ const getPic = (i: number, sig: string) => {
 
 export const DATABASE: Record<string, ScentItem> = {};
 
-// 1. 元系列 (Origin) - 25款定义区 (无需在此处修改图片，请去上方的 PRODUCT_OVERRIDES)
+// 1. 元系列 (Origin)
 const YUAN_DEFS = [
   { g: '金 · 肃降', slug: 'gold', items: [{ n: '神圣乳香', e: 'frankincense' }, { n: '极境薄荷', e: 'mint' }, { n: '极境尤加利', e: 'eucalyptus' }, { n: '极境茶树', e: 'teatree' }, { n: '极境香茅', e: 'lemongrass' }] },
   { g: '木 · 生发', slug: 'wood', items: [{ n: '老山檀香', e: 'sandalwood' }, { n: '极境丝柏', e: 'cypress' }, { n: '极境雪松', e: 'cedar' }, { n: '极境松针', e: 'pine' }, { n: '神圣花梨木', e: 'rosewood' }] },
@@ -93,7 +74,7 @@ YUAN_DEFS.forEach((group) => {
   });
 });
 
-// 2. 和系列 (Harmony) - 15款
+// 2. 和系列 (Harmony)
 const HE_DEFS = [
   { g: '身 · 能量', slug: 'body', items: [{ n: '云感 · 玫瑰檀香润肤霜', e: 'Cloud Velvet' }, { n: '晨曦 · 葡萄柚生姜沐浴露', e: 'Dawn Glow' }, { n: '月华 · 依兰天竺葵身体油', e: 'Moonlight Oil' }, { n: '清冽 · 尤加利薄荷洗发水', e: 'Frost Mint' }, { n: '润迹 · 丝柏护手精华', e: 'Trace Balm' }] },
   { g: '心 · 疗愈', slug: 'mind', items: [{ n: '止语 · 薰衣草岩兰草喷雾', e: 'Silent Mist' }, { n: '归处 · 橙花佛手柑舒缓膏', e: 'Sanctuary' }, { n: '听泉 · 洋甘菊广藿香凝露', e: 'Zen Fountain' }, { n: '微光 · 茉莉红橘淡香氛', e: 'Glimmer' }, { n: '深吸 · 杜松子乳香清吸瓶', e: 'Deep Breath' }] },
@@ -115,7 +96,7 @@ HE_DEFS.forEach((group) => {
   });
 });
 
-// 3. 境系列 (Sanctuary) - 10款
+// 3. 境系列 (Sanctuary)
 const JING_DEFS = [
   { g: '场 · 净愈', slug: 'field', items: [{ n: '极境 · 冰裂纹手作陶瓷扩香皿', e: 'Crackled' }, { n: '素空 · 天然多孔矿石扩香座', e: 'Mineral' }, { n: '隐迹 · 胡桃木车载扩香器', e: 'Walnut' }, { n: '流岚 · 磨砂质感扩香机', e: 'Mistflow' }, { n: '归藏 · 铝合金旅行扩香盒', e: 'Alloy Box' }] },
   { g: '意 · 冥想', slug: 'meditation', items: [{ n: '一炷 · 降真香手工线香', e: 'Zen Incense' }, { n: '定念 · 黄铜倒流香座', e: 'Censer' }, { n: '观照 · 极简黑檀木插香座', e: 'Holder' }, { n: '止观 · 纯手工植物蜡烛', e: 'Candle' }, { n: '息灾 · 手工铜制灭烟铃', e: 'Snuffer' }] }
@@ -140,61 +121,65 @@ JING_DEFS.forEach((group) => {
  * ------------------------------------------------------------------
  * 3. 全球寻香坐标区 (DESTINATIONS)
  * ------------------------------------------------------------------
- * 这里管理地图上每一个国家/省份的详情文字和图片。
  */
 export const DESTINATIONS: Record<string, Destination> = {};
 
 const WORLD_DATA = {
   '亚洲': [
-    { n: '中国', c: 23, p: ['yuan_gold_frankincense'], d: '神州极境核心坐标', s: 'arrived' },
+    { n: '中国', c: 23, p: ['yuan_gold_frankincense'], d: '云南（香料之乡）、甘肃苦水镇（玫瑰精油）等', s: 'arrived' },
     { n: '泰国', c: 40, p: ['yuan_fire_ylang'], d: '安息香、罗勒、香茅等热带香料', s: 'arrived' },
+    { n: '印度', c: 3, p: ['yuan_wood_sandalwood'], d: '岩兰草（东印度檀香）、茉莉、檀香', s: 'arrived' },
+    { n: '日本', c: 2, p: ['yuan_wood_cedar'], d: '桧木、柚子、扁柏', s: 'arrived' },
     { n: '中国香港', c: 18, p: ['he_mind_5'], d: '重要的芳香贸易与调香中心', s: 'arrived' },
     { n: '马来西亚', c: 13, p: ['yuan_water_benzoin'], d: '特级安息香核心产区', s: 'arrived' },
     { n: '印度尼西亚', c: 12, p: ['yuan_water_patchouli'], d: '广藿香、丁香、肉豆蔻', s: 'arrived' },
-    { n: '阿联酋', c: 12, p: ['yuan_gold_myrrh'], d: '干旱地区特色精油植物（如没药）', s: 'arrived' },
+    { n: '阿联酋', c: 12, p: ['yuan_gold_myrrh'], d: '干旱地区特色含精油植物（如没药）', s: 'arrived' },
     { n: '越南', c: 6, p: [], d: '安息香、沉香', s: 'arrived' },
-    { n: '哈萨克斯坦', c: 4, p: [], d: '中亚特色耐寒植物极境', s: 'arrived' },
-    { n: '印度', c: 3, p: ['yuan_wood_sandalwood'], d: '岩兰草、茉莉、檀香', s: 'arrived' },
-    { n: '日本', c: 2, p: ['yuan_wood_cedar'], d: '桧木、柚子、扁柏', s: 'arrived' },
+    { n: '哈萨克斯坦', c: 4, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '伊朗', c: 2, p: [], d: '藏红花、玫瑰等核心产地', s: 'arrived' },
-    { n: '约旦', c: 2, p: [], d: '死海周边特色芳香植被', s: 'arrived' },
+    { n: '约旦', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '中国澳门', c: 2, p: [], d: '芳香文化与贸易节点', s: 'arrived' },
-    { n: '新加坡', c: 2, p: [], d: '东南亚芳香贸易枢纽', s: 'arrived' },
+    { n: '新加坡', c: 2, p: [], d: '东南亚芳香枢纽', s: 'arrived' },
     { n: '韩国', c: 1, p: [], d: '松针、竹子、柑橘', s: 'arrived' },
     { n: '柬埔寨', c: 1, p: [], d: '香茅、卡南加（伊兰伊兰近缘种）', s: 'arrived' },
-    { n: '朝鲜', c: 1, p: [], d: '长白山脉原生特色植物', s: 'arrived' },
-    { n: '斯里兰卡', c: 0, p: [], d: '肉桂、柠檬草、胡椒 (待解锁)', s: 'locked' },
-    { n: '尼泊尔', c: 0, p: [], d: '喜马拉雅雪松、穗甘松 (待解锁)', s: 'locked' }
+    { n: '朝鲜', c: 1, p: [], d: '当地特色植物', s: 'arrived' },
+    { n: '斯里兰卡', c: 0, p: [], d: '肉桂（品质闻名）、柠檬草、胡椒', s: 'locked' },
+    { n: '尼泊尔', c: 0, p: [], d: '喜马拉雅雪松、冬青、穗甘松', s: 'locked' }
   ],
   '欧洲': [
-    { n: '土耳其', c: 8, p: ['yuan_fire_rose'], d: '玫瑰、月桂核心产区', s: 'arrived' },
-    { n: '波兰', c: 5, p: [], d: '波罗的海沿岸特色针叶植物', s: 'arrived' },
-    { n: '法国', c: 5, p: ['yuan_fire_jasmine'], d: '格拉斯（玫瑰、茉莉、薰衣草）', s: 'arrived' },
-    { n: '德国', c: 4, p: [], d: '洋甘菊、精密草药提取技术中心', s: 'arrived' },
-    { n: '意大利', c: 2, p: ['yuan_earth_bergamot'], d: '柠檬、迷迭香、鼠尾草', s: 'arrived' },
-    { n: '奥地利', c: 2, p: [], d: '阿尔卑斯高山芳香草场', s: 'arrived' },
-    { n: '丹麦', c: 2, p: [], d: '北欧冷冽风格芳香研究', s: 'arrived' },
-    { n: '匈牙利', c: 2, p: [], d: '高地薰衣草、鼠尾草', s: 'arrived' },
+    { n: '土耳其', c: 8, p: ['yuan_fire_rose'], d: '玫瑰、月桂等核心产区', s: 'arrived' },
+    { n: '波兰', c: 5, p: [], d: '当地特色植物', s: 'arrived' },
+    { n: '法国', c: 5, p: ['yuan_fire_jasmine'], d: '格拉斯（世界香水之都：玫瑰、茉莉、薰衣草）', s: 'arrived' },
+    { n: '德国', c: 4, p: [], d: '洋甘菊、草药提取物技术中心', s: 'arrived' },
+    { n: '意大利', c: 2, p: ['yuan_earth_bergamot'], d: '柠檬（卡拉布里亚）、迷迭香、鼠尾草', s: 'arrived' },
+    { n: '奥地利', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
+    { n: '丹麦', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
+    { n: '匈牙利', c: 2, p: [], d: '薰衣草、鼠尾草', s: 'arrived' },
     { n: '西班牙', c: 1, p: [], d: '苦橙、迷迭香、薰衣草', s: 'arrived' },
-    { n: '荷兰', c: 1, p: [], d: '郁金香、全球花卉育种中心', s: 'arrived' },
-    { n: '摩纳哥', c: 1, p: [], d: '高端香水文化与市场窗口', s: 'arrived' },
-    { n: '卢森堡', c: 1, p: [], d: '欧洲内陆特色森林植被', s: 'arrived' },
-    { n: '保加利亚', c: 0, p: [], d: '大马士革玫瑰核心产区 (待解锁)', s: 'locked' },
-    { n: '英国', c: 0, p: [], d: '现代芳疗发源地 (待解锁)', s: 'locked' }
+    { n: '荷兰', c: 1, p: [], d: '郁金香、花卉育种与贸易中心', s: 'arrived' },
+    { n: '摩纳哥', c: 1, p: [], d: '（高端香水文化窗口）', s: 'arrived' },
+    { n: '卢森堡', c: 1, p: [], d: '当地特色植物', s: 'arrived' },
+    { n: '保加利亚', c: 0, p: [], d: '大马士革玫瑰精油核心产区', s: 'locked' },
+    { n: '英国', c: 0, p: [], d: '现代芳疗发源地与学术中心', s: 'locked' },
+    { n: '葡萄牙', c: 0, p: [], d: '岩蔷薇、桉树、橙花', s: 'locked' },
+    { n: '克罗地亚', c: 0, p: [], d: '薰衣草、鼠尾草、松树', s: 'locked' },
+    { n: '希腊', c: 0, p: [], d: '香桃木、橄榄油、马郁兰', s: 'locked' }
   ],
-  '非洲 & 中东': [
+  '非洲': [
     { n: '南非', c: 12, p: ['yuan_fire_geranium'], d: '路易波士、天竺葵、布枯', s: 'arrived' },
-    { n: '肯尼亚', c: 2, p: [], d: '茶油、蜡菊等高原植物', s: 'arrived' },
-    { n: '埃及', c: 2, p: [], d: '尼罗河茉莉、远古香草', s: 'arrived' },
-    { n: '津巴布韦', c: 1, p: [], d: '稀树草原特色芳香', s: 'arrived' },
-    { n: '马达加斯加', c: 0, p: [], d: '伊兰伊兰、香草 (待解锁)', s: 'locked' },
-    { n: '摩洛哥', c: 0, p: [], d: '大西洋雪松、橙花 (待解锁)', s: 'locked' }
+    { n: '肯尼亚', c: 2, p: [], d: '茶油、蜡菊等', s: 'arrived' },
+    { n: '埃及', c: 2, p: [], d: '茉莉、香草（历史悠久）', s: 'arrived' },
+    { n: '津巴布韦', c: 1, p: [], d: '当地特色植物', s: 'arrived' },
+    { n: '马达加斯加', c: 0, p: [], d: '伊兰伊兰（依兰）、丁香、香草', s: 'locked' },
+    { n: '摩洛哥', c: 0, p: [], d: '玫瑰、雪松、茉莉', s: 'locked' }
   ],
-  '美洲 & 大洋洲': [
-    { n: '巴西', c: 8, p: ['yuan_earth_mandarin'], d: '甜橙、玫瑰木、巴西莓', s: 'arrived' },
-    { n: '美国', c: 7, p: ['yuan_gold_mint'], d: '薄荷、留兰香、加州柑橘', s: 'arrived' },
-    { n: '墨西哥', c: 4, p: [], d: '香草、莱姆、Copaiba', s: 'arrived' },
-    { n: '澳大利亚', c: 0, p: [], d: '茶树、尤加利、檀香 (待解锁)', s: 'locked' }
+  '美洲/大洋洲': [
+    { n: '巴西', c: 8, p: ['yuan_earth_mandarin'], d: '甜橙、柠檬、玫瑰木', s: 'arrived' },
+    { n: '美国', c: 7, p: ['yuan_gold_mint'], d: '薄荷、留兰香、柑橘类精油', s: 'arrived' },
+    { n: '墨西哥', c: 4, p: [], d: '莱姆、香草、Copaiba精油', s: 'arrived' },
+    { n: '海地', c: 0, p: [], d: '岩兰草（西印度檀香） 重要产区', s: 'locked' },
+    { n: '阿根廷', c: 0, p: [], d: '柠檬、绿花白千层、马黛茶精油', s: 'locked' },
+    { n: '澳大利亚', c: 0, p: [], d: '茶树、尤加利、檀香（澳大利亚种） 源产地', s: 'locked' }
   ]
 };
 
