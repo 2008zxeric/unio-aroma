@@ -2,12 +2,15 @@ import { ScentItem, Destination } from './types';
 
 /**
  * ------------------------------------------------------------------
- * 1. 品牌全局资产区 (Brand Global Assets)
+ * 1. 品牌全局资产区 (使用 jsDelivr CDN 加速)
  * ------------------------------------------------------------------
  */
+const CDN_BASE = 'https://cdn.jsdelivr.net/gh/2008zxeric/unio-aroma@main/assets/';
+const CACHE_V = '?v=1.1'; // 缓存刷新后缀
+
 export const ASSET_REGISTRY = {
   brand: {
-    logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/logo.png',
+    logo: `${CDN_BASE}brand/logo.png${CACHE_V}`,
     qr_code: 'https://images.unsplash.com/photo-1557838923-2985c318be48?q=80&w=400',
     hero_home: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920', 
     hero_story: 'https://images.unsplash.com/photo-1471922694854-ff1b63b20054?q=80&w=1200',
@@ -29,53 +32,53 @@ export const ASSET_REGISTRY = {
  * 2. 单品图片自定义区 (Product Image Overrides)
  * ------------------------------------------------------------------
  */
-const BASE_PROD_URL = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/';
+const PROD_PATH = `${CDN_BASE}products/`;
 
 export const PRODUCT_OVERRIDES: Record<string, string> = {
-  // 元 · 金 系列 (Gold Series)
-  "yuan_gold_frankincense": `${BASE_PROD_URL}Sacred%20Frankincense.png`,
-  "yuan_gold_mint": `${BASE_PROD_URL}Peppermint%20from%20Peaks.png`,
-  "yuan_gold_eucalyptus": `${BASE_PROD_URL}Eucalyptus%20Glaciale.png`,
-  "yuan_gold_teatree": `${BASE_PROD_URL}Tea%20Tree%20Antiseptic.png`,
-  "yuan_gold_lemongrass": `${BASE_PROD_URL}Citronella%20Clarissima.png`,
+  // 元 · 金 系列 (Gold)
+  "yuan_gold_frankincense": `${PROD_PATH}Sacred%20Frankincense.png${CACHE_V}`,
+  "yuan_gold_mint": `${PROD_PATH}Peppermint%20from%20Peaks.png${CACHE_V}`,
+  "yuan_gold_eucalyptus": `${PROD_PATH}Eucalyptus%20Glaciale.png${CACHE_V}`,
+  "yuan_gold_teatree": `${PROD_PATH}Tea%20Tree%20Antiseptic.png${CACHE_V}`,
+  "yuan_gold_lemongrass": `${PROD_PATH}Citronella%20Clarissima.png${CACHE_V}`,
   
-  // 元 · 木 系列 (Wood Series)
-  "yuan_wood_sandalwood": `${BASE_PROD_URL}wood/Aged%20Sandalwood.png`,
-  "yuan_wood_cypress": `${BASE_PROD_URL}wood/Misty%20Cypress.png`,
-  "yuan_wood_cedar": `${BASE_PROD_URL}wood/Himalayan%20Cedar.png`,
-  "yuan_wood_pine": `${BASE_PROD_URL}wood/Boreal%20Pine.png`,
-  "yuan_wood_rosewood": `${BASE_PROD_URL}wood/Sacred%20Rosewood%20Isle.png`,
+  // 元 · 木 系列 (Wood)
+  "yuan_wood_sandalwood": `${PROD_PATH}wood/Aged%20Sandalwood.png${CACHE_V}`,
+  "yuan_wood_cypress": `${PROD_PATH}wood/Misty%20Cypress.png${CACHE_V}`,
+  "yuan_wood_cedar": `${PROD_PATH}wood/Himalayan%20Cedar.png${CACHE_V}`,
+  "yuan_wood_pine": `${PROD_PATH}wood/Boreal%20Pine.png${CACHE_V}`,
+  "yuan_wood_rosewood": `${PROD_PATH}wood/Sacred%20Rosewood%20Isle.png${CACHE_V}`,
 
-  // 元 · 水 系列 (Water Series)
-  "yuan_water_juniper": `${BASE_PROD_URL}water/Juniper%20by%20the%20Loch.png`,
-  "yuan_water_vetiver": `${BASE_PROD_URL}water/Deep%20Root%20Vetiver.png`,
-  "yuan_water_patchouli": `${BASE_PROD_URL}water/Patchouli%20Nocturne.png`,
-  "yuan_water_myrrh": `${BASE_PROD_URL}water/Myrrh%20Secreta.png`,
-  "yuan_water_benzoin": `${BASE_PROD_URL}water/Benzoin%20Ambrosia.png`,
+  // 元 · 水 系列 (Water)
+  "yuan_water_juniper": `${PROD_PATH}water/Juniper%20by%20the%20Loch.png${CACHE_V}`,
+  "yuan_water_vetiver": `${PROD_PATH}water/Deep%20Root%20Vetiver.png${CACHE_V}`,
+  "yuan_water_patchouli": `${PROD_PATH}water/Patchouli%20Nocturne.png${CACHE_V}`,
+  "yuan_water_myrrh": `${PROD_PATH}water/Myrrh%20Secreta.png${CACHE_V}`,
+  "yuan_water_benzoin": `${PROD_PATH}water/Benzoin%20Ambrosia.png${CACHE_V}`,
 
-  // 元 · 土 系列 (Earth Series)
-  "yuan_earth_bergamot": `${BASE_PROD_URL}earth/Bergamot%20Alba.png`,
-  "yuan_earth_ginger": `${BASE_PROD_URL}earth/Zingiber%20Terrae.png`,
-  "yuan_earth_mandarin": `${BASE_PROD_URL}earth/Mandarin%20Jucunda.png`,
-  "yuan_earth_grapefruit": `${BASE_PROD_URL}earth/Grapefruit%20Pomona.png`,
-  "yuan_earth_oakmoss": `${BASE_PROD_URL}earth/Oakmoss%20Taiga.png`,
+  // 元 · 土 系列 (Earth)
+  "yuan_earth_bergamot": `${PROD_PATH}earth/Bergamot%20Alba.png${CACHE_V}`,
+  "yuan_earth_ginger": `${PROD_PATH}earth/Zingiber%20Terrae.png${CACHE_V}`,
+  "yuan_earth_mandarin": `${PROD_PATH}earth/Mandarin%20Jucunda.png${CACHE_V}`,
+  "yuan_earth_grapefruit": `${PROD_PATH}earth/Grapefruit%20Pomona.png${CACHE_V}`,
+  "yuan_earth_oakmoss": `${PROD_PATH}earth/Oakmoss%20Taiga.png${CACHE_V}`,
 
-  // 元 · 火 系列 (Fire Series)
-  "yuan_fire_rose": `${BASE_PROD_URL}fire/Damask%20Rose%20Aureate.png`,
-  "yuan_fire_ylang": `${BASE_PROD_URL}fire/Ylang%20Equatorial.png`,
-  "yuan_fire_jasmine": `${BASE_PROD_URL}fire/Jasminum%20Grandiflorum.png`,
-  "yuan_fire_neroli": `${BASE_PROD_URL}fire/Neroli%20Soleil.png`,
-  "yuan_fire_geranium": `${BASE_PROD_URL}fire/Geranium%20Ros%C3%A9.png`,
+  // 元 · 火 系列 (Fire)
+  "yuan_fire_rose": `${PROD_PATH}fire/Damask%20Rose%20Aureate.png${CACHE_V}`,
+  "yuan_fire_ylang": `${PROD_PATH}fire/Ylang%20Equatorial.png${CACHE_V}`,
+  "yuan_fire_jasmine": `${PROD_PATH}fire/Jasminum%20Grandiflorum.png${CACHE_V}`,
+  "yuan_fire_neroli": `${PROD_PATH}fire/Neroli%20Soleil.png${CACHE_V}`,
+  "yuan_fire_geranium": `${PROD_PATH}fire/Geranium%20Ros%C3%A9.png${CACHE_V}`,
 
-  // 和 · 身 系列 (Harmony Body)
-  "he_body_1": `${BASE_PROD_URL}body/cloud%20velvet.png`,
-  "he_body_2": `${BASE_PROD_URL}body/Dawn%20Glow.png`,
-  "he_body_3": `${BASE_PROD_URL}body/Moonlight%20Oil.png`,
-  "he_body_4": `${BASE_PROD_URL}body/Frost%20Mint.png`,
-  "he_body_5": `${BASE_PROD_URL}body/Trace%20Balm.png`,
+  // 和 · 身 系列 (Harmony Body) - 修正命名与路径
+  "he_body_1": `${PROD_PATH}body/cloud%20velvet.png${CACHE_V}`,
+  "he_body_2": `${PROD_PATH}body/Dawn%20Glow.png${CACHE_V}`,
+  "he_body_3": `${PROD_PATH}body/Moonlight%20Oil.png${CACHE_V}`,
+  "he_body_4": `${PROD_PATH}body/Frost%20Mint.png${CACHE_V}`,
+  "he_body_5": `${PROD_PATH}body/Trace%20Balm.png${CACHE_V}`,
 
-  // 境 · 场 系列 (Sanctuary Field)
-  "jing_field_3": `${BASE_PROD_URL}place/Walnut.png`,
+  // 境 · 场 系列 (Sanctuary Place)
+  "jing_field_3": `${PROD_PATH}place/Walnut.png${CACHE_V}`,
 };
 
 export const ASSETS = {
