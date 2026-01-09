@@ -3,7 +3,6 @@ import { ScentItem, Destination } from './types';
 
 /**
  * 品牌资产注册表 (Media Registry)
- * Eric 的真实图片可以直接在这里替换链接
  */
 export const ASSET_REGISTRY = {
   brand: {
@@ -23,6 +22,11 @@ export const ASSET_REGISTRY = {
     placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
   }
 };
+
+/**
+ * 产品图片覆盖表 (从实验室导出后粘贴至此)
+ */
+export const PRODUCT_OVERRIDES: Record<string, string> = {};
 
 export const ASSETS = {
   logo: ASSET_REGISTRY.brand.logo,
@@ -56,7 +60,7 @@ YUAN_DEFS.forEach((group, gIdx) => {
     DATABASE[id] = {
       id, category: 'yuan', subGroup: group.g, name, herb: name, herbEn: 'PURE ESSENCE',
       region: '全球', status: 'arrived', visited: true, accent: '#D75437',
-      hero: ASSET_REGISTRY.visual_anchors.yuan,
+      hero: PRODUCT_OVERRIDES[id] || ASSET_REGISTRY.visual_anchors.yuan,
       shortDesc: '极境高纯度单方萃取 / 99.9% 纯度',
       narrative: '每一滴液体，都曾是植物为了在极境生存而进化的防御意志。',
       benefits: ['频率修复', '感官平衡'], aliceLabDiary: 'GC-MS 质谱分析显示其烯烃类组分比例处于黄金稳态，极具神经舒缓潜力。',
@@ -96,7 +100,7 @@ HE_DEFS.forEach((group, gIdx) => {
     DATABASE[id] = {
       id, category: 'he', subGroup: group.g, name: item.n, herb: item.n, herbEn: item.e,
       region: '实验室', status: 'arrived', visited: true, accent: '#1C39BB',
-      hero: ASSET_REGISTRY.visual_anchors.he,
+      hero: PRODUCT_OVERRIDES[id] || ASSET_REGISTRY.visual_anchors.he,
       shortDesc: `核心成分：${item.ing}`,
       narrative: `基于${group.g.split(' · ')[0]}维度的频率修复，${item.n}旨在打破感官的日常茧房。`,
       benefits: ['身心对齐', '能量修复'], aliceLabDiary: `针对 ${item.ing} 的协同效应进行了微秒级频率微调，显著降低皮质醇水平。`,
@@ -129,7 +133,7 @@ JING_DEFS.forEach((group, gIdx) => {
     DATABASE[id] = {
       id, category: 'jing', subGroup: group.g, name: item.n, herb: item.n, herbEn: item.e,
       region: '艺术工坊', status: 'arrived', visited: true, accent: '#D4AF37',
-      hero: item.img,
+      hero: PRODUCT_OVERRIDES[id] || item.img,
       shortDesc: `材质工艺：${item.ing}`,
       narrative: `重塑场域的物理边界。${item.n}是气味与视觉、触觉的终极和解。`,
       benefits: ['美学修辞', '感官沉浸'], aliceLabDiary: '材质的多孔率与分子的扩散速率呈完美的对数正比。',
@@ -141,7 +145,7 @@ JING_DEFS.forEach((group, gIdx) => {
 export const DESTINATIONS: Record<string, Destination> = {};
 
 /**
- * Eric 真实足迹地图 - 根据用户提供的列表更新
+ * Eric 真实足迹地图
  */
 const ERIC_REAL_MAP = {
   '亚洲': [
@@ -162,8 +166,8 @@ const ERIC_REAL_MAP = {
     { n: '韩国', c: 1, pIds: ['y_10'] },
     { n: '柬埔寨', c: 1, pIds: ['y_22'] },
     { n: '朝鲜', c: 1, pIds: ['y_3'] },
-    { n: '斯里兰卡', c: 0, l: true }, // Locked
-    { n: '尼泊尔', c: 0, l: true }    // Locked
+    { n: '斯里兰卡', c: 0, l: true },
+    { n: '尼泊尔', c: 0, l: true }
   ],
   '欧洲': [
     { n: '土耳其', c: 8, pIds: ['y_16', 'y_19'] },
@@ -216,14 +220,12 @@ Object.entries(ERIC_REAL_MAP).forEach(([region, list]) => {
       productIds: item.pIds || [],
       ericDiary: `在 ${item.n} 的第 ${item.c} 次寻香，我感受到了大地深处传来的律动。`,
       aliceDiary: `该坐标样本显示出极其稳定的分子频率。`,
-      // Corrected: globalCount replaced with globalIdx to fix reference errors
       memoryPhotos: [getPic(globalIdx+10, id+'_m1'), getPic(globalIdx+11, id+'_m2'), getPic(globalIdx+12, id+'_m3')],
     };
     globalIdx++;
   });
 });
 
-// 中华神州内容保持不变，仅合并入总库
 const CHINA_MAP = {
   '华南': ['广东', '海南', '广西'],
   '华东': ['浙江', '江苏', '安徽'],
@@ -242,7 +244,7 @@ Object.entries(CHINA_MAP).forEach(([sub, list]) => {
 
     DESTINATIONS[id] = {
       id, name, en: name + ', CHINA', region: '亚洲', status: 'arrived',
-      visitCount: 23, // 对应用户提供的“中国 (23次)”
+      visitCount: 23,
       scenery: getPic(i + 100, id),
       emoji: '📍', herbDescription: '神州极境寻踪', knowledge: '原生分子图谱已解码。', 
       productIds: pIds,
