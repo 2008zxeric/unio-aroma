@@ -66,6 +66,16 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {
   "yuan_fire_jasmine": `${BASE_PROD_URL}fire/Jasminum%20Grandiflorum.png`,
   "yuan_fire_neroli": `${BASE_PROD_URL}fire/Neroli%20Soleil.png`,
   "yuan_fire_geranium": `${BASE_PROD_URL}fire/Geranium%20Ros%C3%A9.png`,
+
+  // 和 · 身 系列 (Harmony Body)
+  "he_body_1": `${BASE_PROD_URL}body/cloud%20velvet.png`,
+  "he_body_2": `${BASE_PROD_URL}body/Dawn%20Glow.png`,
+  "he_body_3": `${BASE_PROD_URL}body/Moonlight%20Oil.png`,
+  "he_body_4": `${BASE_PROD_URL}body/Frost%20Mint.png`,
+  "he_body_5": `${BASE_PROD_URL}body/Trace%20Balm.png`,
+
+  // 境 · 场 系列 (Sanctuary Field)
+  "jing_field_3": `${BASE_PROD_URL}place/Walnut.png`,
 };
 
 export const ASSETS = {
@@ -143,7 +153,7 @@ JING_DEFS.forEach((group) => {
     DATABASE[id] = {
       id, category: 'jing', subGroup: group.g, name: item.n, herb: item.n, herbEn: item.e,
       region: '艺术工坊', status: 'arrived', visited: true, accent: '#D4AF37',
-      hero: ASSET_REGISTRY.visual_anchors.vessel,
+      hero: PRODUCT_OVERRIDES[id] || ASSET_REGISTRY.visual_anchors.vessel,
       shortDesc: '器以载道，气以通神',
       narrative: '重塑场域的物理边界。',
       benefits: ['美学修辞'], aliceLabDiary: '材质与分子的扩散速率呈正相关。',
@@ -186,7 +196,7 @@ const WORLD_DATA = {
     { n: '波兰', c: 5, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '法国', c: 5, p: ['yuan_fire_jasmine'], d: '格拉斯（世界香水之都：玫瑰、茉莉、薰衣草）', s: 'arrived' },
     { n: '德国', c: 4, p: [], d: '洋甘菊、草药提取物技术中心', s: 'arrived' },
-    { n: '意大利', c: 2, p: ['yuan_earth_bergamot'], d: '柠檬（卡拉布里亚）、迷迭香、鼠耳草', s: 'arrived' },
+    { n: '意大利', c: 2, p: ['yuan_earth_bergamot'], d: '柠檬（卡拉布里亚）、迷迭香、鼠尾草', s: 'arrived' },
     { n: '奥地利', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '丹麦', c: 2, p: [], d: '当地特色植物', s: 'arrived' },
     { n: '匈牙利', c: 2, p: [], d: '薰衣草、鼠尾草', s: 'arrived' },
