@@ -29,8 +29,18 @@ export const ASSET_REGISTRY = {
  * 2. 单品图片自定义区 (Product Image Overrides)
  * ------------------------------------------------------------------
  */
+const BASE_PROD_URL = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/';
+
 export const PRODUCT_OVERRIDES: Record<string, string> = {
-  "yuan_fire_rose": "https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/rose.png",
+  // 元 · 金 系列 (Gold Series)
+  "yuan_gold_frankincense": `${BASE_PROD_URL}Sacred%20Frankincense.png`,
+  "yuan_gold_mint": `${BASE_PROD_URL}Peppermint%20from%20Peaks.png`,
+  "yuan_gold_eucalyptus": `${BASE_PROD_URL}Eucalyptus%20Glaciale.png`,
+  "yuan_gold_teatree": `${BASE_PROD_URL}Tea%20Tree%20Antiseptic.png`,
+  "yuan_gold_lemongrass": `${BASE_PROD_URL}Citronella%20Clarissima.png`,
+  
+  // 原有覆盖
+  "yuan_fire_rose": `${BASE_PROD_URL}rose.png`,
 };
 
 export const ASSETS = {
@@ -167,19 +177,19 @@ const WORLD_DATA = {
   ],
   '非洲': [
     { n: '南非', c: 12, p: ['yuan_fire_geranium'], d: '路易波士、天竺葵、布枯', s: 'arrived' },
-    { n: '肯尼亚', c: 2, p: [], d: '茶油、蜡菊等', s: 'arrived' },
-    { n: '埃及', c: 2, p: [], d: '茉莉、香草（历史悠久）', s: 'arrived' },
-    { n: '津巴布韦', c: 1, p: [], d: '当地特色植物', s: 'arrived' },
-    { n: '马达加斯加', c: 0, p: [], d: '伊兰伊兰（依兰）、丁香、香草', s: 'locked' },
-    { n: '摩洛哥', c: 0, p: [], d: '玫瑰、雪松、茉莉', s: 'locked' }
+    { n: '肯尼亚', c: 2, p: [], d: '茶油、蜡菊等核心提取物', s: 'arrived' },
+    { n: '埃及', c: 2, p: [], d: '茉莉、香草、卡鲁美（古埃及配方核心）', s: 'arrived' },
+    { n: '津巴布韦', c: 1, p: [], d: '当地特色芳香灌木', s: 'arrived' },
+    { n: '马达加斯加', c: 0, p: [], d: '伊兰伊兰（顶级依兰）、香草、罗文莎叶', s: 'locked' },
+    { n: '摩洛哥', c: 0, p: [], d: '阿特拉斯雪松、摩洛哥玫瑰、橙花', s: 'locked' }
   ],
   '美洲/大洋洲': [
-    { n: '巴西', c: 8, p: ['yuan_earth_mandarin'], d: '甜橙、柠檬、玫瑰木', s: 'arrived' },
-    { n: '美国', c: 7, p: ['yuan_gold_mint'], d: '薄荷、留兰香、柑橘类精油', s: 'arrived' },
-    { n: '墨西哥', c: 4, p: [], d: '莱姆、香草、Copaiba精油', s: 'arrived' },
-    { n: '海地', c: 0, p: [], d: '岩兰草（西印度檀香） 重要产区', s: 'locked' },
-    { n: '阿根廷', c: 0, p: [], d: '柠檬、绿花白千层、马黛茶精油', s: 'locked' },
-    { n: '澳大利亚', c: 0, p: [], d: '茶树、尤加利、檀香（澳大利亚种） 源产地', s: 'locked' }
+    { n: '巴西', c: 8, p: ['yuan_earth_mandarin'], d: '甜橙、柠檬、玫瑰木、古巴香脂', s: 'arrived' },
+    { n: '美国', c: 7, p: ['yuan_gold_mint'], d: '胡椒薄荷、弗吉尼亚雪松、柑橘类精油', s: 'arrived' },
+    { n: '墨西哥', c: 4, p: [], d: '莱姆、墨西哥香草、万寿菊精油', s: 'arrived' },
+    { n: '海地', c: 0, p: [], d: '岩兰草（全球品质之冠）、阿米香树', s: 'locked' },
+    { n: '阿根廷', c: 0, p: [], d: '柠檬、绿花白千层、马黛茶萃取', s: 'locked' },
+    { n: '澳大利亚', c: 0, p: [], d: '茶树、蓝胶尤加利、澳洲檀香、指橙', s: 'locked' }
   ]
 };
 
