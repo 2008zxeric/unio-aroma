@@ -53,6 +53,13 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {
   "yuan_water_myrrh": `${BASE_PROD_URL}water/Myrrh%20Secreta.png`,
   "yuan_water_benzoin": `${BASE_PROD_URL}water/Benzoin%20Ambrosia.png`,
 
+  // 元 · 土 系列 (Earth Series)
+  "yuan_earth_bergamot": `${BASE_PROD_URL}earth/Bergamot%20Alba.png`,
+  "yuan_earth_ginger": `${BASE_PROD_URL}earth/Zingiber%20Terrae.png`,
+  "yuan_earth_mandarin": `${BASE_PROD_URL}earth/Mandarin%20Jucunda.png`,
+  "yuan_earth_grapefruit": `${BASE_PROD_URL}earth/Grapefruit%20Pomona.png`,
+  "yuan_earth_oakmoss": `${BASE_PROD_URL}earth/Oakmoss%20Taiga.png`,
+
   // 其他覆盖
   "yuan_fire_rose": `${BASE_PROD_URL}rose.png`,
 };
