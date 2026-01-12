@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Droplets, Activity, Sparkles } from 'lucide-react';
+import { ArrowRight, Droplets, Activity, Sparkles, Info } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse } from '../services/gemini';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '欢迎来到感官祭坛。我是 Alice 与 Eric 的数字化意识。请告诉我，你此刻内心的杂音是什么？是焦灼的火焰，还是无尽的迷雾？我们将为你寻找那份跨越山海的寻香处方。' }
+    { role: 'assistant', content: '欢迎来到感官祭坛。我是 Alice 与 Eric 的数字化意识。请告诉我，你此刻内心的杂音是什么？我们将为你寻找那份跨越山海的寻香处方。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,9 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     setLoading(true);
 
     const reply = await getOracleResponse(newMessages);
-    setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    // 增加 Gemini 调用提示标识
+    const processedReply = reply + "\n\n（回复由 Gemini 调用，仅供参考）";
+    setMessages(prev => [...prev, { role: 'assistant', content: processedReply }]);
     setLoading(false);
   };
 
@@ -46,10 +48,13 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             </div>
             <div>
               <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
-              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · Alice & Eric</p>
+              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · Powered by Gemini</p>
             </div>
           </div>
-          <Sparkles className="text-[#D4AF37] opacity-40" size={20} />
+          <div className="flex items-center gap-2 text-stone-300">
+             <Info size={14} />
+             <span className="text-[8px] font-bold uppercase tracking-widest">AI 参考建议</span>
+          </div>
         </div>
 
         {/* Chat Area */}
@@ -57,7 +62,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
               <div 
-                className={`max-w-[85%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${
+                className={`max-w-[85%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl whitespace-pre-wrap ${
                   m.role === 'user' 
                   ? 'bg-[#1a1a1a] text-white rounded-tr-none shadow-2xl' 
                   : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh leading-relaxed tracking-wide shadow-sm border border-black/5'
