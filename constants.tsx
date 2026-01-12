@@ -6,7 +6,7 @@ import { ScentItem, Destination } from './types';
  * ------------------------------------------------------------------
  */
 const CDN_BASE = 'https://cdn.jsdelivr.net/gh/2008zxeric/unio-aroma@main/assets/';
-const CACHE_V = '?v=1.1'; // 缓存刷新后缀
+const CACHE_V = '?v=1.2'; // 更新版本号以刷新缓存
 
 export const ASSET_REGISTRY = {
   brand: {
@@ -35,50 +35,50 @@ export const ASSET_REGISTRY = {
 const PROD_PATH = `${CDN_BASE}products/`;
 
 export const PRODUCT_OVERRIDES: Record<string, string> = {
-  // 元 · 金 系列 (Gold)
-  "yuan_gold_frankincense": `${PROD_PATH}Sacred%20Frankincense.png${CACHE_V}`,
-  "yuan_gold_mint": `${PROD_PATH}Peppermint%20from%20Peaks.png${CACHE_V}`,
-  "yuan_gold_eucalyptus": `${PROD_PATH}Eucalyptus%20Glaciale.png${CACHE_V}`,
-  "yuan_gold_teatree": `${PROD_PATH}Tea%20Tree%20Antiseptic.png${CACHE_V}`,
-  "yuan_gold_lemongrass": `${PROD_PATH}Citronella%20Clarissima.png${CACHE_V}`,
+  // 元 · 金 系列 (Metal) - 迁移至 /metal/ 目录并改为 .webp
+  "yuan_gold_frankincense": `${PROD_PATH}metal/Sacred%20Frankincense.webp${CACHE_V}`,
+  "yuan_gold_mint": `${PROD_PATH}metal/Peppermint%20from%20Peaks.webp${CACHE_V}`,
+  "yuan_gold_eucalyptus": `${PROD_PATH}metal/Eucalyptus%20Glaciale.webp${CACHE_V}`,
+  "yuan_gold_teatree": `${PROD_PATH}metal/Tea%20Tree%20Antiseptic.webp${CACHE_V}`,
+  "yuan_gold_lemongrass": `${PROD_PATH}metal/Citronella%20Clarissima.webp${CACHE_V}`,
   
-  // 元 · 木 系列 (Wood)
-  "yuan_wood_sandalwood": `${PROD_PATH}wood/Aged%20Sandalwood.png${CACHE_V}`,
-  "yuan_wood_cypress": `${PROD_PATH}wood/Misty%20Cypress.png${CACHE_V}`,
-  "yuan_wood_cedar": `${PROD_PATH}wood/Himalayan%20Cedar.png${CACHE_V}`,
-  "yuan_wood_pine": `${PROD_PATH}wood/Boreal%20Pine.png${CACHE_V}`,
-  "yuan_wood_rosewood": `${PROD_PATH}wood/Sacred%20Rosewood%20Isle.png${CACHE_V}`,
+  // 元 · 木 系列 (Wood) - 已改为 .webp
+  "yuan_wood_sandalwood": `${PROD_PATH}wood/Aged%20Sandalwood.webp${CACHE_V}`,
+  "yuan_wood_cypress": `${PROD_PATH}wood/Misty%20Cypress.webp${CACHE_V}`,
+  "yuan_wood_cedar": `${PROD_PATH}wood/Himalayan%20Cedar.webp${CACHE_V}`,
+  "yuan_wood_pine": `${PROD_PATH}wood/Boreal%20Pine.webp${CACHE_V}`,
+  "yuan_wood_rosewood": `${PROD_PATH}wood/Sacred%20Rosewood%20Isle.webp${CACHE_V}`,
 
-  // 元 · 水 系列 (Water)
-  "yuan_water_juniper": `${PROD_PATH}water/Juniper%20by%20the%20Loch.png${CACHE_V}`,
-  "yuan_water_vetiver": `${PROD_PATH}water/Deep%20Root%20Vetiver.png${CACHE_V}`,
-  "yuan_water_patchouli": `${PROD_PATH}water/Patchouli%20Nocturne.png${CACHE_V}`,
-  "yuan_water_myrrh": `${PROD_PATH}water/Myrrh%20Secreta.png${CACHE_V}`,
-  "yuan_water_benzoin": `${PROD_PATH}water/Benzoin%20Ambrosia.png${CACHE_V}`,
+  // 元 · 水 系列 (Water) - 改为 .webp
+  "yuan_water_juniper": `${PROD_PATH}water/Juniper%20by%20the%20Loch.webp${CACHE_V}`,
+  "yuan_water_vetiver": `${PROD_PATH}water/Deep%20Root%20Vetiver.webp${CACHE_V}`,
+  "yuan_water_patchouli": `${PROD_PATH}water/Patchouli%20Nocturne.webp${CACHE_V}`,
+  "yuan_water_myrrh": `${PROD_PATH}water/Myrrh%20Secreta.webp${CACHE_V}`,
+  "yuan_water_benzoin": `${PROD_PATH}water/Benzoin%20Ambrosia.webp${CACHE_V}`,
 
-  // 元 · 土 系列 (Earth)
-  "yuan_earth_bergamot": `${PROD_PATH}earth/Bergamot%20Alba.png${CACHE_V}`,
-  "yuan_earth_ginger": `${PROD_PATH}earth/Zingiber%20Terrae.png${CACHE_V}`,
-  "yuan_earth_mandarin": `${PROD_PATH}earth/Mandarin%20Jucunda.png${CACHE_V}`,
-  "yuan_earth_grapefruit": `${PROD_PATH}earth/Grapefruit%20Pomona.png${CACHE_V}`,
-  "yuan_earth_oakmoss": `${PROD_PATH}earth/Oakmoss%20Taiga.png${CACHE_V}`,
+  // 元 · 土 系列 (Earth) - 改为 .webp
+  "yuan_earth_bergamot": `${PROD_PATH}earth/Bergamot%20Alba.webp${CACHE_V}`,
+  "yuan_earth_ginger": `${PROD_PATH}earth/Zingiber%20Terrae.webp${CACHE_V}`,
+  "yuan_earth_mandarin": `${PROD_PATH}earth/Mandarin%20Jucunda.webp${CACHE_V}`,
+  "yuan_earth_grapefruit": `${PROD_PATH}earth/Grapefruit%20Pomona.webp${CACHE_V}`,
+  "yuan_earth_oakmoss": `${PROD_PATH}earth/Oakmoss%20Taiga.webp${CACHE_V}`,
 
-  // 元 · 火 系列 (Fire)
-  "yuan_fire_rose": `${PROD_PATH}fire/Damask%20Rose%20Aureate.png${CACHE_V}`,
-  "yuan_fire_ylang": `${PROD_PATH}fire/Ylang%20Equatorial.png${CACHE_V}`,
-  "yuan_fire_jasmine": `${PROD_PATH}fire/Jasminum%20Grandiflorum.png${CACHE_V}`,
-  "yuan_fire_neroli": `${PROD_PATH}fire/Neroli%20Soleil.png${CACHE_V}`,
-  "yuan_fire_geranium": `${PROD_PATH}fire/Geranium%20Ros%C3%A9.png${CACHE_V}`,
+  // 元 · 火 系列 (Fire) - 改为 .webp
+  "yuan_fire_rose": `${PROD_PATH}fire/Damask%20Rose%20Aureate.webp${CACHE_V}`,
+  "yuan_fire_ylang": `${PROD_PATH}fire/Ylang%20Equatorial.webp${CACHE_V}`,
+  "yuan_fire_jasmine": `${PROD_PATH}fire/Jasminum%20Grandiflorum.webp${CACHE_V}`,
+  "yuan_fire_neroli": `${PROD_PATH}fire/Neroli%20Soleil.webp${CACHE_V}`,
+  "yuan_fire_geranium": `${PROD_PATH}fire/Geranium%20Ros%C3%A9.webp${CACHE_V}`,
 
-  // 和 · 身 系列 (Harmony Body) - 修正命名与路径
-  "he_body_1": `${PROD_PATH}body/cloud%20velvet.png${CACHE_V}`,
-  "he_body_2": `${PROD_PATH}body/Dawn%20Glow.png${CACHE_V}`,
-  "he_body_3": `${PROD_PATH}body/Moonlight%20Oil.png${CACHE_V}`,
-  "he_body_4": `${PROD_PATH}body/Frost%20Mint.png${CACHE_V}`,
-  "he_body_5": `${PROD_PATH}body/Trace%20Balm.png${CACHE_V}`,
+  // 和 · 身 系列 (Harmony Body) - 改为 .webp
+  "he_body_1": `${PROD_PATH}body/cloud%20velvet.webp${CACHE_V}`,
+  "he_body_2": `${PROD_PATH}body/Dawn%20Glow.webp${CACHE_V}`,
+  "he_body_3": `${PROD_PATH}body/Moonlight%20Oil.webp${CACHE_V}`,
+  "he_body_4": `${PROD_PATH}body/Frost%20Mint.webp${CACHE_V}`,
+  "he_body_5": `${PROD_PATH}body/Trace%20Balm.webp${CACHE_V}`,
 
-  // 境 · 场 系列 (Sanctuary Place)
-  "jing_field_3": `${PROD_PATH}place/Walnut.png${CACHE_V}`,
+  // 境 · 场 系列 (Sanctuary Place) - 改为 .webp
+  "jing_field_3": `${PROD_PATH}place/Walnut.webp${CACHE_V}`,
 };
 
 export const ASSETS = {
@@ -126,7 +126,7 @@ YUAN_DEFS.forEach((group) => {
 const HE_DEFS = [
   { g: '身 · 能量', slug: 'body', items: [{ n: '云感 · 玫瑰檀香润肤霜', e: 'Cloud Velvet' }, { n: '晨曦 · 葡萄柚生姜沐浴露', e: 'Dawn Glow' }, { n: '月华 · 依兰天竺葵身体油', e: 'Moonlight Oil' }, { n: '清冽 · 尤加利薄荷洗发水', e: 'Frost Mint' }, { n: '润迹 · 丝柏护手精华', e: 'Trace Balm' }] },
   { g: '心 · 疗愈', slug: 'mind', items: [{ n: '止语 · 薰衣草岩兰草喷雾', e: 'Silent Mist' }, { n: '归处 · 橙花佛手柑舒缓膏', e: 'Sanctuary' }, { n: '听泉 · 洋甘菊广藿香凝露', e: 'Zen Fountain' }, { n: '微光 · 茉莉红橘淡香氛', e: 'Glimmer' }, { n: '深吸 · 杜松子乳香清吸瓶', e: 'Deep Breath' }] },
-  { g: '灵 · 觉醒', slug: 'soul', items: [{ n: '无界 · 没药乳香冥想油', e: 'Boundless' }, { n: '悬浮 · 杜松雪松觉醒露', e: 'Floating' }, { n: '破晓 · 香蜂草滚珠精萃', e: 'Daybreak' }, { n: '空寂 · 橡木苔安息香香水', e: 'Void Moss' }, { n: '共振 · 檀香鼠尾草复方', e: 'Resonant' }] }
+  { g: '灵 · 觉醒', slug: 'soul', items: [{ n: '无界 · 没药乳香冥想油', e: 'Boundless' }, { n: '悬浮 · 杜松雪松觉醒露', e: 'Floating' }, { n: '破晓 · 香蜂草滚珠精萃', e: 'Daybreak' }, { n: '空寂 · 橡木苔安息香香水', e: 'Void Moss' }, { n: '共振 · 檀香鼠耳草复方', e: 'Resonant' }] }
 ];
 
 HE_DEFS.forEach((group) => {
