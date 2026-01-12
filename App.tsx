@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { 
-  Home, Map as MapIcon, Box, Activity, Search, Camera, Share2, Settings
+  Home, Map as MapIcon, Box, Activity, Camera, Share2, Settings
 } from 'lucide-react';
 import { ViewState, Category } from './types';
 import { DATABASE, DESTINATIONS, ASSETS } from './constants';
@@ -61,22 +61,25 @@ const App: React.FC = () => {
           className="pointer-events-auto cursor-pointer flex items-center gap-2 md:gap-4 group active:scale-95 transition-transform" 
           onClick={() => navigateToView('home')}
         >
-          <div className="relative w-10 h-10 md:w-16 md:h-16 overflow-hidden flex items-center justify-center">
-             <img src={ASSETS.logo} className="w-full h-full object-contain" alt="Unio" />
+          {/* Logo 优化：增加滤镜确保在各种背景下的融入感 */}
+          <div className="relative w-12 h-12 md:w-20 md:h-20 overflow-hidden flex items-center justify-center transition-all">
+             <img 
+                src={ASSETS.logo} 
+                className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] brightness-110 contrast-110" 
+                alt="Unio Logo" 
+             />
           </div>
-          <div className="flex flex-col items-start border-l border-black/10 pl-3 md:pl-4">
-             <span className="text-lg md:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.2em] md:tracking-[0.4em]">元香Unio</span>
-             <span className="text-[6px] md:text-[8px] opacity-30 mt-0.5 md:mt-1 uppercase tracking-[0.3em] font-bold italic">Unio Aroma</span>
+          <div className="flex flex-col items-start border-l border-black/10 pl-3 md:pl-5">
+             <span className="text-xl md:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.2em] md:tracking-[0.4em] text-readable-shadow">元香Unio</span>
+             <span className="text-[6px] md:text-[8px] opacity-40 mt-0.5 md:mt-1 uppercase tracking-[0.3em] font-bold italic text-readable-shadow">Unio Aroma</span>
           </div>
         </div>
         <div className="pointer-events-auto flex items-center gap-4 md:gap-12 text-black/40">
-           <button onClick={() => navigateToView('brand-studio')} className="p-3 rounded-full hover:bg-black/5 transition-colors hover:text-black/60 active:scale-90"><Settings size={18} /></button>
-           <button onClick={() => navigateToView('imagelab')} className={`text-[9px] md:text-sm tracking-[0.3em] uppercase font-bold flex items-center gap-2 active:scale-95 transition-colors hover:text-black ${view === 'imagelab' ? 'text-black' : ''}`}>
-             <Camera size={16} /><span className="hidden sm:inline">视觉实验室</span>
+           <button onClick={() => navigateToView('brand-studio')} className="p-3 rounded-full hover:bg-black/5 transition-colors hover:text-black/60 active:scale-90"><Settings size={20} /></button>
+           <button onClick={() => navigateToView('imagelab')} className={`text-[9px] md:text-sm tracking-[0.3em] uppercase font-bold flex items-center gap-2 active:scale-95 transition-colors hover:text-black ${view === 'imagelab' ? 'text-black font-extrabold' : ''}`}>
+             <Camera size={18} /><span className="hidden sm:inline">视觉实验室</span>
            </button>
-           <button onClick={() => navigateToView('oracle')} className={`text-[9px] md:text-sm tracking-[0.3em] uppercase font-bold flex items-center gap-2 active:scale-95 transition-colors hover:text-[#D75437] ${view === 'oracle' ? 'text-[#D75437]' : ''}`}>
-             <Activity size={16} /><span className="hidden sm:inline">感官祭坛</span>
-           </button>
+           {/* 右上角祭坛入口已移除，统一入口至下方浮动栏 */}
         </div>
       </nav>
 
@@ -93,24 +96,24 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* Floating Bottom Bar - 统一入口包含感官祭坛 */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[600] pointer-events-none w-full max-w-md px-4">
-        <div className="pointer-events-auto flex items-center justify-around glass px-8 py-4 rounded-full border border-black/5 shadow-2xl">
-          <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1 transition-colors ${view === 'home' ? 'text-[#D75437]' : 'text-black/30'}`}>
-            <Home size={22} />
-            <span className="text-[8px] font-bold uppercase tracking-widest">首页</span>
+      {/* Floating Bottom Bar */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[600] pointer-events-none w-full max-w-lg px-4">
+        <div className="pointer-events-auto flex items-center justify-around glass px-10 py-5 rounded-full border border-black/5 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+          <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'home' ? 'text-[#D75437] scale-110' : 'text-black/25 hover:text-black/50'}`}>
+            <Home size={24} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">首页</span>
           </button>
-          <button onClick={() => setView('atlas')} className={`flex flex-col items-center gap-1 transition-colors ${view === 'atlas' || view === 'china-atlas' ? 'text-[#D75437]' : 'text-black/30'}`}>
-            <MapIcon size={22} />
-            <span className="text-[8px] font-bold uppercase tracking-widest">寻香</span>
+          <button onClick={() => setView('atlas')} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'atlas' || view === 'china-atlas' ? 'text-[#D75437] scale-110' : 'text-black/25 hover:text-black/50'}`}>
+            <MapIcon size={24} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">寻香</span>
           </button>
-          <button onClick={() => navigateToView('collections', filter)} className={`flex flex-col items-center gap-1 transition-colors ${view === 'collections' ? 'text-[#D75437]' : 'text-black/30'}`}>
-            <Box size={22} />
-            <span className="text-[8px] font-bold uppercase tracking-widest">产品</span>
+          <button onClick={() => navigateToView('collections', filter)} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'collections' ? 'text-[#D75437] scale-110' : 'text-black/25 hover:text-black/50'}`}>
+            <Box size={24} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">产品</span>
           </button>
-          <button onClick={() => setView('oracle')} className={`flex flex-col items-center gap-1 transition-colors ${view === 'oracle' ? 'text-[#D75437]' : 'text-black/30'}`}>
-            <Activity size={22} />
-            <span className="text-[8px] font-bold uppercase tracking-widest">祭坛</span>
+          <button onClick={() => setView('oracle')} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'oracle' ? 'text-[#D75437] scale-110' : 'text-black/25 hover:text-black/50'}`}>
+            <Activity size={24} />
+            <span className="text-[9px] font-bold uppercase tracking-widest">祭司</span>
           </button>
         </div>
       </div>
