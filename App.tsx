@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
-import { 
-  Home, Map as MapIcon, Box, Activity, Camera, Share2, Settings
-} from 'lucide-react';
-import { ViewState, Category } from './types.ts';
-import { DATABASE, DESTINATIONS, ASSETS } from './constants.tsx';
-import HomeView from './components/HomeView.tsx';
-import CollectionsView from './components/CollectionsView.tsx';
-import AtlasView from './components/AtlasView.tsx';
-import ChinaAtlasView from './components/ChinaAtlasView.tsx';
-import OracleView from './components/OracleView.tsx';
-import ProductDetail from './components/ProductDetail.tsx';
-import DestinationView from './components/DestinationView.tsx';
-import ImageLabView from './components/ImageLabView.tsx';
-import BrandDashboard from './components/BrandDashboard.tsx';
+import React, { useState, useEffect } from 'react';
+import { Home, Map as MapIcon, Box, Activity, Camera, Share2, Settings, X } from 'lucide-react';
+import { ViewState, Category } from './types';
+import { DATABASE, DESTINATIONS, ASSETS } from './constants';
+import HomeView from './components/HomeView';
+import CollectionsView from './components/CollectionsView';
+import AtlasView from './components/AtlasView';
+import ChinaAtlasView from './components/ChinaAtlasView';
+import OracleView from './components/OracleView';
+import ProductDetail from './components/ProductDetail';
+import DestinationView from './components/DestinationView';
+import ImageLabView from './components/ImageLabView';
+import BrandDashboard from './components/BrandDashboard';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('home');
@@ -20,6 +18,7 @@ const App: React.FC = () => {
   const [filter, setFilter] = useState<Category>('yuan');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDestId, setSelectedDestId] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(false);
 
   const navigateToView = (v: ViewState, cat?: Category) => {
     setPrevView(view);
@@ -28,61 +27,76 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleLogoClick = () => {
+    // 品牌瞬间：全屏展示大 Logo
+    setShowSplash(true);
+    // 2秒后重置状态并导航至首页
+    setTimeout(() => {
+      setShowSplash(false);
+      navigateToView('home');
+    }, 2000);
+  };
+
   const handleSelectProduct = (id: string) => {
     setPrevView(view);
     setSelectedId(id);
     setView('product');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSelectDest = (id: string) => {
     setPrevView(view);
     setSelectedDestId(id);
     setView('destination');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen relative bg-[#F5F5F5] selection:bg-[#D75437] selection:text-white overflow-x-hidden">
-      
-      {/* 全局小红书社区入口 */}
-      <button 
-        onClick={() => window.open(ASSETS.xhs_link, '_blank')}
-        className="fixed right-6 bottom-32 z-[700] p-4 bg-[#D75437] text-white rounded-full shadow-[0_15px_40px_rgba(215,84,55,0.4)] hover:scale-110 active:scale-95 transition-all flex items-center justify-center group"
-      >
-        <Share2 size={24} />
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-3 transition-all duration-500 whitespace-nowrap text-[10px] font-bold tracking-[0.2em] uppercase">Rednote Community</span>
-      </button>
-
-      {/* 顶部导航栏：视觉优化 */}
-      <nav className="fixed top-0 left-0 w-full px-4 md:px-20 py-4 md:py-8 flex justify-between items-center z-[500] pointer-events-none">
-        <div 
-          className="pointer-events-auto cursor-pointer flex items-center gap-3 md:gap-5 group active:scale-95 transition-all" 
-          onClick={() => navigateToView('home')}
-        >
-          {/* Logo 容器：通过微弱的底色和强阴影确保在深色背景下不被淹没 */}
-          <div className="relative w-12 h-12 md:w-20 md:h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.15)] group-hover:bg-white/20 transition-all border border-white/10">
-             <img 
-                src={ASSETS.logo} 
-                className="w-[85%] h-[85%] object-contain logo-glow" 
-                alt="Unio Logo" 
-             />
+    <div className="min-h-screen relative bg-[#F5F5F5] selection:bg-[#D75437] selection:text-white">
+      {/* 品牌瞬间 Overlay (Splash Screen) */}
+      {showSplash && (
+        <div className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center animate-in fade-in duration-700 overflow-hidden">
+          {/* 背景装饰：极简纹理或虚化 */}
+          <div className="absolute inset-0 opacity-5 pointer-events-none">
+             <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D75437] via-transparent to-transparent" />
           </div>
-          <div className="flex flex-col items-start border-l border-white/20 pl-4 md:pl-6">
-             <span className="text-xl md:text-3xl font-serif-zh font-bold text-white md:text-black tracking-[0.2em] md:tracking-[0.4em] text-readable-shadow drop-shadow-md">元香Unio</span>
-             <span className="text-[6px] md:text-[9px] opacity-60 mt-1 uppercase tracking-[0.3em] font-bold italic text-white md:text-black text-readable-shadow">Unio Aroma</span>
+          
+          <div className="relative flex flex-col items-center animate-in zoom-in duration-1000">
+            <div className="w-48 h-48 md:w-80 md:h-80 transition-transform duration-[2000ms] scale-110">
+              <img src={ASSETS.logo} className="w-full h-full object-contain filter drop-shadow-2xl" alt="Unio Sanctuary Moment" />
+            </div>
+            <div className="mt-16 text-center space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+              <h2 className="text-4xl md:text-7xl font-serif-zh font-bold tracking-[0.8em] text-[#2C3E28] ml-[0.8em]">元香 unio</h2>
+              <div className="h-px w-24 md:w-64 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-30" />
+              <p className="text-[10px] md:text-sm tracking-[0.5em] uppercase opacity-40 font-bold">Original Harmony Sanctuary</p>
+            </div>
           </div>
         </div>
-        
-        <div className="pointer-events-auto flex items-center gap-4 md:gap-10 text-white md:text-black/40">
-           <button onClick={() => navigateToView('brand-studio')} className="p-3 rounded-full hover:bg-black/5 transition-colors hover:text-black active:scale-90"><Settings size={20} /></button>
-           <button onClick={() => navigateToView('imagelab')} className={`text-[9px] md:text-sm tracking-[0.3em] uppercase font-bold flex items-center gap-2 active:scale-95 transition-colors hover:text-black ${view === 'imagelab' ? 'text-black font-extrabold' : ''}`}>
-             <Camera size={18} /><span className="hidden sm:inline">视觉实验室</span>
-           </button>
+      )}
+
+      {/* 社区入口 */}
+      <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="fixed right-6 bottom-32 z-[700] p-4 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all group">
+        <Share2 size={24} />
+      </button>
+
+      {/* 顶部主导航 */}
+      <nav className="fixed top-0 left-0 w-full px-6 md:px-20 py-6 md:py-10 flex justify-between items-center z-[500] pointer-events-none">
+        <div 
+          className="pointer-events-auto cursor-pointer flex items-center gap-4 group" 
+          onClick={handleLogoClick}
+        >
+          <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center p-1 md:p-2 glass rounded-full border border-black/5 hover:scale-110 transition-transform active:scale-90 shadow-lg overflow-hidden">
+             <img src={ASSETS.logo} className="w-full h-full object-contain" alt="Unio Logo" />
+          </div>
+          <div className="flex flex-col border-l border-black/20 pl-4">
+             <span className="text-xl md:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.4em] group-hover:text-[#D75437] transition-colors">元香</span>
+             <span className="text-[6px] md:text-[8px] opacity-30 uppercase tracking-[0.3em] font-bold">unio Sanctuary</span>
+          </div>
+        </div>
+        <div className="pointer-events-auto flex items-center gap-4 md:gap-10">
+           <button onClick={() => navigateToView('brand-studio')} className="p-2 text-black/10 hover:text-black/60"><Settings size={18} /></button>
+           <button onClick={() => navigateToView('imagelab')} className="text-[9px] md:text-sm tracking-[0.3em] font-bold flex items-center gap-2 uppercase hover:text-[#D75437] transition-colors"><Camera size={16} /><span className="hidden sm:inline text-readable-shadow text-white/90">视觉实验室</span></button>
         </div>
       </nav>
 
-      {/* 视图层 */}
       <main className="relative z-10 min-h-screen">
         {view === 'home' && <HomeView setView={navigateToView} setFilter={setFilter} />}
         {view === 'collections' && <CollectionsView filter={filter} setFilter={setFilter} onSelect={handleSelectProduct} setView={navigateToView} />}
@@ -95,25 +109,13 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* 底部控制台 */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[600] pointer-events-none w-full max-w-lg px-4">
-        <div className="pointer-events-auto flex items-center justify-around glass px-10 py-5 rounded-full border border-black/5 shadow-[0_30px_70px_rgba(0,0,0,0.15)]">
-          <button onClick={() => setView('home')} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'home' ? 'text-[#D75437] scale-110' : 'text-black/30 hover:text-black/60'}`}>
-            <Home size={24} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">首页</span>
-          </button>
-          <button onClick={() => setView('atlas')} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'atlas' || view === 'china-atlas' ? 'text-[#D75437] scale-110' : 'text-black/30 hover:text-black/60'}`}>
-            <MapIcon size={24} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">寻香</span>
-          </button>
-          <button onClick={() => navigateToView('collections', filter)} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'collections' ? 'text-[#D75437] scale-110' : 'text-black/30 hover:text-black/60'}`}>
-            <Box size={24} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">产品</span>
-          </button>
-          <button onClick={() => setView('oracle')} className={`flex flex-col items-center gap-1.5 transition-all ${view === 'oracle' ? 'text-[#D75437] scale-110' : 'text-black/30 hover:text-black/60'}`}>
-            <Activity size={24} />
-            <span className="text-[9px] font-bold uppercase tracking-widest">祭司</span>
-          </button>
+      {/* 底部悬浮操控条 */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[600] pointer-events-none w-full max-w-sm px-4">
+        <div className="pointer-events-auto flex items-center justify-around glass px-4 py-3 rounded-full border border-black/5 shadow-2xl">
+          <button onClick={() => navigateToView('home')} className={`p-3 transition-colors ${view === 'home' ? 'text-[#D75437]' : 'text-black/30'}`}><Home size={22} /></button>
+          <button onClick={() => navigateToView('atlas')} className={`p-3 transition-colors ${view === 'atlas' || view === 'china-atlas' ? 'text-[#D75437]' : 'text-black/30'}`}><MapIcon size={22} /></button>
+          <button onClick={() => navigateToView('collections')} className={`p-3 transition-colors ${view === 'collections' ? 'text-[#D75437]' : 'text-black/30'}`}><Box size={22} /></button>
+          <button onClick={() => navigateToView('oracle')} className={`p-3 transition-colors ${view === 'oracle' ? 'text-[#D75437]' : 'text-black/30'}`}><Activity size={22} /></button>
         </div>
       </div>
     </div>
