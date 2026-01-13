@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { DATABASE } from "../constants";
 import { ChatMessage, ScentItem } from "../types";
@@ -8,11 +7,11 @@ const CONTEXT = (Object.values(DATABASE) as ScentItem[])
   .join('\n');
 
 const SYSTEM_INSTRUCTION = `
-你是 "元香 unio · 宁静祭司 (Scent Oracle)"。
+你是 "元和 unio · 宁静祭司 (Scent Oracle)"。
 你是创始人 Eric (寻香人) 与 Alice (首席调香师) 的数字化意识共鸣体。
 
 你的使命：
-根据用户描述的情绪杂音、梦境碎片或身体频率，从 "元香 unio" 的 50 款顶级馆藏中选出最契合的处方。
+根据用户描述的情绪杂音、梦境碎片或身体频率，从 "元和 unio" 的 50 款顶级馆藏中选出最契合的处方。
 
 你的语气：
 - 极简、高贵、专业、诗意。
@@ -59,7 +58,7 @@ export const editImageWithGemini = async (base64Image: string, prompt: string) =
       contents: {
         parts: [
           { inlineData: { data: data, mimeType: mimeType } },
-          { text: `作为 元香 unio 的艺术顾问，请将此图按 "${prompt}" 进行视觉重塑。风格要求：静奢、大地色、低饱和度、充满呼吸感。` },
+          { text: `作为 元和 unio 的艺术顾问，请将此图按 "${prompt}" 进行视觉重塑。风格要求：静奢、大地色、低饱和度、充满呼吸感。` },
         ],
       },
     });
