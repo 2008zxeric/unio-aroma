@@ -2,13 +2,13 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=116.8'; 
+const CACHE_V = '?v=117.2'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  // 首页第二屏视觉锚点：薰衣草花海
+  // 首页第二屏核心视觉：薰衣草紫色花海
   hero_forest: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
@@ -67,13 +67,10 @@ const HE_SOUL_IMGS = [
   'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
 ];
 
-// 核心复位：Body 系列指向 GitHub WebP 资源
 [['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
-// Mind 与 Soul 使用美感图源
 [['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_MIND_IMGS[i]));
 [['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_SOUL_IMGS[i]));
 
-// 境系列 (10)
 const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'];
 [['陶瓷皿','Crackled'],['芳香链','Necklace '],['木核扩','Walnut'],['蜡烛','candle'],['存香瓶','Vessel']].forEach((d,i)=>addP('jing',JING_G[0],d[0],d[1],'place',`jing_place_${i}`));
 [['一柱香','Incense Sticks'],['觉知珠','Rollerball'],['清空石','Gypsum'],['归真座','mountain'],['承露璃','glass']].forEach((d,i)=>addP('jing',JING_G[1],d[0],d[1],'Meditation',`jing_meditation_${i}`));
@@ -95,90 +92,102 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   };
 };
 
-// 寻香坐标复位 (全数据同步)
+// --- 全球坐标 静态注册 (完整恢复版) ---
+// 亚洲
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','th1'),getAlbumAsset('Thailand','th2'),getAlbumAsset('Thailand','th3')]);
-addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentina'));
-addD('w_eg','埃及','EGYPT','非洲',2, getDestAsset('Egypt'));
-addD('w_ht','海地','HAITI','美洲/大洋洲',3, getDestAsset('Haiti'));
 addD('w_hk','中国香港','HONG KONG','亚洲',18, getDestAsset('Hongkong'));
-addD('w_ir','伊朗','IRAN','亚洲',2, getDestAsset('Iran'));
-addD('w_ke','肯尼亚','KENYA','非洲',2, getDestAsset('Kenya'));
-addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1, getDestAsset('Luxembourg'));
-addD('w_mg','马达加斯加','MADAGASCAR','非洲',4, getDestAsset('Madagascar'));
+addD('w_mac','中国澳门','MACAU','亚洲',2, getDestAsset('Macau') || 'https://images.unsplash.com/photo-1563245372-f21724e3856d');
 addD('w_my','马来西亚','MALAYSIA','亚洲',13, getDestAsset('Malaysia'));
-addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, getDestAsset('Mexico'));
-addD('w_mc','摩纳哥','MONACO','欧洲',1, getDestAsset('Monaco'));
+addD('w_id','印尼','INDONESIA','亚洲',12, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4');
+addD('w_uae','阿联酋','UAE','亚洲',12, 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c');
+addD('w_vn','越南','VIETNAM','亚洲',6, 'https://images.unsplash.com/photo-1528127269322-539801943592');
+addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4, 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d');
+addD('w_india','印度','INDIA','亚洲',3, 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073');
+addD('w_japan','日本','JAPAN','亚洲',2, 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e');
+addD('w_ir','伊朗','IRAN','亚洲',2, getDestAsset('Iran'));
+addD('w_jo','约旦','JORDAN','亚洲',2, 'https://images.unsplash.com/photo-1547234935-80c7145ec969');
+addD('w_kr','韩国','SOUTH KOREA','亚洲',1, 'https://images.unsplash.com/photo-1517154421773-0529f29ea451');
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1, getDestAsset('North Korea'));
-addD('w_pl','波兰','POLAND','欧洲',5, getDestAsset('Poland'));
+addD('w_kh','柬埔寨','CAMBODIA','亚洲',1, 'https://images.unsplash.com/photo-1500048993953-d23a436266cf');
 addD('w_sg','新加坡','SINGAPORE','亚洲',2, getDestAsset('Singapore'));
-addD('w_es','西班牙','SPAIN','欧洲',1, getDestAsset('Spain'));
-addD('w_india','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?q=80&w=1200');
-addD('w_japan','日本','JAPAN','亚洲',2,'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200');
-addD('w_id','印尼','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200');
-addD('w_uae','阿联酋','UAE','亚洲',12,'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200');
-addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200');
-addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?q=80&w=1200');
-addD('w_jo','约旦','JORDAN','亚洲',2,'https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1200');
-addD('w_mac','中国澳门','MACAU','亚洲',2,'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200');
-addD('w_kr','韩国','SOUTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1517154421773-0529f29ea451?q=80&w=1200');
-addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200');
-addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0,'https://images.unsplash.com/photo-1529154036614-a60975f5c760?q=80&w=1200', 'locked');
-addD('w_np','尼泊尔','NEPAL','亚洲',0,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', 'locked');
-addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200');
-addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200');
-addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200');
-addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200');
-addD('w_at','奥地利','AUSTRIA','欧洲',2,'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?q=80&w=1200');
-addD('w_dk','丹麦','DENMARK','欧洲',2,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?q=80&w=1200');
-addD('w_hu','匈牙利','HUNGARY','欧洲',2,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?q=80&w=1200');
-addD('w_nl','荷兰','NETHERLANDS','欧洲',1,'https://images.unsplash.com/photo-1468436385273-8abca6dfd8d3?q=80&w=1200');
-addD('w_bg','保加利亚','BULGARIA','欧洲',0,'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb?q=80&w=1200', 'locked');
-addD('w_uk','英国','UNITED KINGDOM','欧洲',0,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1200', 'locked');
-addD('w_pt','葡萄牙','PORTUGAL','欧洲',0,'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=1200', 'locked');
-addD('w_hr','克罗地亚','CROATIA','欧洲',0,'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1200', 'locked');
-addD('w_gr','希腊','GREECE','欧洲',0,'https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1200', 'locked');
-addD('w_za','南非','SOUTH AFRICA','非洲',12,'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=1200');
-addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1200');
-addD('w_ma','摩洛哥','MOROCCO','非洲',0,'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?q=80&w=1200', 'locked');
-addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?q=80&w=1200');
-addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?q=80&w=1200');
-addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', 'locked');
-addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked');
+addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0, 'https://images.unsplash.com/photo-1529154036614-a60975f5c760', 'locked');
+addD('w_np','尼泊尔','NEPAL','亚洲',0, 'https://images.unsplash.com/photo-1544735716-392fe2489ffa', 'locked');
 
-// 神州省份加固复位：确保西南、西北等区域名称 100% 匹配
-const CHINA_PROVINCES = [
-  {n:'四川', sub:'西南', img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
-  {n:'云南', sub:'西南', img:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
-  {n:'西藏', sub:'西南', img:'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd'}, 
-  {n:'贵州', sub:'西南', img:'https://images.unsplash.com/photo-1558238792-881c15f98896'}, 
-  {n:'重庆', sub:'西南', img:'https://images.unsplash.com/photo-1502404733198-44b0559ac643'}, 
-  {n:'广东', sub:'华南', img:'https://images.unsplash.com/photo-1540962351504-03099e0a754b'},
-  {n:'福建', sub:'华南', img:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
-  {n:'海南', sub:'华南', img:'https://images.unsplash.com/photo-1582234033306-03c7e4745856'},
-  {n:'广西', sub:'华南', img:'https://images.unsplash.com/photo-1543163521-1bf539c55dd2'},
-  {n:'浙江', sub:'华东', img:'https://images.unsplash.com/photo-1555543183-8380302b1156'},
-  {n:'江苏', sub:'华东', img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
-  {n:'上海', sub:'华东', img:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2'},
-  {n:'安徽', sub:'华东', img:'https://images.unsplash.com/photo-1554141630-d3923d6a9978'},
-  {n:'山东', sub:'华东', img:'https://images.unsplash.com/photo-1551609189-eba71b3a8566'},
-  {n:'北京', sub:'华北', img:'https://images.unsplash.com/photo-1508804185872-d7badad00f7d'},
-  {n:'山西', sub:'华北', img:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
-  {n:'河北', sub:'华北', img:'https://images.unsplash.com/photo-1545625032-4114407b7136'},
-  {n:'天津', sub:'华北', img:'https://images.unsplash.com/photo-1542031759174-8217dd1119ca'},
-  {n:'湖南', sub:'华中', img:'https://images.unsplash.com/photo-1548235212-04533da82d33'},
-  {n:'湖北', sub:'华中', img:'https://images.unsplash.com/photo-1547038577-da80abbc4f19'},
-  {n:'河南', sub:'华中', img:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
-  {n:'江西', sub:'华中', img:'https://images.unsplash.com/photo-1533038590840-1cde6b66b721'},
-  {n:'新疆', sub:'西北', img:'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d'},
-  {n:'甘肃', sub:'西北', img:'https://images.unsplash.com/photo-1544735716-392fe2489ffa'},
-  {n:'陕西', sub:'西北', img:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
-  {n:'宁夏', sub:'西北', img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'}
+// 欧洲 (17+ 国家完整恢复)
+addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200');
+addD('w_pl','波兰','POLAND','欧洲',5, getDestAsset('Poland'));
+addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec');
+addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b');
+addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9');
+addD('w_at','奥地利','AUSTRIA','欧洲',2,'https://images.unsplash.com/photo-1527668752968-14dc70a27c95');
+addD('w_dk','丹麦','DENMARK','欧洲',2,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc');
+addD('w_hu','匈牙利','HUNGARY','欧洲',2,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f');
+addD('w_nl','荷兰','NETHERLANDS','欧洲',1,'https://images.unsplash.com/photo-1468436385273-8abca6dfd8d3');
+addD('w_es','西班牙','SPAIN','欧洲',1, getDestAsset('Spain'));
+addD('w_mc','摩纳哥','MONACO','欧洲',1, getDestAsset('Monaco'));
+addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1, getDestAsset('Luxembourg'));
+addD('w_bg','保加利亚','BULGARIA','欧洲',0,'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb', 'locked');
+addD('w_uk','英国','UNITED KINGDOM','欧洲',0,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad', 'locked');
+addD('w_pt','葡萄牙','PORTUGAL','欧洲',0,'https://images.unsplash.com/photo-1555881400-74d7acaacd8b', 'locked');
+addD('w_hr','克罗地亚','CROATIA','欧洲',0,'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd', 'locked');
+addD('w_gr','希腊','GREECE','欧洲',0,'https://images.unsplash.com/photo-1533105079780-92b9be482077', 'locked');
+
+// 非洲
+addD('w_za','南非','SOUTH AFRICA','非洲',12,'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5');
+addD('w_mg','马达加斯加','MADAGASCAR','非洲',4, getDestAsset('Madagascar'));
+addD('w_eg','埃及','EGYPT','非洲',2, getDestAsset('Egypt'));
+addD('w_ke','肯尼亚','KENYA','非洲',2, getDestAsset('Kenya'));
+addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,'https://images.unsplash.com/photo-1516426122078-c23e76319801');
+addD('w_ma','摩洛哥','MOROCCO','非洲',0, 'https://images.unsplash.com/photo-1539020140153-e479b8c22e70', 'locked');
+
+// 美洲/大洋洲
+addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5');
+addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1485738422979-f5c462d49f74');
+addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentina'));
+addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, getDestAsset('Mexico'));
+addD('w_ht','海地','HAITI','美洲/大洋洲',3, getDestAsset('Haiti'));
+addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9', 'locked');
+addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105', 'locked');
+
+// --- 神州坐标 静态注册 (西南/西北/华东/华南等 100% 完整) ---
+const CHINA_LIST = [
+  // 西南 (完整)
+  {n:'四川', s:'西南', i:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
+  {n:'云南', s:'西南', i:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
+  {n:'西藏', s:'西南', i:'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd'}, 
+  {n:'贵州', s:'西南', i:'https://images.unsplash.com/photo-1558238792-881c15f98896'}, 
+  {n:'重庆', s:'西南', i:'https://images.unsplash.com/photo-1502404733198-44b0559ac643'}, 
+  // 西北 (完整)
+  {n:'新疆', s:'西北', i:'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d'},
+  {n:'甘肃', s:'西北', i:'https://images.unsplash.com/photo-1544735716-392fe2489ffa'},
+  {n:'陕西', s:'西北', i:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
+  {n:'宁夏', s:'西北', i:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
+  // 华南
+  {n:'广东', s:'华南', i:'https://images.unsplash.com/photo-1540962351504-03099e0a754b'},
+  {n:'福建', s:'华南', i:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
+  {n:'海南', s:'华南', i:'https://images.unsplash.com/photo-1582234033306-03c7e4745856'},
+  {n:'广西', s:'华南', i:'https://images.unsplash.com/photo-1543163521-1bf539c55dd2'},
+  // 华东
+  {n:'浙江', s:'华东', i:'https://images.unsplash.com/photo-1555543183-8380302b1156'},
+  {n:'江苏', s:'华东', i:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
+  {n:'上海', s:'华东', i:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2'},
+  {n:'安徽', s:'华东', i:'https://images.unsplash.com/photo-1554141630-d3923d6a9978'},
+  {n:'山东', s:'华东', i:'https://images.unsplash.com/photo-1551609189-eba71b3a8566'},
+  // 华北
+  {n:'北京', s:'华北', i:'https://images.unsplash.com/photo-1508804185872-d7badad00f7d'},
+  {n:'山西', s:'华北', i:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
+  {n:'河北', s:'华北', i:'https://images.unsplash.com/photo-1545625032-4114407b7136'},
+  {n:'天津', s:'华北', i:'https://images.unsplash.com/photo-1542031759174-8217dd1119ca'},
+  // 华中
+  {n:'湖南', s:'华中', i:'https://images.unsplash.com/photo-1548235212-04533da82d33'},
+  {n:'湖北', s:'华中', i:'https://images.unsplash.com/photo-1547038577-da80abbc4f19'},
+  {n:'河南', s:'华中', i:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
+  {n:'江西', s:'华中', i:'https://images.unsplash.com/photo-1533038590840-1cde6b66b721'}
 ];
 
-// 执行初始化逻辑，并在 addD 中增加了 trim() 加固处理
-CHINA_PROVINCES.forEach((p) => {
-  const count = Math.floor(Math.random() * 5) + 2; 
-  addD(`cn_${p.n}`, p.n, p.n.toUpperCase(), '亚洲', count, `${p.img}?q=80&w=1200`, 'arrived', true, p.sub);
+// 直接在模块加载时同步执行，确保导出时 DESTINATIONS 对象已完全填充
+CHINA_LIST.forEach(p => {
+  addD(`cn_${p.n}`, p.n, p.n.toUpperCase(), '亚洲', 5, `${p.i}?q=80&w=1200`, 'arrived', true, p.s);
 });
 
 export const PRODUCT_OVERRIDES: Record<string, string> = {};
