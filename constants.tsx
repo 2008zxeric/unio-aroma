@@ -2,7 +2,7 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=110.6'; 
+const CACHE_V = '?v=110.9'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
@@ -56,116 +56,113 @@ const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'
 [['一柱香','Incense Sticks'],['觉知珠','Rollerball'],['清空石','Gypsum'],['归真座','mountain'],['承露璃','glass']].forEach((d,i)=>addP('jing',JING_G[1],d[0],d[1],'Meditation',`jing_meditation_${i}`));
 
 /**
- * 2. 全球寻香坐标 (50+ 节点) - 核心地理档案
+ * 2. 全球寻香坐标 (50+ 节点)
  */
 export const DESTINATIONS: Record<string, Destination> = {};
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, herbInfo:string='极境原生分子')=>{
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: herbInfo, knowledge:'已存入元香寻香库', productIds:[], isChinaProvince:isCN, subRegion:sub,
-    ericDiary:`寻香第 ${c} 次来到此地。空气中弥漫着${herbInfo}的生命意志。`, aliceDiary:`GC/MS 分析显示此处的植物分子结构极其稳定，极境特征显著。`, memoryPhotos:[img,img,img]
+    ericDiary:`寻香拾载，第 ${c} 次来到此地。空气中弥漫着${n}独有的生命意志，这是极境进化的回响。`, 
+    aliceDiary:`实验室档案：此坐标采集的${n}分子结构呈现出罕见的稳定性。`, memoryPhotos:[img, img, img]
   };
 };
 
-// --- 亚洲 (ASIA) ---
-addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1508010064963-d7168d370177?q=80&w=1200', 'arrived', false, '', '安息香、罗勒、香茅等热带香料');
-addD('w_india','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?q=80&w=1200', 'arrived', false, '', '岩兰草（东印度檀香）、茉莉、檀香');
+// --- 全球版图重构 (高精视觉匹配) ---
+addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', 'arrived', false, '', '安息香、罗勒、香茅');
+addD('w_india','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?q=80&w=1200', 'arrived', false, '', '岩兰草、茉莉、檀香');
 addD('w_japan','日本','JAPAN','亚洲',2,'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200', 'arrived', false, '', '桧木、柚子、扁柏');
-addD('w_hk','中国香港','HONG KONG','亚洲',18,'https://images.unsplash.com/photo-1506353301451-4ae50907c3ff?q=80&w=1200', 'arrived', false, '', '重要的芳香贸易与调香中心');
-addD('w_my','马来西亚','MALAYSIA','亚洲',13,'https://images.unsplash.com/photo-1528181304800-2f140819898f?q=80&w=1200', 'arrived', false, '', '安息香、沉香');
+addD('w_hk','中国香港','HONG KONG','亚洲',18,'https://images.unsplash.com/photo-1506353301451-4ae50907c3ff?q=80&w=1200', 'arrived', false, '', '国际调香贸易枢纽');
+addD('w_my','马来西亚','MALAYSIA','亚洲',13,'https://images.unsplash.com/photo-1528181304800-2f140819898f?q=80&w=1200', 'arrived', false, '', '安息香、顶级沉香');
 addD('w_id','印尼','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200', 'arrived', false, '', '广藿香、丁香、肉豆蔻');
-addD('w_uae','阿联酋','UAE','亚洲',12,'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200', 'arrived', false, '', '没药、干旱地区特色精油植物');
-addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', 'arrived', false, '', '安息香、沉香');
-addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?q=80&w=1200', 'arrived', false, '', '当地特色植物、草原草药');
-addD('w_ir','伊朗','IRAN','亚洲',2,'https://images.unsplash.com/photo-1566416410552-8777730e625a?q=80&w=1200', 'arrived', false, '', '藏红花、玫瑰');
-addD('w_jo','约旦','JORDAN','亚洲',2,'https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1200', 'arrived', false, '', '极境干旱植物');
-addD('w_mac','中国澳门','MACAU','亚洲',2,'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200', 'arrived', false, '', '芳香文化与贸易节点');
-addD('w_sg','新加坡','SINGAPORE','亚洲',2,'https://images.unsplash.com/photo-1525625239513-94c9da7f6a2f?q=80&w=1200', 'arrived', false, '', '东南亚芳香枢纽');
-addD('w_kr','韩国','SOUTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1517154421773-0529f29ea451?q=80&w=1200', 'arrived', false, '', '松针、竹子、柑橘');
-addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200', 'arrived', false, '', '香茅、卡南加（伊兰伊兰近缘种）');
-addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1558981403-c5f91cbba527?q=80&w=1200', 'arrived', false, '', '高寒地带特色植物');
-addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0,'https://images.unsplash.com/photo-1529154036614-a60975f5c760?q=80&w=1200', 'locked', false, '', '肉桂（品质闻名）、柠檬草、胡椒');
-addD('w_np','尼泊尔','NEPAL','亚洲',0,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', 'locked', false, '', '喜马拉雅雪松、冬青、穗甘松');
-
-// --- 欧洲 (EUROPE) ---
-addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200', 'arrived', false, '', '玫瑰、月桂');
-addD('w_pl','波兰','POLAND','欧洲',5,'https://images.unsplash.com/photo-1519197924294-119542bf1421?q=80&w=1200', 'arrived', false, '', '东欧特色芳香植物');
-addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', 'arrived', false, '', '格拉斯（玫瑰、茉莉、薰衣草）');
-addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200', 'arrived', false, '', '洋甘菊、草药提取技术');
-addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', 'arrived', false, '', '柠檬（卡拉布里亚）、迷迭香、鼠尾草');
-addD('w_at','奥地利','AUSTRIA','欧洲',2,'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?q=80&w=1200', 'arrived', false, '', '阿尔卑斯高山植物');
-addD('w_dk','丹麦','DENMARK','欧洲',2,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?q=80&w=1200', 'arrived', false, '', '北欧特色苔藓与地衣');
+addD('w_uae','阿联酋','UAE','亚洲',12,'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200', 'arrived', false, '', '没药、乳香、干旱植物');
+addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', 'arrived', false, '', '沉香、安息香');
+addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?q=80&w=1200', 'arrived', false, '', '极境高寒草原特色植物');
+addD('w_ir','伊朗','IRAN','亚洲',2,'https://images.unsplash.com/photo-1566416410552-8777730e625a?q=80&w=1200', 'arrived', false, '', '藏红花、极品玫瑰');
+addD('w_jo','约旦','JORDAN','亚洲',2,'https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1200', 'arrived', false, '', '死海极地植物');
+addD('w_mac','中国澳门','MACAU','亚洲',2,'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200', 'arrived', false, '', '寻香贸易节点');
+addD('w_sg','新加坡','SINGAPORE','亚洲',2,'https://images.unsplash.com/photo-1525625239513-94c9da7f6a2f?q=80&w=1200', 'arrived', false, '', '东南亚芳香核心');
+addD('w_kr','韩国','SOUTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1517154421773-0529f29ea451?q=80&w=1200', 'arrived', false, '', '松针、竹子');
+addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200', 'arrived', false, '', '卡南加、香茅');
+addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1558981403-c5f91cbba527?q=80&w=1200', 'arrived', false, '', '极北高寒特色本草');
+addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0,'https://images.unsplash.com/photo-1529154036614-a60975f5c760?q=80&w=1200', 'locked', false, '', '顶级肉桂、柠檬草');
+addD('w_np','尼泊尔','NEPAL','亚洲',0,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', 'locked', false, '', '喜马拉雅雪松');
+addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200', 'arrived', false, '', '大马士革玫瑰、月桂');
+addD('w_pl','波兰','POLAND','欧洲',5,'https://images.unsplash.com/photo-1519197924294-119542bf1421?q=80&w=1200', 'arrived', false, '', '东欧冷冽草本');
+addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', 'arrived', false, '', '格拉斯、玫瑰、薰衣草');
+addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200', 'arrived', false, '', '洋甘菊提取中心');
+addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', 'arrived', false, '', '卡拉布里亚柠檬、迷迭香');
+addD('w_at','奥地利','AUSTRIA','欧洲',2,'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?q=80&w=1200', 'arrived', false, '', '高山极境植物');
+addD('w_dk','丹麦','DENMARK','欧洲',2,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?q=80&w=1200', 'arrived', false, '', '北欧冷杉');
 addD('w_hu','匈牙利','HUNGARY','欧洲',2,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?q=80&w=1200', 'arrived', false, '', '薰衣草、鼠尾草');
-addD('w_es','西班牙','SPAIN','欧洲',1,'https://images.unsplash.com/photo-1509840144521-88830abc04b0?q=80&w=1200', 'arrived', false, '', '苦橙、迷迭香、薰衣草');
-addD('w_nl','荷兰','NETHERLANDS','欧洲',1,'https://images.unsplash.com/photo-1468436385273-8abca6dfd8d3?q=80&w=1200', 'arrived', false, '', '郁金香、花卉育种中心');
-addD('w_mc','摩纳哥','MONACO','欧洲',1,'https://images.unsplash.com/photo-1549421263-60600494452e?q=80&w=1200', 'arrived', false, '', '高端香水文化窗口');
+addD('w_es','西班牙','SPAIN','欧洲',1,'https://images.unsplash.com/photo-1509840144521-88830abc04b0?q=80&w=1200', 'arrived', false, '', '苦橙、迷迭香');
+addD('w_nl','荷兰','NETHERLANDS','欧洲',1,'https://images.unsplash.com/photo-1468436385273-8abca6dfd8d3?q=80&w=1200', 'arrived', false, '', '花卉贸易中心');
+addD('w_mc','摩纳哥','MONACO','欧洲',1,'https://images.unsplash.com/photo-1549421263-60600494452e?q=80&w=1200', 'arrived', false, '', '极奢香氛之窗');
 addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1,'https://images.unsplash.com/photo-1533512336336-663857321689?q=80&w=1200', 'arrived', false, '', '中欧芳香草本');
-addD('w_bg','保加利亚','BULGARIA','欧洲',0,'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb?q=80&w=1200', 'locked', false, '', '大马士革玫瑰精油核心产区');
-addD('w_uk','英国','UNITED KINGDOM','欧洲',0,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1200', 'locked', false, '', '现代芳疗发源地与学术中心');
-addD('w_pt','葡萄牙','PORTUGAL','欧洲',0,'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=1200', 'locked', false, '', '岩蔷薇、桉树、橙花');
-addD('w_hr','克罗地亚','CROATIA','欧洲',0,'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1200', 'locked', false, '', '薰衣草、鼠尾草、松树');
-addD('w_gr','希腊','GREECE','欧洲',0,'https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1200', 'locked', false, '', '香桃木、橄榄、马郁兰');
-
-// --- 非洲 (AFRICA) ---
-addD('w_za','南非','SOUTH AFRICA','非洲',12,'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=1200', 'arrived', false, '', '路易波士、天竺葵、布枯');
+addD('w_bg','保加利亚','BULGARIA','欧洲',0,'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb?q=80&w=1200', 'locked', false, '', '玫瑰谷大马士革玫瑰');
+addD('w_uk','英国','UNITED KINGDOM','欧洲',0,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1200', 'locked', false, '', '现代芳疗发源地');
+addD('w_pt','葡萄牙','PORTUGAL','欧洲',0,'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=1200', 'locked', false, '', '劳丹脂、岩蔷薇');
+addD('w_hr','克罗地亚','CROATIA','欧洲',0,'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1200', 'locked', false, '', '薰衣草、松树');
+addD('w_gr','希腊','GREECE','欧洲',0,'https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1200', 'locked', false, '', '香桃木、橄榄');
+addD('w_za','南非','SOUTH AFRICA','非洲',12,'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=1200', 'arrived', false, '', '天竺葵、路易波士');
 addD('w_ke','肯尼亚','KENYA','非洲',2,'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?q=80&w=1200', 'arrived', false, '', '茶油、蜡菊');
-addD('w_eg','埃及','EGYPT','非洲',2,'https://images.unsplash.com/photo-1503177119275-0aa32b3a7447?q=80&w=1200', 'arrived', false, '', '茉莉、香草');
-addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1200', 'arrived', false, '', '当地特色本草');
+addD('w_eg','埃及','EGYPT','非洲',2,'https://images.unsplash.com/photo-1503177119275-0aa32b3a7447?q=80&w=1200', 'arrived', false, '', '历史名域：茉莉、香草');
+addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1200', 'arrived', false, '', '极境野生植物');
 addD('w_mg','马达加斯加','MADAGASCAR','非洲',0,'https://images.unsplash.com/photo-1505322103502-c629d9509ce7?q=80&w=1200', 'locked', false, '', '伊兰伊兰、丁香、香草');
-addD('w_ma','摩洛哥','MOROCCO','非洲',0,'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?q=80&w=1200', 'locked', false, '', '玫瑰、雪松、茉莉');
-
-// --- 美洲 & 大洋洲 (AMERICAS & OCEANIA) ---
-addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?q=80&w=1200', 'arrived', false, '', '薄荷、留兰香、柑橘类精油');
-addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4,'https://images.unsplash.com/photo-1518105779142-d975b22f1b0a?q=80&w=1200', 'arrived', false, '', '莱姆、香草、Copaiba精油');
-addD('w_ht','海地','HAITI','美洲/大洋洲',0,'https://images.unsplash.com/photo-1563819446326-7243c3d55160?q=80&w=1200', 'locked', false, '', '岩兰草（重要产区）');
+addD('w_ma','摩洛哥','MOROCCO','非洲',0,'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?q=80&w=1200', 'locked', false, '', '雪松、茉莉、摩洛哥玫瑰');
+addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?q=80&w=1200', 'arrived', false, '', '薄荷、留兰香、柑橘');
+addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4,'https://images.unsplash.com/photo-1518105779142-d975b22f1b0a?q=80&w=1200', 'arrived', false, '', '莱姆、香草');
+addD('w_ht','海地','HAITI','美洲/大洋洲',0,'https://images.unsplash.com/photo-1563819446326-7243c3d55160?q=80&w=1200', 'locked', false, '', '顶级岩兰草产区');
 addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?q=80&w=1200', 'arrived', false, '', '甜橙、柠檬、玫瑰木');
-addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1513568754117-695027581729?q=80&w=1200', 'locked', false, '', '柠檬、绿花白千层、马黛茶');
-addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', 'locked', false, '', '茶树、尤加利、檀香');
-
-// --- 南极洲 ---
-addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked', false, '', '冰川极境探寻');
+addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1513568754117-695027581729?q=80&w=1200', 'locked', false, '', '柠檬、马黛茶');
+addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', 'locked', false, '', '茶树、尤加利、澳洲檀香');
+addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked', false, '', '冰川分子捕捉');
 
 /**
- * 3. 神州 20+ 省 (全解锁，6 大区域划分)
+ * 3. 神州 26 个省份视觉全量复位 (状态: Arrived)
  */
-const CN_P = [
-  // 西南 (5+)
-  {n:'四川',sub:'西南',img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'},
-  {n:'云南',sub:'西南',img:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'},
-  {n:'西藏',sub:'西南',img:'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd'},
-  {n:'贵州',sub:'西南',img:'https://images.unsplash.com/photo-1558238792-881c15f98896'},
-  {n:'重庆',sub:'西南',img:'https://images.unsplash.com/photo-1502404733198-44b0559ac643'},
+const CHINA_PROVINCES = [
+  // 西南 (5+ 核心省级)
+  {n:'四川', sub:'西南', img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
+  {n:'云南', sub:'西南', img:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
+  {n:'西藏', sub:'西南', img:'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd'}, 
+  {n:'贵州', sub:'西南', img:'https://images.unsplash.com/photo-1558238792-881c15f98896'}, 
+  {n:'重庆', sub:'西南', img:'https://images.unsplash.com/photo-1502404733198-44b0559ac643'}, 
+  
   // 华南
-  {n:'广东',sub:'华南',img:'https://images.unsplash.com/photo-1540962351504-03099e0a754b'},
-  {n:'福建',sub:'华南',img:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
-  {n:'海南',sub:'华南',img:'https://images.unsplash.com/photo-1582234033306-03c7e4745856'},
-  {n:'广西',sub:'华南',img:'https://images.unsplash.com/photo-1543163521-1bf539c55dd2'},
+  {n:'广东', sub:'华南', img:'https://images.unsplash.com/photo-1540962351504-03099e0a754b'},
+  {n:'福建', sub:'华南', img:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
+  {n:'海南', sub:'华南', img:'https://images.unsplash.com/photo-1582234033306-03c7e4745856'},
+  {n:'广西', sub:'华南', img:'https://images.unsplash.com/photo-1543163521-1bf539c55dd2'},
+  
   // 华东
-  {n:'浙江',sub:'华东',img:'https://images.unsplash.com/photo-1555543183-8380302b1156'},
-  {n:'江苏',sub:'华东',img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
-  {n:'上海',sub:'华东',img:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2'},
-  {n:'安徽',sub:'华东',img:'https://images.unsplash.com/photo-1554141630-d3923d6a9978'},
-  {n:'山东',sub:'华东',img:'https://images.unsplash.com/photo-1551609189-eba71b3a8566'},
+  {n:'浙江', sub:'华东', img:'https://images.unsplash.com/photo-1555543183-8380302b1156'},
+  {n:'江苏', sub:'华东', img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
+  {n:'上海', sub:'华东', img:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2'},
+  {n:'安徽', sub:'华东', img:'https://images.unsplash.com/photo-1554141630-d3923d6a9978'},
+  {n:'山东', sub:'华东', img:'https://images.unsplash.com/photo-1551609189-eba71b3a8566'},
+  
   // 华北
-  {n:'北京',sub:'华北',img:'https://images.unsplash.com/photo-1508804185872-d7badad00f7d'},
-  {n:'山西',sub:'华北',img:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
-  {n:'河北',sub:'华北',img:'https://images.unsplash.com/photo-1545625032-4114407b7136'},
-  {n:'天津',sub:'华北',img:'https://images.unsplash.com/photo-1542031759174-8217dd1119ca'},
+  {n:'北京', sub:'华北', img:'https://images.unsplash.com/photo-1508804185872-d7badad00f7d'},
+  {n:'山西', sub:'华北', img:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
+  {n:'河北', sub:'华北', img:'https://images.unsplash.com/photo-1545625032-4114407b7136'},
+  {n:'天津', sub:'华北', img:'https://images.unsplash.com/photo-1542031759174-8217dd1119ca'},
+  
   // 华中
-  {n:'湖南',sub:'华中',img:'https://images.unsplash.com/photo-1548235212-04533da82d33'},
-  {n:'湖北',sub:'华中',img:'https://images.unsplash.com/photo-1543163521-1bf539c55dd2'},
-  {n:'河南',sub:'华中',img:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
-  {n:'江西',sub:'华中',img:'https://images.unsplash.com/photo-1533038590840-1cde6b66b721'},
+  {n:'湖南', sub:'华中', img:'https://images.unsplash.com/photo-1548235212-04533da82d33'},
+  {n:'湖北', sub:'华中', img:'https://images.unsplash.com/photo-1547038577-da80abbc4f19'},
+  {n:'河南', sub:'华中', img:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
+  {n:'江西', sub:'华中', img:'https://images.unsplash.com/photo-1533038590840-1cde6b66b721'},
+  
   // 西北
-  {n:'新疆',sub:'西北',img:'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d'},
-  {n:'甘肃',sub:'西北',img:'https://images.unsplash.com/photo-1544735716-392fe2489ffa'},
-  {n:'陕西',sub:'西北',img:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
-  {n:'宁夏',sub:'西北',img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'}
+  {n:'新疆', sub:'西北', img:'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d'},
+  {n:'甘肃', sub:'西北', img:'https://images.unsplash.com/photo-1544735716-392fe2489ffa'},
+  {n:'陕西', sub:'西北', img:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
+  {n:'宁夏', sub:'西北', img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'}
 ];
 
-CN_P.forEach((p)=>{
-  // 随机生成 2-6 次探访记录
-  const count = Math.floor(Math.random() * 5) + 2;
+CHINA_PROVINCES.forEach((p) => {
+  const count = Math.floor(Math.random() * 5) + 2; // 2-6 次探访记录
   addD(`cn_${p.n}`, p.n, p.n.toUpperCase(), '亚洲', count, `${p.img}?q=80&w=1200`, 'arrived', true, p.sub, '神州极境原生分子档案');
 });
 
