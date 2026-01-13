@@ -1,3 +1,4 @@
+
 import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
@@ -68,7 +69,7 @@ const HE_SOUL_IMGS = [
   'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
 ];
 
-// 香 · 能量 (Body) - 恢复 GitHub 地址 (en 必须对应文件名)
+// 香 · 能量 (Body) - 恢复 GitHub 地址
 [['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
 // 香 · 愈合 (Mind) - 美学默认图
 [['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_MIND_IMGS[i]));
