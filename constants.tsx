@@ -13,7 +13,6 @@ export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  // 核心更新：首页第二幅图片更换为 GitHub 指定地址并转换
   hero_forest: fixGitHubUrl('https://github.com/2008zxeric/unio-aroma/blob/main/assets/brand/banner.webp') + CACHE_V,
   lab_visual: `${RAW_BASE}brand/banner.webp${CACHE_V}`, 
   lavender_field: 'https://images.unsplash.com/photo-1471958680802-1345a694ba6d?q=80&w=1920',
@@ -41,16 +40,15 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
     narrative: cat === 'he' ? `“这是 Alice 为你调制的唯一。Eric 跨越万里带回的 ${n} 分子，在实验室中重组为属于你的频率。”` : `“Eric 在极境中感受到了 ${n} 的顽强意志。它是大自然在极端环境下的生存智慧。”`,
     benefits: ['深度平衡', '频率重构', '觉知开启'], 
     usage: '滴于掌心或扩香器中，深度嗅吸。', 
-    precautions: '元和 芳香全线坚持非工业化生产，高纯度精油请稀释使用。',
+    precautions: '元香全线坚持非工业化生产，高纯度精油请稀释使用。',
     ericDiary: `寻香第十载。我在极境中亲手采集了 ${n}，那一刻的震颤至今难忘。`, 
     aliceDiary: `Eric 采集的这批 ${n} 能量极强。我决定采用一人一方的定制逻辑，保留其原始温度。`,
     aliceLabDiary: `GC/MS 分析验证了其非凡的分子结构。这是我们对抗工业化平庸的最佳证明。`, 
-    recommendation: '元和 芳香核心馆藏 / 限量手工调配。'
+    recommendation: '元香核心馆藏 / 限量手工调配。'
   } as ScentItem;
 };
 
-// ... (DATABASE entries remain the same, ensuring consistent terminology in narratives)
-// --- 50 款产品全量定义 ---
+// --- 50 款产品定义 ---
 addP('yuan','元 · 肃降 (Metal)','神圣乳香','Sacred Frankincense','metal','yuan_metal_0');
 addP('yuan','元 · 肃降 (Metal)','极境薄荷','Peppermint from Peaks','metal','yuan_metal_1');
 addP('yuan','元 · 肃降 (Metal)','极境尤加利',' Eucalyptus Glaciale','metal','yuan_metal_2');
@@ -106,7 +104,7 @@ export const DESTINATIONS: Record<string, Destination> = {};
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string)=>{
   DESTINATIONS[id] = {
     id, name:n, en: en.trim(), region:reg.trim(), status:s, visitCount:c, scenery:img, emoji:'📍',
-    herbDescription: '极境原生分子', knowledge:'已存入元和 芳香寻香库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
+    herbDescription: '极境原生分子', knowledge:'已存入元香寻香库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
     ericDiary:`Eric 寻香志：第 ${c} 次来到 ${n}。这是寻香的极境，为了寻找那抹独一无二的灵性本草。`, 
     aliceDiary:`实验室档案：Eric 从 ${n} 带回的样本表现惊人。一人一方的调配理念将在此升华。`, 
     memoryPhotos: [img, img, img]
@@ -115,6 +113,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 
 const JING_ALL = ['jing_place_0', 'jing_place_1', 'jing_place_2', 'jing_place_3', 'jing_place_4', 'jing_meditation_0', 'jing_meditation_1', 'jing_meditation_2', 'jing_meditation_3', 'jing_meditation_4'];
 
+// --- 全球寻香目的地恢复 ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_metal_4', 'he_mind_2', ...JING_ALL]);
 DESTINATIONS['w_thai'].memoryPhotos = [
   `${RAW_BASE}Ericalbum/Thailand/th1.webp${CACHE_V}`,
@@ -172,31 +171,43 @@ addD('w_ht','海地','HAITI','美洲/大洋洲',3, `${RAW_BASE}destinations/Hait
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9', ['yuan_metal_2', 'yuan_metal_3'], 'locked');
 addD('w_ant','南极洲','ANTARCTICA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105', ['he_soul_4'], 'locked');
 
+// --- 中华神州全量省份恢复 ---
+// 西南
 addD('cn_四川','四川','SICHUAN','亚洲',5,'https://images.unsplash.com/photo-1610450919934-23001d0f3134?q=80&w=1200', ['yuan_earth_1', 'he_mind_4'], 'arrived', true, '西南');
 addD('cn_云南','云南','YUNNAN','亚洲',5,'https://images.unsplash.com/photo-1521405924368-64c5b84bec60', ['yuan_wood_0', 'yuan_earth_1', 'he_soul_3'], 'arrived', true, '西南');
 addD('cn_西藏','西藏','TIBET','亚洲',5,'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd', ['yuan_wood_2', 'he_soul_4'], 'arrived', true, '西南');
 addD('cn_贵州','贵州','GUIZHOU','亚洲',5,'https://images.unsplash.com/photo-1558238792-881c15f98896', ['he_mind_1'], 'arrived', true, '西南');
 addD('cn_重庆','重庆','CHONGQING','亚洲',5,'https://images.unsplash.com/photo-1502404733198-44b0559ac643', ['he_body_4'], 'arrived', true, '西南');
+
+// 西北
 addD('cn_新疆','新疆','XINJIANG','亚洲',5,'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d', ['yuan_metal_1', 'he_body_3'], 'arrived', true, '西北');
 addD('cn_甘肃','甘肃','GANSU','亚洲',5,'https://images.unsplash.com/photo-1544735716-392fe2489ffa', ['he_soul_4'], 'arrived', true, '西北');
 addD('cn_陕西','陕西','SHAANXI','亚洲',5,'https://images.unsplash.com/photo-1546857186-b4d08122d104', ['he_soul_1'], 'arrived', true, '西北');
 addD('cn_宁夏','宁夏','NINGXIA','亚洲',5,'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd', ['he_body_4'], 'arrived', true, '西北');
 addD('cn_青海','青海','QINGHAI','亚洲',5,'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd', ['he_soul_4'], 'arrived', true, '西北');
+
+// 华南
 addD('cn_广东','广东','GUANGDONG','亚洲',5,'https://images.unsplash.com/photo-1540962351504-03099e0a754b', ['he_body_0', ...JING_ALL], 'arrived', true, '华南');
 addD('cn_福建','福建','FUJIAN','亚洲',5,'https://images.unsplash.com/photo-1546857186-b4d08122d104', ['he_soul_3'], 'arrived', true, '华南');
 addD('cn_海南','海南','HAINAN','亚洲',5,'https://images.unsplash.com/photo-1582234033306-03c7e4745856', ['yuan_fire_1'], 'arrived', true, '华南');
 addD('cn_广西','广西','GUANGXI','亚洲',5,'https://images.unsplash.com/photo-1543163521-1bf539c55dd2', ['he_mind_2'], 'arrived', true, '华南');
+
+// 华东
 addD('cn_浙江','浙江','ZHEJIANG','亚洲',5,'https://images.unsplash.com/photo-1555543183-8380302b1156', ['he_mind_2', ...JING_ALL], 'arrived', true, '华东');
 addD('cn_江苏','江苏','JIANGSU','亚洲',5,'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd', ['he_mind_2'], 'arrived', true, '华东');
 addD('cn_上海','上海','SHANGHAI','亚洲',5,'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2', ['he_body_0', 'he_body_1', ...JING_ALL], 'arrived', true, '华东');
 addD('cn_安徽','安徽','ANHUI','亚洲',5,'https://images.unsplash.com/photo-1554141630-d3923d6a9978', ['he_mind_1'], 'arrived', true, '华东');
 addD('cn_山东','山东','SHANDONG','亚洲',5,'https://images.unsplash.com/photo-1551609189-eba71b3a8566', ['he_soul_1'], 'arrived', true, '华东');
 addD('cn_江西','江西','JIANGXI','亚洲',5,'https://images.unsplash.com/photo-1533038590840-1cde6b66b721', ['he_mind_1'], 'arrived', true, '华东');
+
+// 华北
 addD('cn_北京','北京','BEIJING','亚洲',5,'https://images.unsplash.com/photo-1508804185872-d7badad00f7d', ['he_mind_0', ...JING_ALL], 'arrived', true, '华北');
 addD('cn_山西','山西','SHANXI','亚洲',5,'https://images.unsplash.com/photo-1547949003-9792a18a2601', ['he_soul_1'], 'arrived', true, '华北');
 addD('cn_河北','河北','HEBEI','亚洲',5,'https://images.unsplash.com/photo-1545625032-4114407b7136', ['he_body_4'], 'arrived', true, '华北');
 addD('cn_天津','天津','TIANJIN','亚洲',5,'https://images.unsplash.com/photo-1542031759174-8217dd1119ca', [...JING_ALL], 'arrived', true, '华北');
 addD('cn_内蒙古','内蒙古','INNER MONGOLIA','亚洲',5,'https://images.unsplash.com/photo-1547949003-9792a18a2601', ['yuan_wood_3'], 'arrived', true, '华北');
+
+// 华中
 addD('cn_湖南','湖南','HUNAN','亚洲',5,'https://images.unsplash.com/photo-1548235212-04533da82d33', ['he_mind_4'], 'arrived', true, '华中');
 addD('cn_湖北','湖北','HUBEI','亚洲',5,'https://images.unsplash.com/photo-1547038577-da80abbc4f19', ['he_body_1'], 'arrived', true, '华中');
 addD('cn_河南','河南','HENAN','亚洲',5,'https://images.unsplash.com/photo-1547949003-9792a18a2601', ['he_soul_1'], 'arrived', true, '华中');
