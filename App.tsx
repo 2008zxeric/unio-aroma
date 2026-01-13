@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Camera, Share2, Settings, X } from 'lucide-react';
 import { ViewState, Category } from './types';
@@ -62,23 +63,23 @@ const App: React.FC = () => {
               <img src={ASSETS.logo} className="w-full h-full object-contain drop-shadow-2xl" alt="Unio Sanctuary Moment" />
             </div>
             <div className="mt-8 sm:mt-16 text-center space-y-4 animate-slide-up">
-              <h2 className="text-3xl sm:text-5xl lg:text-8xl font-serif-zh font-bold tracking-[0.4em] lg:tracking-[0.8em] text-[#2C3E28] ml-[0.4em]">元香 unio</h2>
+              <h2 className="text-3xl sm:text-5xl lg:text-8xl font-serif-zh font-bold tracking-[0.2em] sm:tracking-[0.4em] text-[#2C3E28] ml-[0.2em]">元和 芳香</h2>
               <div className="h-0.5 w-24 sm:w-80 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-30" />
-              <p className="text-[8px] sm:text-sm tracking-[0.3em] lg:tracking-[0.5em] uppercase opacity-40 font-bold">Original Harmony Sanctuary</p>
+              <p className="text-[8px] sm:text-sm tracking-[0.3em] lg:tracking-[0.5em] uppercase opacity-40 font-bold">unio aroma · Sanctuary</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* 顶部主导航 - 响应式微调 */}
+      {/* 顶部主导航 */}
       <nav className="fixed top-0 left-0 w-full px-4 sm:px-10 lg:px-20 py-4 sm:py-8 flex justify-between items-center z-[500] pointer-events-none">
         <div className="pointer-events-auto cursor-pointer flex items-center gap-3 sm:gap-4 group" onClick={handleLogoClick}>
           <div className="w-10 h-10 sm:w-14 lg:w-16 flex items-center justify-center p-1.5 sm:p-2 glass rounded-full border border-black/5 hover:scale-110 transition-transform active:scale-90 shadow-lg overflow-hidden">
              <img src={ASSETS.logo} className="w-full h-full object-contain" alt="Unio Logo" />
           </div>
           <div className="flex flex-col border-l border-black/20 pl-3 sm:pl-4">
-             <span className="text-lg sm:text-2xl lg:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.2em] sm:tracking-[0.4em] group-hover:text-[#D75437] transition-colors">元香</span>
-             <span className="text-[6px] sm:text-[8px] opacity-30 uppercase tracking-[0.2em] font-bold">unio Sanctuary</span>
+             <span className="text-lg sm:text-xl lg:text-2xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.2em] group-hover:text-[#D75437] transition-colors">元和 芳香</span>
+             <span className="text-[6px] sm:text-[8px] opacity-30 uppercase tracking-[0.2em] font-bold">unio aroma</span>
           </div>
         </div>
         <div className="pointer-events-auto flex items-center gap-3 sm:gap-10">
@@ -102,10 +103,8 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* 复合导航系统 - 全端优化 */}
+      {/* 复合导航系统 */}
       <div className="fixed bottom-6 sm:bottom-10 left-0 w-full flex flex-col items-center gap-4 sm:gap-6 z-[900] pointer-events-none px-6 pb-[env(safe-area-inset-bottom)]">
-        
-        {/* 小红书按钮 */}
         <div className="w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[480px] flex justify-end">
            <button 
              onClick={() => window.open(ASSETS.xhs_link, '_blank')} 
@@ -114,8 +113,6 @@ const App: React.FC = () => {
              <Share2 size={20} className="sm:w-[24px] group-hover:rotate-12 transition-transform" />
            </button>
         </div>
-
-        {/* 智感悬浮导航胶囊 */}
         <div className="pointer-events-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[500px]">
           <div className="flex items-center justify-around glass-dark px-2 sm:px-4 py-2 sm:py-3 lg:py-4 rounded-full border border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
             {[
@@ -133,7 +130,6 @@ const App: React.FC = () => {
                   className={`p-3.5 sm:p-5 lg:p-6 rounded-full transition-all duration-500 relative group ${isActive ? 'bg-[#D75437] text-white shadow-xl scale-105' : 'text-white/40 hover:text-white/80 hover:bg-white/5'}`}
                 >
                   <Icon size={20} className="sm:w-[24px] lg:w-[28px]" />
-                  {!isActive && <span className="absolute -top-12 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">{item.label}</span>}
                 </button>
               );
             })}
@@ -147,8 +143,6 @@ const App: React.FC = () => {
           backdrop-filter: blur(50px);
           -webkit-backdrop-filter: blur(50px);
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
     </div>
   );
