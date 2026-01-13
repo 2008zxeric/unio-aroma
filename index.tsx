@@ -1,12 +1,13 @@
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 
-// 兼容性处理：防止浏览器环境因 process 未定义而崩溃
+// 极致健壮的环境变量兼容处理
 if (typeof window !== 'undefined') {
   // @ts-ignore
   window.process = window.process || { env: {} };
+  // @ts-ignore
+  if (!window.process.env) window.process.env = {};
 }
 
 const rootElement = document.getElementById('root');
