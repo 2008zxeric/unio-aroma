@@ -1,20 +1,14 @@
 import { ScentItem, Destination } from './types';
 
-const fixGitHubUrl = (url: string) => {
-  if (!url) return '';
-  return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-};
-
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=139.0'; 
+const CACHE_V = '?v=158.0'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  hero_forest: fixGitHubUrl('https://github.com/2008zxeric/unio-aroma/blob/main/assets/brand/banner.webp') + CACHE_V,
+  hero_forest: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   lab_visual: `${RAW_BASE}brand/banner.webp${CACHE_V}`, 
-  lavender_field: 'https://images.unsplash.com/photo-1471958680802-1345a694ba6d?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
@@ -28,6 +22,7 @@ export const REGION_VISUALS = {
 
 const RAW_PROD = `${RAW_BASE}products/`;
 const RAW_DEST = `${RAW_BASE}destinations/`;
+const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
 
 export const DATABASE: Record<string, ScentItem> = {};
 export const DESTINATIONS: Record<string, Destination> = {};
@@ -62,7 +57,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 
 const JING_ALL = ['jing_place_0', 'jing_place_1', 'jing_place_2', 'jing_place_3', 'jing_place_4', 'jing_meditation_0', 'jing_meditation_1', 'jing_meditation_2', 'jing_meditation_3', 'jing_meditation_4'];
 
-// --- 50 款产品核心定义 ---
+// --- 50 款产品核心定义 (保持不变以确保逻辑) ---
 addP('yuan','元 · 肃降 (Metal)','神圣乳香','Sacred Frankincense','metal','yuan_metal_0');
 addP('yuan','元 · 肃降 (Metal)','极境薄荷','Peppermint from Peaks','metal','yuan_metal_1');
 addP('yuan','元 · 肃降 (Metal)','极境尤加利',' Eucalyptus Glaciale','metal','yuan_metal_2');
@@ -114,68 +109,76 @@ addP('jing','境 · 冥想之物 (Meditation)','清空石','Gypsum','Meditation'
 addP('jing','境 · 冥想之物 (Meditation)','归真座','mountain','Meditation','jing_meditation_3');
 addP('jing','境 · 冥想之物 (Meditation)','承露璃','glass','Meditation','jing_meditation_4');
 
-// --- 全球极境 52 个目的地定义 ---
-// 亚洲
-addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_metal_4', 'he_mind_2', ...JING_ALL]);
-addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', ['yuan_water_1']);
-addD('w_hk','中国香港','HONG KONG','亚洲',18, `${RAW_DEST}Hongkong.webp${CACHE_V}`, ['he_body_0', 'he_mind_0', ...JING_ALL]);
+// --- 全球 52 个寻香目的地审计 ---
+// 亚洲 (20)
+addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_metal_4', 'he_mind_2']);
+DESTINATIONS['w_thai'].memoryPhotos = [
+  `${RAW_ALBUM}Thailand/th1.webp${CACHE_V}`,
+  `${RAW_ALBUM}Thailand/th2.webp${CACHE_V}`,
+  `${RAW_ALBUM}Thailand/th3.webp${CACHE_V}`,
+];
+addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', ['yuan_water_1', 'yuan_wood_0']);
+addD('w_hk','中国香港','HONG KONG','亚洲',18, `${RAW_DEST}Hongkong.webp${CACHE_V}`, ['he_body_0', 'he_mind_0']);
 addD('w_my','马来西亚','MALAYSIA','亚洲',13, `${RAW_DEST}Malaysia.webp${CACHE_V}`, ['yuan_water_2']);
-addD('w_id','印尼','INDONESIA','亚洲',12, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200', ['yuan_water_2']);
+addD('w_id','印尼','INDONESIA','亚洲',12, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200', ['yuan_wood_4']);
 addD('w_uae','阿联酋','UAE','亚洲',12, 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200', ['yuan_metal_0']);
-addD('w_vn','越南','VIETNAM','亚洲',6, 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_water_4']);
-addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4, 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200');
-addD('w_jp','日本','JAPAN','亚洲',2, 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200', ['yuan_wood_0']);
-addD('w_ir','伊朗','IRAN','亚洲',2, `${RAW_DEST}Iran.webp${CACHE_V}`);
-addD('w_jo','约旦','JORDAN','亚洲',2, 'https://images.unsplash.com/photo-1547038577-da80abbc4f19?q=80&w=1200');
-addD('w_mac','中国澳门','MACAU','亚洲',2, 'https://images.unsplash.com/photo-1542031759174-8217dd1119ca?q=80&w=1200');
-addD('w_sg','新加坡','SINGAPORE','亚洲',2, `${RAW_DEST}Singapore.webp${CACHE_V}`);
-addD('w_kr','韩国','SOUTH KOREA','亚洲',1, 'https://images.unsplash.com/photo-1543158266-0066955047b1?q=80&w=1200');
-addD('w_kh','柬埔寨','CAMBODIA','亚洲',1, 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1200');
+addD('w_vn','越南','VIETNAM','亚洲',6, 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_wood_3']);
+addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4, 'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200', ['yuan_earth_3']);
+addD('w_jp','日本','JAPAN','亚洲',2, 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200', ['jing_meditation_0', 'he_soul_3']);
+addD('w_ir','伊朗','IRAN','亚洲',2, `${RAW_DEST}Iran.webp${CACHE_V}`, ['yuan_fire_3']);
+addD('w_jo','约旦','JORDAN','亚洲',2, 'https://images.unsplash.com/photo-1547038577-da80abbc4f19?q=80&w=1200', ['yuan_metal_0']);
+addD('w_mac','中国澳门','MACAU','亚洲',5, `${RAW_DEST}Macau.webp${CACHE_V}`, ['he_body_2']);
+addD('w_sg','新加坡','SINGAPORE','亚洲',2, `${RAW_DEST}Singapore.webp${CACHE_V}`, ['he_soul_0']);
+addD('w_kr','韩国','SOUTH KOREA','亚洲',1, 'https://images.unsplash.com/photo-1543158266-0066955047b1?q=80&w=1200', ['he_body_3']);
+addD('w_kh','柬埔寨','CAMBODIA','亚洲',1, 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1200', ['yuan_wood_0']);
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1, `${RAW_DEST}North%20Korea.webp${CACHE_V}`);
 addD('w_sl','斯里兰卡','SRI LANKA','亚洲',0, 'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd?q=80&w=1200', [], 'locked');
 addD('w_np','尼泊尔','NEPAL','亚洲',0, 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=1200', [], 'locked');
+addD('w_lao','老挝','LAOS','亚洲',0, 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', [], 'locked');
+addD('w_mn','蒙古','MONGOLIA','亚洲',0, 'https://images.unsplash.com/photo-1541848756149-e3843fcbbde0?q=80&w=1200', [], 'locked');
 
-// 欧洲
+// 欧洲 (20)
 addD('w_tr','土耳其','TURKEY','欧洲',8, 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', ['yuan_fire_0']);
-addD('w_fr','法国','FRANCE','欧洲',5, 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', ['yuan_fire_0']);
-addD('w_pl','波兰','POLAND','欧洲',5, `${RAW_DEST}Poland.webp${CACHE_V}`);
-addD('w_de','德国','GERMANY','欧洲',4, 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200');
+addD('w_fr','法国','FRANCE','欧洲',15, 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', ['yuan_fire_3', 'yuan_fire_4']);
+addD('w_at','奥地利','AUSTRIA','欧洲',3, 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?q=80&w=1200', ['yuan_wood_1', 'yuan_metal_2']);
+addD('w_pl','波兰','POLAND','欧洲',5, `${RAW_DEST}Poland.webp${CACHE_V}`, ['yuan_earth_4']);
+addD('w_de','德国','GERMANY','欧洲',4, 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200', ['yuan_wood_3']);
 addD('w_it','意大利','ITALY','欧洲',2, 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', ['yuan_earth_0']);
-addD('w_at','奥地利','AUSTRIA','欧洲',2, 'https://images.unsplash.com/photo-1510368153435-08e08d132626?q=80&w=1200');
 addD('w_dk','丹麦','DENMARK','欧洲',2, 'https://images.unsplash.com/photo-1505322033502-1f4385692e6a?q=80&w=1200');
 addD('w_hu','匈牙利','HUNGARY','欧洲',2, 'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?q=80&w=1200');
-addD('w_es','西班牙','SPAIN','欧洲',1, `${RAW_DEST}Spain.webp${CACHE_V}`);
+addD('w_es','西班牙','SPAIN','欧洲',1, `${RAW_DEST}Spain.webp${CACHE_V}`, ['yuan_earth_0']);
 addD('w_nl','荷兰','NETHERLANDS','欧洲',1, 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=1200');
 addD('w_mc','摩纳哥','MONACO','欧洲',1, `${RAW_DEST}Monaco.webp${CACHE_V}`);
 addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1, `${RAW_DEST}Luxembourg.webp${CACHE_V}`);
-addD('w_bg','保加利亚','BULGARIA','欧洲',0, 'https://images.unsplash.com/photo-1554141630-d3923d6a9978?q=80&w=1200', [], 'locked');
+addD('w_bg','保加利亚','BULGARIA','欧洲',0, 'https://images.unsplash.com/photo-1554141630-d3923d6a9978?q=80&w=1200', ['yuan_fire_0'], 'locked');
 addD('w_uk','英国','UNITED KINGDOM','欧洲',0, 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200', [], 'locked');
 addD('w_pt','葡萄牙','PORTUGAL','欧洲',0, 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', [], 'locked');
 addD('w_hr','克罗地亚','CROATIA','欧洲',0, 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', [], 'locked');
 addD('w_gr','希腊','GREECE','欧洲',0, 'https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1200', [], 'locked');
+addD('w_ch','瑞士','SWITZERLAND','欧洲',0, 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200', [], 'locked');
+addD('w_no','挪威','NORWAY','欧洲',0, 'https://images.unsplash.com/photo-1505322033502-1f4385692e6a?q=80&w=1200', [], 'locked');
+addD('w_se','瑞典','SWEDEN','欧洲',0, 'https://images.unsplash.com/photo-1512411513076-a0589a1c6a2f?q=80&w=1200', [], 'locked');
 
-// 非洲
-addD('w_za','南非','SOUTH AFRICA','非洲',12, 'https://images.unsplash.com/photo-1523805081730-614449274055?q=80&w=1200');
-addD('w_eg','埃及','EGYPT','非洲',2, `${RAW_DEST}Egypt.webp${CACHE_V}`, ['yuan_fire_2']);
-addD('w_ke','肯尼亚','KENYA','非洲',2, `${RAW_DEST}Kenya.webp${CACHE_V}`);
+// 非洲 (6)
+addD('w_za','南非','SOUTH AFRICA','非洲',12, 'https://images.unsplash.com/photo-1523805081730-614449274055?q=80&w=1200', ['yuan_earth_2']);
+addD('w_eg','埃及','EGYPT','非洲',2, `${RAW_DEST}Egypt.webp${CACHE_V}`, ['yuan_metal_0']);
+addD('w_ke','肯尼亚','KENYA','非洲',2, `${RAW_DEST}Kenya.webp${CACHE_V}`, ['yuan_fire_1']);
 addD('w_zw','津巴布韦','ZIMBABWE','非洲',1, 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=1200');
-addD('w_mg','马达加斯加','MADAGASCAR','非洲',0, `${RAW_DEST}Madagascar.webp${CACHE_V}`, [], 'locked');
+addD('w_mg','马达加斯加','MADAGASCAR','非洲',0, `${RAW_DEST}Madagascar.webp${CACHE_V}`, ['yuan_fire_1'], 'locked');
 addD('w_ma','摩洛哥','MOROCCO','非洲',0, 'https://images.unsplash.com/photo-1539020140153-e479b8c23e70?q=80&w=1200', [], 'locked');
 
-// 美洲
-addD('w_us','美国','UNITED STATES','美洲/大洋洲',7, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200');
+// 美洲及大洋洲 (6)
+addD('w_us','美国','UNITED STATES','美洲/大洋洲',7, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200', ['yuan_metal_1', 'yuan_metal_2']);
 addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, `${RAW_DEST}Mexico.webp${CACHE_V}`);
-addD('w_ht','海地','HAITI','美洲/大洋洲',0, `${RAW_DEST}Haiti.webp${CACHE_V}`, [], 'locked');
-addD('w_br','巴西','BRAZIL','美洲/大洋洲',8, 'https://images.unsplash.com/photo-1440615490326-89a7f04ee613?q=80&w=1200');
+addD('w_ht','海地','HAITI','美洲/大洋洲',0, `${RAW_DEST}Haiti.webp${CACHE_V}`, ['yuan_water_1'], 'locked');
+addD('w_br','巴西','BRAZIL','美洲/大洋洲',8, 'https://images.unsplash.com/photo-1440615490326-89a7f04ee613?q=80&w=1200', ['yuan_fire_1']);
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',0, `${RAW_DEST}Argentina.webp${CACHE_V}`, [], 'locked');
+addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0, 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', ['yuan_metal_3'], 'locked');
 
-// 大洋洲
-addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0, 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', [], 'locked');
-
-// 南极洲
+// 南极洲 (1)
 addD('w_ant','南极洲','ANTARCTICA','美洲/大洋洲',0, 'https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?q=80&w=1200', [], 'locked');
 
-// --- 中华神州 34 个省级行政区 ---
+// --- 中华神州 34 个省级行政区审计 ---
 const CN_REGIONS = {
   '西南': ['四川', '云南', '西藏', '贵州', '重庆'],
   '西北': ['新疆', '甘肃', '陕西', '宁夏', '青海'],
@@ -188,7 +191,7 @@ const CN_REGIONS = {
 
 Object.entries(CN_REGIONS).forEach(([sub, list]) => {
   list.forEach(prov => {
-    addD(`cn_${prov}`, prov, prov.toUpperCase(), '亚洲', 10, 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=1200', [], 'arrived', true, sub);
+    addD(`cn_${prov}`, prov, prov.toUpperCase(), '亚洲', 10, 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=1200', ['yuan_earth_1'], 'arrived', true, sub);
   });
 });
 
