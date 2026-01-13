@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 
-// 极致健壮的环境变量兼容处理
+// 全局环境兼容性 Polyfill - 针对 Vercel 生产环境优化
 if (typeof window !== 'undefined') {
   // @ts-ignore
   window.process = window.process || { env: {} };
