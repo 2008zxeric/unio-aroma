@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { DATABASE } from "../constants";
 import { ChatMessage, ScentItem } from "../types";
