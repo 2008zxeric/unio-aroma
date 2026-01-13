@@ -64,15 +64,15 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                <div className="space-y-6">
                   <div className="flex items-center gap-4 justify-center lg:justify-start">
                     <Compass className="text-[#D75437]" size={20} />
-                    <span className="text-[10px] sm:text-sm tracking-[0.5em] uppercase font-bold text-[#D75437]">The Global Seeker / 寻香领队</span>
+                    <span className="text-[10px] sm:text-sm tracking-[0.5em] uppercase font-bold text-[#D75437]">The Global Seeker / 寻香领队 Eric</span>
                   </div>
                   <h2 className="text-4xl sm:text-7xl lg:text-9xl font-serif-zh font-bold tracking-widest text-[#2C3E28] leading-tight">
-                    十载寻香，<br />Eric 的极境记录。
+                    十载寻香，<br />Eric 的极境足迹。
                   </h2>
                </div>
                <div className="space-y-8">
                   <p className="text-base sm:text-xl lg:text-3xl font-serif-zh text-black/60 leading-relaxed max-w-2xl mx-auto lg:mx-0 text-justify">
-                    Eric 曾深耕高端定制旅行拾载，足迹遍布全球极境。作为本草猎人，他坚信：只有在极端环境下生长的植物，才拥有最高阶的防御频率。他亲自带队前往高海拔、荒漠与冰川，只为捕获那一抹最初的原始分子。
+                    作为品牌创始人，Eric 曾深耕高端定制旅行拾载，足迹遍布全球 52 个极境坐标。他坚信：只有在极端环境下生长的植物，才拥有最高阶的“防御能量”。每一滴元香，都是他亲自带队、在分子频率消散前捕获的生命意志。
                   </p>
                   <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start pt-6">
                     <button onClick={() => setView('atlas')} className="flex items-center gap-4 px-12 py-6 sm:px-16 sm:py-8 bg-[#1a1a1a] text-white rounded-full text-[10px] sm:text-sm tracking-[0.5em] font-bold hover:bg-[#D75437] transition-all shadow-2xl group active:scale-95">
@@ -108,18 +108,18 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                <div className="space-y-6">
                   <div className="flex items-center gap-4 justify-center lg:justify-start">
                     <Beaker className="text-[#1C39BB]" size={20} />
-                    <span className="text-[10px] sm:text-sm tracking-[0.5em] uppercase font-bold text-[#1C39BB]">The Aromatherapist / 芳疗科学家</span>
+                    <span className="text-[10px] sm:text-sm tracking-[0.5em] uppercase font-bold text-[#1C39BB]">首席调香师 Alice</span>
                   </div>
                   <h2 className="text-4xl sm:text-7xl lg:text-9xl font-serif-zh font-bold tracking-widest text-[#2C3E28] leading-tight">
-                    一人一方，<br />Alice 的芳疗重组。
+                    一人一方，<br />Alice 的手工重组。
                   </h2>
                </div>
                <div className="space-y-8">
                   <p className="text-base sm:text-xl lg:text-3xl font-serif-zh text-black/60 leading-relaxed max-w-2xl mx-auto lg:mx-0 text-justify">
-                    Alice 作为资深国际芳疗师，负责在实验室中精准重塑分子能量。她坚持非工业化的“一人一方”手工量产，将弟弟 Eric 从极境带回的样本进行频率分析与重组。每一滴 unio，都是对工业化平庸的最佳对抗。
+                    首席调香师 Alice 负责在实验室中精准重塑 Eric 带回的本草能量。她坚持“一人一方”的非工业化理念，认为香氛应是灵魂频率的精准校准。每一瓶 unio 都蕴含着实验室手作的温度，而非冰冷的生产线。
                   </p>
                   <button onClick={() => setView('oracle')} className="flex items-center gap-4 px-12 py-6 sm:px-16 sm:py-8 bg-white text-black border border-black/10 rounded-full text-[10px] sm:text-sm tracking-[0.5em] font-bold hover:bg-[#1C39BB] hover:text-white transition-all shadow-2xl group mx-auto lg:mx-0 active:scale-95">
-                    开启 AI 祭坛调配专属处方 <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
+                    询问感官祭司专属处方 <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
                   </button>
                </div>
             </div>
