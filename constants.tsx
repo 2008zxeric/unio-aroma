@@ -8,7 +8,7 @@ export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  hero_forest: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1920',
+  hero_forest: fixGitHubUrl(`https://github.com/2008zxeric/unio-aroma/blob/main/assets/brand/banner.webp${CACHE_V}`),
   lab_visual: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/banner.webp' + CACHE_V, 
   lavender_field: 'https://images.unsplash.com/photo-1471958680802-1345a694ba6d?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
