@@ -1,4 +1,3 @@
-
 import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
@@ -9,12 +8,11 @@ export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  // 核心复位：极致美感的薰衣草紫色花海
+  // 首页第二屏视觉锚点：薰衣草花海
   hero_forest: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
-// 全球图鉴板块视觉锚点
 export const REGION_VISUALS = {
   china: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=600',
   asia: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600',
@@ -69,11 +67,10 @@ const HE_SOUL_IMGS = [
   'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
 ];
 
-// 香 · 能量 (Body) - 恢复 GitHub 地址
+// 核心复位：Body 系列指向 GitHub WebP 资源
 [['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
-// 香 · 愈合 (Mind) - 美学默认图
+// Mind 与 Soul 使用美感图源
 [['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_MIND_IMGS[i]));
-// 香 · 觉知 (Soul) - 美学默认图
 [['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_SOUL_IMGS[i]));
 
 // 境系列 (10)
@@ -90,15 +87,15 @@ const getDestAsset = (name: string) => fixGitHubUrl(`${RAW_DEST}${name.replace(/
 
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, herbInfo:string='极境原生分子', customPhotos?: string[])=>{
   DESTINATIONS[id] = {
-    id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
-    herbDescription: herbInfo, knowledge:'已存入元香寻香库', productIds:[], isChinaProvince:isCN, subRegion:sub,
+    id, name:n, en: en.trim(), region:reg.trim(), status:s, visitCount:c, scenery:img, emoji:'📍',
+    herbDescription: herbInfo, knowledge:'已存入元香寻香库', productIds:[], isChinaProvince:isCN, subRegion:sub ? sub.trim() : undefined,
     ericDiary:`寻香拾载，第 ${c} 次来到此地。空气中弥漫着${n}独有的生命意志。`, 
     aliceDiary:`实验室档案：此坐标采集的${n}分子结构呈现出罕见的稳定性。`, 
     memoryPhotos: customPhotos || [img, img, img]
   };
 };
 
-// 寻香坐标复位 (完整版)
+// 寻香坐标复位 (全数据同步)
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','th1'),getAlbumAsset('Thailand','th2'),getAlbumAsset('Thailand','th3')]);
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentina'));
 addD('w_eg','埃及','EGYPT','非洲',2, getDestAsset('Egypt'));
@@ -148,7 +145,7 @@ addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', 'locked');
 addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked');
 
-// 神州省份完整复位
+// 神州省份加固复位：确保西南、西北等区域名称 100% 匹配
 const CHINA_PROVINCES = [
   {n:'四川', sub:'西南', img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
   {n:'云南', sub:'西南', img:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
@@ -178,6 +175,7 @@ const CHINA_PROVINCES = [
   {n:'宁夏', sub:'西北', img:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'}
 ];
 
+// 执行初始化逻辑，并在 addD 中增加了 trim() 加固处理
 CHINA_PROVINCES.forEach((p) => {
   const count = Math.floor(Math.random() * 5) + 2; 
   addD(`cn_${p.n}`, p.n, p.n.toUpperCase(), '亚洲', count, `${p.img}?q=80&w=1200`, 'arrived', true, p.sub);
