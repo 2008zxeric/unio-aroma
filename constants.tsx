@@ -2,13 +2,12 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=117.2'; 
+const CACHE_V = '?v=120.5'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  // 首页第二屏核心视觉：薰衣草紫色花海
   hero_forest: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
@@ -19,11 +18,6 @@ export const REGION_VISUALS = {
   europe: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
   africa: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=600',
   america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600'
-};
-
-export const ASSET_REGISTRY = {
-  brand: { logo: ASSETS.logo, xhs_link: ASSETS.xhs_link },
-  visual_anchors: { placeholder: ASSETS.placeholder }
 };
 
 const RAW_PROD = `${RAW_BASE}products/`;
@@ -42,38 +36,61 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
   } as ScentItem;
 };
 
-// 元系列 (25)
-const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (Water)','元 · 释放 (Fire)','元 · 稳定 (Earth)'];
-[['神圣乳香','Sacred Frankincense'],['极境薄荷','Peppermint from Peaks'],['极境尤加利',' Eucalyptus Glaciale'],['极境茶树','Tea Tree Antiseptic'],['极境香茅','Citronella Clarissima']].forEach((d,i)=>addP('yuan',YUAN_G[0],d[0],d[1],'metal',`yuan_metal_${i}`));
-[['老山檀香','Aged Sandalwood'],['极境丝柏','Misty Cypress'],['极境雪松','Himalayan Cedar'],['极境松针','Boreal Pine'],['神圣花梨木','Sacred Rosewood Isle']].forEach((d,i)=>addP('yuan',YUAN_G[1],d[0],d[1],'wood',`yuan_wood_${i}`));
-[['极境杜松','Juniper by the Loch'],['深根岩兰草','Deep Root Vetiver'],['暗夜广藿香','Patchouli Nocturne'],['极境没药','Myrrh Secreta'],['极境安息香','Benzoin Ambrosia']].forEach((d,i)=>addP('yuan',YUAN_G[2],d[0],d[1],'water',`yuan_water_${i}`));
-[['大马士革玫瑰','Damask Rose Aureate'],['极境依兰','Ylang Equatorial'],['大花茉莉','Jasminum Grandiflorum'],['日光橙花','Neroli Soleil'],['极境天竺葵','Geranium Rosé']].forEach((d,i)=>addP('yuan',YUAN_G[3],d[0],d[1],'fire',`yuan_fire_${i}`));
-[['佛手柑','Bergamot Alba'],['横断生姜','Zingiber Terrae'],['极境红橘','Mandarin Jucunda'],['极境葡萄柚','Grapefruit Pomona'],['极境橡木苔','Oakmoss Taiga']].forEach((d,i)=>addP('yuan',YUAN_G[4],d[0],d[1],'earth',`yuan_earth_${i}`));
+// --- 元系列 (25) ---
+addP('yuan','元 · 肃降 (Metal)','神圣乳香','Sacred Frankincense','metal','yuan_metal_0');
+addP('yuan','元 · 肃降 (Metal)','极境薄荷','Peppermint from Peaks','metal','yuan_metal_1');
+addP('yuan','元 · 肃降 (Metal)','极境尤加利',' Eucalyptus Glaciale','metal','yuan_metal_2');
+addP('yuan','元 · 肃降 (Metal)','极境茶树','Tea Tree Antiseptic','metal','yuan_metal_3');
+addP('yuan','元 · 肃降 (Metal)','极境香茅','Citronella Clarissima','metal','yuan_metal_4');
+addP('yuan','元 · 生发 (Wood)','老山檀香','Aged Sandalwood','wood','yuan_wood_0');
+addP('yuan','元 · 生发 (Wood)','极境丝柏','Misty Cypress','wood','yuan_wood_1');
+addP('yuan','元 · 生发 (Wood)','极境雪松','Himalayan Cedar','wood','yuan_wood_2');
+addP('yuan','元 · 生发 (Wood)','极境松针','Boreal Pine','wood','yuan_wood_3');
+addP('yuan','元 · 生发 (Wood)','神圣花梨木','Sacred Rosewood Isle','wood','yuan_wood_4');
+addP('yuan','元 · 润泽 (Water)','极境杜松','Juniper by the Loch','water','yuan_water_0');
+addP('yuan','元 · 润泽 (Water)','深根岩兰草','Deep Root Vetiver','water','yuan_water_1');
+addP('yuan','元 · 润泽 (Water)','暗夜广藿香','Patchouli Nocturne','water','yuan_water_2');
+addP('yuan','元 · 润泽 (Water)','极境没药','Myrrh Secreta','water','yuan_water_3');
+addP('yuan','元 · 润泽 (Water)','极境安息香','Benzoin Ambrosia','water','yuan_water_4');
+addP('yuan','元 · 释放 (Fire)','大马士革玫瑰','Damask Rose Aureate','fire','yuan_fire_0');
+addP('yuan','元 · 释放 (Fire)','极境依兰','Ylang Equatorial','fire','yuan_fire_1');
+addP('yuan','元 · 释放 (Fire)','大花茉莉','Jasminum Grandiflorum','fire','yuan_fire_2');
+addP('yuan','元 · 释放 (Fire)','日光橙花','Neroli Soleil','fire','yuan_fire_3');
+addP('yuan','元 · 释放 (Fire)','极境天竺葵','Geranium Rosé','fire','yuan_fire_4');
+addP('yuan','元 · 稳定 (Earth)','佛手柑','Bergamot Alba','earth','yuan_earth_0');
+addP('yuan','元 · 稳定 (Earth)','横断生姜','Zingiber Terrae','earth','yuan_earth_1');
+addP('yuan','元 · 稳定 (Earth)','极境红橘','Mandarin Jucunda','earth','yuan_earth_2');
+addP('yuan','元 · 稳定 (Earth)','极境葡萄柚','Grapefruit Pomona','earth','yuan_earth_3');
+addP('yuan','元 · 稳定 (Earth)','极境橡木苔','Oakmoss Taiga','earth','yuan_earth_4');
 
-// 香系列 (15)
-const HE_G = ['香 · 能量 (Body)','香 · 愈合 (Mind)','香 · 觉知 (Soul)'];
-const HE_MIND_IMGS = [
-  'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=800',
-  'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?q=80&w=800',
-  'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800',
-  'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=800',
-  'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800'
-];
-const HE_SOUL_IMGS = [
-  'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800',
-  'https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=800',
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800',
-  'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?q=80&w=800',
-  'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
-];
+// --- 香系列 (15) - 恢复 GitHub 图片 ---
+addP('he','香 · 能量 (Body)','云感霜','cloud velvet','body','he_body_0');
+addP('he','香 · 能量 (Body)','晨曦液','Dawn Glow','body','he_body_1');
+addP('he','香 · 能量 (Body)','月华油','Moonlight Oil','body','he_body_2');
+addP('he','香 · 能量 (Body)','清冽发','Frost Mint','body','he_body_3');
+addP('he','香 · 能量 (Body)','润迹膏','Trace Balm','body','he_body_4');
+addP('he','香 · 愈合 (Mind)','止语雾','Silent Mist','mind','he_mind_0');
+addP('he','香 · 愈合 (Mind)','归处膏','Sanctuary','mind','he_mind_1');
+addP('he','香 · 愈合 (Mind)','听泉露','Zen Fountain','mind','he_mind_2');
+addP('he','香 · 愈合 (Mind)','微光氛','Glimmer','mind','he_mind_3');
+addP('he','香 · 愈合 (Mind)','深吸瓶','Deep Breath','mind','he_mind_4');
+addP('he','香 · 觉知 (Soul)','无界油','Boundless','soul','he_soul_0');
+addP('he','香 · 觉知 (Soul)','悬浮露','Floating','soul','he_soul_1');
+addP('he','香 · 觉知 (Soul)','破晓珠','Daybreak','soul','he_soul_2');
+addP('he','香 · 觉知 (Soul)','空寂水','Void Moss','soul','he_soul_3');
+addP('he','香 · 觉知 (Soul)','共振方','Resonant','soul','he_soul_4');
 
-[['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
-[['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_MIND_IMGS[i]));
-[['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_SOUL_IMGS[i]));
-
-const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'];
-[['陶瓷皿','Crackled'],['芳香链','Necklace '],['木核扩','Walnut'],['蜡烛','candle'],['存香瓶','Vessel']].forEach((d,i)=>addP('jing',JING_G[0],d[0],d[1],'place',`jing_place_${i}`));
-[['一柱香','Incense Sticks'],['觉知珠','Rollerball'],['清空石','Gypsum'],['归真座','mountain'],['承露璃','glass']].forEach((d,i)=>addP('jing',JING_G[1],d[0],d[1],'Meditation',`jing_meditation_${i}`));
+// --- 境系列 (10) - 恢复 GitHub 图片 ---
+addP('jing','境 · 场域之物 (Place)','陶瓷皿','Crackled','place','jing_place_0');
+addP('jing','境 · 场域之物 (Place)','芳香链','Necklace ','place','jing_place_1');
+addP('jing','境 · 场域之物 (Place)','木核扩','Walnut','place','jing_place_2');
+addP('jing','境 · 场域之物 (Place)','蜡烛','candle','place','jing_place_3');
+addP('jing','境 · 场域之物 (Place)','存香瓶','Vessel','place','jing_place_4');
+addP('jing','境 · 冥想之物 (Meditation)','一柱香','Incense Sticks','Meditation','jing_meditation_0');
+addP('jing','境 · 冥想之物 (Meditation)','觉知珠','Rollerball','Meditation','jing_meditation_1');
+addP('jing','境 · 冥想之物 (Meditation)','清空石','Gypsum','Meditation','jing_meditation_2');
+addP('jing','境 · 冥想之物 (Meditation)','归真座','mountain','Meditation','jing_meditation_3');
+addP('jing','境 · 冥想之物 (Meditation)','承露璃','glass','Meditation','jing_meditation_4');
 
 const RAW_DEST = `${RAW_BASE}destinations/`;
 const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
@@ -92,11 +109,11 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   };
 };
 
-// --- 全球坐标 静态注册 (完整恢复版) ---
+// --- 全球坐标 全量硬编码 (绝不丢失) ---
 // 亚洲
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','th1'),getAlbumAsset('Thailand','th2'),getAlbumAsset('Thailand','th3')]);
 addD('w_hk','中国香港','HONG KONG','亚洲',18, getDestAsset('Hongkong'));
-addD('w_mac','中国澳门','MACAU','亚洲',2, getDestAsset('Macau') || 'https://images.unsplash.com/photo-1563245372-f21724e3856d');
+addD('w_mac','中国澳门','MACAU','亚洲',2, 'https://images.unsplash.com/photo-1563245372-f21724e3856d');
 addD('w_my','马来西亚','MALAYSIA','亚洲',13, getDestAsset('Malaysia'));
 addD('w_id','印尼','INDONESIA','亚洲',12, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4');
 addD('w_uae','阿联酋','UAE','亚洲',12, 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c');
@@ -110,10 +127,8 @@ addD('w_kr','韩国','SOUTH KOREA','亚洲',1, 'https://images.unsplash.com/phot
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1, getDestAsset('North Korea'));
 addD('w_kh','柬埔寨','CAMBODIA','亚洲',1, 'https://images.unsplash.com/photo-1500048993953-d23a436266cf');
 addD('w_sg','新加坡','SINGAPORE','亚洲',2, getDestAsset('Singapore'));
-addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0, 'https://images.unsplash.com/photo-1529154036614-a60975f5c760', 'locked');
-addD('w_np','尼泊尔','NEPAL','亚洲',0, 'https://images.unsplash.com/photo-1544735716-392fe2489ffa', 'locked');
 
-// 欧洲 (17+ 国家完整恢复)
+// 欧洲
 addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200');
 addD('w_pl','波兰','POLAND','欧洲',5, getDestAsset('Poland'));
 addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec');
@@ -126,11 +141,15 @@ addD('w_nl','荷兰','NETHERLANDS','欧洲',1,'https://images.unsplash.com/photo
 addD('w_es','西班牙','SPAIN','欧洲',1, getDestAsset('Spain'));
 addD('w_mc','摩纳哥','MONACO','欧洲',1, getDestAsset('Monaco'));
 addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1, getDestAsset('Luxembourg'));
+addD('w_ch','瑞士','SWITZERLAND','欧洲',2,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f');
 addD('w_bg','保加利亚','BULGARIA','欧洲',0,'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb', 'locked');
 addD('w_uk','英国','UNITED KINGDOM','欧洲',0,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad', 'locked');
 addD('w_pt','葡萄牙','PORTUGAL','欧洲',0,'https://images.unsplash.com/photo-1555881400-74d7acaacd8b', 'locked');
 addD('w_hr','克罗地亚','CROATIA','欧洲',0,'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd', 'locked');
 addD('w_gr','希腊','GREECE','欧洲',0,'https://images.unsplash.com/photo-1533105079780-92b9be482077', 'locked');
+addD('w_be','比利时','BELGIUM','欧洲',1,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad');
+addD('w_no','挪威','NORWAY','欧洲',0,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f','locked');
+addD('w_se','瑞典','SWEDEN','欧洲',0,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc','locked');
 
 // 非洲
 addD('w_za','南非','SOUTH AFRICA','非洲',12,'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5');
@@ -147,47 +166,52 @@ addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentin
 addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, getDestAsset('Mexico'));
 addD('w_ht','海地','HAITI','美洲/大洋洲',3, getDestAsset('Haiti'));
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9', 'locked');
-addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105', 'locked');
+addD('w_ant','南极洲','ANTARCTICA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105', 'locked');
 
-// --- 神州坐标 静态注册 (西南/西北/华东/华南等 100% 完整) ---
-const CHINA_LIST = [
-  // 西南 (完整)
-  {n:'四川', s:'西南', i:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
-  {n:'云南', s:'西南', i:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
-  {n:'西藏', s:'西南', i:'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd'}, 
-  {n:'贵州', s:'西南', i:'https://images.unsplash.com/photo-1558238792-881c15f98896'}, 
-  {n:'重庆', s:'西南', i:'https://images.unsplash.com/photo-1502404733198-44b0559ac643'}, 
-  // 西北 (完整)
-  {n:'新疆', s:'西北', i:'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d'},
-  {n:'甘肃', s:'西北', i:'https://images.unsplash.com/photo-1544735716-392fe2489ffa'},
-  {n:'陕西', s:'西北', i:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
-  {n:'宁夏', s:'西北', i:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
-  // 华南
-  {n:'广东', s:'华南', i:'https://images.unsplash.com/photo-1540962351504-03099e0a754b'},
-  {n:'福建', s:'华南', i:'https://images.unsplash.com/photo-1546857186-b4d08122d104'},
-  {n:'海南', s:'华南', i:'https://images.unsplash.com/photo-1582234033306-03c7e4745856'},
-  {n:'广西', s:'华南', i:'https://images.unsplash.com/photo-1543163521-1bf539c55dd2'},
-  // 华东
-  {n:'浙江', s:'华东', i:'https://images.unsplash.com/photo-1555543183-8380302b1156'},
-  {n:'江苏', s:'华东', i:'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd'},
-  {n:'上海', s:'华东', i:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2'},
-  {n:'安徽', s:'华东', i:'https://images.unsplash.com/photo-1554141630-d3923d6a9978'},
-  {n:'山东', s:'华东', i:'https://images.unsplash.com/photo-1551609189-eba71b3a8566'},
-  // 华北
-  {n:'北京', s:'华北', i:'https://images.unsplash.com/photo-1508804185872-d7badad00f7d'},
-  {n:'山西', s:'华北', i:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
-  {n:'河北', s:'华北', i:'https://images.unsplash.com/photo-1545625032-4114407b7136'},
-  {n:'天津', s:'华北', i:'https://images.unsplash.com/photo-1542031759174-8217dd1119ca'},
-  // 华中
-  {n:'湖南', s:'华中', i:'https://images.unsplash.com/photo-1548235212-04533da82d33'},
-  {n:'湖北', s:'华中', i:'https://images.unsplash.com/photo-1547038577-da80abbc4f19'},
-  {n:'河南', s:'华中', i:'https://images.unsplash.com/photo-1547949003-9792a18a2601'},
-  {n:'江西', s:'华中', i:'https://images.unsplash.com/photo-1533038590840-1cde6b66b721'}
-];
+// --- 神州坐标 (28省份) ---
+// 西南 (5)
+addD('cn_四川','四川','SICHUAN','亚洲',5,'https://images.unsplash.com/photo-1520263115673-610416f52ab6','arrived',true,'西南');
+addD('cn_云南','云南','YUNNAN','亚洲',5,'https://images.unsplash.com/photo-1521405924368-64c5b84bec60','arrived',true,'西南');
+addD('cn_西藏','西藏','TIBET','亚洲',5,'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd','arrived',true,'西南');
+addD('cn_贵州','贵州','GUIZHOU','亚洲',5,'https://images.unsplash.com/photo-1558238792-881c15f98896','arrived',true,'西南');
+addD('cn_重庆','重庆','CHONGQING','亚洲',5,'https://images.unsplash.com/photo-1502404733198-44b0559ac643','arrived',true,'西南');
 
-// 直接在模块加载时同步执行，确保导出时 DESTINATIONS 对象已完全填充
-CHINA_LIST.forEach(p => {
-  addD(`cn_${p.n}`, p.n, p.n.toUpperCase(), '亚洲', 5, `${p.i}?q=80&w=1200`, 'arrived', true, p.s);
-});
+// 西北 (5)
+addD('cn_新疆','新疆','XINJIANG','亚洲',5,'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d','arrived',true,'西北');
+addD('cn_甘肃','甘肃','GANSU','亚洲',5,'https://images.unsplash.com/photo-1544735716-392fe2489ffa','arrived',true,'西北');
+addD('cn_陕西','陕西','SHAANXI','亚洲',5,'https://images.unsplash.com/photo-1546857186-b4d08122d104','arrived',true,'西北');
+addD('cn_宁夏','宁夏','NINGXIA','亚洲',5,'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd','arrived',true,'西北');
+addD('cn_青海','青海','QINGHAI','亚洲',5,'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd','arrived',true,'西北');
+
+// 华南 (4)
+addD('cn_广东','广东','GUANGDONG','亚洲',5,'https://images.unsplash.com/photo-1540962351504-03099e0a754b','arrived',true,'华南');
+addD('cn_福建','福建','FUJIAN','亚洲',5,'https://images.unsplash.com/photo-1546857186-b4d08122d104','arrived',true,'华南');
+addD('cn_海南','海南','HAINAN','亚洲',5,'https://images.unsplash.com/photo-1582234033306-03c7e4745856','arrived',true,'华南');
+addD('cn_广西','广西','GUANGXI','亚洲',5,'https://images.unsplash.com/photo-1543163521-1bf539c55dd2','arrived',true,'华南');
+
+// 华东 (6)
+addD('cn_浙江','浙江','ZHEJIANG','亚洲',5,'https://images.unsplash.com/photo-1555543183-8380302b1156','arrived',true,'华东');
+addD('cn_江苏','江苏','JIANGSU','亚洲',5,'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd','arrived',true,'华东');
+addD('cn_上海','上海','SHANGHAI','亚洲',5,'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2','arrived',true,'华东');
+addD('cn_安徽','安徽','ANHUI','亚洲',5,'https://images.unsplash.com/photo-1554141630-d3923d6a9978','arrived',true,'华东');
+addD('cn_山东','山东','SHANDONG','亚洲',5,'https://images.unsplash.com/photo-1551609189-eba71b3a8566','arrived',true,'华东');
+addD('cn_江西','江西','JIANGXI','亚洲',5,'https://images.unsplash.com/photo-1533038590840-1cde6b66b721','arrived',true,'华东');
+
+// 华北 (5)
+addD('cn_北京','北京','BEIJING','亚洲',5,'https://images.unsplash.com/photo-1508804185872-d7badad00f7d','arrived',true,'华北');
+addD('cn_山西','山西','SHANXI','亚洲',5,'https://images.unsplash.com/photo-1547949003-9792a18a2601','arrived',true,'华北');
+addD('cn_河北','河北','HEBEI','亚洲',5,'https://images.unsplash.com/photo-1545625032-4114407b7136','arrived',true,'华北');
+addD('cn_天津','天津','TIANJIN','亚洲',5,'https://images.unsplash.com/photo-1542031759174-8217dd1119ca','arrived',true,'华北');
+addD('cn_内蒙古','内蒙古','INNER MONGOLIA','亚洲',5,'https://images.unsplash.com/photo-1547949003-9792a18a2601','arrived',true,'华北');
+
+// 华中 (3)
+addD('cn_湖南','湖南','HUNAN','亚洲',5,'https://images.unsplash.com/photo-1548235212-04533da82d33','arrived',true,'华中');
+addD('cn_湖北','湖北','HUBEI','亚洲',5,'https://images.unsplash.com/photo-1547038577-da80abbc4f19','arrived',true,'华中');
+addD('cn_河南','河南','HENAN','亚洲',5,'https://images.unsplash.com/photo-1547949003-9792a18a2601','arrived',true,'华中');
+
+export const ASSET_REGISTRY = {
+  brand: { logo: ASSETS.logo, xhs_link: ASSETS.xhs_link },
+  visual_anchors: { placeholder: ASSETS.placeholder }
+};
 
 export const PRODUCT_OVERRIDES: Record<string, string> = {};
