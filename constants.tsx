@@ -1,7 +1,7 @@
 import { ScentItem, Destination } from './types';
 
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=165.0'; 
+const CACHE_V = '?v=172.0'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
@@ -109,7 +109,7 @@ addP('jing','境 · 冥想之物 (Meditation)','清空石','Gypsum','Meditation'
 addP('jing','境 · 冥想之物 (Meditation)','归真座','mountain','Meditation','jing_meditation_3');
 addP('jing','境 · 冥想之物 (Meditation)','承露璃','glass','Meditation','jing_meditation_4');
 
-// --- 全球寻香坐标审计 ---
+// --- 全球 52 个寻香目的地 ---
 // 亚洲
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_metal_4', 'he_mind_2']);
 DESTINATIONS['w_thai'].memoryPhotos = [
@@ -123,25 +123,35 @@ addD('w_my','马来西亚','MALAYSIA','亚洲',13, `${RAW_DEST}Malaysia.webp${CA
 addD('w_id','印尼','INDONESIA','亚洲',12, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200', ['yuan_wood_4']);
 addD('w_mac','中国澳门','MACAU','亚洲',5, `${RAW_DEST}Macau.webp${CACHE_V}`, ['he_body_2']);
 addD('w_sg','新加坡','SINGAPORE','亚洲',2, `${RAW_DEST}Singapore.webp${CACHE_V}`, ['he_soul_0']);
-addD('w_jp','日本','JAPAN','亚洲',2, 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200', ['jing_meditation_0']);
+addD('w_jp','日本','JAPAN','亚洲',2, 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200', ['jing_meditation_0', 'he_soul_3']);
 addD('w_kh','柬埔寨','CAMBODIA','亚洲',1, 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1200', ['yuan_wood_0']);
 addD('w_ir','伊朗','IRAN','亚洲',2, `${RAW_DEST}Iran.webp${CACHE_V}`, ['yuan_fire_3']);
+addD('w_uae','阿联酋','UAE','亚洲',12, 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200', ['yuan_metal_0']);
+addD('w_vn','越南','VIETNAM','亚洲',6, 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_wood_3']);
+addD('w_kr','韩国','SOUTH KOREA','亚洲',1, 'https://images.unsplash.com/photo-1543158266-0066955047b1?q=80&w=1200', ['he_body_3']);
+addD('w_sl','斯里兰卡','SRI LANKA','亚洲',0, 'https://images.unsplash.com/photo-1542382156909-9ae37b3f56fd?q=80&w=1200', [], 'locked');
 
 // 欧洲
 addD('w_tr','土耳其','TURKEY','欧洲',8, 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', ['yuan_fire_0']);
 addD('w_fr','法国','FRANCE','欧洲',15, 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', ['yuan_fire_3', 'yuan_fire_4']);
-addD('w_at','奥地利','AUSTRIA','欧洲',3, 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?q=80&w=1200', ['yuan_wood_1']);
+addD('w_at','奥地利','AUSTRIA','欧洲',3, 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?q=80&w=1200', ['yuan_wood_1', 'yuan_metal_2']);
 addD('w_pl','波兰','POLAND','欧洲',5, `${RAW_DEST}Poland.webp${CACHE_V}`, ['yuan_earth_4']);
-addD('w_de','德国','GERMANY','欧洲',4, 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200');
+addD('w_de','德国','GERMANY','欧洲',4, 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200', ['yuan_wood_3']);
+addD('w_it','意大利','ITALY','欧洲',2, 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200', ['yuan_earth_0']);
+addD('w_es','西班牙','SPAIN','欧洲',1, `${RAW_DEST}Spain.webp${CACHE_V}`, ['yuan_earth_0']);
+addD('w_hu','匈牙利','HUNGARY','欧洲',2, 'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?q=80&w=1200');
 
 // 非洲
 addD('w_za','南非','SOUTH AFRICA','非洲',12, 'https://images.unsplash.com/photo-1523805081730-614449274055?q=80&w=1200', ['yuan_earth_2']);
 addD('w_eg','埃及','EGYPT','非洲',2, `${RAW_DEST}Egypt.webp${CACHE_V}`, ['yuan_metal_0']);
+addD('w_ke','肯尼亚','KENYA','非洲',2, `${RAW_DEST}Kenya.webp${CACHE_V}`, ['yuan_fire_1']);
+addD('w_mg','马达加斯加','MADAGASCAR','非洲',0, `${RAW_DEST}Madagascar.webp${CACHE_V}`, ['yuan_fire_1'], 'locked');
 
 // 美洲/大洋洲
-addD('w_us','美国','UNITED STATES','美洲/大洋洲',7, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200', ['yuan_metal_1']);
+addD('w_us','美国','UNITED STATES','美洲/大洋洲',7, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200', ['yuan_metal_1', 'yuan_metal_2']);
 addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, `${RAW_DEST}Mexico.webp${CACHE_V}`);
-addD('w_br','巴西','BRAZIL','美洲/大洋洲',8, 'https://images.unsplash.com/photo-1440615490326-89a7f04ee613?q=80&w=1200');
+addD('w_br','巴西','BRAZIL','美洲/大洋洲',8, 'https://images.unsplash.com/photo-1440615490326-89a7f04ee613?q=80&w=1200', ['yuan_fire_1']);
+addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0, 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', ['yuan_metal_3'], 'locked');
 
 // --- 中华神州 34 个省级行政区 ---
 const CN_REGIONS = {
