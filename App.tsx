@@ -33,6 +33,8 @@ const App: React.FC = () => {
     // 2秒后重置状态并导航至首页
     setTimeout(() => {
       setShowSplash(false);
+      setSelectedId(null);
+      setSelectedDestId(null);
       navigateToView('home');
     }, 2000);
   };
@@ -53,19 +55,19 @@ const App: React.FC = () => {
     <div className="min-h-screen relative bg-[#F5F5F5] selection:bg-[#D75437] selection:text-white">
       {/* 品牌瞬间 Overlay (Splash Screen) */}
       {showSplash && (
-        <div className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center animate-in fade-in duration-700 overflow-hidden">
+        <div className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center animate-fade overflow-hidden">
           {/* 背景装饰：极简纹理或虚化 */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none">
-             <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#D75437] via-transparent to-transparent" />
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+             <div className="w-full h-full bg-[radial-gradient(circle_at_center,_#D7543733_0%,_transparent_70%)]" />
           </div>
           
-          <div className="relative flex flex-col items-center animate-in zoom-in duration-1000">
-            <div className="w-48 h-48 md:w-80 md:h-80 transition-transform duration-[2000ms] scale-110">
-              <img src={ASSETS.logo} className="w-full h-full object-contain filter drop-shadow-2xl" alt="Unio Sanctuary Moment" />
+          <div className="relative flex flex-col items-center animate-zoom">
+            <div className="w-56 h-56 md:w-96 md:h-96 transition-transform duration-[2000ms] scale-110">
+              <img src={ASSETS.logo} className="w-full h-full object-contain drop-shadow-2xl" alt="Unio Sanctuary Moment" />
             </div>
-            <div className="mt-16 text-center space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-              <h2 className="text-4xl md:text-7xl font-serif-zh font-bold tracking-[0.8em] text-[#2C3E28] ml-[0.8em]">元香 unio</h2>
-              <div className="h-px w-24 md:w-64 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-30" />
+            <div className="mt-16 text-center space-y-4 animate-slide-up">
+              <h2 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-[0.8em] text-[#2C3E28] ml-[0.8em]">元香 unio</h2>
+              <div className="h-0.5 w-32 md:w-80 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-30" />
               <p className="text-[10px] md:text-sm tracking-[0.5em] uppercase opacity-40 font-bold">Original Harmony Sanctuary</p>
             </div>
           </div>
@@ -93,7 +95,7 @@ const App: React.FC = () => {
         </div>
         <div className="pointer-events-auto flex items-center gap-4 md:gap-10">
            <button onClick={() => navigateToView('brand-studio')} className="p-2 text-black/10 hover:text-black/60"><Settings size={18} /></button>
-           <button onClick={() => navigateToView('imagelab')} className="text-[9px] md:text-sm tracking-[0.3em] font-bold flex items-center gap-2 uppercase hover:text-[#D75437] transition-colors"><Camera size={16} /><span className="hidden sm:inline text-readable-shadow text-white/90">视觉实验室</span></button>
+           <button onClick={() => navigateToView('imagelab')} className="text-[9px] md:text-sm tracking-[0.3em] font-bold flex items-center gap-2 uppercase hover:text-[#D75437] transition-colors"><Camera size={16} /><span className="hidden sm:inline text-readable-shadow">视觉实验室</span></button>
         </div>
       </nav>
 
