@@ -8,12 +8,12 @@ export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  // 核心复位：经典的薰衣草紫色花海
+  // 核心复位：极致美感的薰衣草紫色花海
   hero_forest: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
-// 大陆板块背景视觉锚点
+// 全球图鉴板块视觉锚点
 export const REGION_VISUALS = {
   china: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=600',
   asia: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600',
@@ -51,7 +51,7 @@ const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (W
 [['大马士革玫瑰','Damask Rose Aureate'],['极境依兰','Ylang Equatorial'],['大花茉莉','Jasminum Grandiflorum'],['日光橙花','Neroli Soleil'],['极境天竺葵','Geranium Rosé']].forEach((d,i)=>addP('yuan',YUAN_G[3],d[0],d[1],'fire',`yuan_fire_${i}`));
 [['佛手柑','Bergamot Alba'],['横断生姜','Zingiber Terrae'],['极境红橘','Mandarin Jucunda'],['极境葡萄柚','Grapefruit Pomona'],['极境橡木苔','Oakmoss Taiga']].forEach((d,i)=>addP('yuan',YUAN_G[4],d[0],d[1],'earth',`yuan_earth_${i}`));
 
-// 香系列 (15) - 复位至美学图源，确保非空白
+// 香系列 (15)
 const HE_G = ['香 · 能量 (Body)','香 · 愈合 (Mind)','香 · 觉知 (Soul)'];
 const HE_MIND_IMGS = [
   'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=800',
@@ -68,11 +68,11 @@ const HE_SOUL_IMGS = [
   'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
 ];
 
-// 香 · 能量 (Body) - GitHub 复位
+// 香 · 能量 (Body) - 恢复 GitHub 地址 (en 必须对应文件名)
 [['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
-// 香 · 愈合 (Mind) - 美学复位
+// 香 · 愈合 (Mind) - 美学默认图
 [['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_MIND_IMGS[i]));
-// 香 · 觉知 (Soul) - 美学复位
+// 香 · 觉知 (Soul) - 美学默认图
 [['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_SOUL_IMGS[i]));
 
 // 境系列 (10)
@@ -123,7 +123,7 @@ addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,'https://images.unsplash.c
 addD('w_jo','约旦','JORDAN','亚洲',2,'https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1200');
 addD('w_mac','中国澳门','MACAU','亚洲',2,'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200');
 addD('w_kr','韩国','SOUTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1517154421773-0529f29ea451?q=80&w=1200');
-addD('w_kh','柬埔寨','CAMBBIODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200');
+addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200');
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0,'https://images.unsplash.com/photo-1529154036614-a60975f5c760?q=80&w=1200', 'locked');
 addD('w_np','尼泊尔','NEPAL','亚洲',0,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', 'locked');
 addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200');
