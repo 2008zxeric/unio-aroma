@@ -57,7 +57,6 @@ const App: React.FC = () => {
           <div className="absolute inset-0 opacity-10 pointer-events-none">
              <div className="w-full h-full bg-[radial-gradient(circle_at_center,_#D7543733_0%,_transparent_70%)]" />
           </div>
-          
           <div className="relative flex flex-col items-center animate-zoom">
             <div className="w-56 h-56 md:w-96 md:h-96 transition-transform duration-[2000ms] scale-110">
               <img src={ASSETS.logo} className="w-full h-full object-contain drop-shadow-2xl" alt="Unio Sanctuary Moment" />
@@ -73,10 +72,7 @@ const App: React.FC = () => {
 
       {/* 顶部主导航 */}
       <nav className="fixed top-0 left-0 w-full px-6 md:px-20 py-6 md:py-10 flex justify-between items-center z-[500] pointer-events-none">
-        <div 
-          className="pointer-events-auto cursor-pointer flex items-center gap-4 group" 
-          onClick={handleLogoClick}
-        >
+        <div className="pointer-events-auto cursor-pointer flex items-center gap-4 group" onClick={handleLogoClick}>
           <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center p-1 md:p-2 glass rounded-full border border-black/5 hover:scale-110 transition-transform active:scale-90 shadow-lg overflow-hidden">
              <img src={ASSETS.logo} className="w-full h-full object-contain" alt="Unio Logo" />
           </div>
@@ -104,13 +100,13 @@ const App: React.FC = () => {
       </main>
 
       {/* 优化后的复合导航系统：不再相互遮挡，逻辑更清晰 */}
-      <div className="fixed bottom-8 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6">
+      <div className="fixed bottom-8 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6 pb-[env(safe-area-inset-bottom)]">
         
-        {/* 小红书/社区入口：浮动在导航栏上方，采用呼吸态半透明视觉 */}
-        <div className="w-full max-w-sm flex justify-end">
+        {/* 小红书/社区入口：浮动在导航栏上方，采用呼吸态视觉 */}
+        <div className="w-full max-w-[340px] flex justify-end">
            <button 
              onClick={() => window.open(ASSETS.xhs_link, '_blank')} 
-             className="pointer-events-auto p-4 bg-[#D75437]/90 text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all group backdrop-blur-md animate-pulse border border-white/20"
+             className="pointer-events-auto p-4 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all group backdrop-blur-md animate-pulse border border-white/20"
            >
              <Share2 size={22} className="group-hover:rotate-12 transition-transform" />
            </button>
@@ -118,41 +114,38 @@ const App: React.FC = () => {
 
         {/* 智感悬浮导航胶囊 */}
         <div className="pointer-events-auto w-full max-w-[340px]">
-          <div className="flex items-center justify-around glass-dark px-2 py-2 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-3xl bg-black/60">
+          <div className="flex items-center justify-around glass-dark px-2 py-2 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-3xl">
             <button 
               onClick={() => navigateToView('home')} 
-              className={`p-4 rounded-full transition-all duration-500 ${view === 'home' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'home' ? 'bg-[#D75437] text-white shadow-lg scale-105' : 'text-white/40 hover:text-white/80'}`}
             >
               <Home size={22} />
             </button>
             <button 
               onClick={() => navigateToView('atlas')} 
-              className={`p-4 rounded-full transition-all duration-500 ${view === 'atlas' || view === 'china-atlas' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'atlas' || view === 'china-atlas' ? 'bg-[#D75437] text-white shadow-lg scale-105' : 'text-white/40 hover:text-white/80'}`}
             >
               <MapIcon size={22} />
             </button>
             <button 
               onClick={() => navigateToView('collections')} 
-              className={`p-4 rounded-full transition-all duration-500 ${view === 'collections' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'collections' ? 'bg-[#D75437] text-white shadow-lg scale-105' : 'text-white/40 hover:text-white/80'}`}
             >
               <Box size={22} />
             </button>
             <button 
               onClick={() => navigateToView('oracle')} 
-              className={`p-4 rounded-full transition-all duration-500 ${view === 'oracle' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'oracle' ? 'bg-[#D75437] text-white shadow-lg scale-105' : 'text-white/40 hover:text-white/80'}`}
             >
               <Activity size={22} />
             </button>
           </div>
         </div>
-        
-        {/* 安全区域适配 (Safe Area Spacing) */}
-        <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
         .glass-dark {
-          background: rgba(0, 0, 0, 0.65);
+          background: rgba(0, 0, 0, 0.75);
           backdrop-filter: blur(40px);
           -webkit-backdrop-filter: blur(40px);
         }
