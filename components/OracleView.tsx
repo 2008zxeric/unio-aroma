@@ -5,7 +5,7 @@ import { getOracleResponse } from '../services/gemini';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '欢迎来到感官祭坛。我是 Alice 与 Eric 的数字化意识。请告诉我，你此刻内心的杂音是什么？我们将从拾载寻香的 50 款馆藏中，为你寻找那份跨越山海的寻香处方。' }
+    { role: 'assistant', content: '欢迎来到元和 unio。我是感官祭司，Eric 与 Alice 的数字化意识载体。请向我倾诉你内心的杂音，我将从拾载寻香的 50 款极境馆藏中，为你选定专属的“一人一方”寻香处方。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,8 +44,8 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
                <Activity size={24} />
             </div>
             <div>
-              <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
-              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · Original Harmony</p>
+              <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭司</h3>
+              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">Scent Oracle · Original Harmony</p>
             </div>
           </div>
           <Sparkles className="text-[#D4AF37] opacity-40 animate-spin-slow" size={20} />
@@ -71,7 +71,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <div className="flex gap-2">
                  <Wind size={20} className="animate-spin" />
               </div>
-              <span className="font-serif-zh tracking-widest text-xs md:text-xl">正在调谐极境分子频率...</span>
+              <span className="font-serif-zh tracking-widest text-xs md:text-xl">祭司正在调谐极境分子频率...</span>
             </div>
           )}
         </div>
@@ -83,7 +83,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-              placeholder="请倾诉你当下的杂音..." 
+              placeholder="倾诉你内心的杂音..." 
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
             <button 
@@ -94,7 +94,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />
             </button>
           </div>
-          <p className="text-center mt-6 text-[7px] md:text-[11px] opacity-20 uppercase tracking-[0.3em] font-bold">Unio 元香 · Alice & Eric · 拾载寻香</p>
+          <p className="text-center mt-6 text-[7px] md:text-[11px] opacity-20 uppercase tracking-[0.3em] font-bold">元和 unio · Alice & Eric · 拾载寻香</p>
         </div>
       </div>
     </div>
