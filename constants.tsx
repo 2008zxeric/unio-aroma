@@ -2,22 +2,21 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=132.5'; 
+const CACHE_V = '?v=138.0'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
   hero_forest: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1920',
-  // 实验室视觉：锁定用户提供的 GitHub banner
   lab_visual: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/banner.webp' + CACHE_V, 
   lavender_field: 'https://images.unsplash.com/photo-1471958680802-1345a694ba6d?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
 export const REGION_VISUALS = {
-  // 核心修正：按照用户要求，将中华神州板块换成北京天坛背景图
-  china: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=1200',
+  // 核心：神州背景更换为北京天坛
+  china: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=1920',
   asia: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600',
   europe: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
   africa: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=600',
@@ -45,7 +44,7 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
   } as ScentItem;
 };
 
-// --- 全量元系列 (25) ---
+// --- 元系列 (25) ---
 addP('yuan','元 · 肃降 (Metal)','神圣乳香','Sacred Frankincense','metal','yuan_metal_0');
 addP('yuan','元 · 肃降 (Metal)','极境薄荷','Peppermint from Peaks','metal','yuan_metal_1');
 addP('yuan','元 · 肃降 (Metal)','极境尤加利',' Eucalyptus Glaciale','metal','yuan_metal_2');
@@ -72,24 +71,25 @@ addP('yuan','元 · 稳定 (Earth)','极境红橘','Mandarin Jucunda','earth','y
 addP('yuan','元 · 稳定 (Earth)','极境葡萄柚','Grapefruit Pomona','earth','yuan_earth_3');
 addP('yuan','元 · 稳定 (Earth)','极境橡木苔','Oakmoss Taiga','earth','yuan_earth_4');
 
-// --- 全量香系列 (15) ---
+// --- 香系列 (15) - 恢复 Body 原始图片 ---
 addP('he','香 · 能量 (Body)','云感霜','cloud velvet','body','he_body_0');
 addP('he','香 · 能量 (Body)','晨曦液','Dawn Glow','body','he_body_1');
 addP('he','香 · 能量 (Body)','月华油','Moonlight Oil','body','he_body_2');
 addP('he','香 · 能量 (Body)','清冽发','Frost Mint','body','he_body_3');
 addP('he','香 · 能量 (Body)','润迹膏','Trace Balm','body','he_body_4');
-addP('he','香 · 愈合 (Mind)','止语雾','Silent Mist','mind','he_mind_0');
-addP('he','香 · 愈合 (Mind)','归处膏','Sanctuary','mind','he_mind_1');
-addP('he','香 · 愈合 (Mind)','听泉露','Zen Fountain','mind','he_mind_2');
-addP('he','香 · 愈合 (Mind)','微光氛','Glimmer','mind','he_mind_3');
-addP('he','香 · 愈合 (Mind)','深吸瓶','Deep Breath','mind','he_mind_4');
-addP('he','香 · 觉知 (Soul)','无界油','Boundless','soul','he_soul_0');
-addP('he','香 · 觉知 (Soul)','悬浮露','Floating','soul','he_soul_1');
-addP('he','香 · 觉知 (Soul)','破晓珠','Daybreak','soul','he_soul_2');
-addP('he','香 · 觉知 (Soul)','空寂水','Void Moss','soul','he_soul_3');
-addP('he','he_soul_4','共振方','Resonant','soul','he_soul_4');
+// Mind / Soul 使用美感图补位
+addP('he','香 · 愈合 (Mind)','止语雾','Silent Mist','mind','he_mind_0', 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800');
+addP('he','香 · 愈合 (Mind)','归处膏','Sanctuary','mind','he_mind_1', 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800');
+addP('he','香 · 愈合 (Mind)','听泉露','Zen Fountain','mind','he_mind_2', 'https://images.unsplash.com/photo-1510002789148-4e6422558644?q=80&w=800');
+addP('he','香 · 愈合 (Mind)','微光氛','Glimmer','mind','he_mind_3', 'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800');
+addP('he','香 · 愈合 (Mind)','深吸瓶','Deep Breath','mind','he_mind_4', 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=800');
+addP('he','香 · 觉知 (Soul)','无界油','Boundless','soul','he_soul_0', 'https://images.unsplash.com/photo-1506318137071-a8e063b4b519?q=80&w=800');
+addP('he','香 · 觉知 (Soul)','悬浮露','Floating','soul','he_soul_1', 'https://images.unsplash.com/photo-1492681290082-e932832941e6?q=80&w=800');
+addP('he','香 · 觉知 (Soul)','破晓珠','Daybreak','soul','he_soul_2', 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800');
+addP('he','香 · 觉知 (Soul)','空寂水','Void Moss','soul','he_soul_3', 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?q=80&w=800');
+addP('he','香 · 觉知 (Soul)','共振方','Resonant','soul','he_soul_4', 'https://images.unsplash.com/photo-1515023115689-589c3951b370?q=80&w=800');
 
-// --- 全量境系列 (10) ---
+// --- 境系列 (10) ---
 addP('jing','境 · 场域之物 (Place)','陶瓷皿','Crackled','place','jing_place_0');
 addP('jing','境 · 场域之物 (Place)','芳香链','Necklace ','place','jing_place_1');
 addP('jing','境 · 场域之物 (Place)','木核扩','Walnut','place','jing_place_2');
@@ -102,10 +102,8 @@ addP('jing','境 · 冥想之物 (Meditation)','归真座','mountain','Meditatio
 addP('jing','境 · 冥想之物 (Meditation)','承露璃','glass','Meditation','jing_meditation_4');
 
 const RAW_DEST = `${RAW_BASE}destinations/`;
-const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
 export const DESTINATIONS: Record<string, Destination> = {};
 
-const getAlbumAsset = (country: string, filename: string) => fixGitHubUrl(`${RAW_ALBUM}${country}/${filename}.webp${CACHE_V}`);
 const getDestAsset = (name: string) => fixGitHubUrl(`${RAW_DEST}${name.replace(/\s/g, '%20')}.webp${CACHE_V}`);
 
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, herbInfo:string='极境原生分子', customPhotos?: string[])=>{
@@ -118,7 +116,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   };
 };
 
-// --- 全量全球目的地 ---
+// --- 50 个全球目的地全量恢复 ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived');
 addD('w_hk','中国香港','HONG KONG','亚洲',18, getDestAsset('Hongkong'));
 addD('w_mac','中国澳门','MACAU','亚洲',2, 'https://images.unsplash.com/photo-1563245372-f21724e3856d');
@@ -170,8 +168,8 @@ addD('w_ht','海地','HAITI','美洲/大洋洲',3, getDestAsset('Haiti'));
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9', 'locked');
 addD('w_ant','南极洲','ANTARCTICA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105', 'locked');
 
-// --- 全量神州坐标 ---
-// 核心美化：四川替换为九寨沟纯净自然风景图
+// --- 28 个神州坐标全量恢复 ---
+// 四川更新为九寨沟风景
 addD('cn_四川','四川','SICHUAN','亚洲',5,'https://images.unsplash.com/photo-1610450919934-23001d0f3134?q=80&w=1200','arrived',true,'西南');
 addD('cn_云南','云南','YUNNAN','亚洲',5,'https://images.unsplash.com/photo-1521405924368-64c5b84bec60','arrived',true,'西南');
 addD('cn_西藏','西藏','TIBET','亚洲',5,'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd','arrived',true,'西南');
