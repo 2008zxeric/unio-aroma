@@ -2,7 +2,7 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=114.2'; 
+const CACHE_V = '?v=115.1'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
@@ -18,17 +18,18 @@ export const ASSET_REGISTRY = {
 };
 
 /**
- * 1. 50款馆藏矩阵 (元 25, 香 15, 境 10)
+ * 1. 50款馆藏矩阵
  */
 const RAW_PROD = `${RAW_BASE}products/`;
 export const DATABASE: Record<string, ScentItem> = {};
 
-const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string) => {
+// 核心加载函数
+const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string, customImg?: string) => {
   const filename = en.replace(/\s/g, '%20');
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
-    hero: fixGitHubUrl(`${RAW_PROD}${folder}/${filename}.webp${CACHE_V}`),
+    hero: customImg || fixGitHubUrl(`${RAW_PROD}${folder}/${filename}.webp${CACHE_V}`),
     shortDesc: '拾载寻香馆藏 / 100% PURE', narrative: `“擷取 ${n} 在極境中的生存意志。”`,
     benefits: ['深度平衡', '频率重构', '觉知开启'], usage: '滴于掌心或扩香器中，深度嗅吸。', precautions: '高纯度精油请稀释使用。',
     ericDiary: `我在极境中亲手采集了 ${n}。`, aliceDiary: `实验室分析显示其成分极其纯净。`,
@@ -36,7 +37,7 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
   };
 };
 
-// 元系列 (25)
+// 元系列 (25) - 对应 GitHub 真实资产
 const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (Water)','元 · 释放 (Fire)','元 · 稳定 (Earth)'];
 [['神圣乳香','Sacred Frankincense'],['极境薄荷','Peppermint from Peaks'],['极境尤加利',' Eucalyptus Glaciale'],['极境茶树','Tea Tree Antiseptic'],['极境香茅','Citronella Clarissima']].forEach((d,i)=>addP('yuan',YUAN_G[0],d[0],d[1],'metal',`yuan_metal_${i}`));
 [['老山檀香','Aged Sandalwood'],['极境丝柏','Misty Cypress'],['极境雪松','Himalayan Cedar'],['极境松针','Boreal Pine'],['神圣花梨木','Sacred Rosewood Isle']].forEach((d,i)=>addP('yuan',YUAN_G[1],d[0],d[1],'wood',`yuan_wood_${i}`));
@@ -44,11 +45,35 @@ const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (W
 [['大马士革玫瑰','Damask Rose Aureate'],['极境依兰','Ylang Equatorial'],['大花茉莉','Jasminum Grandiflorum'],['日光橙花','Neroli Soleil'],['极境天竺葵','Geranium Rosé']].forEach((d,i)=>addP('yuan',YUAN_G[3],d[0],d[1],'fire',`yuan_fire_${i}`));
 [['佛手柑','Bergamot Alba'],['横断生姜','Zingiber Terrae'],['极境红橘','Mandarin Jucunda'],['极境葡萄柚','Grapefruit Pomona'],['极境橡木苔','Oakmoss Taiga']].forEach((d,i)=>addP('yuan',YUAN_G[4],d[0],d[1],'earth',`yuan_earth_${i}`));
 
-// 香系列 (15)
+// 香系列 (15) - 临时匹配高审美 Unsplash 图片 (直到您上传真实产品图)
 const HE_G = ['香 · 能量 (Body)','香 · 愈合 (Mind)','香 · 觉知 (Soul)'];
-[['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
-[['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`));
-[['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`));
+const HE_IMGS = {
+  body: [
+    'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800',
+    'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800',
+    'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800',
+    'https://images.unsplash.com/photo-1570174006382-1423046c8a25?q=80&w=800',
+    'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?q=80&w=800'
+  ],
+  mind: [
+    'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=800',
+    'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?q=80&w=800',
+    'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800',
+    'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=800',
+    'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800'
+  ],
+  soul: [
+    'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800',
+    'https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=800',
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800',
+    'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?q=80&w=800',
+    'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
+  ]
+};
+
+[['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`, HE_IMGS.body[i]));
+[['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_IMGS.mind[i]));
+[['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_IMGS.soul[i]));
 
 // 境系列 (10)
 const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'];
@@ -56,34 +81,20 @@ const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'
 [['一柱香','Incense Sticks'],['觉知珠','Rollerball'],['清空石','Gypsum'],['归真座','mountain'],['承露璃','glass']].forEach((d,i)=>addP('jing',JING_G[1],d[0],d[1],'Meditation',`jing_meditation_${i}`));
 
 /**
- * 2. 全球寻香坐标 & 真实相册系统
+ * 2. 全球寻香坐标
  */
 const RAW_DEST = `${RAW_BASE}destinations/`;
 const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
-
 export const DESTINATIONS: Record<string, Destination> = {};
 
-/**
- * 助手函数：获取旅行相册相片地址
- * @param country 文件夹名称 (如 Thailand)
- * @param filename 文件名 (如 1)
- */
 const getAlbumAsset = (country: string, filename: string) => 
   fixGitHubUrl(`${RAW_ALBUM}${country}/${filename}.webp${CACHE_V}`);
 
-/**
- * 升级版 addD：支持传入自定义相册
- */
-const addD = (
-  id:string, n:string, en:string, reg:string, c:number, img:string, 
-  s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, 
-  herbInfo:string='极境原生分子',
-  customPhotos?: string[]
-)=>{
+const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, herbInfo:string='极境原生分子', customPhotos?: string[])=>{
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: herbInfo, knowledge:'已存入元香寻香库', productIds:[], isChinaProvince:isCN, subRegion:sub,
-    ericDiary:`寻香拾载，第 ${c} 次来到此地。空气中弥漫着${n}独有的生命意志，这是极境进化的回响。`, 
+    ericDiary:`寻香拾载，第 ${c} 次来到此地。空气中弥漫着${n}独有的生命意志。`, 
     aliceDiary:`实验室档案：此坐标采集的${n}分子结构呈现出罕见的稳定性。`, 
     memoryPhotos: customPhotos || [img, img, img]
   };
@@ -91,21 +102,7 @@ const addD = (
 
 const getDestAsset = (name: string) => fixGitHubUrl(`${RAW_DEST}${name.replace(/\s/g, '%20')}.webp${CACHE_V}`);
 
-// --- 全球版图重构 (极境地标视觉全量对齐 GitHub) ---
-
-// 1. 泰国 (Thailand) - 对接 Ericalbum
-addD(
-  'w_thai','泰国','THAILAND','亚洲',40,
-  'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', 
-  'arrived', false, '', '安息香、罗勒、香茅',
-  [
-    getAlbumAsset('Thailand', '1'),
-    getAlbumAsset('Thailand', '2'),
-    getAlbumAsset('Thailand', '3')
-  ]
-);
-
-// 其余坐标 (保持现状)
+addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','1'),getAlbumAsset('Thailand','2'),getAlbumAsset('Thailand','3')]);
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentina'));
 addD('w_eg','埃及','EGYPT','非洲',2, getDestAsset('Egypt'));
 addD('w_ht','海地','HAITI','美洲/大洋洲',3, getDestAsset('Haiti'));
@@ -121,8 +118,6 @@ addD('w_kp','朝鲜','NORTH KOREA','亚洲',1, getDestAsset('North Korea'));
 addD('w_pl','波兰','POLAND','欧洲',5, getDestAsset('Poland'));
 addD('w_sg','新加坡','SINGAPORE','亚洲',2, getDestAsset('Singapore'));
 addD('w_es','西班牙','SPAIN','欧洲',1, getDestAsset('Spain'));
-
-// Unsplash 备用国家
 addD('w_india','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?q=80&w=1200');
 addD('w_japan','日本','JAPAN','亚洲',2,'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200');
 addD('w_id','印尼','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200');
@@ -157,7 +152,7 @@ addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsp
 addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked');
 
 /**
- * 3. 神州 26 个省份 (状态: Arrived)
+ * 3. 神州 26 个省份
  */
 const CHINA_PROVINCES = [
   {n:'四川', sub:'西南', img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
