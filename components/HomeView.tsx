@@ -1,12 +1,13 @@
+
 import React from 'react';
-import { ArrowRight, Sparkles, Wind, Microscope } from 'lucide-react';
+import { ArrowRight, Sparkles, Wind, Microscope, Share2, Compass, Beaker } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState, Category } from '../types';
 
 const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Category) => void }> = ({ setView, setFilter }) => {
   return (
     <div className="w-full bg-[#F5F5F5] overflow-x-hidden animate-in fade-in duration-1000">
-      {/* 1. 沉浸 Hero - 响应式字号阶梯 */}
+      {/* 1. 沉浸 Hero */}
       <section className="h-[90vh] md:h-screen relative flex items-center justify-center overflow-hidden">
         <img 
           src={ASSETS.hero_zen} 
@@ -20,11 +21,11 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         <div className="relative z-10 text-center space-y-12 sm:space-y-24 px-6 max-w-[1920px] mx-auto w-full">
           <div className="space-y-4 sm:space-y-8">
             <div className="animate-in fade-in slide-in-from-top-12 duration-1000">
-              <h1 className="text-6xl sm:text-8xl md:text-[10rem] lg:text-[13rem] xl:text-[16rem] font-serif-zh font-bold tracking-[0.1em] sm:tracking-[0.2em] text-white leading-none filter drop-shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-                元<span className="text-[0.6em] sm:text-[0.75em]">香</span>
+              <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-serif-zh font-bold tracking-[0.1em] text-white leading-tight">
+                元和 芳香
               </h1>
               <div className="mt-4 sm:mt-10 space-y-2">
-                <p className="text-[10px] sm:text-xl lg:text-3xl tracking-[0.4em] sm:tracking-[0.8em] lg:tracking-[1.2em] uppercase font-bold text-white/90 font-cinzel">Original Harmony Sanctuary</p>
+                <p className="text-[10px] sm:text-xl lg:text-3xl tracking-[0.4em] uppercase font-bold text-white/90 font-cinzel">unio aroma · Sanctuary</p>
                 <div className="h-px w-16 sm:w-48 lg:w-96 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-50" />
               </div>
             </div>
@@ -54,7 +55,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 2. 核心哲学 - Pad & PC 双栏优化 */}
+      {/* 2. 核心哲学 */}
       <section className="py-24 sm:py-48 px-6 sm:px-10 lg:px-24 max-w-7xl mx-auto space-y-16 sm:space-y-48">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-24 items-center">
             <div className="space-y-8 sm:space-y-16 text-center lg:text-left">
@@ -79,7 +80,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
          </div>
       </section>
 
-      {/* 3. 数字化双生 - 网格密度优化 */}
+      {/* 3. 数字化双生实验室 */}
       <section className="bg-white py-24 sm:py-48 px-6 sm:px-10 lg:px-24">
          <div className="max-w-[1920px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10 sm:gap-20">
             <div className="lg:col-span-2 space-y-12 sm:space-y-24">
@@ -106,7 +107,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                   <Sparkles className="text-[#D75437] animate-pulse" size={48} />
                   <h4 className="text-3xl sm:text-5xl font-serif-zh font-bold tracking-widest">一人一方</h4>
                   <p className="text-base sm:text-2xl font-serif-zh opacity-50 leading-loose">
-                    元香拒绝工业化的平庸。<br className="hidden lg:block" />
+                    元和 芳香拒绝工业化的平庸。<br className="hidden lg:block" />
                     每一瓶香，都是基于采集瞬时的温度、湿度与你灵魂当下的频率，手工调配。
                   </p>
                </div>
@@ -114,6 +115,80 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
             </div>
          </div>
       </section>
+
+      {/* 4. 拾载寻香 */}
+      <section className="relative py-32 sm:py-64 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={ASSETS.lavender_field} 
+            className="w-full h-full object-cover opacity-20 grayscale" 
+            alt="Lavender Field" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F5F5F5] via-transparent to-[#F5F5F5]" />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-24">
+          <div className="text-center space-y-6 sm:space-y-12 mb-20 sm:mb-40">
+             <h3 className="text-4xl sm:text-7xl lg:text-9xl font-serif-zh font-bold tracking-[0.2em] text-[#2C3E28]">拾载寻香</h3>
+             <p className="text-[10px] sm:text-xl font-cinzel tracking-[0.6em] uppercase opacity-30 font-bold">Resonance · unio aroma</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 sm:gap-32 items-start">
+            <div className="space-y-8 sm:space-y-12 group">
+              <div className="flex items-center gap-6">
+                 <div className="w-16 h-16 sm:w-20 bg-black rounded-full flex items-center justify-center text-white"><Compass size={32} /></div>
+                 <div>
+                    <h4 className="text-2xl sm:text-4xl font-serif-zh font-bold">Eric</h4>
+                    <span className="text-[8px] sm:text-xs font-bold tracking-widest opacity-30 uppercase">The Scent Seeker</span>
+                 </div>
+              </div>
+              <p className="text-base sm:text-2xl font-serif-zh text-black/60 italic leading-relaxed">“香气是大地在极端环境下写就的生存诗篇。我负责捕捉那些带有温度的信号。”</p>
+            </div>
+            <div className="space-y-8 sm:space-y-12 group md:mt-32">
+              <div className="flex items-center gap-6">
+                 <div className="w-16 h-16 sm:w-20 bg-[#1C39BB] rounded-full flex items-center justify-center text-white"><Beaker size={32} /></div>
+                 <div>
+                    <h4 className="text-2xl sm:text-4xl font-serif-zh font-bold">Alice</h4>
+                    <span className="text-[8px] sm:text-xs font-bold tracking-widest opacity-30 uppercase">The Alchemist</span>
+                 </div>
+              </div>
+              <p className="text-base sm:text-2xl font-serif-zh text-black/60 italic leading-relaxed">“Eric 带回的分子在我的实验室里重构，将极境的原始能量重新注入瓶中。”</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. 首页底部 - 加固布局以防止 Vercel 发布后丢失 */}
+      <footer className="bg-[#F5F5F5] pt-32 pb-48 px-6 sm:px-10 text-center space-y-24 border-t border-black/[0.03] relative z-20">
+         <div className="max-w-4xl mx-auto space-y-12">
+            <div className="relative inline-block group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+               <div className="absolute inset-0 bg-[#D75437]/20 blur-[60px] rounded-full opacity-50" />
+               <img 
+                 src={ASSETS.logo} 
+                 className="w-24 h-24 sm:w-48 sm:h-48 mx-auto relative z-10 opacity-60 animate-pulse" 
+                 alt="Unio Seal" 
+                 style={{ minWidth: '96px', minHeight: '96px' }}
+               />
+            </div>
+            <div className="space-y-6">
+               <h4 className="text-2xl sm:text-5xl font-serif-zh font-bold tracking-[0.4em] text-[#2C3E28]">元和 芳香 unio aroma</h4>
+               <p className="text-[10px] sm:text-sm font-cinzel tracking-[0.3em] uppercase opacity-40 font-bold">从极境撷取宁静 · Original Harmony Sanctuary</p>
+            </div>
+            <div className="pt-12">
+               <button 
+                 onClick={() => window.open(ASSETS.xhs_link, '_blank')}
+                 className="group relative inline-flex items-center gap-6 px-10 py-6 sm:px-16 sm:py-8 bg-white border border-black/5 rounded-full shadow-2xl hover:scale-105 transition-all"
+               >
+                  <div className="flex items-center gap-4 sm:gap-6">
+                     <div className="w-10 h-10 sm:w-12 bg-[#D75437] rounded-full flex items-center justify-center text-white"><Share2 size={20} /></div>
+                     <span className="text-sm sm:text-xl font-serif-zh font-bold text-black">关注小红书官方号</span>
+                     <ArrowRight size={20} className="text-black/20 group-hover:text-black transition-all" />
+                  </div>
+               </button>
+            </div>
+         </div>
+         <div className="pt-24 opacity-10 text-[8px] sm:text-[10px] tracking-[0.5em] uppercase font-bold">
+            © 2024 UNIO AROMA · SANCTUARY MOMENT. ALL RIGHTS RESERVED.
+         </div>
+      </footer>
     </div>
   );
 };
