@@ -31,7 +31,6 @@ const CollectionsView: React.FC<{
   const groupIntros: Record<string, string> = {
     '元 · 肃降 (Metal)': '极高频分子，唤醒沉睡感官。',
     '元 · 生发 (Wood)': '承接春日暖阳，生机破土。',
-    '元 · 润泽 (Water)': '顺流而下，滋养内心角落。',
     '元 · 释放 (Fire)': '燃尽喧嚣，重获自由频率。',
     '元 · 稳定 (Earth)': '扎根大地，锚定不安灵魂。',
     '香 · 能量 (Body)': '重构物理防御，唤醒体表记忆。',
@@ -50,7 +49,8 @@ const CollectionsView: React.FC<{
     return <Sparkles size={14} className="text-[#D4AF37]" />;
   };
 
-  const ProductCard = ({ item, idx }: { item: ScentItem, idx: number }) => (
+  // Add optional 'key' property to ProductCard props type to fix TypeScript error when mapping components.
+  const ProductCard = ({ item, idx }: { item: ScentItem, idx: number, key?: React.Key }) => (
     <div 
       onClick={() => onSelect(item.id)}
       className="group cursor-pointer flex flex-col transition-all duration-700 animate-in fade-in slide-in-from-bottom-2"
