@@ -1,15 +1,21 @@
+
 import { ScentItem, Destination } from './types';
 
-const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+const fixGitHubUrl = (url: string) => {
+  if (!url) return '';
+  return url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+};
+
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
 const CACHE_V = '?v=138.0'; 
 
 export const ASSETS = {
-  logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
+  logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  hero_forest: fixGitHubUrl(`https://github.com/2008zxeric/unio-aroma/blob/main/assets/brand/banner.webp${CACHE_V}`),
-  lab_visual: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/brand/banner.webp' + CACHE_V, 
+  // 核心更新：首页第二幅图片更换为 GitHub 指定地址并转换
+  hero_forest: fixGitHubUrl('https://github.com/2008zxeric/unio-aroma/blob/main/assets/brand/banner.webp') + CACHE_V,
+  lab_visual: `${RAW_BASE}brand/banner.webp${CACHE_V}`, 
   lavender_field: 'https://images.unsplash.com/photo-1471958680802-1345a694ba6d?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
@@ -30,19 +36,20 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
-    hero: customImg || fixGitHubUrl(`${RAW_PROD}${folder}/${filename}.webp${CACHE_V}`),
+    hero: customImg || `${RAW_PROD}${folder}/${filename}.webp${CACHE_V}`,
     shortDesc: cat === 'yuan' ? '极境寻获 / Eric 亲手采集' : '一人一方 / Alice 手工调配', 
     narrative: cat === 'he' ? `“这是 Alice 为你调制的唯一。Eric 跨越万里带回的 ${n} 分子，在实验室中重组为属于你的频率。”` : `“Eric 在极境中感受到了 ${n} 的顽强意志。它是大自然在极端环境下的生存智慧。”`,
     benefits: ['深度平衡', '频率重构', '觉知开启'], 
     usage: '滴于掌心或扩香器中，深度嗅吸。', 
-    precautions: '元香全线坚持非工业化生产，高纯度精油请稀释使用。',
+    precautions: '元和 芳香全线坚持非工业化生产，高纯度精油请稀释使用。',
     ericDiary: `寻香第十载。我在极境中亲手采集了 ${n}，那一刻的震颤至今难忘。`, 
     aliceDiary: `Eric 采集的这批 ${n} 能量极强。我决定采用一人一方的定制逻辑，保留其原始温度。`,
     aliceLabDiary: `GC/MS 分析验证了其非凡的分子结构。这是我们对抗工业化平庸的最佳证明。`, 
-    recommendation: '元香核心馆藏 / 限量手工调配。'
+    recommendation: '元和 芳香核心馆藏 / 限量手工调配。'
   } as ScentItem;
 };
 
+// ... (DATABASE entries remain the same, ensuring consistent terminology in narratives)
 // --- 50 款产品全量定义 ---
 addP('yuan','元 · 肃降 (Metal)','神圣乳香','Sacred Frankincense','metal','yuan_metal_0');
 addP('yuan','元 · 肃降 (Metal)','极境薄荷','Peppermint from Peaks','metal','yuan_metal_1');
@@ -99,7 +106,7 @@ export const DESTINATIONS: Record<string, Destination> = {};
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string)=>{
   DESTINATIONS[id] = {
     id, name:n, en: en.trim(), region:reg.trim(), status:s, visitCount:c, scenery:img, emoji:'📍',
-    herbDescription: '极境原生分子', knowledge:'已存入元香寻香库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
+    herbDescription: '极境原生分子', knowledge:'已存入元和 芳香寻香库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
     ericDiary:`Eric 寻香志：第 ${c} 次来到 ${n}。这是寻香的极境，为了寻找那抹独一无二的灵性本草。`, 
     aliceDiary:`实验室档案：Eric 从 ${n} 带回的样本表现惊人。一人一方的调配理念将在此升华。`, 
     memoryPhotos: [img, img, img]
@@ -109,30 +116,29 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 const JING_ALL = ['jing_place_0', 'jing_place_1', 'jing_place_2', 'jing_place_3', 'jing_place_4', 'jing_meditation_0', 'jing_meditation_1', 'jing_meditation_2', 'jing_meditation_3', 'jing_meditation_4'];
 
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', ['yuan_metal_4', 'he_mind_2', ...JING_ALL]);
-// 核心修复：更新泰国拾载影迹相册
 DESTINATIONS['w_thai'].memoryPhotos = [
-  fixGitHubUrl(`${RAW_BASE}Ericalbum/Thailand/th1.webp${CACHE_V}`),
-  fixGitHubUrl(`${RAW_BASE}Ericalbum/Thailand/th2.webp${CACHE_V}`),
-  fixGitHubUrl(`${RAW_BASE}Ericalbum/Thailand/th3.webp${CACHE_V}`),
+  `${RAW_BASE}Ericalbum/Thailand/th1.webp${CACHE_V}`,
+  `${RAW_BASE}Ericalbum/Thailand/th2.webp${CACHE_V}`,
+  `${RAW_BASE}Ericalbum/Thailand/th3.webp${CACHE_V}`,
 ];
 
-addD('w_hk','中国香港','HONG KONG','亚洲',18, fixGitHubUrl(`${RAW_BASE}destinations/Hongkong.webp${CACHE_V}`), ['he_body_0', 'he_mind_0', ...JING_ALL]);
+addD('w_hk','中国香港','HONG KONG','亚洲',18, `${RAW_BASE}destinations/Hongkong.webp${CACHE_V}`, ['he_body_0', 'he_mind_0', ...JING_ALL]);
 addD('w_mac','中国澳门','MACAU','亚洲',2, 'https://images.unsplash.com/photo-1563245372-f21724e3856d', ['he_body_1', ...JING_ALL]);
-addD('w_my','马来西亚','MALAYSIA','亚洲',13, fixGitHubUrl(`${RAW_BASE}destinations/Malaysia.webp${CACHE_V}`), ['yuan_metal_4', 'yuan_water_2']);
+addD('w_my','马来西亚','MALAYSIA','亚洲',13, `${RAW_BASE}destinations/Malaysia.webp${CACHE_V}`, ['yuan_metal_4', 'yuan_water_2']);
 addD('w_id','印尼','INDONESIA','亚洲',12, 'https://images.unsplash.com/photo-1537996194471-e657df975ab4', ['yuan_water_2']);
 addD('w_uae','阿联酋','UAE','亚洲',12, 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c', ['yuan_metal_0', 'yuan_water_3']);
 addD('w_vn','越南','VIETNAM','亚洲',6, 'https://images.unsplash.com/photo-1528127269322-539801943592', ['yuan_water_4']);
 addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4, 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d', ['yuan_wood_3']);
 addD('w_india','印度','INDIA','亚洲',3, 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073', ['yuan_wood_0', 'yuan_fire_2']);
 addD('w_japan','日本','JAPAN','亚洲',2, 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e', ['yuan_wood_1', 'he_mind_2', ...JING_ALL]);
-addD('w_ir','伊朗','IRAN','亚洲',2, fixGitHubUrl(`${RAW_BASE}destinations/Iran.webp${CACHE_V}`), ['yuan_metal_0']);
+addD('w_ir','伊朗','IRAN','亚洲',2, `${RAW_BASE}destinations/Iran.webp${CACHE_V}`, ['yuan_metal_0']);
 addD('w_jo','约旦','JORDAN','亚洲',2, 'https://images.unsplash.com/photo-1547234935-80c7145ec969', ['yuan_water_3']);
 addD('w_kr','韩国','SOUTH KOREA','亚洲',1, 'https://images.unsplash.com/photo-1517154421773-0529f29ea451', ['he_body_3']);
-addD('w_kp','朝鲜','NORTH KOREA','亚洲',1, fixGitHubUrl(`${RAW_BASE}destinations/North%20Korea.webp${CACHE_V}`), ['yuan_wood_3']);
+addD('w_kp','朝鲜','NORTH KOREA','亚洲',1, `${RAW_BASE}destinations/North%20Korea.webp${CACHE_V}`, ['yuan_wood_3']);
 addD('w_kh','柬埔寨','CAMBODIA','亚洲',1, 'https://images.unsplash.com/photo-1500048993953-d23a436266cf', ['yuan_water_4']);
-addD('w_sg','新加坡','SINGAPORE','亚洲',2, fixGitHubUrl(`${RAW_BASE}destinations/Singapore.webp${CACHE_V}`), ['he_body_0', ...JING_ALL]);
+addD('w_sg','新加坡','SINGAPORE','亚洲',2, `${RAW_BASE}destinations/Singapore.webp${CACHE_V}`, ['he_body_0', ...JING_ALL]);
 addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200', ['yuan_fire_0']);
-addD('w_pl','波兰','POLAND','欧洲',5, fixGitHubUrl(`${RAW_BASE}destinations/Poland.webp${CACHE_V}`), ['yuan_wood_2']);
+addD('w_pl','波兰','POLAND','欧洲',5, `${RAW_BASE}destinations/Poland.webp${CACHE_V}`, ['yuan_wood_2']);
 addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec', ['yuan_fire_0', ...JING_ALL]);
 addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b', ['yuan_wood_3', 'yuan_earth_4']);
 addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9', ['yuan_fire_3', 'yuan_earth_0', ...JING_ALL]);
@@ -140,9 +146,9 @@ addD('w_at','奥地利','AUSTRIA','欧洲',2,'https://images.unsplash.com/photo-
 addD('w_dk','丹麦','DENMARK','欧洲',2,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc', ['he_body_3']);
 addD('w_hu','匈牙利','HUNGARY','欧洲',2,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f', ['he_mind_1']);
 addD('w_nl','荷兰','NETHERLANDS','欧洲',1,'https://images.unsplash.com/photo-1468436385273-8abca6dfd8d3', ['he_body_1']);
-addD('w_es','西班牙','SPAIN','欧洲',1, fixGitHubUrl(`${RAW_BASE}destinations/Spain.webp${CACHE_V}`), ['yuan_fire_3', 'yuan_earth_2']);
-addD('w_mc','摩纳哥','MONACO','欧洲',1, fixGitHubUrl(`${RAW_BASE}destinations/Monaco.webp${CACHE_V}`), [...JING_ALL]);
-addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1, fixGitHubUrl(`${RAW_BASE}destinations/Luxembourg.webp${CACHE_V}`), [...JING_ALL]);
+addD('w_es','西班牙','SPAIN','欧洲',1, `${RAW_BASE}destinations/Spain.webp${CACHE_V}`, ['yuan_fire_3', 'yuan_earth_2']);
+addD('w_mc','摩纳哥','MONACO','欧洲',1, `${RAW_BASE}destinations/Monaco.webp${CACHE_V}`, [...JING_ALL]);
+addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1, `${RAW_BASE}destinations/Luxembourg.webp${CACHE_V}`, [...JING_ALL]);
 addD('w_ch','瑞士','SWITZERLAND','欧洲',2,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f', ['he_soul_1']);
 addD('w_bg','保加利亚','BULGARIA','欧洲',0,'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb', ['yuan_fire_0'], 'locked');
 addD('w_uk','英国','UNITED KINGDOM','欧洲',0,'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad', ['yuan_water_0'], 'locked');
@@ -153,16 +159,16 @@ addD('w_be','比利时','BELGIUM','欧洲',1,'https://images.unsplash.com/photo-
 addD('w_no','挪威','NORWAY','欧洲',0,'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f', ['yuan_earth_4'], 'locked');
 addD('w_se','瑞典','SWEDEN','欧洲',0,'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc', ['he_body_3'], 'locked');
 addD('w_za','南非','SOUTH AFRICA','非洲',12,'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5', ['yuan_fire_4', 'he_body_2']);
-addD('w_mg','马达加斯加','MADAGASCAR','非洲',4, fixGitHubUrl(`${RAW_BASE}destinations/Madagascar.webp${CACHE_V}`), ['yuan_fire_1', 'yuan_water_1']);
-addD('w_eg','埃及','EGYPT','非洲',2, fixGitHubUrl(`${RAW_BASE}destinations/Egypt.webp${CACHE_V}`), ['yuan_water_3', 'yuan_fire_2', 'he_soul_2']);
-addD('w_ke','肯尼亚','KENYA','非洲',2, fixGitHubUrl(`${RAW_BASE}destinations/Kenya.webp${CACHE_V}`), ['yuan_fire_4']);
+addD('w_mg','马达加斯加','MADAGASCAR','非洲',4, `${RAW_BASE}destinations/Madagascar.webp${CACHE_V}`, ['yuan_fire_1', 'yuan_water_1']);
+addD('w_eg','埃及','EGYPT','非洲',2, `${RAW_BASE}destinations/Egypt.webp${CACHE_V}`, ['yuan_water_3', 'yuan_fire_2', 'he_soul_2']);
+addD('w_ke','肯尼亚','KENYA','非洲',2, `${RAW_BASE}destinations/Kenya.webp${CACHE_V}`, ['yuan_fire_4']);
 addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,'https://images.unsplash.com/photo-1516426122078-c23e76319801', ['he_body_2']);
 addD('w_ma','摩洛哥','MOROCCO','非洲',0, 'https://images.unsplash.com/photo-1539020140153-e479b8c22e70', ['yuan_water_3'], 'locked');
 addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5', ['yuan_wood_4', 'he_soul_0']);
 addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1485738422979-f5c462d49f74', ['yuan_earth_2', 'yuan_earth_3', 'he_body_1']);
-addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, fixGitHubUrl(`${RAW_BASE}destinations/Argentina.webp${CACHE_V}`), ['yuan_wood_4']);
-addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, fixGitHubUrl(`${RAW_BASE}destinations/Mexico.webp${CACHE_V}`), ['he_body_4']);
-addD('w_ht','海地','HAITI','美洲/大洋洲',3, fixGitHubUrl(`${RAW_BASE}destinations/Haiti.webp${CACHE_V}`), ['yuan_water_1']);
+addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, `${RAW_BASE}destinations/Argentina.webp${CACHE_V}`, ['yuan_wood_4']);
+addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4, `${RAW_BASE}destinations/Mexico.webp${CACHE_V}`, ['he_body_4']);
+addD('w_ht','海地','HAITI','美洲/大洋洲',3, `${RAW_BASE}destinations/Haiti.webp${CACHE_V}`, ['yuan_water_1']);
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9', ['yuan_metal_2', 'yuan_metal_3'], 'locked');
 addD('w_ant','南极洲','ANTARCTICA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105', ['he_soul_4'], 'locked');
 
