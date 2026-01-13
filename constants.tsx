@@ -2,14 +2,24 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=116.1'; 
+const CACHE_V = '?v=116.8'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
-  hero_forest: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1200',
+  // 核心复位：经典的薰衣草紫色花海
+  hero_forest: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1920',
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
+};
+
+// 大陆板块背景视觉锚点
+export const REGION_VISUALS = {
+  china: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=600',
+  asia: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600',
+  europe: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
+  africa: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=600',
+  america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600'
 };
 
 export const ASSET_REGISTRY = {
@@ -30,7 +40,7 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
     benefits: ['深度平衡', '频率重构', '觉知开启'], usage: '滴于掌心或扩香器中，深度嗅吸。', precautions: '高纯度精油请稀释使用。',
     ericDiary: `我在极境中亲手采集了 ${n}。`, aliceDiary: `实验室分析显示其成分极其纯净。`,
     aliceLabDiary: `GC/MS 分析显示 ${en.trim()} 分子活性极佳。`, recommendation: '元香核心馆藏。'
-  };
+  } as ScentItem;
 };
 
 // 元系列 (25)
@@ -41,35 +51,29 @@ const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (W
 [['大马士革玫瑰','Damask Rose Aureate'],['极境依兰','Ylang Equatorial'],['大花茉莉','Jasminum Grandiflorum'],['日光橙花','Neroli Soleil'],['极境天竺葵','Geranium Rosé']].forEach((d,i)=>addP('yuan',YUAN_G[3],d[0],d[1],'fire',`yuan_fire_${i}`));
 [['佛手柑','Bergamot Alba'],['横断生姜','Zingiber Terrae'],['极境红橘','Mandarin Jucunda'],['极境葡萄柚','Grapefruit Pomona'],['极境橡木苔','Oakmoss Taiga']].forEach((d,i)=>addP('yuan',YUAN_G[4],d[0],d[1],'earth',`yuan_earth_${i}`));
 
-// 香系列 (15) - 增强型占位图 (针对愈合 Mind & 觉知 Soul)
+// 香系列 (15) - 复位至美学图源，确保非空白
 const HE_G = ['香 · 能量 (Body)','香 · 愈合 (Mind)','香 · 觉知 (Soul)'];
-const HE_IMGS = {
-  body: [
-    'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800',
-    'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=800',
-    'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800',
-    'https://images.unsplash.com/photo-1570174006382-1423046c8a25?q=80&w=800',
-    'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?q=80&w=800'
-  ],
-  mind: [
-    'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=800',
-    'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?q=80&w=800',
-    'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800',
-    'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=800',
-    'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800'
-  ],
-  soul: [
-    'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800',
-    'https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=800',
-    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800',
-    'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?q=80&w=800',
-    'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
-  ]
-};
+const HE_MIND_IMGS = [
+  'https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=800',
+  'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?q=80&w=800',
+  'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=800',
+  'https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=800',
+  'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800'
+];
+const HE_SOUL_IMGS = [
+  'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800',
+  'https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=800',
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800',
+  'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?q=80&w=800',
+  'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=800'
+];
 
-[['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`, HE_IMGS.body[i]));
-[['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_IMGS.mind[i]));
-[['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_IMGS.soul[i]));
+// 香 · 能量 (Body) - GitHub 复位
+[['云感霜','cloud velvet'],['晨曦液','Dawn Glow'],['月华油','Moonlight Oil'],['清冽发','Frost Mint'],['润迹膏','Trace Balm']].forEach((d,i)=>addP('he',HE_G[0],d[0],d[1],'body',`he_body_${i}`));
+// 香 · 愈合 (Mind) - 美学复位
+[['止语雾','Silent Mist'],['归处膏','Sanctuary'],['听泉露','Zen Fountain'],['微光氛','Glimmer'],['深吸瓶','Deep Breath']].forEach((d,i)=>addP('he',HE_G[1],d[0],d[1],'mind',`he_mind_${i}`, HE_MIND_IMGS[i]));
+// 香 · 觉知 (Soul) - 美学复位
+[['无界油','Boundless'],['悬浮露','Floating'],['破晓珠','Daybreak'],['空寂水','Void Moss'],['共振方','Resonant']].forEach((d,i)=>addP('he',HE_G[2],d[0],d[1],'soul',`he_soul_${i}`, HE_SOUL_IMGS[i]));
 
 // 境系列 (10)
 const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'];
@@ -93,7 +97,8 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   };
 };
 
-addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','1'),getAlbumAsset('Thailand','2'),getAlbumAsset('Thailand','3')]);
+// 寻香坐标复位 (完整版)
+addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','th1'),getAlbumAsset('Thailand','th2'),getAlbumAsset('Thailand','th3')]);
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentina'));
 addD('w_eg','埃及','EGYPT','非洲',2, getDestAsset('Egypt'));
 addD('w_ht','海地','HAITI','美洲/大洋洲',3, getDestAsset('Haiti'));
@@ -118,7 +123,7 @@ addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,'https://images.unsplash.c
 addD('w_jo','约旦','JORDAN','亚洲',2,'https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1200');
 addD('w_mac','中国澳门','MACAU','亚洲',2,'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200');
 addD('w_kr','韩国','SOUTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1517154421773-0529f29ea451?q=80&w=1200');
-addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200');
+addD('w_kh','柬埔寨','CAMBBIODIA','亚洲',1,'https://images.unsplash.com/photo-1500048993953-d23a436266cf?q=80&w=1200');
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',0,'https://images.unsplash.com/photo-1529154036614-a60975f5c760?q=80&w=1200', 'locked');
 addD('w_np','尼泊尔','NEPAL','亚洲',0,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', 'locked');
 addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200');
@@ -142,6 +147,7 @@ addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', 'locked');
 addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked');
 
+// 神州省份完整复位
 const CHINA_PROVINCES = [
   {n:'四川', sub:'西南', img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
   {n:'云南', sub:'西南', img:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
