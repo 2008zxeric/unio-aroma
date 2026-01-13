@@ -2,7 +2,7 @@ import { ScentItem, Destination } from './types';
 
 const fixGitHubUrl = (url: string) => url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=115.1'; 
+const CACHE_V = '?v=116.1'; 
 
 export const ASSETS = {
   logo: fixGitHubUrl(`${RAW_BASE}brand/logo.svg${CACHE_V}`),
@@ -17,13 +17,9 @@ export const ASSET_REGISTRY = {
   visual_anchors: { placeholder: ASSETS.placeholder }
 };
 
-/**
- * 1. 50款馆藏矩阵
- */
 const RAW_PROD = `${RAW_BASE}products/`;
 export const DATABASE: Record<string, ScentItem> = {};
 
-// 核心加载函数
 const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string, customImg?: string) => {
   const filename = en.replace(/\s/g, '%20');
   DATABASE[id] = {
@@ -37,7 +33,7 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
   };
 };
 
-// 元系列 (25) - 对应 GitHub 真实资产
+// 元系列 (25)
 const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (Water)','元 · 释放 (Fire)','元 · 稳定 (Earth)'];
 [['神圣乳香','Sacred Frankincense'],['极境薄荷','Peppermint from Peaks'],['极境尤加利',' Eucalyptus Glaciale'],['极境茶树','Tea Tree Antiseptic'],['极境香茅','Citronella Clarissima']].forEach((d,i)=>addP('yuan',YUAN_G[0],d[0],d[1],'metal',`yuan_metal_${i}`));
 [['老山檀香','Aged Sandalwood'],['极境丝柏','Misty Cypress'],['极境雪松','Himalayan Cedar'],['极境松针','Boreal Pine'],['神圣花梨木','Sacred Rosewood Isle']].forEach((d,i)=>addP('yuan',YUAN_G[1],d[0],d[1],'wood',`yuan_wood_${i}`));
@@ -45,7 +41,7 @@ const YUAN_G = ['元 · 肃降 (Metal)','元 · 生发 (Wood)','元 · 润泽 (W
 [['大马士革玫瑰','Damask Rose Aureate'],['极境依兰','Ylang Equatorial'],['大花茉莉','Jasminum Grandiflorum'],['日光橙花','Neroli Soleil'],['极境天竺葵','Geranium Rosé']].forEach((d,i)=>addP('yuan',YUAN_G[3],d[0],d[1],'fire',`yuan_fire_${i}`));
 [['佛手柑','Bergamot Alba'],['横断生姜','Zingiber Terrae'],['极境红橘','Mandarin Jucunda'],['极境葡萄柚','Grapefruit Pomona'],['极境橡木苔','Oakmoss Taiga']].forEach((d,i)=>addP('yuan',YUAN_G[4],d[0],d[1],'earth',`yuan_earth_${i}`));
 
-// 香系列 (15) - 临时匹配高审美 Unsplash 图片 (直到您上传真实产品图)
+// 香系列 (15) - 增强型占位图 (针对愈合 Mind & 觉知 Soul)
 const HE_G = ['香 · 能量 (Body)','香 · 愈合 (Mind)','香 · 觉知 (Soul)'];
 const HE_IMGS = {
   body: [
@@ -80,15 +76,12 @@ const JING_G = ['境 · 场域之物 (Place)','境 · 冥想之物 (Meditation)'
 [['陶瓷皿','Crackled'],['芳香链','Necklace '],['木核扩','Walnut'],['蜡烛','candle'],['存香瓶','Vessel']].forEach((d,i)=>addP('jing',JING_G[0],d[0],d[1],'place',`jing_place_${i}`));
 [['一柱香','Incense Sticks'],['觉知珠','Rollerball'],['清空石','Gypsum'],['归真座','mountain'],['承露璃','glass']].forEach((d,i)=>addP('jing',JING_G[1],d[0],d[1],'Meditation',`jing_meditation_${i}`));
 
-/**
- * 2. 全球寻香坐标
- */
 const RAW_DEST = `${RAW_BASE}destinations/`;
 const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
 export const DESTINATIONS: Record<string, Destination> = {};
 
-const getAlbumAsset = (country: string, filename: string) => 
-  fixGitHubUrl(`${RAW_ALBUM}${country}/${filename}.webp${CACHE_V}`);
+const getAlbumAsset = (country: string, filename: string) => fixGitHubUrl(`${RAW_ALBUM}${country}/${filename}.webp${CACHE_V}`);
+const getDestAsset = (name: string) => fixGitHubUrl(`${RAW_DEST}${name.replace(/\s/g, '%20')}.webp${CACHE_V}`);
 
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, herbInfo:string='极境原生分子', customPhotos?: string[])=>{
   DESTINATIONS[id] = {
@@ -99,8 +92,6 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
     memoryPhotos: customPhotos || [img, img, img]
   };
 };
-
-const getDestAsset = (name: string) => fixGitHubUrl(`${RAW_DEST}${name.replace(/\s/g, '%20')}.webp${CACHE_V}`);
 
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200','arrived',false,'','安息香、罗勒',[getAlbumAsset('Thailand','1'),getAlbumAsset('Thailand','2'),getAlbumAsset('Thailand','3')]);
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',5, getDestAsset('Argentina'));
@@ -151,9 +142,6 @@ addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,'https://images.unsplash.com/
 addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1200', 'locked');
 addD('w_ant','南极洲','ANTARCTICA','南极洲',0,'https://images.unsplash.com/photo-1483168527879-c66136b56105?q=80&w=1200', 'locked');
 
-/**
- * 3. 神州 26 个省份
- */
 const CHINA_PROVINCES = [
   {n:'四川', sub:'西南', img:'https://images.unsplash.com/photo-1520263115673-610416f52ab6'}, 
   {n:'云南', sub:'西南', img:'https://images.unsplash.com/photo-1521405924368-64c5b84bec60'}, 
