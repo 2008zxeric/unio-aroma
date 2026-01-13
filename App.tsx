@@ -28,9 +28,7 @@ const App: React.FC = () => {
   };
 
   const handleLogoClick = () => {
-    // 品牌瞬间：全屏展示大 Logo
     setShowSplash(true);
-    // 2秒后重置状态并导航至首页
     setTimeout(() => {
       setShowSplash(false);
       setSelectedId(null);
@@ -52,11 +50,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative bg-[#F5F5F5] selection:bg-[#D75437] selection:text-white">
+    <div className="min-h-screen relative bg-[#F5F5F5] selection:bg-[#D75437] selection:text-white pb-32">
       {/* 品牌瞬间 Overlay (Splash Screen) */}
       {showSplash && (
         <div className="fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center animate-fade overflow-hidden">
-          {/* 背景装饰：极简纹理或虚化 */}
           <div className="absolute inset-0 opacity-10 pointer-events-none">
              <div className="w-full h-full bg-[radial-gradient(circle_at_center,_#D7543733_0%,_transparent_70%)]" />
           </div>
@@ -74,11 +71,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 社区入口 */}
-      <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="fixed right-6 bottom-32 z-[700] p-4 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all group">
-        <Share2 size={24} />
-      </button>
-
       {/* 顶部主导航 */}
       <nav className="fixed top-0 left-0 w-full px-6 md:px-20 py-6 md:py-10 flex justify-between items-center z-[500] pointer-events-none">
         <div 
@@ -94,7 +86,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="pointer-events-auto flex items-center gap-4 md:gap-10">
-           <button onClick={() => navigateToView('brand-studio')} className="p-2 text-black/10 hover:text-black/60"><Settings size={18} /></button>
+           <button onClick={() => navigateToView('brand-studio')} className="p-2 text-black/10 hover:text-black/60 transition-colors"><Settings size={18} /></button>
            <button onClick={() => navigateToView('imagelab')} className="text-[9px] md:text-sm tracking-[0.3em] font-bold flex items-center gap-2 uppercase hover:text-[#D75437] transition-colors"><Camera size={16} /><span className="hidden sm:inline text-readable-shadow">视觉实验室</span></button>
         </div>
       </nav>
@@ -111,15 +103,60 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* 底部悬浮操控条 */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[600] pointer-events-none w-full max-w-sm px-4">
-        <div className="pointer-events-auto flex items-center justify-around glass px-4 py-3 rounded-full border border-black/5 shadow-2xl">
-          <button onClick={() => navigateToView('home')} className={`p-3 transition-colors ${view === 'home' ? 'text-[#D75437]' : 'text-black/30'}`}><Home size={22} /></button>
-          <button onClick={() => navigateToView('atlas')} className={`p-3 transition-colors ${view === 'atlas' || view === 'china-atlas' ? 'text-[#D75437]' : 'text-black/30'}`}><MapIcon size={22} /></button>
-          <button onClick={() => navigateToView('collections')} className={`p-3 transition-colors ${view === 'collections' ? 'text-[#D75437]' : 'text-black/30'}`}><Box size={22} /></button>
-          <button onClick={() => navigateToView('oracle')} className={`p-3 transition-colors ${view === 'oracle' ? 'text-[#D75437]' : 'text-black/30'}`}><Activity size={22} /></button>
+      {/* 优化后的复合导航系统：不再相互遮挡，逻辑更清晰 */}
+      <div className="fixed bottom-8 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6">
+        
+        {/* 小红书/社区入口：浮动在导航栏上方，采用呼吸态半透明视觉 */}
+        <div className="w-full max-w-sm flex justify-end">
+           <button 
+             onClick={() => window.open(ASSETS.xhs_link, '_blank')} 
+             className="pointer-events-auto p-4 bg-[#D75437]/90 text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all group backdrop-blur-md animate-pulse border border-white/20"
+           >
+             <Share2 size={22} className="group-hover:rotate-12 transition-transform" />
+           </button>
         </div>
+
+        {/* 智感悬浮导航胶囊 */}
+        <div className="pointer-events-auto w-full max-w-[340px]">
+          <div className="flex items-center justify-around glass-dark px-2 py-2 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-3xl bg-black/60">
+            <button 
+              onClick={() => navigateToView('home')} 
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'home' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+            >
+              <Home size={22} />
+            </button>
+            <button 
+              onClick={() => navigateToView('atlas')} 
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'atlas' || view === 'china-atlas' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+            >
+              <MapIcon size={22} />
+            </button>
+            <button 
+              onClick={() => navigateToView('collections')} 
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'collections' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+            >
+              <Box size={22} />
+            </button>
+            <button 
+              onClick={() => navigateToView('oracle')} 
+              className={`p-4 rounded-full transition-all duration-500 ${view === 'oracle' ? 'bg-[#D75437] text-white shadow-lg' : 'text-white/40 hover:text-white/80'}`}
+            >
+              <Activity size={22} />
+            </button>
+          </div>
+        </div>
+        
+        {/* 安全区域适配 (Safe Area Spacing) */}
+        <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .glass-dark {
+          background: rgba(0, 0, 0, 0.65);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+        }
+      `}} />
     </div>
   );
 };
