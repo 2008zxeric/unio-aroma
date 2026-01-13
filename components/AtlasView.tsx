@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Globe, MapPin, CheckCircle2, Lock, Sparkles } from 'lucide-react';
 import { ViewState } from '../types';
-import { DESTINATIONS, DATABASE } from '../constants';
+import { DESTINATIONS, REGION_VISUALS } from '../constants';
 
 const CONTINENTS = [
-  { id: 'china', name: '中华神州', en: 'CHINA', special: true },
-  { id: 'asia', name: '亚洲', en: 'ASIA' },
-  { id: 'europe', name: '欧洲', en: 'EUROPE' },
-  { id: 'africa', name: '非洲', en: 'AFRICA' },
-  { id: 'america', name: '美洲/大洋洲', en: 'AMERICAS & OCEANIA' },
+  { id: 'china', name: '中华神州', en: 'CHINA', special: true, bg: REGION_VISUALS.china },
+  { id: 'asia', name: '亚洲', en: 'ASIA', bg: REGION_VISUALS.asia },
+  { id: 'europe', name: '欧洲', en: 'EUROPE', bg: REGION_VISUALS.europe },
+  { id: 'africa', name: '非洲', en: 'AFRICA', bg: REGION_VISUALS.africa },
+  { id: 'america', name: '美洲/大洋洲', en: 'AMERICAS & OCEANIA', bg: REGION_VISUALS.america },
 ];
 
 const AtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: string) => void }> = ({ setView, onSelectDest }) => {
@@ -42,19 +42,35 @@ const AtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: 
           )}
         </div>
 
-        {/* Region Selector */}
-        <div className="flex flex-wrap justify-center gap-6 md:gap-10 py-10">
+        {/* 板块导航：美化版圆圈 */}
+        <div className="flex flex-wrap justify-center gap-6 md:gap-12 py-10">
           {CONTINENTS.map(c => (
             <div 
               key={c.id} 
               onClick={() => c.id === 'china' ? setView('china-atlas') : setSelectedRegion(c.name)} 
-              className={`w-32 h-32 md:w-60 md:h-60 rounded-full border border-black/10 flex flex-col items-center justify-center cursor-pointer transition-all duration-700 shadow-xl
-                ${selectedRegion === c.name ? 'bg-black text-white scale-110' : 'bg-white/80 hover:scale-105'}
-                ${c.special ? 'border-[#D75437]/30' : ''}
-              `}
+              className={`group relative w-36 h-36 md:w-64 md:h-64 rounded-full overflow-hidden cursor-pointer transition-all duration-1000 shadow-2xl border-4 ${selectedRegion === c.name ? 'border-[#D75437] scale-110' : 'border-white/20 hover:scale-105'}`}
             >
-              <span className="text-lg md:text-3xl font-serif-zh font-bold tracking-widest">{c.name}</span>
-              <span className="text-[7px] md:text-[9px] tracking-widest font-bold opacity-40 uppercase mt-1">{c.en}</span>
+              {/* 背景图层 */}
+              <img 
+                src={c.bg} 
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-125 brightness-75 group-hover:brightness-50" 
+                alt={c.name} 
+              />
+              {/* 文字 Overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
+                <span className={`text-xl md:text-4xl font-serif-zh font-bold tracking-[0.2em] text-white transition-all ${selectedRegion === c.name ? 'scale-110' : ''}`}>
+                  {c.name}
+                </span>
+                <span className="text-[7px] md:text-[10px] tracking-[0.4em] font-bold text-white/60 uppercase mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {c.en}
+                </span>
+              </div>
+              {/* 特殊装饰：中华神州额外高亮 */}
+              {c.special && (
+                <div className="absolute top-4 right-4 text-[#D4AF37] animate-pulse">
+                   <Sparkles size={16} />
+                </div>
+              )}
             </div>
           ))}
         </div>
