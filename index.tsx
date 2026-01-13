@@ -1,13 +1,18 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+
+// 兼容性处理：防止浏览器环境因 process 未定义而崩溃
+if (typeof window !== 'undefined') {
+  (window as any).process = (window as any).process || { env: {} };
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
-const root = ReactDOM.createRoot(rootElement);
+const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <App />
