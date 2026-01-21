@@ -1,7 +1,7 @@
 import { ScentItem, Destination, Category } from './types';
 
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
-const CACHE_V = '?v=900.30'; 
+const CACHE_V = '?v=900.35'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
@@ -9,6 +9,7 @@ export const ASSETS = {
   hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
   hero_eric: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1920', 
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
+  banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
@@ -56,7 +57,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   };
 };
 
-// --- [全量馆藏] 50 款产品 ---
+// --- [元系列] ---
 const yuanGroups = ['Metal', 'Wood', 'Water', 'Fire', 'Earth'];
 const yuanFolders = ['metal', 'wood', 'water', 'fire', 'earth'];
 const yuanNames = [
@@ -73,18 +74,36 @@ const yuanEns = [
   ['Damask Rose Aureate', 'Ylang Equatorial', 'Jasminum Grandiflorum', 'Neroli Soleil', 'Geranium Rose'],
   ['Bergamot Alba', 'Zingiber Terrae', 'Mandarin Jucunda', 'Grapefruit Pomona', 'Oakmoss Taiga']
 ];
-yuanNames.forEach((group, i) => group.forEach((name, j) => addP('yuan', `元 · ${yuanGroups[i]}`, name, yuanEns[i][j], yuanFolders[i], `yuan_${yuanFolders[i]}_${j}`)));
 
+yuanNames.forEach((group, i) => group.forEach((name, j) => {
+  let customImg;
+  if (name === '极境尤加利') {
+    // 特殊修复：文件名开头有空格
+    customImg = `${RAW_PROD}metal/%20Eucalyptus%20Glaciale.webp${CACHE_V}`;
+  }
+  addP('yuan', `元 · ${yuanGroups[i]}`, name, yuanEns[i][j], yuanFolders[i], `yuan_${yuanFolders[i]}_${j}`, customImg);
+}));
+
+// --- [和系列] ---
 const heGroups = ['Body', 'Mind', 'Soul'];
-// 云感霜的文件名在 GitHub 是小写 cloud velvet.webp
 const heNames = [['云感霜', '晨曦液', '月华油', '清冽发', '润迹膏'], ['止语雾', '归处膏', '听泉露', '微光氛', '深吸瓶'], ['无界油', '悬浮露', '破晓珠', '空寂水', '共振方']];
 const heEns = [['cloud velvet', 'Dawn Glow', 'Moonlight Oil', 'Frost Mint', 'Trace Balm'], ['Silent Mist', 'Sanctuary', 'Zen Fountain', 'Glimmer', 'Deep Breath'], ['Boundless', 'Floating', 'Daybreak', 'Void Moss', 'Resonant']];
 heNames.forEach((group, i) => group.forEach((name, j) => addP('he', `香 · ${heGroups[i]}`, name, heEns[i][j], heGroups[i].toLowerCase(), `he_${heGroups[i].toLowerCase()}_${j}`)));
 
-const jingNames = [['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']];
-const jingEns = [['Crackled', 'Necklace', 'Walnut', 'Candle', 'Vessel'], ['Incense Sticks', 'Rollerball', 'Gypsum', 'Mountain', 'Glass']];
+// --- [境系列] ---
+const jingNames = [
+  ['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], 
+  ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']
+];
+const jingEns = [
+  ['Crackled', 'Necklace ', 'Walnut', 'candle', 'Vessel'], // Necklace后有空格，candle小写
+  ['Incense Sticks', 'Rollerball', 'Gypsum', 'mountain', 'glass'] // mountain, glass 小写
+];
+
+// 境 · 芳香美学
 jingNames[0].forEach((n, j) => addP('jing', '境 · 芳香美学', n, jingEns[0][j], 'place', `jing_place_${j}`));
-jingNames[1].forEach((n, j) => addP('jing', '境 · 冥想之物', n, jingEns[1][j], 'meditation', `jing_meditation_${j}`));
+// 境 · 冥想之物
+jingNames[1].forEach((n, j) => addP('jing', '境 · 冥想之物', n, jingEns[1][j], 'Meditation', `jing_meditation_${j}`));
 
 const ALL_IDS = Object.keys(DATABASE);
 const getProducts = (seed: string) => ALL_IDS.sort(() => seed.length % 10 - 5).slice(0, 6);
@@ -96,7 +115,7 @@ addD('w_hk','中国香港','HONG KONG','亚洲',18,`${RAW_DEST}Hongkong.webp${CA
 addD('w_my','马来西亚','MALAYSIA','亚洲',13,`${RAW_DEST}Malaysia.webp${CACHE_V}`, getProducts('my'));
 addD('w_id','印度尼西亚','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200', getProducts('id'));
 addD('w_uae','阿联酋','UAE','亚洲',12,'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200', getProducts('uae'));
-addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', getProducts('vn'));
+addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600', getProducts('vn'));
 addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=1200', getProducts('kz'));
 addD('w_jp','日本','JAPAN','亚洲',2,'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200', getProducts('jp'));
 addD('w_ir','伊朗','IRAN','亚洲',2,`${RAW_DEST}Iran.webp${CACHE_V}`, getProducts('ir'));
