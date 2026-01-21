@@ -6,8 +6,10 @@ const CACHE_V = '?v=900.35';
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
-  hero_zen: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1920',
+  // 升级为更高质感的视觉背景
+  hero_zen: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2560',
   hero_eric: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1920', 
+  hero_alice: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920',
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
@@ -29,7 +31,6 @@ export const DATABASE: Record<string, ScentItem> = {};
 export const DESTINATIONS: Record<string, Destination> = {};
 
 const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string, customImg?: string) => {
-  // 处理文件名中的空格和大小写，以匹配 GitHub 资源
   const filename = en.replace(/\s/g, '%20');
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
@@ -78,7 +79,6 @@ const yuanEns = [
 yuanNames.forEach((group, i) => group.forEach((name, j) => {
   let customImg;
   if (name === '极境尤加利') {
-    // 特殊修复：文件名开头有空格
     customImg = `${RAW_PROD}metal/%20Eucalyptus%20Glaciale.webp${CACHE_V}`;
   }
   addP('yuan', `元 · ${yuanGroups[i]}`, name, yuanEns[i][j], yuanFolders[i], `yuan_${yuanFolders[i]}_${j}`, customImg);
@@ -91,18 +91,9 @@ const heEns = [['cloud velvet', 'Dawn Glow', 'Moonlight Oil', 'Frost Mint', 'Tra
 heNames.forEach((group, i) => group.forEach((name, j) => addP('he', `香 · ${heGroups[i]}`, name, heEns[i][j], heGroups[i].toLowerCase(), `he_${heGroups[i].toLowerCase()}_${j}`)));
 
 // --- [境系列] ---
-const jingNames = [
-  ['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], 
-  ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']
-];
-const jingEns = [
-  ['Crackled', 'Necklace ', 'Walnut', 'candle', 'Vessel'], // Necklace后有空格，candle小写
-  ['Incense Sticks', 'Rollerball', 'Gypsum', 'mountain', 'glass'] // mountain, glass 小写
-];
-
-// 境 · 芳香美学
+const jingNames = [['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']];
+const jingEns = [['Crackled', 'Necklace ', 'Walnut', 'candle', 'Vessel'], ['Incense Sticks', 'Rollerball', 'Gypsum', 'mountain', 'glass']];
 jingNames[0].forEach((n, j) => addP('jing', '境 · 芳香美学', n, jingEns[0][j], 'place', `jing_place_${j}`));
-// 境 · 冥想之物
 jingNames[1].forEach((n, j) => addP('jing', '境 · 冥想之物', n, jingEns[1][j], 'Meditation', `jing_meditation_${j}`));
 
 const ALL_IDS = Object.keys(DATABASE);
