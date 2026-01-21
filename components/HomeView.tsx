@@ -1,57 +1,57 @@
 import React from 'react';
-import { ArrowRight, Compass, Gem, Layers, ShieldCheck, Microscope, Globe, Sparkles, MapPin, Wind } from 'lucide-react';
+import { ArrowRight, Compass, Gem, Layers, ShieldCheck, Microscope, Globe, Sparkles, Wind } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState, Category } from '../types';
 
 const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Category) => void }> = ({ setView, setFilter }) => {
   return (
     <div className="w-full bg-white overflow-x-hidden selection:bg-[#D75437] selection:text-white">
-      {/* 1. 极境之巅 Hero - 震慑人心的第一视觉 */}
-      <section className="h-screen relative flex flex-col items-center justify-center overflow-hidden">
+      {/* 1. 极致震撼 Hero - 手机优先的沉浸视窗 */}
+      <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
         <img 
           src={ASSETS.hero_zen} 
           className="absolute inset-0 w-full h-full object-cover scale-105 transition-transform duration-[40s] hover:scale-125"
           alt="UNIO Extreme Origin"
         />
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-white" />
         
         <div className="relative z-10 text-center px-6 max-w-[2560px] mx-auto w-full">
           <div className="animate-in fade-in slide-in-from-top-12 duration-1000">
-            <h1 className="text-[16vw] sm:text-[14rem] lg:text-[20rem] font-serif-zh font-bold tracking-[0.2em] text-white leading-none filter drop-shadow-[0_30px_80px_rgba(0,0,0,0.8)]">
+            <h1 className="text-[18vw] sm:text-[14rem] lg:text-[20rem] font-serif-zh font-bold tracking-[0.2em] text-white leading-none filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
               元<span className="text-[0.6em]">香</span>
             </h1>
             <div className="mt-6 sm:mt-12 space-y-6">
-              <p className="text-[8px] sm:text-3xl tracking-[0.6em] sm:tracking-[1.5em] uppercase font-bold text-white/90 font-cinzel">The Extreme Origin Sanctuary</p>
+              <p className="text-[9px] sm:text-3xl tracking-[0.6em] sm:tracking-[1.5em] uppercase font-bold text-white/90 font-cinzel">Original Harmony Sanctuary</p>
               <div className="h-[1px] w-24 sm:w-[50rem] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-70" />
-              <p className="text-white/60 text-[10px] sm:text-2xl tracking-[0.6em] font-serif-zh mt-8">跨越极境，只为捕捉那一抹生存的意志。</p>
+              <p className="text-white/60 text-[10px] sm:text-2xl tracking-[0.6em] font-serif-zh mt-8">從極境擷取寧静 — From Extreme to Harmony.</p>
             </div>
           </div>
         </div>
         
-        {/* 动态引导 */}
+        {/* 动态引导箭头 */}
         <div className="absolute bottom-16 left-1/2 -translate-x-1/2 animate-bounce flex flex-col items-center gap-4">
-           <span className="text-white/30 text-[8px] tracking-[0.5em] font-bold uppercase rotate-90 mb-4">Scroll</span>
+           <span className="text-white/30 text-[8px] tracking-[0.5em] font-bold uppercase rotate-90 mb-4">Explore</span>
            <div className="w-[1px] h-20 bg-gradient-to-b from-white to-transparent" />
         </div>
       </section>
 
-      {/* 2. 顶级定位 Manifesto - 强化小众、高端、一人一方 */}
+      {/* 2. 品牌定位 Manifesto - 强化小众/高端/一人一方 */}
       <section className="py-24 sm:py-64 px-8 sm:px-32 max-w-7xl mx-auto text-center space-y-16">
         <div className="space-y-6">
           <div className="flex items-center justify-center gap-4 text-[#D75437]">
              <Sparkles size={16} />
              <span className="text-[10px] sm:text-sm font-bold tracking-[0.6em] uppercase">Private & Rare</span>
           </div>
-          <h2 className="text-4xl sm:text-8xl font-serif-zh font-bold text-[#2C3E28] leading-tight tracking-tight">
-            不计成本的溯源，<br />
-            <span className="text-black/30">只为重构 1% 的觉知。</span>
+          <h2 className="text-4xl sm:text-8xl font-serif-zh font-bold text-[#2C3E28] leading-tight tracking-tighter">
+            拒绝工业庸常，<br />
+            <span className="text-black/30 italic">只为 1% 的觉知灵魂。</span>
           </h2>
         </div>
         
         <div className="max-w-4xl mx-auto space-y-12">
           <p className="text-lg sm:text-3xl font-serif-zh text-black/60 leading-[2.2] text-justify md:text-center">
-            元香 UNIO 拒绝流水线的平庸。我们深入无人之境，剥离植物在生存重压下迸发的原始分子。在 Alice 的“一人一方”实验室中，这些珍稀的极境频率将被手工重构，化作你私属的空间防线。
+            元香 UNIO 拒绝流水线的平庸。我们深入全球极境，剥离植物在生存压力下迸发的原始分子。在 Alice 的“一人一方”实验室中，这些珍稀频率将被手工重构，化作你私属的空间防线。
           </p>
           <div className="flex flex-wrap justify-center gap-6 sm:gap-12 pt-8">
              {['极境溯源', '一人一方', '非工业化', '频率重构'].map(tag => (
@@ -61,70 +61,70 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. 品牌双核：Eric vs Alice - 沉浸式大屏叙事 */}
+      {/* 3. 核心角色重构 - Eric vs Alice (大屏视差叙事) */}
       <section className="flex flex-col">
-        {/* Eric - 动：极境探索 */}
+        {/* Eric Section */}
         <div className="relative h-screen group overflow-hidden">
           <img src={ASSETS.hero_eric} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] group-hover:scale-110" alt="The Explorer" />
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent hidden lg:block" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent lg:hidden" />
           
-          <div className="absolute bottom-16 left-8 sm:bottom-32 sm:left-32 right-8 max-w-2xl space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
+          <div className="absolute bottom-16 left-8 sm:bottom-32 sm:left-32 right-8 max-w-2xl space-y-8">
              <div className="flex items-center gap-4 text-[#D4AF37]">
                 <Globe size={32} />
                 <span className="text-xs sm:text-lg font-bold tracking-[0.5em] uppercase">Founder · The Explorer</span>
              </div>
              <div className="space-y-4">
-                <h3 className="text-5xl sm:text-[9rem] font-serif-zh font-bold text-white tracking-widest">Eric / 寻香人</h3>
+                <h3 className="text-5xl sm:text-[9rem] font-serif-zh font-bold text-white tracking-widest leading-none">Eric / 寻香人</h3>
                 <p className="text-white/60 text-sm sm:text-2xl font-serif-zh leading-relaxed">
-                  廿载环球寻香，从喜马拉雅的积雪边缘到亚马逊的密林深处。Eric 用双脚丈量本草的极限，寻找那些最具意志力的“元分子”。
+                  廿载全球寻香历程。从喜马拉雅的积雪边缘到非洲大地的荒漠中心。Eric 坚信只有极境中迸发的顽强分子，才拥有重构内心的最高阶频率。
                 </p>
              </div>
              <button onClick={() => setView('atlas')} className="flex items-center gap-6 px-10 py-5 bg-white text-black rounded-full text-[10px] sm:text-sm font-bold tracking-[0.4em] hover:bg-[#D75437] hover:text-white transition-all group">
-                开启寻香坐标 <ArrowRight size={18} className="group-hover:translate-x-3 transition-transform" />
+                探索全球寻香坐标 <ArrowRight size={18} className="group-hover:translate-x-3 transition-transform" />
              </button>
           </div>
         </div>
 
-        {/* Alice - 静：香愈重构 */}
+        {/* Alice Section */}
         <div className="relative h-screen group overflow-hidden border-t border-white/10">
           <img src="https://images.unsplash.com/photo-1559839734-2b71f1e3c7e0?q=80&w=1920" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[20s] group-hover:scale-110" alt="The Alchemist" />
           <div className="absolute inset-0 bg-[#2C3E28]/50" />
           <div className="absolute inset-0 bg-gradient-to-l from-[#2C3E28]/90 via-transparent to-transparent hidden lg:block" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#2C3E28]/95 via-transparent to-transparent lg:hidden" />
           
-          <div className="absolute bottom-16 right-8 sm:bottom-32 sm:right-32 left-8 lg:text-right max-w-2xl space-y-8 ml-auto animate-in fade-in slide-in-from-right-8 duration-1000">
+          <div className="absolute bottom-16 right-8 sm:bottom-32 sm:right-32 left-8 lg:text-right max-w-2xl space-y-8 ml-auto">
              <div className="flex items-center lg:justify-end gap-4 text-[#D4AF37]">
                 <Microscope size={32} />
-                <span className="text-xs sm:text-lg font-bold tracking-[0.5em] uppercase">Co-Founder · The Alchemist</span>
+                <span className="text-xs sm:text-lg font-bold tracking-[0.5em] uppercase">Chief · The Alchemist</span>
              </div>
              <div className="space-y-4">
-                <h3 className="text-5xl sm:text-[9rem] font-serif-zh font-bold text-white tracking-widest">Alice / 调香师</h3>
-                <h4 className="text-white/40 text-xl font-serif-zh tracking-[0.4em] uppercase">一人一方，科学致静</h4>
+                <h3 className="text-5xl sm:text-[9rem] font-serif-zh font-bold text-white tracking-widest leading-none">Alice / 调香师</h3>
+                <h4 className="text-white/40 text-xl font-serif-zh tracking-[0.4em]">一人一方 · 科学致静</h4>
                 <p className="text-white/60 text-sm sm:text-2xl font-serif-zh leading-relaxed">
-                  首席专业芳疗师 Alice，以极度严苛的实验室标准，保留极境分子的原始震颤频率。拒绝平庸工业香，只为灵魂的共振定制专属处方。
+                  在 Alice 的实验室中，每一滴极境分子都被赋予新的秩序。我们拒绝流水线，只为每一个独立的灵魂，定制专属的愈合频率。
                 </p>
              </div>
              <button onClick={() => setView('oracle')} className="flex items-center lg:justify-end gap-6 px-10 py-5 bg-white text-black rounded-full text-[10px] sm:text-sm font-bold tracking-[0.4em] hover:bg-[#1C39BB] hover:text-white transition-all group ml-auto">
-                向祭司寻求处方 <Wind size={18} className="group-hover:rotate-45 transition-transform" />
+                向祭司寻求专属处方 <Wind size={18} className="group-hover:rotate-45 transition-transform" />
              </button>
           </div>
         </div>
       </section>
 
-      {/* 4. 极致分类入口 - 手机端并排静奢设计 */}
-      <section className="py-32 sm:py-64 bg-[#F9F9F9] relative overflow-hidden px-6">
+      {/* 4. 分类入口 - 静奢卡片网格 */}
+      <section className="py-32 sm:py-64 bg-[#F9F9F9] px-6 sm:px-24">
         <div className="max-w-[1920px] mx-auto space-y-24">
           <div className="flex flex-col lg:flex-row justify-between items-end gap-8 border-b border-black/5 pb-16">
             <div className="space-y-4">
-               <h2 className="text-5xl sm:text-9xl font-serif-zh font-bold text-black/90 tracking-tighter">感官馆藏</h2>
-               <p className="text-[#D75437] font-bold tracking-[0.5em] uppercase text-[10px] sm:text-xl">Three Gates to the Sanctuary</p>
+               <h2 className="text-5xl sm:text-9xl font-serif-zh font-bold text-black/90">感官馆藏</h2>
+               <p className="text-[#D75437] font-bold tracking-[0.5em] uppercase text-[10px] sm:text-xl">The Three Gates of Sanctuary</p>
             </div>
-            <p className="text-black/30 text-xs sm:text-2xl font-serif-zh max-w-md text-right">每一个系列，都是一次对生命意志的精准复刻。</p>
+            <p className="text-black/30 text-xs sm:text-2xl font-serif-zh max-w-md text-right">从极地单方到频率复方，再到空间的物理防御。</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-16">
             {[
               { id: 'yuan', label: '元', full: '元 · 极境单方', en: 'ORIGIN', icon: Gem, color: '#D75437', desc: '捕获极地、高山与荒漠中，植物在极限环境下产生的生存分子。' },
               { id: 'he', label: '香', full: '香 · 复方疗愈', en: 'SCENT', icon: Layers, color: '#1C39BB', desc: '针对特定情绪杂音，由 Alice 亲自重构的分子频率复方。' },
@@ -163,15 +163,15 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                <div className="text-center space-y-8 px-6">
                   <h3 className="text-3xl sm:text-8xl font-serif-zh font-bold text-white tracking-[0.4em] drop-shadow-2xl">廿载寻香，终见本元。</h3>
                   <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                    <button onClick={() => setView('atlas')} className="px-12 py-5 bg-white text-black rounded-full text-xs font-bold tracking-[0.5em] hover:bg-[#D75437] hover:text-white transition-all uppercase shadow-2xl">探索全球寻香坐标</button>
-                    <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="px-12 py-5 bg-black/40 backdrop-blur-xl text-white border border-white/20 rounded-full text-xs font-bold tracking-[0.5em] hover:bg-white hover:text-black transition-all uppercase">入驻小红书社区</button>
+                    <button onClick={() => setView('atlas')} className="px-12 py-5 bg-white text-black rounded-full text-xs font-bold tracking-[0.5em] hover:bg-[#D75437] hover:text-white transition-all uppercase shadow-2xl">探索寻香足迹</button>
+                    <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="px-12 py-5 bg-black/40 backdrop-blur-xl text-white border border-white/20 rounded-full text-xs font-bold tracking-[0.5em] hover:bg-white hover:text-black transition-all uppercase">入驻 REDNote 社区</button>
                   </div>
                </div>
             </div>
          </div>
       </section>
 
-      {/* 6. Footer - ICP 备案与品牌符号 */}
+      {/* 6. 页脚 - 品牌符号 */}
       <footer className="bg-white pt-48 pb-64 text-center">
          <div className="max-w-xl mx-auto space-y-16">
            <img src={ASSETS.logo} className="w-24 mx-auto opacity-30 hover:opacity-100 transition-opacity cursor-pointer" alt="Logo" />
