@@ -152,7 +152,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                   </div>
                   <div className="space-y-12">
                     <span className="text-[10px] font-bold tracking-[0.6em] text-black/20 group-hover:text-white/30 uppercase font-cinzel">{item.en} SERIES</span>
-                    <h3 className="text-4xl sm:text-[9rem] font-serif-zh font-bold text-black group-hover:text-white transition-colors leading-tight">{item.full}</h3>
+                    <h3 className="text-4xl sm:text-[8rem] font-serif-zh font-bold text-black group-hover:text-white transition-colors leading-tight">{item.full}</h3>
                     <p className="text-base sm:text-3xl font-serif-zh text-black/40 group-hover:text-white/40 leading-relaxed max-w-[90%]">{item.desc}</p>
                   </div>
                   <div className="flex items-center gap-8 text-[#D4AF37] opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-6">
@@ -169,27 +169,26 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 5. 沉浸 Banner - 震撼视觉 (修复：标题文字溢出与显示问题) */}
+      {/* 5. 沉浸 Banner - 震撼视觉 */}
       <section className="px-4 sm:px-32 mb-48 sm:mb-80">
          <div className="aspect-[16/10] sm:aspect-[21/7] w-full rounded-[3rem] sm:rounded-[12rem] overflow-hidden shadow-[0_80px_160px_rgba(0,0,0,0.35)] group relative">
             <img src={ASSETS.banner} className="w-full h-full object-cover transition-transform duration-[45s] group-hover:scale-110" alt="UNIO Visual Sanctuary" />
             <div className="absolute inset-0 bg-black/50" />
             <div className="absolute inset-0 flex items-center justify-center">
                <div className="text-center space-y-8 sm:space-y-20 px-6 max-w-[1400px] w-full">
-                  {/* 核心修复：移除 whitespace-nowrap，使用 clamp 确保字号在手机与电脑端均完美适配且不超出边界 */}
                   <h3 className="text-[clamp(1.5rem,8vw,120px)] font-serif-zh font-bold text-white tracking-[0.2em] sm:tracking-[0.5em] drop-shadow-2xl leading-tight">
                     廿载寻香，终见本元。
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-6 sm:gap-14 justify-center items-center">
                     <button onClick={() => setView('atlas')} className="w-fit px-10 py-5 sm:px-24 sm:py-8 bg-white text-black rounded-full text-[10px] sm:text-xl font-bold tracking-[0.6em] hover:bg-[#D75437] hover:text-white transition-all uppercase shadow-2xl">全球寻香地图</button>
-                    <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="w-fit px-10 py-5 sm:px-24 sm:py-8 bg-black/40 backdrop-blur-3xl text-white border border-white/20 rounded-full text-[10px] sm:text-xl font-bold tracking-[0.6em] hover:bg-white hover:text-black transition-all uppercase">小红书入驻</button>
+                    <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="w-fit px-10 py-5 sm:px-24 sm:py-8 bg-black/40 backdrop-blur-3xl text-white border border-white/20 rounded-full text-[10px] sm:text-xl font-bold tracking-[0.6em] hover:bg-white hover:text-black transition-all uppercase">小红书入口</button>
                   </div>
                </div>
             </div>
          </div>
       </section>
 
-      {/* 6. Footer - 重构品牌句点 (强化中轴与协调感) */}
+      {/* 6. Footer - 重构品牌句点 */}
       <footer className="bg-white pt-32 pb-64 text-center border-t border-black/5">
          <div className="max-w-[1600px] mx-auto px-6 space-y-32">
            {/* Footer Logo - 核心品牌印记 */}
