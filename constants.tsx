@@ -75,7 +75,7 @@ const yuanEns = [
   ['Sacred Frankincense', 'Peppermint from Peaks', ' Eucalyptus Glaciale', 'Tea Tree Antiseptic', 'Citronella Clarissima'],
   ['Aged Sandalwood', 'Misty Cypress', 'Himalayan Cedar', 'Boreal Pine', 'Sacred Rosewood Isle'],
   ['Myrrh Secreta', 'Deep Root Vetiver', 'Patchouli Nocturne', 'Juniper by the Loch', 'Benzoin Ambrosia'],
-  ['Damask Rose Aureate', 'Ylang Equatorial', 'Jasminum Grandiflorum', 'Neroli Soleil', 'Geranium Rosé'],
+  ['Damask Rose Aureate', 'Ylang Equatorial', 'Jasminum Grandiflorum', 'Neroli Soleil', 'Geranium Rose\u0301'],
   ['Bergamot Alba', 'Zingiber Terrae', 'Mandarin Jucunda', 'Grapefruit Pomona', 'Oakmoss Taiga']
 ];
 
@@ -98,7 +98,6 @@ const heEns = [
 
 heNames.forEach((group, i) => group.forEach((name, j) => {
   const groupLabel = heGroups[i];
-  // 如果是 Mind 或 Soul 系列，且目前无产品图片，则指向指定的 brand.webp
   let customImg = undefined;
   if (groupLabel === 'Mind' || groupLabel === 'Soul') {
     customImg = ASSETS.brand_image;
@@ -160,13 +159,24 @@ euList.forEach(([n,c,en,img], i) => addD(`w_eu_${i}`, n as string, en as string,
 const afList = [
   ['南非', 12, 'SOUTH AFRICA', `${RAW_DEST}South%20africa.webp${CACHE_V}`], 
   ['埃及', 2, 'EGYPT', `${RAW_DEST}Egypt.webp${CACHE_V}`], 
+  ['津巴布韦', 1, 'ZIMBABWE', '非洲', 1, `${RAW_DEST}Zimbabwe.webp${CACHE_V}`], 
   ['肯尼亚', 2, 'KENYA', `${RAW_DEST}Kenya.webp${CACHE_V}`], 
-  ['津巴布韦', 1, 'ZIMBABWE', 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=1200'],
+  ['津巴布韦', 1, 'ZIMBABWE', '非洲', 1, `${RAW_DEST}Zimbabwe.webp${CACHE_V}`],
   ['马达加斯加', 0, 'MADAGASCAR', `${RAW_DEST}Madagascar.webp${CACHE_V}`],
   ['毛里求斯', 1, 'MAURITIUS', `${RAW_DEST}Mauritius.webp${CACHE_V}`],
   ['摩洛哥', 0, 'MOROCCO', 'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200']
 ];
-afList.forEach(([n,c,en,img], i) => addD(`w_af_${i}`, n as string, en as string, '非洲', c as number, img as string, (c as number > 0 ? getProducts(n as string) : []), (c as number > 0 ? 'arrived' : 'locked')));
+// Note: afList was slightly malformed in the template, cleaning up:
+const cleanAfList = [
+  ['南非', 12, 'SOUTH AFRICA', `${RAW_DEST}South%20africa.webp${CACHE_V}`], 
+  ['埃及', 2, 'EGYPT', `${RAW_DEST}Egypt.webp${CACHE_V}`], 
+  ['津巴布韦', 1, 'ZIMBABWE', `${RAW_DEST}Zimbabwe.webp${CACHE_V}`], 
+  ['肯尼亚', 2, 'KENYA', `${RAW_DEST}Kenya.webp${CACHE_V}`], 
+  ['马达加斯加', 0, 'MADAGASCAR', `${RAW_DEST}Madagascar.webp${CACHE_V}`],
+  ['毛里求斯', 1, 'MAURITIUS', `${RAW_DEST}Mauritius.webp${CACHE_V}`],
+  ['摩洛哥', 0, 'MOROCCO', 'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200']
+];
+cleanAfList.forEach(([n,c,en,img], i) => addD(`w_af_${i}`, n as string, en as string, '非洲', c as number, img as string, (c as number > 0 ? getProducts(n as string) : []), (c as number > 0 ? 'arrived' : 'locked')));
 
 const amList = [
   ['美国', 7, 'USA', 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'], 
@@ -184,7 +194,7 @@ amList.forEach(([n,c,en,img], i) => addD(`w_am_${i}`, n as string, en as string,
 
 Object.entries({
   '西南': ['四川', '云南', '西藏', '贵州', '重庆'],
-  '西北': ['新疆', '甘肃', '陕西', '宁善', '青海'],
+  '西北': ['新疆', '甘肃', '陕西', '宁夏', '青海'],
   '华南': ['广东', '福建', '海南', '广西'],
   '华东': ['浙江', '江苏', '上海', '安徽', '江西', '山东', '台湾'],
   '华北': ['北京', '天津', '河北', '山西', '内蒙古'],
