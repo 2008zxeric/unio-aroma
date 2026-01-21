@@ -8,12 +8,13 @@ export const ASSETS = {
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
   // 首页全景：极境之巅
   hero_zen: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2560',
-  // Eric 寻香人背景：升级为更震撼的极地脊线 (High-Impact Mountain Ridge)
+  // Eric 寻香人背景
   hero_eric: 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920', 
-  // Alice 实验室背景：恢复专业调压氛围
+  // Alice 实验室背景
   hero_alice: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920',
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
+  brand_image: `${RAW_BASE}brand/brand.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
@@ -60,7 +61,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   };
 };
 
-// --- [元/和/境系列数据恢复] ---
+// --- [元系列数据] ---
 const yuanGroups = ['Metal', 'Wood', 'Water', 'Fire', 'Earth'];
 const yuanFolders = ['metal', 'wood', 'water', 'fire', 'earth'];
 const yuanNames = [
@@ -71,10 +72,10 @@ const yuanNames = [
   ['佛手柑', '横断生姜', '极境红橘', '极境葡萄柚', '极境橡木苔']
 ];
 const yuanEns = [
-  ['Sacred Frankincense', 'Peppermint from Peaks', 'Eucalyptus Glaciale', 'Tea Tree Antiseptic', 'Citronella Clarissima'],
+  ['Sacred Frankincense', 'Peppermint from Peaks', ' Eucalyptus Glaciale', 'Tea Tree Antiseptic', 'Citronella Clarissima'],
   ['Aged Sandalwood', 'Misty Cypress', 'Himalayan Cedar', 'Boreal Pine', 'Sacred Rosewood Isle'],
   ['Myrrh Secreta', 'Deep Root Vetiver', 'Patchouli Nocturne', 'Juniper by the Loch', 'Benzoin Ambrosia'],
-  ['Damask Rose Aureate', 'Ylang Equatorial', 'Jasminum Grandiflorum', 'Neroli Soleil', 'Geranium Rose'],
+  ['Damask Rose Aureate', 'Ylang Equatorial', 'Jasminum Grandiflorum', 'Neroli Soleil', 'Geranium Rosé'],
   ['Bergamot Alba', 'Zingiber Terrae', 'Mandarin Jucunda', 'Grapefruit Pomona', 'Oakmoss Taiga']
 ];
 
@@ -82,11 +83,30 @@ yuanNames.forEach((group, i) => group.forEach((name, j) => {
   addP('yuan', `元 · ${yuanGroups[i]}`, name, yuanEns[i][j], yuanFolders[i], `yuan_${yuanFolders[i]}_${j}`);
 }));
 
+// --- [和系列数据] ---
 const heGroups = ['Body', 'Mind', 'Soul'];
-const heNames = [['云感霜', '晨曦液', '月华油', '清冽发', '润迹膏'], ['止语雾', '归处膏', '听泉露', '微光氛', '深吸瓶'], ['无界油', '悬浮露', '破晓珠', '空寂水', '共振方']];
-const heEns = [['cloud velvet', 'Dawn Glow', 'Moonlight Oil', 'Frost Mint', 'Trace Balm'], ['Silent Mist', 'Sanctuary', 'Zen Fountain', 'Glimmer', 'Deep Breath'], ['Boundless', 'Floating', 'Daybreak', 'Void Moss', 'Resonant']];
-heNames.forEach((group, i) => group.forEach((name, j) => addP('he', `香 · ${heGroups[i]}`, name, heEns[i][j], heGroups[i].toLowerCase(), `he_${heGroups[i].toLowerCase()}_${j}`)));
+const heNames = [
+  ['云感霜', '晨曦液', '月华油', '清冽发', '润迹膏'], 
+  ['止语雾', '归处膏', '听泉露', '微光氛', '深吸瓶'], 
+  ['无界油', '悬浮露', '破晓珠', '空寂水', '共振方']
+];
+const heEns = [
+  ['cloud velvet', 'Dawn Glow', 'Moonlight Oil', 'Frost Mint', 'Trace Balm'], 
+  ['Silent Mist', 'Sanctuary', 'Zen Fountain', 'Glimmer', 'Deep Breath'], 
+  ['Boundless', 'Floating', 'Daybreak', 'Void Moss', 'Resonant']
+];
 
+heNames.forEach((group, i) => group.forEach((name, j) => {
+  const groupLabel = heGroups[i];
+  // 如果是 Mind 或 Soul 系列，且目前无产品图片，则指向指定的 brand.webp
+  let customImg = undefined;
+  if (groupLabel === 'Mind' || groupLabel === 'Soul') {
+    customImg = ASSETS.brand_image;
+  }
+  addP('he', `香 · ${groupLabel}`, name, heEns[i][j], groupLabel.toLowerCase(), `he_${groupLabel.toLowerCase()}_${j}`, customImg);
+}));
+
+// --- [境系列数据] ---
 const jingNames = [['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']];
 const jingEns = [['Crackled', 'Necklace ', 'Walnut', 'candle', 'Vessel'], ['Incense Sticks', 'Rollerball', 'Gypsum', 'mountain', 'glass']];
 jingNames[0].forEach((n, j) => addP('jing', '境 · 芳香美学', n, jingEns[0][j], 'place', `jing_place_${j}`));
@@ -95,7 +115,7 @@ jingNames[1].forEach((n, j) => addP('jing', '境 · 冥想之物', n, jingEns[1]
 const ALL_IDS = Object.keys(DATABASE);
 const getProducts = (seed: string) => ALL_IDS.sort(() => seed.length % 10 - 5).slice(0, 6);
 
-// --- [寻香坐标全量恢复 - 亚洲 18 坐标] ---
+// --- [寻香坐标恢复] ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', getProducts('th'), 'arrived', false, undefined, [`${RAW_ALBUM}Thailand/th1.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th2.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th3.webp${CACHE_V}`]);
 addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', getProducts('in'));
 addD('w_hk','中国香港','HONG KONG','亚洲',18,`${RAW_DEST}Hongkong.webp${CACHE_V}`, getProducts('hk'));
@@ -115,7 +135,6 @@ addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,`${RAW_DEST}North%20Korea.webp${CA
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',2,'https://images.unsplash.com/photo-1546708973-b339540b5162?q=80&w=1200', getProducts('lk'));
 addD('w_np','尼泊尔','NEPAL','亚洲',2,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', getProducts('np'));
 
-// --- [全量恢复 - 欧洲 18 坐标] ---
 const euList = [
   ['土耳其', 8, 'TURKEY', 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200'], 
   ['法国', 5, 'FRANCE', 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200'], 
@@ -138,7 +157,6 @@ const euList = [
 ];
 euList.forEach(([n,c,en,img], i) => addD(`w_eu_${i}`, n as string, en as string, '欧洲', c as number, img as string, (c as number > 0 ? getProducts(n as string) : []), (c as number > 0 ? 'arrived' : 'locked')));
 
-// --- [全量恢复 - 非洲 7 坐标] ---
 const afList = [
   ['南非', 12, 'SOUTH AFRICA', `${RAW_DEST}South%20africa.webp${CACHE_V}`], 
   ['埃及', 2, 'EGYPT', `${RAW_DEST}Egypt.webp${CACHE_V}`], 
@@ -150,7 +168,6 @@ const afList = [
 ];
 afList.forEach(([n,c,en,img], i) => addD(`w_af_${i}`, n as string, en as string, '非洲', c as number, img as string, (c as number > 0 ? getProducts(n as string) : []), (c as number > 0 ? 'arrived' : 'locked')));
 
-// --- [全量恢复 - 美洲 10 坐标] ---
 const amList = [
   ['美国', 7, 'USA', 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'], 
   ['墨西哥', 4, 'MEXICO', `${RAW_DEST}Mexico.webp${CACHE_V}`], 
@@ -165,10 +182,9 @@ const amList = [
 ];
 amList.forEach(([n,c,en,img], i) => addD(`w_am_${i}`, n as string, en as string, '美洲/大洋洲', c as number, img as string, (c as number > 0 ? getProducts(n as string) : []), (c as number > 0 ? 'arrived' : 'locked')));
 
-// --- [全量恢复 - 中国 34 省份] ---
 Object.entries({
   '西南': ['四川', '云南', '西藏', '贵州', '重庆'],
-  '西北': ['新疆', '甘肃', '陕西', '宁夏', '青海'],
+  '西北': ['新疆', '甘肃', '陕西', '宁善', '青海'],
   '华南': ['广东', '福建', '海南', '广西'],
   '华东': ['浙江', '江苏', '上海', '安徽', '江西', '山东', '台湾'],
   '华北': ['北京', '天津', '河北', '山西', '内蒙古'],
