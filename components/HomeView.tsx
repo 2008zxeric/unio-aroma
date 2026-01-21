@@ -182,7 +182,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-6 sm:gap-14 justify-center items-center">
                     <button onClick={() => setView('atlas')} className="w-fit px-10 py-5 sm:px-24 sm:py-8 bg-white text-black rounded-full text-[10px] sm:text-xl font-bold tracking-[0.6em] hover:bg-[#D75437] hover:text-white transition-all uppercase shadow-2xl">全球寻香地图</button>
-                    <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="w-fit px-10 py-5 sm:px-24 sm:py-8 bg-black/40 backdrop-blur-3xl text-white border border-white/20 rounded-full text-[10px] sm:text-xl font-bold tracking-[0.6em] hover:bg-white hover:text-black transition-all uppercase">社区入驻</button>
+                    <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="w-fit px-10 py-5 sm:px-24 sm:py-8 bg-black/40 backdrop-blur-3xl text-white border border-white/20 rounded-full text-[10px] sm:text-xl font-bold tracking-[0.6em] hover:bg-white hover:text-black transition-all uppercase">小红书入驻</button>
                   </div>
                </div>
             </div>
