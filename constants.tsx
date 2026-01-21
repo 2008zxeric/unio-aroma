@@ -12,6 +12,7 @@ export const ASSETS = {
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   brand_image: `${RAW_BASE}brand/brand.webp${CACHE_V}`,
+  packaging_sample: `${RAW_BASE}brand/see.webp${CACHE_V}`, // 用户提供的包装样例图
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
@@ -93,7 +94,8 @@ const heEns = [
 ];
 heNames.forEach((group, i) => group.forEach((name, j) => {
   const groupLabel = heGroups[i];
-  let customImg = (groupLabel === 'Mind' || groupLabel === 'Soul') ? ASSETS.brand_image : undefined;
+  // 在适当位置加入包装样例展示
+  let customImg = (groupLabel === 'Soul' && j === 4) ? ASSETS.packaging_sample : ((groupLabel === 'Mind' || groupLabel === 'Soul') ? ASSETS.brand_image : undefined);
   addP('he', `香 · ${groupLabel}`, name, heEns[i][j], groupLabel.toLowerCase(), `he_${groupLabel.toLowerCase()}_${j}`, customImg);
 }));
 
@@ -101,12 +103,12 @@ heNames.forEach((group, i) => group.forEach((name, j) => {
 const jingNames = [['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']];
 const jingEns = [['Crackled', 'Necklace ', 'Walnut', 'candle', 'Vessel'], ['Incense Sticks', 'Rollerball', 'Gypsum', 'mountain', 'glass']];
 jingNames[0].forEach((n, j) => addP('jing', '境 · 芳香美学', n, jingEns[0][j], 'place', `jing_place_${j}`));
-jingNames[1].forEach((n, j) => addP('jing', '境 · 冥想之物', n, jingEns[1][j], 'Meditation', `jing_meditation_${j}`));
+jingNames[1].forEach((n, j) => addP('jing', '境 · 凝思之物', n, jingEns[1][j], 'Meditation', `jing_meditation_${j}`)); // 已重命名
 
 const ALL_IDS = Object.keys(DATABASE);
 const getProducts = (seed: string) => ALL_IDS.sort(() => seed.length % 10 - 5).slice(0, 6);
 
-// --- [亚洲：18个目的地] ---
+// --- [亚洲：18个目的地 - 纯化叙事] ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', getProducts('th'), 'arrived', false, undefined, [`${RAW_ALBUM}Thailand/th1.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th2.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th3.webp${CACHE_V}`],
 "清迈晨间的湿热空气里，我捕捉到了一种近乎禅意的草木波动。那是森林最谦卑的致意。",
 "泰国高活性分子在 Alice 实验室通过分层提纯，保留了最具穿透力的清凉定力。");
@@ -249,7 +251,7 @@ addD('w_hr','克罗地亚','CROATIA','欧洲',0,'https://images.unsplash.com/pho
 "克罗地亚蜡菊的修护频率极具研究价值，我们计划将其引入未来的抗衰老感官模块。");
 
 addD('w_gr','希腊','GREECE','欧洲',0,'https://images.unsplash.com/photo-1503152394-c571994fd383?q=80&w=1200', [], 'locked', false, undefined, undefined,
-"爱琴海岛上的古老本草，见证了众神的呼吸。那是一种带着大理石质感的肃穆感。",
+"爱琴海岛上的古老本草，见证了众神的呼吸. 那是一种带着大理石质感的肃穆感。",
 "实验室正试图复刻希腊野草中那种‘阳光直射’带来的正向频率，以对抗冬季抑郁。");
 
 // --- [非洲：7个目的地] ---
@@ -300,7 +302,7 @@ addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',1,`${RAW_DEST}Argentina.w
 
 addD('w_ht','海地','HAITI','美洲/大洋洲',0,`${RAW_DEST}Haiti.webp${CACHE_V}`, [], 'locked', false, undefined, undefined,
 "加勒比海的贫瘠却孕育了全球最优秀的岩兰草，苦难中开出的嗅觉之花。",
-"海地岩兰草的复杂分子序列是实验室梦寐以求的定香基石，代表了灵魂最坚韧的底层支撑。");
+"海地岩兰草的复杂分子序列是实验室梦寐就求的定香基石，代表了灵魂最坚韧的底层支撑。");
 
 addD('w_ca','加拿大','CANADA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?q=80&w=1200', [], 'locked', false, undefined, undefined,
 "落基山脉的冷空气与枫木。那种从骨子里透出的清甜与宏大。",
@@ -322,7 +324,20 @@ addD('w_cu','古巴','CUBA','美洲/大洋洲',0,'https://images.unsplash.com/ph
 "哈瓦那街头的陈年烟草与阳光，一种被时光浸润后的从容与颓废美学。",
 "实验室在古巴样本中研究复杂生物碱对情绪的瞬间舒缓作用，打造沉溺式的解压意境。");
 
-// --- [中国寻香坐标：34个省份/区域] ---
+// --- [中国寻香坐标：34个省份/区域 - 全文本差异化优化] ---
+const CHINA_DIARIES: Record<string, [string, string]> = {
+  '四川': ["青城山的晨雾与岷江的水汽，交织成一种湿润的青绿感，那是神州大地最灵动的呼吸。", "实验室分析发现，四川高海拔地区的本草中富含抗压性的挥发性分子，能有效拓宽感官的耐受边界。"],
+  '云南': ["横断山脉的垂直气候，让同一株本草拥有了四季的生命厚度。在这里，香气是有阶梯感的。", "Alice 致力于捕捉云南多样性生态中的‘共生频率’，用于重塑因单一都市生活而失衡的情绪生态。"],
+  '西藏': ["在纳木错的湖边，稀薄氧气里的香气有着接近虚无的纯净。这种极简是对灵魂最底层的净化。", "针对高寒低氧环境下的植物样本，实验室提取了独特的极性分子，旨在瞬间清空大脑多余的冗余杂音。"],
+  '贵州': ["喀斯特地貌深处的阴凉，养育了带有泥土深处凉意的菌群与草木香。深沉且稳固。", "实验室复刻了贵州深山的湿度共振，打造出能让意识迅速下沉、回归稳态的深层修护方案。"],
+  '新疆': ["天山雪水与塔里木烈日的极差，淬炼出香料中惊人的糖分与热烈意志。", "我们通过分析新疆特产草本的抗逆性分子链，构建了一套针对极端情绪波动的高速平抑系统。"],
+  '甘肃': ["丝绸之路上被风沙打磨过的本草，有着一种近似于矿物的苍劲美，不带半点娇羞。", "Alice 利用甘肃产地的坚韧分子结构，开发出能够增强佩戴者核心意志力的‘定力’模块。"],
+  '内蒙古': ["在大草原广袤的辽阔里，野草的香气是肆意且不设防的。那是自由最直白的注脚。", "实验室研究发现，草原样本具有极佳的舒张特性，能显著缓解现代人长期的生理性呼吸短促。"],
+  '北京': ["紫禁城红墙下的古柏香，是岁月沉淀出的厚重秩序感，带着皇城根特有的威严。", "实验室尝试提取古树中的长效倍半萜频率，为快节奏的精英生活提供一种持久的定力背景。"],
+  '上海': ["弄堂里的万家灯火与黄浦江的海风，勾勒出一种摩登而世俗的烟火气，精致且包容。", "针对海派文化的多样性，我们调配出一种能兼顾逻辑思维与艺术感知的高频平衡配方。"],
+  '广东': ["岭南的湿热造就了本草极强的药食同源属性。这种香气是鲜活的、有温度的生存力。", "Alice 实验室利用广东中医药本草的高活性，打造出能快速建立身心循环屏障的感官方案。"]
+};
+
 const PROVINCE_GROUPS: Record<string, string[]> = {
   '西南': ['四川', '云南', '西藏', '贵州', '重庆'],
   '西北': ['新疆', '甘肃', '陕西', '宁夏', '青海'],
@@ -334,10 +349,12 @@ const PROVINCE_GROUPS: Record<string, string[]> = {
 };
 Object.entries(PROVINCE_GROUPS).forEach(([sub, list]) => {
   list.forEach((prov) => {
-    const visits = Math.floor(Math.random() * 5) + 2; 
-    addD(`cn_${prov}`, prov, prov.toUpperCase(), '亚洲', visits, REGION_VISUALS.china, getProducts(prov), 'arrived', true, sub, undefined,
-    `穿梭于${prov}的高原与密林，我寻找的是属于神州大地的生命根基频率。这是一种刻在血脉里的宁静。`,
-    `针对${prov}独特的地理特征，Alice 实验室构建了专属的“神州频率库”。通过对本土本草分子的科学提纯，我们致力于重构属于国人深层的内在秩序。`);
+    const visits = Math.floor(Math.random() * 5) + 3; 
+    const diaries = CHINA_DIARIES[prov] || [
+      `穿梭于${prov}，我寻找的是那份属于${sub}大地的独特频率。这里的香气是与时间对话的证据。`,
+      `针对${prov}的地理微气候，实验室在 GC/MS 下重构了专属的${prov}分子图谱，旨在解决当代感官的同质化危机。`
+    ];
+    addD(`cn_${prov}`, prov, prov.toUpperCase(), '亚洲', visits, REGION_VISUALS.china, getProducts(prov), 'arrived', true, sub, undefined, diaries[0], diaries[1]);
   });
 });
 
