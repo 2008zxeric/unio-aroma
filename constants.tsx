@@ -6,9 +6,11 @@ const CACHE_V = '?v=900.35';
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
   xhs_link: 'https://xhslink.com/m/AcZDZuYhsVd',
-  // 升级为更高质感的视觉背景
+  // 首页全景：极境之巅
   hero_zen: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2560',
-  hero_eric: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1920', 
+  // Eric 寻香人背景：升级为更震撼的极境雪山（视觉冲击力极强）
+  hero_eric: 'https://images.unsplash.com/photo-1434394354979-a235cd36269d?q=80&w=1920', 
+  // Alice 实验室背景：恢复专业调香氛围
   hero_alice: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920',
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
