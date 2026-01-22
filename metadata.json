@@ -1,7 +1,7 @@
 
 {
-  "name": "元和 芳香 unio aroma - 品牌官网",
-  "description": "元和 芳香 unio aroma 品牌官方网站，呈现极简'静奢'美学、交互式极境地图及AI寻香祭司。",
+  "name": "元香 生活 - 品牌官网 v2.0",
+  "description": "元香 生活 品牌官方网站，呈现极简'静奢'美学、交互式极境地图、AI寻香祭司及影像实验室。",
   "requestFramePermissions": [
     "camera",
     "microphone"
