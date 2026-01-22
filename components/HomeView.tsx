@@ -6,9 +6,13 @@ import { ViewState, Category } from '../types';
 const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Category) => void }> = ({ setView, setFilter }) => {
   return (
     <div className="w-full bg-white overflow-x-hidden selection:bg-[#D75437] selection:text-white">
-      {/* Hero */}
+      {/* 1. 震撼 Hero */}
       <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
-        <img src={ASSETS.hero_zen} className="absolute inset-0 w-full h-full object-cover scale-100 transition-transform duration-[45s] hover:scale-110" alt="Hero" />
+        <img 
+          src={ASSETS.hero_zen} 
+          className="absolute inset-0 w-full h-full object-cover scale-100 transition-transform duration-[45s] hover:scale-110"
+          alt="UNIO Extreme Origin Peaks"
+        />
         <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px]" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-white" />
         
@@ -18,25 +22,60 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               元香<span className="text-[0.4em] sm:text-[0.5em] opacity-80 block sm:inline sm:ml-12">生活</span>
             </h1>
             <div className="mt-8 sm:mt-24 space-y-8">
-              <p className="text-[8px] sm:text-2xl tracking-[0.4em] sm:tracking-[1.5em] uppercase font-bold text-white/95 font-cinzel">Original Harmony Sanctuary</p>
+              <p className="text-[8px] sm:text-2xl tracking-[0.4em] sm:tracking-[1.5em] uppercase font-bold text-white/95 font-cinzel">
+                Original Harmony Sanctuary
+              </p>
               <div className="h-[1px] w-24 sm:w-[50rem] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto opacity-70" />
-              <p className="text-white/80 text-xs sm:text-3xl font-serif-zh tracking-[0.4em] mt-8">从极境中撷取宁静</p>
+              <div className="flex flex-col gap-4 mt-12">
+                <p className="text-white/80 text-xs sm:text-3xl font-serif-zh tracking-[0.4em]">从极境中撷取宁静</p>
+                <p className="text-white/25 text-[8px] sm:text-lg tracking-[0.3em] font-cinzel uppercase italic">From Extreme to Harmony</p>
+              </div>
             </div>
           </div>
         </div>
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce flex flex-col items-center gap-4">
+           <div className="w-[1px] h-24 sm:h-40 bg-gradient-to-b from-white/40 to-transparent" />
+        </div>
       </section>
 
-      {/* Manifesto */}
+      {/* 2. 品牌宣言 */}
       <section className="py-24 sm:py-80 px-8 sm:px-32 max-w-[1920px] mx-auto text-center space-y-24">
         <h2 className="text-4xl sm:text-[11rem] font-serif-zh font-bold text-[#2C3E28] leading-[1.1] tracking-tighter">
           拒绝工业庸常，<br /><span className="text-black/15 italic">只为 1% 的觉知灵魂。</span>
         </h2>
-        <p className="text-lg sm:text-4xl lg:text-5xl font-serif-zh text-black/40 leading-[2.2] max-w-5xl mx-auto">
-          元香 生活 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。
-        </p>
+        <div className="max-w-5xl mx-auto space-y-16">
+          <p className="text-lg sm:text-4xl lg:text-5xl font-serif-zh text-black/40 leading-[2.2]">
+            元香 生活 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。
+          </p>
+        </div>
       </section>
 
-      {/* Footer */}
+      {/* 3. 分类入口 */}
+      <section className="py-32 sm:py-80 bg-[#FBFBFB] px-6 sm:px-24 relative overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-28 max-w-[2560px] mx-auto">
+          {[
+            { id: 'yuan', label: '元', full: '元 · 极境单方', en: 'ORIGIN', icon: Gem, color: '#D75437' },
+            { id: 'he', label: '香', full: '香 · 复方疗愈', en: 'SCENT', icon: Layers, color: '#1C39BB' },
+            { id: 'jing', label: '境', full: '境 · 凝思之物', en: 'SANCTUARY', icon: ShieldCheck, color: '#2C3E28' }
+          ].map((item) => (
+            <button 
+              key={item.id}
+              onClick={() => { setFilter(item.id as Category); setView('collections'); }}
+              className="group relative flex flex-col p-12 sm:p-32 bg-white rounded-[4rem] sm:rounded-[8rem] transition-all hover:bg-black hover:scale-[1.03] shadow-sm hover:shadow-2xl overflow-hidden text-left"
+            >
+              <div className="relative z-10 space-y-12">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center" style={{ backgroundColor: `${item.color}12`, color: item.color }}>
+                   <item.icon size={32} />
+                </div>
+                <h3 className="text-3xl sm:text-7xl font-serif-zh font-bold text-black group-hover:text-white transition-colors">{item.full}</h3>
+                <span className="text-[10px] font-bold tracking-[0.5em] text-black/20 group-hover:text-white/30 uppercase">{item.en} SERIES</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Footer */}
       <footer className="bg-white pt-32 pb-64 text-center border-t border-black/5">
          <div className="max-w-[1600px] mx-auto px-6 space-y-32">
            <div className="flex flex-col items-center space-y-12">
