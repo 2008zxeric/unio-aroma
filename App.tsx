@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2, FlaskConical, LayoutDashboard } from 'lucide-react';
 import { ViewState, Category } from './types';
 import { DATABASE, DESTINATIONS, ASSETS } from './constants';
@@ -18,8 +18,19 @@ const App: React.FC = () => {
   const [filter, setFilter] = useState<Category>('yuan');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDestId, setSelectedDestId] = useState<string | null>(null);
-  const [showSplash, setShowSplash] = useState(false);
+  
+  // 核心变更：默认开启 Splash，实现“揭幕”开场
+  const [showSplash, setShowSplash] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    // 初始加载时的自动退出逻辑
+    const timer = setTimeout(() => {
+      setIsExiting(true);
+      setTimeout(() => setShowSplash(false), 1000);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const navigateToView = (v: ViewState, cat?: Category) => {
     setPrevView(view);
@@ -41,6 +52,7 @@ const App: React.FC = () => {
   const handleLogoClick = () => {
     setShowSplash(true);
     setIsExiting(false);
+    // 点击 Logo 的重置揭幕逻辑
     setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => {
@@ -49,19 +61,19 @@ const App: React.FC = () => {
         setSelectedId(null);
         setSelectedDestId(null);
         navigateToView('home');
-      }, 1100); 
-    }, 1400); 
+      }, 1000); 
+    }, 1500); 
   };
 
   return (
     <div className="min-h-screen relative bg-[#F5F5F5] pb-32 overflow-x-hidden selection:bg-[#D75437] selection:text-white">
-      {/* Splash Screen - 高级揭幕转场 */}
+      {/* Splash Screen - 高级揭幕转场（初始加载与 Logo 点击触发） */}
       {showSplash && (
         <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ${isExiting ? 'animate-luxury-mask-exit' : 'animate-luxury-reveal'} px-6`}>
           <div className="relative flex flex-col items-center max-w-lg w-full">
             <img src={ASSETS.logo} className="w-40 sm:w-64 drop-shadow-2xl mb-12 animate-breath" alt="元香 生活" />
             <div className="text-center space-y-4">
-              <h2 className="text-3xl sm:text-7xl font-serif-zh font-bold tracking-[0.4em] text-[#2C3E28] shimmer-text">元香 生活</h2>
+              <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold tracking-[0.4em] text-[#2C3E28] shimmer-text">元香 生活</h2>
               <div className="h-px w-24 sm:w-48 bg-[#D4AF37]/30 mx-auto" />
               <p className="text-[10px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel">Original Harmony Sanctuary</p>
             </div>
@@ -69,10 +81,10 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Main Nav */}
+      {/* Main Nav - 品牌 Logo 区域 */}
       <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
         <div className="pointer-events-auto cursor-pointer flex flex-col items-center group gap-4" onClick={handleLogoClick}>
-          <div className="w-14 h-14 sm:w-24 sm:h-24 glass rounded-full flex items-center justify-center p-3 shadow-2xl transition-all group-hover:scale-110 group-hover:rotate-[360deg] duration-1000 group-hover:shadow-[#D75437]/20">
+          <div className="w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all group-hover:scale-110 group-hover:rotate-[360deg] duration-1000">
             <img src={ASSETS.logo} className="w-full object-contain" alt="Logo" />
           </div>
           <div className="flex flex-col items-center space-y-1">
@@ -94,14 +106,14 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* Bar Nav Control */}
+      {/* 底部导航栏 */}
       <div className="fixed bottom-10 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6">
         <div className="w-full max-w-[500px] flex justify-end gap-4">
-           <button onClick={() => navigateToView('image-lab')} className="pointer-events-auto p-5 bg-[#1C39BB] text-white rounded-full shadow-2xl hover:scale-110 transition-all group backdrop-blur-md border border-white/20">
-             <FlaskConical size={24} className="group-hover:rotate-12 transition-transform" />
+           <button onClick={() => navigateToView('image-lab')} className="pointer-events-auto p-5 bg-[#1C39BB] text-white rounded-full shadow-2xl hover:scale-110 transition-all border border-white/20">
+             <FlaskConical size={24} />
            </button>
-           <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="pointer-events-auto p-5 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 transition-all group backdrop-blur-md border border-white/20">
-             <Share2 size={24} className="group-hover:rotate-12 transition-transform" />
+           <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="pointer-events-auto p-5 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 transition-all border border-white/20">
+             <Share2 size={24} />
            </button>
         </div>
         <div className="pointer-events-auto w-full max-w-[520px]">
@@ -115,12 +127,12 @@ const App: React.FC = () => {
               const Icon = item.icon;
               const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
               return (
-                <button key={item.id} onClick={() => navigateToView(item.id as ViewState)} className={`p-5 rounded-full transition-all duration-500 relative group ${isActive ? 'bg-[#D75437] text-white shadow-xl scale-110' : 'text-white/30 hover:text-white/80'}`}>
+                <button key={item.id} onClick={() => navigateToView(item.id as ViewState)} className={`p-5 rounded-full transition-all duration-500 ${isActive ? 'bg-[#D75437] text-white shadow-xl scale-110' : 'text-white/30 hover:text-white/80'}`}>
                   <Icon size={24} />
                 </button>
               );
             })}
-            <button onClick={() => navigateToView('brand-studio')} className={`p-5 rounded-full transition-all duration-500 relative group ${view === 'brand-studio' ? 'bg-white text-black' : 'text-white/10 hover:text-white/40'}`}>
+            <button onClick={() => navigateToView('brand-studio')} className={`p-5 rounded-full transition-all duration-500 ${view === 'brand-studio' ? 'bg-white text-black' : 'text-white/10 hover:text-white/40'}`}>
               <LayoutDashboard size={24} />
             </button>
           </div>
