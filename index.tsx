@@ -1,23 +1,96 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unio 元香 生活 | Original Harmony Sanctuary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --moss-green: #2C3E28;
+            --terracotta: #D75437;
+            --stone-grey: #F5F5F5;
+            --azure-blue: #1C39BB;
+            --warm-amber: #D4AF37;
+        }
+        body {
+            font-family: 'Inter', 'Noto Serif SC', sans-serif;
+            background-color: var(--stone-grey);
+            color: #1a1a1a;
+            cursor: default;
+        }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-serif-zh { font-family: 'Noto Serif SC', serif; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
 
-// 全局环境兼容性 Polyfill - 针对 Vercel 生产环境优化
-if (typeof window !== 'undefined') {
-  // @ts-ignore
-  window.process = window.process || { env: {} };
-  // @ts-ignore
-  if (!window.process.env) window.process.env = {};
+        .paper-texture { position: relative; }
+        .paper-texture::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* 极境高级动效库 - 针对开屏与转场优化 */
+        @keyframes luxuryReveal {
+          0% { clip-path: inset(50% 0 50% 0); filter: blur(30px); opacity: 0; transform: scale(1.1); }
+          100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
+        }
+        @keyframes luxuryMaskExit {
+          0% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+          100% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; }
+        }
+        @keyframes textShimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes breathing {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        .animate-luxury-reveal { animation: luxuryReveal 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        .animate-luxury-mask-exit { animation: luxuryMaskExit 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        
+        .shimmer-text {
+          background: linear-gradient(90deg, #2C3E28 0%, #D4AF37 50%, #2C3E28 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: textShimmer 4s linear infinite;
+        }
+
+        .animate-breath { animation: breathing 4s ease-in-out infinite; }
+
+        .text-readable-shadow { text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
 }
-
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+</script>
+</head>
+<body class="paper-texture">
+    <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>
