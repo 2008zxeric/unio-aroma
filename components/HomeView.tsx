@@ -50,31 +50,6 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. 分类入口 */}
-      <section className="py-32 sm:py-80 bg-[#FBFBFB] px-6 sm:px-24 relative overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-28 max-w-[2560px] mx-auto">
-          {[
-            { id: 'yuan', label: '元', full: '元 · 极境单方', en: 'ORIGIN', icon: Gem, color: '#D75437' },
-            { id: 'he', label: '香', full: '香 · 复方疗愈', en: 'SCENT', icon: Layers, color: '#1C39BB' },
-            { id: 'jing', label: '境', full: '境 · 凝思之物', en: 'SANCTUARY', icon: ShieldCheck, color: '#2C3E28' }
-          ].map((item) => (
-            <button 
-              key={item.id}
-              onClick={() => { setFilter(item.id as Category); setView('collections'); }}
-              className="group relative flex flex-col p-12 sm:p-32 bg-white rounded-[4rem] sm:rounded-[8rem] transition-all hover:bg-black hover:scale-[1.03] shadow-sm hover:shadow-2xl overflow-hidden text-left"
-            >
-              <div className="relative z-10 space-y-12">
-                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center" style={{ backgroundColor: `${item.color}12`, color: item.color }}>
-                   <item.icon size={32} />
-                </div>
-                <h3 className="text-3xl sm:text-7xl font-serif-zh font-bold text-black group-hover:text-white transition-colors">{item.full}</h3>
-                <span className="text-[10px] font-bold tracking-[0.5em] text-black/20 group-hover:text-white/30 uppercase">{item.en} SERIES</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
       {/* 4. Footer */}
       <footer className="bg-white pt-32 pb-64 text-center border-t border-black/5">
          <div className="max-w-[1600px] mx-auto px-6 space-y-32">
