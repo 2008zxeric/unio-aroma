@@ -18,8 +18,8 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         
         <div className="relative z-10 text-center px-6 max-w-[2560px] mx-auto w-full">
           <div className="animate-in fade-in slide-in-from-top-12 duration-1000">
-            <h1 className="text-[18vw] sm:text-[16rem] lg:text-[22rem] font-serif-zh font-bold tracking-[0.15em] text-white leading-none filter drop-shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
-              元<span className="text-[0.65em] opacity-90">香</span>
+            <h1 className="text-[12vw] sm:text-[14rem] lg:text-[18rem] font-serif-zh font-bold tracking-[0.2em] text-white leading-none filter drop-shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
+              元香<span className="text-[0.4em] sm:text-[0.5em] opacity-80 block sm:inline sm:ml-12">生活</span>
             </h1>
             <div className="mt-8 sm:mt-24 space-y-8">
               <p className="text-[8px] sm:text-2xl tracking-[0.4em] sm:tracking-[1.5em] uppercase font-bold text-white/95 font-cinzel">
@@ -58,7 +58,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         
         <div className="max-w-5xl mx-auto space-y-16">
           <p className="text-lg sm:text-4xl lg:text-5xl font-serif-zh text-black/40 leading-[2.2] text-justify md:text-center px-4">
-            元香 UNIO 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。我们深入全球极境，捕捉植物在生存重压下迸发的原始分子，将其手工重构为私属的平衡频率。
+            元香 生活 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。我们深入全球极境，捕捉植物在生存重压下迸发的原始分子，将其手工重构为私属的平衡频率。
           </p>
           <div className="flex flex-wrap justify-center gap-6 sm:gap-20 pt-12">
              {['极境溯源', '一人一方', '非工业化', '频率重构'].map(tag => (
@@ -122,7 +122,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
 
       {/* 4. 分类入口 */}
       <section className="py-32 sm:py-80 bg-[#FBFBFB] px-6 sm:px-24 relative overflow-hidden">
-        <div className="absolute top-0 right-0 text-[30vw] sm:text-[35rem] font-serif-zh font-bold opacity-[0.01] select-none -translate-y-1/4 translate-x-1/4 leading-none">UNIO</div>
+        <div className="absolute top-0 right-0 text-[30vw] sm:text-[35rem] font-serif-zh font-bold opacity-[0.01] select-none -translate-y-1/4 translate-x-1/4 leading-none">UNIO LIFE</div>
         
         <div className="max-w-[2560px] mx-auto space-y-32 sm:space-y-48">
           <div className="flex flex-col lg:flex-row justify-between items-end gap-12 border-b border-black/5 pb-24">
@@ -139,7 +139,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
             {[
               { id: 'yuan', label: '元', full: '元 · 极境单方', en: 'ORIGIN', icon: Gem, color: '#D75437', desc: '捕获全球极境中，植物在极限环境下产生的生存原力分子。' },
               { id: 'he', label: '香', full: '香 · 复方疗愈', en: 'SCENT', icon: Layers, color: '#1C39BB', desc: 'Alice 亲自重构，将跨区域的植物能量进行科学频率平衡。' },
-              { id: 'jing', label: '境', full: '境 · 芳香美学', en: 'SANCTUARY', icon: ShieldCheck, color: '#2C3E28', desc: '以香为引，构筑空间中的心理防线与极简美学意象。' }
+              { id: 'jing', label: '境', full: '境 · 凝思之物', en: 'SANCTUARY', icon: ShieldCheck, color: '#2C3E28', desc: '以香为引，构筑空间中的心理防线与极简美学意象。' }
             ].map((item) => (
               <button 
                 key={item.id}
@@ -197,9 +197,9 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               
               <div className="flex flex-col items-center w-full">
                  <div className="flex flex-col items-center space-y-6 sm:space-y-10">
-                    <h4 className="text-6xl sm:text-9xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.8em] translate-x-[0.4em] leading-none">元香</h4>
+                    <h4 className="text-6xl sm:text-9xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.8em] translate-x-[0.4em] leading-none">元香 生活</h4>
                     <div className="h-[1px] w-24 sm:w-64 bg-black/10 mx-auto" />
-                    <p className="text-2xl sm:text-5xl font-cinzel font-bold text-[#2C3E28]/40 tracking-[1.2em] translate-x-[0.6em] uppercase">UNIO</p>
+                    <p className="text-2xl sm:text-5xl font-cinzel font-bold text-[#2C3E28]/40 tracking-[1.2em] translate-x-[0.6em] uppercase">UNIO LIFE</p>
                  </div>
                  <p className="text-[10px] sm:text-base tracking-[0.8em] sm:tracking-[1.2em] text-black/20 uppercase font-bold font-cinzel mt-16 sm:mt-24 px-4">
                    Original Harmony Sanctuary
