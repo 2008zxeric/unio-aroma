@@ -19,12 +19,10 @@ const App: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDestId, setSelectedDestId] = useState<string | null>(null);
   
-  // 核心变更：默认开启 Splash，实现“揭幕”开场
   const [showSplash, setShowSplash] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // 初始加载时的自动退出逻辑
     const timer = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => setShowSplash(false), 1000);
@@ -52,7 +50,6 @@ const App: React.FC = () => {
   const handleLogoClick = () => {
     setShowSplash(true);
     setIsExiting(false);
-    // 点击 Logo 的重置揭幕逻辑
     setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => {
@@ -67,11 +64,11 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative bg-[#F5F5F5] pb-32 overflow-x-hidden selection:bg-[#D75437] selection:text-white">
-      {/* Splash Screen - 高级揭幕转场（初始加载与 Logo 点击触发） */}
+      {/* Splash Screen - 显示合规名称：元香 生活 */}
       {showSplash && (
         <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ${isExiting ? 'animate-luxury-mask-exit' : 'animate-luxury-reveal'} px-6`}>
           <div className="relative flex flex-col items-center max-w-lg w-full">
-            <img src={ASSETS.logo} className="w-40 sm:w-64 drop-shadow-2xl mb-12 animate-breath" alt="元香 生活" />
+            <img src={ASSETS.logo} className="w-40 sm:w-64 drop-shadow-2xl mb-12 animate-breath" alt="Logo" />
             <div className="text-center space-y-4">
               <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold tracking-[0.4em] text-[#2C3E28] shimmer-text">元香 生活</h2>
               <div className="h-px w-24 sm:w-48 bg-[#D4AF37]/30 mx-auto" />
@@ -81,15 +78,15 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Main Nav - 品牌 Logo 区域 */}
+      {/* Main Nav - 显示品牌原名：元香 UNIO */}
       <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
         <div className="pointer-events-auto cursor-pointer flex flex-col items-center group gap-4" onClick={handleLogoClick}>
           <div className="w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all group-hover:scale-110 group-hover:rotate-[360deg] duration-1000">
             <img src={ASSETS.logo} className="w-full object-contain" alt="Logo" />
           </div>
           <div className="flex flex-col items-center space-y-1">
-             <span className="text-lg sm:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.3em] group-hover:text-[#D75437] transition-colors leading-none">元香 生活</span>
-             <span className="text-[8px] sm:text-[11px] font-cinzel font-bold text-[#2C3E28]/30 tracking-[0.5em] uppercase">UNIO LIFE</span>
+             <span className="text-lg sm:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.3em] group-hover:text-[#D75437] transition-colors leading-none">元香 UNIO</span>
+             <span className="text-[8px] sm:text-[11px] font-cinzel font-bold text-[#2C3E28]/30 tracking-[0.5em] uppercase">Original Harmony</span>
           </div>
         </div>
       </nav>
