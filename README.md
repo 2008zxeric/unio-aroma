@@ -1,45 +1,34 @@
-
-# Unio 元和 · 拾载寻香 (Original Harmony)
+# Unio 元香 · 拾载寻香 (Original Harmony)
 
 > **"從極境擷取寧静 — From Extreme to Harmony."**
 
-Unio 元和是一个专注于全球极境香气采集与身心频率修复的“静奢”美学品牌。本项目是其官方数字化阵地，融合了 Eric 的拾载寻香足迹与 Alice 的实验室科学视角。
-
-## 🌟 核心功能 (Core Features)
-
-- **🌍 全球寻香图鉴 (Global Scent Atlas)**：交互式展示 Eric 在泰国、南非、中国等 74 个坐标的真实足迹。
-- **🕯️ 极境系列 (Product Collections)**：
-  - **元 (Origin)**：极境单方精油，擷取自然进化意志。
-  - **和 (Harmony)**：身心灵处方，重构感官秩序。
-  - **境 (Sanctuary)**：空间美学器皿，构筑神圣场域。
-- **🔮 感官祭坛 (Scent Oracle)**：基于 Google Gemini 3.0 的 AI 寻香助手，为您提供专业且具诗意的感官处方。
-- **📸 视觉实验室 (Scent Vision Lab)**：AI 驱动的图像重塑工具，保持品牌视觉的高度统一。
-- **🛠️ 品牌中心 (Brand Studio)**：专为创始人设计的免代码图片管理系统，支持一键导出配置。
-
-## 🎨 视觉语言 (Design Language)
-
-- **风格**：极简主义 / 静奢风 (Quiet Luxury)
-- **色调**：
-  - `#D75437` (赤陶红 - 生命力)
-  - `#2C3E28` (苔藓绿 - 沉静)
-  - `#D4AF37` (古铜金 - 岁月)
-  - `#1C39BB` (深海蓝 - 实验室科学)
-
-## 🚀 技术栈 (Tech Stack)
-
-- **Frontend**: React + TypeScript + Tailwind CSS
-- **Icons**: Lucide React
-- **AI Engine**: Google Gemini API (Flash & Pro Models)
-- **Deployment**: Optimized for Vercel / GitHub Pages
-
-## 🛠️ 创始人操作指南 (Founder's Guide)
-
-### 如何更新图片？
-1. 点击右上角 `Settings` 进入 **Brand Studio**。
-2. 粘贴新的图片链接（支持 Unsplash 或 外部图床）。
-3. 点击“导出配置代码”。
-4. 将生成的 `ASSET_REGISTRY` 覆盖到 `constants.tsx` 中即可。
+Unio 元香 是一家专注于极境单方精油与身心灵平衡的“静奢”香氛品牌。本官网通过交互式寻香地图、AI 祭坛与视觉实验室，呈现创始人 Eric 与首席科学家 Alice 十载寻香的完整轨迹。
 
 ---
 
-*© 2012-2025 Unio 元和.拾载寻香. All Rights Reserved.*
+## 创始人视觉资产上传指南 (Brand Aesthetic Guidelines)
+
+为了维持官网“高级静奢风”的视觉统一性，上传图片前请参考以下建议尺寸：
+
+### 1. 核心比例与尺寸
+| 类型 | 建议比例 | 建议尺寸 (px) | 用途 |
+| :--- | :--- | :--- | :--- |
+| **产品单图** | **3:4** | 1200 x 1600 | 集合页、详情页、地图侧边栏 |
+| **极境风景图** | **16:9** / 3:4 | 1920 x 1080 | 详情页 Hero、地图背景 |
+| **寻香记忆相册**| 1:1 / 3:4 | 1200 x 1200 | 寻香随笔配图 |
+| **品牌 Logo** | 1:1 (PNG) | 512 x 512 | 全局导航、页脚 |
+
+### 2. 视觉准则
+- **色调**：倾向于大地色、低饱和度、自然光影。避免过度鲜艳的饱和色。
+- **构图**：极简主义。主体居中并保持适当的物理留白（White Space）。
+- **背景**：产品图建议采用具有质感的自然材质背景（如米白石材、棉麻、木纹）。
+
+---
+
+## 技术架构
+- **Frontend**: React 19 + Tailwind CSS
+- **AI Engine**: Google Gemini API (Flash 3 & Flash-Image 2.5)
+- **Asset Hub**: GitHub + Unsplash API (Sig-Dynamic)
+
+## 开发者说明
+修改 `constants.tsx` 可调整全站数据。图片资源建议托管于 GitHub 仓库并使用 `raw.githubusercontent.com` 链接，以获得最佳加载稳定性。
