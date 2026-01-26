@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowRight, Globe, Microscope, Gem, Layers, ShieldCheck, Sparkles, Wind } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState, Category } from '../types';
 
@@ -11,7 +10,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         <img 
           src={ASSETS.hero_zen} 
           className="absolute inset-0 w-full h-full object-cover scale-100 transition-transform duration-[45s] hover:scale-110"
-          alt="UNIO Extreme Origin Peaks"
+          alt="UNIO Peaks"
         />
         <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px]" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-white" />
@@ -19,7 +18,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         <div className="relative z-10 text-center px-6 max-w-[2560px] mx-auto w-full">
           <div className="animate-in fade-in slide-in-from-top-12 duration-1000">
             <h1 className="text-[12vw] sm:text-[14rem] lg:text-[18rem] font-serif-zh font-bold tracking-[0.2em] text-white leading-none filter drop-shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
-              元香<span className="text-[0.4em] sm:text-[0.5em] opacity-80 block sm:inline sm:ml-12">生活</span>
+              元香<span className="text-[0.4em] sm:text-[0.5em] opacity-80 block sm:inline sm:ml-12">UNIO</span>
             </h1>
             <div className="mt-8 sm:mt-24 space-y-8">
               <p className="text-[8px] sm:text-2xl tracking-[0.4em] sm:tracking-[1.5em] uppercase font-bold text-white/95 font-cinzel">
@@ -45,7 +44,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </h2>
         <div className="max-w-5xl mx-auto space-y-16">
           <p className="text-lg sm:text-4xl lg:text-5xl font-serif-zh text-black/40 leading-[2.2]">
-            元香 生活 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。
+            元香 UNIO 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。
           </p>
         </div>
       </section>
@@ -56,8 +55,8 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
            <div className="flex flex-col items-center space-y-12">
               <img src={ASSETS.logo} className="w-28 sm:w-44 opacity-25 animate-pulse" alt="Logo" />
               <div className="space-y-6">
-                <h4 className="text-6xl sm:text-9xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.8em] translate-x-[0.4em]">元香 生活</h4>
-                <p className="text-2xl sm:text-5xl font-cinzel font-bold text-[#2C3E28]/40 tracking-[1.2em] translate-x-[0.6em] uppercase">UNIO LIFE</p>
+                <h4 className="text-6xl sm:text-9xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.8em] translate-x-[0.4em]">元香 UNIO</h4>
+                <p className="text-2xl sm:text-5xl font-cinzel font-bold text-[#2C3E28]/40 tracking-[1.2em] translate-x-[0.6em] uppercase">Original Harmony</p>
               </div>
               <p className="text-[10px] sm:text-base tracking-[0.8em] text-black/20 uppercase font-bold font-cinzel mt-16">Original Harmony Sanctuary</p>
            </div>
