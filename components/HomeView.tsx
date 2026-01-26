@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowRight, Globe, Microscope, Sparkles, Compass, FlaskConical } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState, Category } from '../types';
 
@@ -49,7 +50,90 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. Footer */}
+      {/* 3. 创始人双生之魂 (The Dual Soul) - 恢复并优化 */}
+      <section className="py-32 sm:py-64 bg-[#F9FAFB]">
+        <div className="max-w-[2560px] mx-auto px-6 sm:px-24 space-y-32">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-32">
+            
+            {/* Eric: 寻香人 */}
+            <div className="group space-y-12">
+              <div className="aspect-[4/5] rounded-[3rem] sm:rounded-[5rem] overflow-hidden relative shadow-2xl">
+                <img src={ASSETS.hero_eric} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" alt="Eric" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                <div className="absolute bottom-12 left-12">
+                   <Compass className="text-white/60 mb-4" size={32} />
+                   <h3 className="text-white text-4xl sm:text-6xl font-serif-zh font-bold tracking-widest">Eric</h3>
+                   <p className="text-white/40 text-xs sm:text-sm tracking-[0.5em] uppercase font-bold mt-2">The Global Seeker / 寻香人</p>
+                </div>
+              </div>
+              <div className="space-y-6 px-4">
+                <p className="text-xl sm:text-3xl font-serif-zh text-[#2C3E28] leading-relaxed">
+                  “二十年间，我跨越了三十四个经纬坐标。我寻找的不仅是香气，而是本草在绝境中对抗时间的意志。”
+                </p>
+                <div className="h-px w-24 bg-[#D4AF37]/30" />
+                <p className="text-sm sm:text-xl text-black/40 font-serif-zh leading-loose">
+                  从喜马拉雅的杜松到撒哈拉的乳香，Eric 的足迹构成了元香 UNIO 的地理图谱。他坚信极境之下的分子，才拥有重构人类内在秩序的原始能量。
+                </p>
+              </div>
+            </div>
+
+            {/* Alice: 科学家 */}
+            <div className="group space-y-12 lg:mt-48">
+              <div className="aspect-[4/5] rounded-[3rem] sm:rounded-[5rem] overflow-hidden relative shadow-2xl">
+                <img src={ASSETS.hero_alice} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105" alt="Alice" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                <div className="absolute bottom-12 left-12">
+                   <FlaskConical className="text-white/60 mb-4" size={32} />
+                   <h3 className="text-white text-4xl sm:text-6xl font-serif-zh font-bold tracking-widest">Alice</h3>
+                   <p className="text-white/40 text-xs sm:text-sm tracking-[0.5em] uppercase font-bold mt-2">The Alchemist / 首席科学家</p>
+                </div>
+              </div>
+              <div className="space-y-6 px-4">
+                <p className="text-xl sm:text-3xl font-serif-zh text-[#2C3E28] leading-relaxed">
+                  “我们在分子层面上审视自然。Alice Lab 的使命是封存那滴被Eric带回来的、带有生存记忆的信号。”
+                </p>
+                <div className="h-px w-24 bg-[#D4AF37]/30" />
+                <p className="text-sm sm:text-xl text-black/40 font-serif-zh leading-loose">
+                  作为品牌的理性之盾，Alice 通过 GC/MS 质谱分析与低温分段提纯，将Eric带回的极境原始样本转化为科学的“寻香处方”，贯彻“一人一方”的极致理念。
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. 探索入口 */}
+      <section className="py-32 sm:py-64 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-16">
+           <div 
+             onClick={() => setView('atlas')}
+             className="group relative h-[400px] sm:h-[600px] rounded-[3rem] overflow-hidden cursor-pointer shadow-xl"
+           >
+              <img src={ASSETS.hero_zen} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all" />
+              <div className="absolute inset-0 flex flex-col justify-end p-12 space-y-4">
+                 <Globe className="text-white/60" size={32} />
+                 <h3 className="text-white text-3xl sm:text-5xl font-serif-zh font-bold tracking-widest">寻香地图</h3>
+                 <p className="text-white/60 text-sm tracking-widest uppercase">Explore Global Origin</p>
+              </div>
+           </div>
+           <div 
+             onClick={() => { setFilter('yuan'); setView('collections'); }}
+             className="group relative h-[400px] sm:h-[600px] rounded-[3rem] overflow-hidden cursor-pointer shadow-xl"
+           >
+              <img src={ASSETS.hero_spary} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all" />
+              <div className="absolute inset-0 flex flex-col justify-end p-12 space-y-4">
+                 <Sparkles className="text-white/60" size={32} />
+                 <h3 className="text-white text-3xl sm:text-5xl font-serif-zh font-bold tracking-widest">限量馆藏</h3>
+                 <p className="text-white/60 text-sm tracking-widest uppercase">Curated Collection</p>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      {/* 5. Footer */}
       <footer className="bg-white pt-32 pb-64 text-center border-t border-black/5">
          <div className="max-w-[1600px] mx-auto px-6 space-y-32">
            <div className="flex flex-col items-center space-y-12">
