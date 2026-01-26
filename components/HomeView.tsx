@@ -49,7 +49,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 4. Footer */}
+      {/* 3. Footer */}
       <footer className="bg-white pt-32 pb-64 text-center border-t border-black/5">
          <div className="max-w-[1600px] mx-auto px-6 space-y-32">
            <div className="flex flex-col items-center space-y-12">
