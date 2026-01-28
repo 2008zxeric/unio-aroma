@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2, FlaskConical } from 'lucide-react';
 import { ViewState, Category } from './types';
@@ -81,9 +82,9 @@ const App: React.FC = () => {
       {showSplash && (
         <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ${isExiting ? 'animate-luxury-mask-exit' : 'animate-luxury-reveal'} px-6`}>
           <div className="relative flex flex-col items-center max-w-lg w-full">
-            <img src={ASSETS.logo} className="w-40 sm:w-64 drop-shadow-2xl mb-12 animate-breath" alt="元香 生活" />
+            <img src={ASSETS.logo} className="w-40 sm:w-64 drop-shadow-2xl mb-12 animate-breath" alt="元香 UNIO" />
             <div className="text-center space-y-4">
-              <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold tracking-[0.4em] text-[#2C3E28] shimmer-text">元香 生活</h2>
+              <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold tracking-[0.4em] text-[#2C3E28] shimmer-text">元香 UNIO</h2>
               <div className="h-px w-24 sm:w-48 bg-[#D4AF37]/30 mx-auto" />
               <p className="text-[10px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel">Original Harmony Sanctuary</p>
             </div>
@@ -97,7 +98,7 @@ const App: React.FC = () => {
             <img src={ASSETS.logo} className="w-full object-contain" alt="Logo" />
           </div>
           <div className="flex flex-col items-center space-y-1">
-             <span className="text-lg sm:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.3em] group-hover:text-[#D75437] transition-colors leading-none">元香 生活</span>
+             <span className="text-lg sm:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.3em] group-hover:text-[#D75437] transition-colors leading-none">元香 UNIO</span>
              <span className="text-[8px] sm:text-[11px] font-cinzel font-bold text-[#2C3E28]/30 tracking-[0.5em] uppercase">UNIO LIFE</span>
           </div>
         </div>
@@ -116,9 +117,6 @@ const App: React.FC = () => {
 
       <div className="fixed bottom-10 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6">
         <div className="w-full max-w-[500px] flex justify-end gap-4">
-           <button onClick={() => navigateToView('image-lab')} className="pointer-events-auto p-5 bg-[#1C39BB] text-white rounded-full shadow-2xl hover:scale-110 transition-all border border-white/20">
-             <FlaskConical size={24} />
-           </button>
            <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="pointer-events-auto p-5 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 transition-all border border-white/20">
              <Share2 size={24} />
            </button>
