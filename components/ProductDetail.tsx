@@ -1,8 +1,7 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { 
-  ArrowLeft, ShoppingBag, CheckCircle2, MapPin, Wind, Microscope, Zap, 
-  BookOpen, Sparkles, Share2, Home
+  ArrowLeft, ShoppingBag, CheckCircle2, MapPin, Wind, Microscope, 
+  BookOpen, Sparkles, Share2, Home, Tag
 } from 'lucide-react';
 import { ScentItem, ViewState } from '../types';
 import { ASSETS } from '../constants';
@@ -15,7 +14,6 @@ const ProductDetail: React.FC<{
   return (
     <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden">
       
-      {/* 顶部导航 */}
       <div className="fixed top-24 md:top-36 left-0 w-full px-6 md:px-20 z-[400] pointer-events-none flex justify-between items-center">
         <button 
           onClick={() => setView(previousView)} 
@@ -29,13 +27,13 @@ const ProductDetail: React.FC<{
       <div className="max-w-7xl mx-auto mt-12 md:mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-32 items-start">
           
-          {/* 左侧：视觉呈现 */}
           <div className="space-y-12 lg:sticky lg:top-48">
             <div className="aspect-[3/4] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-2xl border border-black/5 bg-[#F9FAFB] group relative">
               <img 
                 src={item.hero} 
                 className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110 img-fade-in" 
                 alt={item.herb} 
+                loading="lazy"
               />
             </div>
 
@@ -46,19 +44,18 @@ const ProductDetail: React.FC<{
                 <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.location || item.region || 'GLOBAL'}</span>
               </div>
               <div className="text-center space-y-3 border-x border-black/5">
-                <Wind size={20} className="mx-auto opacity-20 text-[#1C39BB]" />
-                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Intensity / 强度</span>
-                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">MED-HIGH</span>
+                <Tag size={20} className="mx-auto opacity-20 text-[#1C39BB]" />
+                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Spec / 规格</span>
+                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.specification || 'N/A'}</span>
               </div>
               <div className="text-center space-y-3">
                 <Microscope size={20} className="mx-auto opacity-20 text-[#2C3E28]" />
-                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Purity / 纯度</span>
+                <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Purity / 认证</span>
                 <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">GC/MS Cert.</span>
               </div>
             </div>
           </div>
 
-          {/* 右侧：专业处方 */}
           <div className="space-y-16 md:space-y-24 py-4">
             <div className="space-y-10 md:space-y-12">
               <div className="space-y-4">
@@ -69,10 +66,16 @@ const ProductDetail: React.FC<{
                   </div>
                   <button className="p-2 md:p-3 rounded-full hover:bg-stone-50 text-black/20 hover:text-black transition-all"><Share2 size={20} /></button>
                 </div>
-                <h2 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-[0.1em] text-black leading-tight">{item.herb}</h2>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                   <h2 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-[0.1em] text-black leading-tight">{item.herb}</h2>
+                   <div className="flex flex-col items-end gap-1">
+                      <span className="text-2xl md:text-5xl font-serif-zh font-bold text-[#D75437]">¥ {item.price || '---'}</span>
+                      <span className="text-[8px] md:text-xs tracking-widest text-black/30 font-bold uppercase">建议零售价</span>
+                   </div>
+                </div>
                 {item.shortDesc && (
                   <p className="text-sm md:text-2xl font-serif-zh text-[#D75437] font-bold tracking-widest uppercase">
-                    核心成分：{item.shortDesc}
+                    {item.shortDesc}
                   </p>
                 )}
               </div>
@@ -81,7 +84,6 @@ const ProductDetail: React.FC<{
               </p>
             </div>
 
-            {/* Alice's Lab Diary */}
             <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden">
                <div className="flex items-center gap-6 mb-10">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-[#1C39BB]/10 rounded-full flex items-center justify-center text-[#1C39BB]">
@@ -97,7 +99,6 @@ const ProductDetail: React.FC<{
                </p>
             </section>
 
-            {/* 功效与用法 */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
                <div className="space-y-8">
                   <div className="flex items-center gap-4">
