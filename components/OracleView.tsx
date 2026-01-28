@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Sparkles, Wind } from 'lucide-react';
+import { ArrowRight, Activity, Sparkles, Wind, Volume2, Loader2, AlertCircle, Key, ShieldCheck } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
-import { getOracleResponse } from '../services/gemini';
+import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '欢迎来到元和 unio。我是感官祭司，Eric 与 Alice 的数字化意识载体。请向我倾诉你内心的杂音，我将从拾载寻香的 50 款极境馆藏中，为你选定专属的“一人一方”寻香处方。' }
+    { role: 'assistant', content: '欢迎来到感官祭坛。我是 Alice 与 Eric 的数字化意识。请告诉我，你此刻内心的杂音是什么？我们将从拾载寻香的馆藏中，为你寻找那份跨越山海的寻香处方。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState<number | null>(null);
+  const [errorType, setErrorType] = useState<'none' | 'missing' | 'failed'>('none');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -18,83 +21,171 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         behavior: 'smooth'
       });
     }
-  }, [messages]);
+  }, [messages, loading]);
+
+  const handleOpenKeyDialog = async () => {
+    try {
+      // @ts-ignore
+      await window.aistudio.openSelectKey();
+      setErrorType('none');
+    } catch (e) {
+      console.error("Failed to open key dialog", e);
+    }
+  };
+
+  const decodeAudio = async (base64: string) => {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    }
+    const ctx = audioContextRef.current;
+    const dataInt16 = new Int16Array(bytes.buffer);
+    const buffer = ctx.createBuffer(1, dataInt16.length, 24000);
+    const channelData = buffer.getChannelData(0);
+    for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
+    return buffer;
+  };
+
+  const handleVoice = async (text: string, index: number) => {
+    if (playingAudio !== null) return;
+    setPlayingAudio(index);
+    try {
+      const base64 = await generateOracleVoice(text);
+      if (base64) {
+        const ctx = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        audioContextRef.current = ctx;
+        const buffer = await decodeAudio(base64);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.onended = () => setPlayingAudio(null);
+        source.start();
+      } else {
+        setPlayingAudio(null);
+      }
+    } catch (err) {
+      setPlayingAudio(null);
+    }
+  };
 
   const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input; 
+    const trimmedInput = input.trim();
+    if (!trimmedInput || loading) return;
+    
     setInput('');
-    const newMessages: ChatMessage[] = [...messages, { role: 'user', content: userMsg }];
-    setMessages(newMessages);
+    setErrorType('none');
+    const updatedMessages: ChatMessage[] = [...messages, { role: 'user', content: trimmedInput }];
+    setMessages(updatedMessages);
     setLoading(true);
 
-    const reply = await getOracleResponse(newMessages);
-    setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    setLoading(false);
+    try {
+      const reply = await getOracleResponse(updatedMessages);
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    } catch (err: any) {
+      if (err.message === "MISSING_KEY" || err.message === "INVALID_KEY") {
+        setErrorType('missing');
+      } else {
+        setErrorType('failed');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="h-screen flex flex-col pt-24 md:pt-48 pb-32 md:pb-48 px-4 md:px-20 bg-[#F5F5F5] animate-in fade-in duration-1000">
       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden border border-black/5 relative">
         
-        {/* Oracle Header */}
         <div className="p-6 md:p-12 border-b border-black/5 bg-white/90 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 md:w-14 md:h-14 bg-black rounded-full flex items-center justify-center text-[#D4AF37] animate-pulse">
-               <Activity size={24} />
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-black rounded-full flex items-center justify-center text-[#D4AF37]">
+               <Activity size={24} className={loading ? "animate-pulse" : ""} />
             </div>
             <div>
-              <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭司</h3>
-              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">Scent Oracle · Original Harmony</p>
+              <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
+              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · 元香 UNIO</p>
             </div>
           </div>
-          <Sparkles className="text-[#D4AF37] opacity-40 animate-spin-slow" size={20} />
+          <Sparkles className="text-[#D4AF37] opacity-40" size={20} />
         </div>
 
-        {/* Chat Area */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
               <div 
-                className={`max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${
+                className={`group relative max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${
                   m.role === 'user' 
                   ? 'bg-[#1a1a1a] text-white rounded-tr-none shadow-2xl' 
                   : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh leading-relaxed tracking-wide shadow-sm border border-black/5'
                 }`}
               >
                 {m.content}
+                {m.role === 'assistant' && (
+                  <button 
+                    onClick={() => handleVoice(m.content, i)}
+                    className={`absolute -bottom-4 -right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${playingAudio === i ? 'bg-[#D75437] text-white' : 'bg-white text-black hover:scale-110'}`}
+                  >
+                    {playingAudio === i ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />}
+                  </button>
+                )}
               </div>
             </div>
           ))}
+          
           {loading && (
-            <div className="text-black/30 animate-pulse italic flex items-center gap-4 px-2">
-              <div className="flex gap-2">
-                 <Wind size={20} className="animate-spin" />
-              </div>
-              <span className="font-serif-zh tracking-widest text-xs md:text-xl">祭司正在调谐极境分子频率...</span>
+            <div className="flex justify-start animate-in fade-in duration-300">
+               <div className="bg-[#FAF9F5] border border-black/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] rounded-tl-none flex items-center gap-4 text-black/30">
+                  <Wind size={20} className="animate-spin text-[#D75437]" />
+                  <span className="font-serif-zh tracking-widest text-xs md:text-xl italic">正在调谐极境分子频率...</span>
+               </div>
             </div>
+          )}
+
+          {errorType === 'missing' && (
+            <div className="flex flex-col items-center gap-6 p-12 bg-red-50/50 rounded-[3rem] border border-red-100 animate-in zoom-in-95">
+              <Key className="text-red-400" size={48} />
+              <div className="text-center space-y-2">
+                <p className="text-red-900 font-serif-zh font-bold text-xl">极境密钥未激活</p>
+                <p className="text-red-600/70 text-sm">祭坛无法连接至极境数据库，请手动开启连接密钥。</p>
+              </div>
+              <button 
+                onClick={handleOpenKeyDialog}
+                className="px-10 py-4 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-xl hover:bg-red-700 transition-all flex items-center gap-3"
+              >
+                <ShieldCheck size={20} /> 唤醒祭坛连接
+              </button>
+            </div>
+          )}
+
+          {errorType === 'failed' && (
+             <div className="flex items-center gap-4 p-8 bg-amber-50 rounded-2xl text-amber-800 border border-amber-100">
+               <AlertCircle size={24} />
+               <p className="text-sm font-serif-zh">当前分子信号不稳定，请静心片刻后再试。</p>
+             </div>
           )}
         </div>
 
-        {/* Input Area */}
         <div className="p-4 md:p-14 bg-[#F5F5F5]/50 border-t border-black/5">
-          <div className="max-w-3xl mx-auto flex gap-4 md:gap-8 bg-white p-2 md:p-5 rounded-full shadow-2xl border border-black/5 focus-within:border-[#D75437]/30 transition-all">
+          <div className="max-w-3xl mx-auto flex gap-4 md:gap-8 bg-white p-2 md:p-5 rounded-full shadow-2xl border border-black/5">
             <input 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-              placeholder="倾诉你内心的杂音..." 
+              placeholder={loading ? "祭司正在沉思..." : "请倾诉你当下的杂音..."} 
+              disabled={loading || errorType === 'missing'}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
             <button 
               onClick={handleSend} 
-              disabled={loading}
-              className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all active:scale-90 shadow-lg disabled:opacity-20"
+              disabled={loading || !input.trim() || errorType === 'missing'}
+              className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20"
             >
-              <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />
+              {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />}
             </button>
           </div>
-          <p className="text-center mt-6 text-[7px] md:text-[11px] opacity-20 uppercase tracking-[0.3em] font-bold">元和 unio · Alice & Eric · 拾载寻香</p>
         </div>
       </div>
     </div>
