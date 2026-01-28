@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { Wind, Shield, Droplets, Flame, Mountain, Sparkles, X, ZoomIn } from 'lucide-react';
 import { ViewState, Category, ScentItem } from '../types';
@@ -108,7 +107,7 @@ const CollectionsView: React.FC<{
 
         <div className="space-y-24 sm:space-y-64">
           {(Object.entries(groups) as [string, ScentItem[]][]).map(([groupName, groupItems]) => (
-            <section key={groupName} className="space-y-10 sm:space-y-24 scroll-mt-48">
+            <section key={groupName} className="space-y-10 sm:space-y-24">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-12 lg:gap-20">
                 <div className="col-span-1 bg-[#FAF9F6] rounded-[2rem] sm:rounded-[3rem] lg:rounded-[4.5rem] p-6 sm:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-[3/4]">
                    <div className="space-y-6 sm:space-y-12 relative z-10">
