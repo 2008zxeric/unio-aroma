@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Sparkles, Wind, Volume2, Loader2, AlertCircle, Key, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Activity, Sparkles, Wind, Volume2, Loader2, AlertCircle, Key, ShieldCheck, RefreshCw } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
@@ -27,47 +28,11 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       // @ts-ignore
       await window.aistudio.openSelectKey();
+      // 假设授权成功，立即尝试清除错误状态并允许对话
       setErrorType('none');
+      // 如果消息列表只有欢迎语，且用户之前尝试过发送但失败了，可以提示用户重试
     } catch (e) {
       console.error("Failed to open key dialog", e);
-    }
-  };
-
-  const decodeAudio = async (base64: string) => {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    }
-    const ctx = audioContextRef.current;
-    const dataInt16 = new Int16Array(bytes.buffer);
-    const buffer = ctx.createBuffer(1, dataInt16.length, 24000);
-    const channelData = buffer.getChannelData(0);
-    for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
-    return buffer;
-  };
-
-  const handleVoice = async (text: string, index: number) => {
-    if (playingAudio !== null) return;
-    setPlayingAudio(index);
-    try {
-      const base64 = await generateOracleVoice(text);
-      if (base64) {
-        const ctx = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        audioContextRef.current = ctx;
-        const buffer = await decodeAudio(base64);
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(ctx.destination);
-        source.onended = () => setPlayingAudio(null);
-        source.start();
-      } else {
-        setPlayingAudio(null);
-      }
-    } catch (err) {
-      setPlayingAudio(null);
     }
   };
 
@@ -85,14 +50,47 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       const reply = await getOracleResponse(updatedMessages);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err: any) {
+      console.error("Send failed:", err);
       if (err.message === "MISSING_KEY" || err.message === "INVALID_KEY") {
         setErrorType('missing');
+        // 自动弹出，减少用户操作
+        handleOpenKeyDialog();
       } else {
         setErrorType('failed');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const decodeAudio = async (base64: string) => {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    if (!audioContextRef.current) audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    const ctx = audioContextRef.current;
+    const dataInt16 = new Int16Array(bytes.buffer);
+    const buffer = ctx.createBuffer(1, dataInt16.length, 24000);
+    const channelData = buffer.getChannelData(0);
+    for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
+    return buffer;
+  };
+
+  const handleVoice = async (text: string, index: number) => {
+    if (playingAudio !== null) return;
+    setPlayingAudio(index);
+    try {
+      const base64 = await generateOracleVoice(text);
+      if (base64) {
+        const ctx = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        const buffer = await decodeAudio(base64);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.onended = () => setPlayingAudio(null);
+        source.start();
+      } else { setPlayingAudio(null); }
+    } catch (err) { setPlayingAudio(null); }
   };
 
   return (
@@ -109,7 +107,9 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · 元香 UNIO</p>
             </div>
           </div>
-          <Sparkles className="text-[#D4AF37] opacity-40" size={20} />
+          <button onClick={() => setMessages([{ role: 'assistant', content: '祭坛已重置，分子频率恢复初始状态。请再次告诉我你的困惑。' }])} className="p-2 hover:bg-stone-50 rounded-full text-black/20 hover:text-[#D75437] transition-all">
+            <RefreshCw size={20} />
+          </button>
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide">
@@ -139,7 +139,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             <div className="flex justify-start animate-in fade-in duration-300">
                <div className="bg-[#FAF9F5] border border-black/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] rounded-tl-none flex items-center gap-4 text-black/30">
                   <Wind size={20} className="animate-spin text-[#D75437]" />
-                  <span className="font-serif-zh tracking-widest text-xs md:text-xl italic">正在调谐极境分子频率...</span>
+                  <span className="font-serif-zh tracking-widest text-xs md:text-xl italic">正在调配极境分子频率...</span>
                </div>
             </div>
           )}
@@ -148,12 +148,12 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             <div className="flex flex-col items-center gap-6 p-12 bg-red-50/50 rounded-[3rem] border border-red-100 animate-in zoom-in-95">
               <Key className="text-red-400" size={48} />
               <div className="text-center space-y-2">
-                <p className="text-red-900 font-serif-zh font-bold text-xl">极境密钥未激活</p>
-                <p className="text-red-600/70 text-sm">祭坛无法连接至极境数据库，请手动开启连接密钥。</p>
+                <p className="text-red-900 font-serif-zh font-bold text-xl">极境密钥未对齐</p>
+                <p className="text-red-600/70 text-sm">祭坛无法连接至极境数据库，请点击下方按钮唤醒连接。</p>
               </div>
               <button 
                 onClick={handleOpenKeyDialog}
-                className="px-10 py-4 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-xl hover:bg-red-700 transition-all flex items-center gap-3"
+                className="px-10 py-4 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-xl hover:bg-red-700 transition-all flex items-center gap-3 active:scale-95"
               >
                 <ShieldCheck size={20} /> 唤醒祭坛连接
               </button>
@@ -163,7 +163,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           {errorType === 'failed' && (
              <div className="flex items-center gap-4 p-8 bg-amber-50 rounded-2xl text-amber-800 border border-amber-100">
                <AlertCircle size={24} />
-               <p className="text-sm font-serif-zh">当前分子信号不稳定，请静心片刻后再试。</p>
+               <p className="text-sm font-serif-zh">当前信号不稳定，请静心片刻后再试，或检查您的账户额度。</p>
              </div>
           )}
         </div>
@@ -172,16 +172,19 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           <div className="max-w-3xl mx-auto flex gap-4 md:gap-8 bg-white p-2 md:p-5 rounded-full shadow-2xl border border-black/5">
             <input 
               value={input} 
-              onChange={(e) => setInput(e.target.value)} 
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (errorType !== 'none') setErrorType('none');
+              }} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-              placeholder={loading ? "祭司正在沉思..." : "请倾诉你当下的杂音..."} 
-              disabled={loading || errorType === 'missing'}
+              placeholder={loading ? "祭司正在沉思..." : "倾诉你内心的杂音..."} 
+              disabled={loading}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
             <button 
               onClick={handleSend} 
-              disabled={loading || !input.trim() || errorType === 'missing'}
-              className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20"
+              disabled={loading || !input.trim()}
+              className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90"
             >
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />}
             </button>
