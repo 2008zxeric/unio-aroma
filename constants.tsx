@@ -1,10 +1,8 @@
-
 import { ScentItem, Destination, Category } from './types';
 
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
 const PROVINCE_BASE = `${RAW_BASE}province/`;
-// 增加版本号后缀，强制 CDN 刷新 GitHub 原始资源
-const CACHE_V = '?v=1002.20'; 
+const CACHE_V = '?v=1004.10'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
@@ -30,7 +28,6 @@ export const REGION_VISUALS = {
   america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600'
 };
 
-// 精准省级影像文件名映射
 const PROVINCE_FILE_MAP: Record<string, string> = {
   '安徽': 'anhui.webp', '北京': 'beijing.webp', '重庆': 'chongqing.webp', '福建': 'fujian.webp',
   '甘肃': 'gansu.webp', '广东': 'guangdong.webp', '广西': 'guangxi.webp', '贵州': 'guizhou.webp',
@@ -51,9 +48,11 @@ export const DESTINATIONS: Record<string, Destination> = {};
 
 const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string, price: string, spec: string, filenameOverride?: string) => {
   let heroUrl = "";
-  if (filenameOverride && (filenameOverride.startsWith('http') || filenameOverride.startsWith('https'))) {
-    heroUrl = filenameOverride;
+  if (filenameOverride && (filenameOverride.startsWith('http'))) {
+    // 自动转换 GitHub 链接为 Raw 链接，确保特殊字符编码
+    heroUrl = filenameOverride.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/') + (filenameOverride.includes('?') ? '' : CACHE_V);
   } else {
+    // 处理带重音符号的文件名，如 Geranium Rosé
     const filename = filenameOverride || `${en.trim()}.webp`;
     heroUrl = `${RAW_PROD}${folder}/${encodeURIComponent(filename)}${CACHE_V}`;
   }
@@ -73,12 +72,12 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
   } as ScentItem;
 };
 
-const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, mPhots?: string[], eDiary?: string, aDiary?: string) => {
+const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, mPhots?: string[]) => {
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: '极境原生分子档案', knowledge:'已存入元香 UNIO 核心频率库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
-    ericDiary: eDiary || `第 ${c} 次踏上 ${n}。`, 
-    aliceDiary: aDiary || `我们在实验室尝试将其分子结构完整保留。`, 
+    ericDiary: `第 ${c} 次踏上 ${n}。在极地边缘，我找到了共鸣的本草分子。`, 
+    aliceDiary: `我们在实验室尝试将 ${n} 的分子结构完整保留，这是一种跨越经纬的连接。`, 
     memoryPhotos: mPhots || [img, img, img]
   };
 };
@@ -88,7 +87,7 @@ const yuanData = [
   { group: 'Metal', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
   { group: 'Wood', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1,180', '10ml'], ['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml'], ['极境丝柏', 'Misty Cypress', '128', '10ml'], ['极境雪松', 'Himalayan Cedar', '108', '10ml'], ['极境松针', 'Boreal Pine', '98', '10ml']] },
   { group: 'Water', folder: 'water', items: [['极境没药', 'Myrrh Secreta', '298', '10ml'], ['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'], ['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'], ['极境安息香', 'Benzoin Ambrosia', '108', '10ml'], ['极境杜松', 'Juniper by the Loch', '98', '10ml']] },
-  { group: 'Fire', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2,680', '10ml'], ['日光橙花', 'Neroli Soleil', '108', '10ml'], ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], ['极境依兰', 'Ylang Equatorial', '180', '10ml'], ['极境天竺葵', 'Geranium Rosé', '98', '10ml']] },
+  { group: 'Fire', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2,680', '10ml'], ['日光橙花', 'Neroli Soleil', '108', '10ml'], ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], ['极境依兰', 'Ylang Equatorial', '180', '10ml'], ['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']] },
   { group: 'Earth', folder: 'earth', items: [['横断生姜', 'Zingiber Terrae', '158', '10ml'], ['佛手柑', 'Bergamot Alba', '108', '10ml'], ['极境红橘', 'Mandarin Jucunda', '108', '10ml'], ['极境橡木苔', 'Oakmoss Taiga', '108', '10ml'], ['极境葡萄柚', 'Grapefruit Pomona', '68', '10ml']] }
 ];
 yuanData.forEach((g) => g.items.forEach((item, j) => addP('yuan', `元 · ${g.group}`, item[0], item[1], g.folder, `yuan_${g.folder}_${j}`, item[2], item[3], item[4])));
@@ -109,7 +108,7 @@ jingDataM.forEach((item, j) => addP('jing', '境 · 凝思之物', item[0], item
 
 const getProducts = (seed: string) => Object.keys(DATABASE).sort(() => seed.length % 10 - 5).slice(0, 6);
 
-// --- [全球目的地坐标：全量保留 51 个] ---
+// --- [全球 51 坐标 - 严禁丢失] ---
 // 亚洲 (18)
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', getProducts('th'), 'arrived', false, undefined, [`${RAW_ALBUM}Thailand/th1.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th2.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th3.webp${CACHE_V}`]);
 addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', getProducts('in'));
@@ -166,7 +165,7 @@ addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsp
 addD('w_an','南极洲','ANTARCTICA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200', [], 'locked');
 addD('w_cu','古巴','CUBA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', [], 'locked');
 
-// --- [中华神州：34 坐标全量激活] ---
+// --- [中华神州 34 坐标 - 严禁丢失] ---
 const PROVINCE_GROUPS: Record<string, string[]> = {
   '西南': ['四川', '云南', '西藏', '贵州', '重庆'],
   '西北': ['新疆', '甘肃', '陕西', '宁夏', '青海'],
