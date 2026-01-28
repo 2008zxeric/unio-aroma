@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowRight, Globe, Microscope, Sparkles, Compass, FlaskConical } from 'lucide-react';
 import { ASSETS } from '../constants';
@@ -38,8 +37,8 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               </div>
 
               <div className="flex flex-col gap-4 mt-12">
-                <p className="text-white/80 text-xs sm:text-3xl font-serif-zh tracking-[0.4em]">从极境中撷取宁静</p>
-                <p className="text-white/25 text-[8px] sm:text-lg tracking-[0.3em] font-cinzel uppercase italic">From Extreme to Harmony</p>
+                <p className="text-white/80 text-xs sm:text-3xl font-serif-zh tracking-[0.4em]">从极境撷取芳香，让世界归于一息</p>
+                <p className="text-white/25 text-[8px] sm:text-lg tracking-[0.3em] font-cinzel uppercase italic">Aroma from the Edge, Peace in a Breath</p>
               </div>
             </div>
           </div>
