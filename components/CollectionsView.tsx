@@ -3,16 +3,20 @@ import { Wind, Shield, Droplets, Flame, Mountain, Sparkles, X, ZoomIn } from 'lu
 import { ViewState, Category, ScentItem } from '../types';
 import { DATABASE, ASSETS } from '../constants';
 
-const ProductCard = ({ 
+// Fixed: Defined interface for ProductCard props to resolve TypeScript error when passing 'key'
+interface ProductCardProps {
+  item: ScentItem;
+  idx: number;
+  onSelect: (id: string) => void;
+  setActivePhoto: (url: string) => void;
+}
+
+// Fixed: Using React.FC to ensure the component correctly handles React standard attributes like 'key'
+const ProductCard: React.FC<ProductCardProps> = ({ 
   item, 
   idx, 
   onSelect, 
   setActivePhoto 
-}: { 
-  item: ScentItem; 
-  idx: number; 
-  onSelect: (id: string) => void; 
-  setActivePhoto: (url: string) => void;
 }) => (
   <div 
     className="group flex flex-col transition-all duration-700 animate-in fade-in slide-in-from-bottom-4"
