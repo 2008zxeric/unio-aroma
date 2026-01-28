@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Home, Map as MapIcon, Box, Activity, Share2, FlaskConical } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, Share2 } from 'lucide-react';
 import { ViewState, Category } from './types';
 import { DATABASE, DESTINATIONS, ASSETS } from './constants';
 import HomeView from './components/HomeView';
@@ -10,10 +9,8 @@ import ChinaAtlasView from './components/ChinaAtlasView';
 import OracleView from './components/OracleView';
 import ProductDetail from './components/ProductDetail';
 import DestinationView from './components/DestinationView';
-import ImageLabView from './components/ImageLabView';
 
 const App: React.FC = () => {
-  // 从本地存储恢复状态
   const savedView = localStorage.getItem('unio_view') as ViewState || 'home';
   const savedFilter = localStorage.getItem('unio_filter') as Category || 'yuan';
   const savedSelectedId = localStorage.getItem('unio_selected_id');
@@ -25,7 +22,6 @@ const App: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(savedSelectedId);
   const [selectedDestId, setSelectedDestId] = useState<string | null>(savedDestId);
   
-  // 如果当前是首页且从未展示过揭幕动画，则显示 Splash
   const [showSplash, setShowSplash] = useState(savedView === 'home');
   const [isExiting, setIsExiting] = useState(false);
 
@@ -39,7 +35,6 @@ const App: React.FC = () => {
     }
   }, [showSplash]);
 
-  // 当视图状态改变时持久化
   useEffect(() => {
     localStorage.setItem('unio_view', view);
     localStorage.setItem('unio_filter', filter);
@@ -110,7 +105,6 @@ const App: React.FC = () => {
         {view === 'atlas' && <AtlasView setView={navigateToView} onSelectDest={handleSelectDest} />}
         {view === 'china-atlas' && <ChinaAtlasView setView={navigateToView} onSelectDest={handleSelectDest} />}
         {view === 'oracle' && <OracleView setView={navigateToView} />}
-        {view === 'image-lab' && <ImageLabView setView={navigateToView} />}
         {view === 'product' && selectedId && <ProductDetail item={DATABASE[selectedId]} setView={navigateToView} previousView={prevView} />}
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
