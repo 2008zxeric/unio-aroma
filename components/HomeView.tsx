@@ -56,7 +56,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </h2>
         <div className="max-w-5xl mx-auto space-y-16">
           <p className="text-lg sm:text-4xl lg:text-5xl font-serif-zh text-black/40 leading-[2.2]">
-            元香 生活 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。
+            元香 UNIO 是 Eric 二十载全球溯源的行历档案，更是 Alice 实验室对“一人一方”的极致偏执。
           </p>
         </div>
       </section>
@@ -81,7 +81,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                 </p>
                 <div className="h-px w-24 bg-[#D4AF37]/30" />
                 <p className="text-sm sm:text-xl text-black/40 font-serif-zh leading-loose">
-                  从喜马拉雅的杜松到撒哈拉的乳香，Eric 的足迹构成了元香的生活图谱。极境之下的分子，才拥有重构人类内在秩序的能量。
+                  从喜马拉雅的杜松到撒哈拉的乳香，Eric 的足迹构成了元香 UNIO 的生活图谱。极境之下的分子，才拥有重构人类内在秩序的能量。
                 </p>
               </div>
             </div>
@@ -146,7 +146,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
            <div className="flex flex-col items-center space-y-12">
               <img src={ASSETS.logo} className="w-28 sm:w-44 opacity-25 animate-pulse" alt="Logo" loading="lazy" />
               <div className="space-y-6">
-                <h4 className="text-6xl sm:text-9xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.8em] translate-x-[0.4em]">元香 生活</h4>
+                <h4 className="text-6xl sm:text-9xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.8em] translate-x-[0.4em]">元香 UNIO</h4>
                 <p className="text-2xl sm:text-5xl font-cinzel font-bold text-[#2C3E28]/40 tracking-[1.2em] translate-x-[0.6em] uppercase">UNIO LIFE</p>
               </div>
               <p className="text-[10px] sm:text-base tracking-[0.8em] text-black/20 uppercase font-bold font-cinzel mt-16">Original Harmony Sanctuary</p>
