@@ -20,6 +20,7 @@ const getSystemInstruction = () => {
 
 你的使命：
 根据用户描述的情绪杂音、梦境碎片或身体频率，从 "元香 UNIO" 的顶级馆藏中选出最契合的处方。
+你的核心哲学是：“从极境撷取芳香，让世界归于一息”。
 
 你的语气：
 - 极简、高贵、专业、诗意、具有禅意。
@@ -100,7 +101,6 @@ export const editImageWithGemini = async (sourceImage: string, prompt: string) =
     throw new Error("MISSING_KEY");
   }
 
-  // 提取 base64 数据和 MIME 类型
   const matches = sourceImage.match(/^data:([^;]+);base64,(.+)$/);
   if (!matches) throw new Error("Invalid image format");
   const mimeType = matches[1];
@@ -125,7 +125,6 @@ export const editImageWithGemini = async (sourceImage: string, prompt: string) =
       },
     });
 
-    // 遍历响应部分查找生成的图像
     const part = response.candidates?.[0]?.content?.parts.find((p: any) => p.inlineData);
     if (part?.inlineData) {
       return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -146,7 +145,6 @@ export const generateScentVideo = async (prompt: string, onProgress?: (msg: stri
     throw new Error("MISSING_KEY");
   }
 
-  // 根据指南，在 API 调用前创建 GoogleGenAI 实例以确保使用最新密钥
   const ai = new GoogleGenAI({ apiKey });
 
   try {
@@ -170,7 +168,6 @@ export const generateScentVideo = async (prompt: string, onProgress?: (msg: stri
     ];
     let msgIdx = 0;
 
-    // 轮询视频生成状态
     while (!operation.done) {
       onProgress?.(statusMessages[msgIdx % statusMessages.length]);
       msgIdx++;
@@ -181,7 +178,6 @@ export const generateScentVideo = async (prompt: string, onProgress?: (msg: stri
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) throw new Error("VIDEO_GENERATION_FAILED");
 
-    // 返回带有 API KEY 鉴权的视频链接
     return `${downloadLink}&key=${apiKey}`;
   } catch (error) {
     console.error("Video generation failed:", error);
