@@ -1,5 +1,5 @@
 
-export type ViewState = 'home' | 'atlas' | 'china-atlas' | 'collections' | 'oracle' | 'product' | 'destination' | 'imagelab' | 'brand-studio';
+export type ViewState = 'home' | 'atlas' | 'china-atlas' | 'collections' | 'oracle' | 'product' | 'destination' | 'image-lab';
 export type Category = 'yuan' | 'he' | 'jing';
 
 export type ScentStatus = 'arrived_origin' | 'planned_origin' | 'arrived' | 'planned';
@@ -10,7 +10,7 @@ export interface Destination {
   en: string;
   region: string;
   status: 'arrived' | 'locked';
-  visitCount: number; // 真实记录数
+  visitCount: number;
   scenery: string;
   emoji: string;
   herbDescription: string;
@@ -36,11 +36,15 @@ export interface ScentItem {
   hero: string;
   herb: string;
   herbEn: string;
+  price?: string;
+  specification?: string;
   shortDesc: string;
   narrative: string;
   benefits: string[];
   isPopular?: boolean;
   emoji?: string;
+  ericDiary: string;
+  aliceDiary: string;
   aliceLabDiary: string;   
   recommendation: string;  
   usage: string;           
