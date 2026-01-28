@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowRight, Globe, Microscope, Sparkles, Compass, FlaskConical } from 'lucide-react';
 import { ASSETS } from '../constants';
@@ -29,9 +30,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               
               {/* 流光滑动分割线 */}
               <div className="relative h-[1px] w-24 sm:w-[50rem] mx-auto overflow-hidden">
-                {/* 底色线 */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
-                {/* 滑动光点 */}
                 <div className="absolute top-0 w-24 h-full bg-gradient-to-r from-transparent via-white to-transparent animate-glide blur-[2px]" />
                 <div className="absolute top-0 w-8 h-full bg-white animate-glide" />
               </div>
@@ -60,7 +59,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. Eric & Alice叙事 */}
+      {/* 其余部分保持不变 */}
       <section className="py-32 sm:py-64 bg-[#F9FAFB]">
         <div className="max-w-[2560px] mx-auto px-6 sm:px-24 space-y-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-32">
