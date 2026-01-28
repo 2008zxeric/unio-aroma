@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元香生活</title>
+    <title>Unio 元香 生活 | 从极境中撷取宁静</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -23,6 +24,7 @@
         .font-cinzel { font-family: 'Cinzel', serif; }
         .font-serif-zh { font-family: 'Noto Serif SC', serif; }
         
+        /* 揭幕动画关键帧 */
         @keyframes luxuryReveal {
           0% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; transform: scale(1.1); }
           100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
@@ -39,6 +41,13 @@
           0%, 100% { transform: scale(1); opacity: 0.8; }
           50% { transform: scale(1.03); opacity: 1; }
         }
+        /* 光点滑动动画 */
+        @keyframes glideLight {
+          0% { left: -10%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { left: 110%; opacity: 0; }
+        }
 
         .animate-luxury-reveal { animation: luxuryReveal 1.6s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
         .animate-luxury-mask-exit { animation: luxuryMaskExit 1.0s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
@@ -52,6 +61,14 @@
         }
 
         .animate-breath { animation: logoPulse 4s ease-in-out infinite; }
+        .animate-glide { animation: glideLight 4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
 
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
