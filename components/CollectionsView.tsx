@@ -1,12 +1,9 @@
+
 import React, { useMemo, useState } from 'react';
 import { Wind, Shield, Droplets, Flame, Mountain, Sparkles, X, ZoomIn } from 'lucide-react';
 import { ViewState, Category, ScentItem } from '../types';
 import { DATABASE, ASSETS } from '../constants';
 
-/**
- * Fix: Move ProductCard outside of CollectionsView and add required props
- * This avoids TypeScript errors when passing 'key' and prevents unnecessary re-renders.
- */
 const ProductCard = ({ 
   item, 
   idx, 
@@ -32,7 +29,6 @@ const ProductCard = ({
          alt={item.herb}
          loading="lazy" 
        />
-       {/* 悬浮交互层 */}
        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
           <button 
             onClick={(e) => { e.stopPropagation(); setActivePhoto(item.hero); }}
@@ -76,17 +72,16 @@ const CollectionsView: React.FC<{
   };
 
   const getGroupIcon = (name: string) => {
-    if (name.includes('Metal')) return <Shield size={14} className="text-[#D4AF37]" />;
-    if (name.includes('Wood')) return <Wind size={14} className="text-[#D4AF37]" />;
-    if (name.includes('Water')) return <Droplets size={14} className="text-[#D4AF37]" />;
-    if (name.includes('Fire')) return <Flame size={14} className="text-[#D4AF37]" />;
-    if (name.includes('Earth')) return <Mountain size={14} className="text-[#D4AF37]" />;
-    return <Sparkles size={14} className="text-[#D4AF37]" />;
+    if (name.includes('Metal') || name.includes('金')) return <Shield size={16} className="text-[#D4AF37]" />;
+    if (name.includes('Wood') || name.includes('木')) return <Wind size={16} className="text-[#D4AF37]" />;
+    if (name.includes('Water') || name.includes('水')) return <Droplets size={16} className="text-[#D4AF37]" />;
+    if (name.includes('Fire') || name.includes('火')) return <Flame size={16} className="text-[#D4AF37]" />;
+    if (name.includes('Earth') || name.includes('土')) return <Mountain size={16} className="text-[#D4AF37]" />;
+    return <Sparkles size={16} className="text-[#D4AF37]" />;
   };
 
   return (
     <div className="pt-28 sm:pt-48 pb-64 min-h-screen bg-[#FDFDFD]">
-      {/* 交互式灯箱 */}
       {activePhoto && (
         <div className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 sm:p-20 cursor-zoom-out" onClick={() => setActivePhoto(null)}>
            <button className="absolute top-10 right-10 text-white/40 hover:text-white transition-colors">
@@ -97,7 +92,7 @@ const CollectionsView: React.FC<{
       )}
 
       <div className="max-w-[2560px] mx-auto px-4 sm:px-10 lg:px-24 space-y-12 sm:space-y-32">
-        <div className="flex justify-center sm:justify-start overflow-x-auto no-scrollbar pb-4">
+        <div className="flex justify-center sm:justify-start overflow-x-auto no-scrollbar pb-4 sticky top-24 z-[100] py-4 bg-[#FDFDFD]/80 backdrop-blur-md">
             <div className="flex bg-stone-100 p-1.5 rounded-full border border-black/[0.05] shadow-inner shrink-0">
               {(['yuan', 'he', 'jing'] as Category[]).map(c => (
                 <button 
@@ -113,7 +108,7 @@ const CollectionsView: React.FC<{
 
         <div className="space-y-24 sm:space-y-64">
           {(Object.entries(groups) as [string, ScentItem[]][]).map(([groupName, groupItems]) => (
-            <section key={groupName} className="space-y-10 sm:space-y-24">
+            <section key={groupName} className="space-y-10 sm:space-y-24 scroll-mt-48">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-12 lg:gap-20">
                 <div className="col-span-1 bg-[#FAF9F6] rounded-[2rem] sm:rounded-[3rem] lg:rounded-[4.5rem] p-6 sm:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-[3/4]">
                    <div className="space-y-6 sm:space-y-12 relative z-10">
