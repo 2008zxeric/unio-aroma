@@ -1,15 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk, ExternalLink } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk, ExternalLink, MousePointerClick } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好通过分子的震颤，感知你此刻的杂音。' }
+    { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   const [errorType, setErrorType] = useState<'none' | 'missing' | 'failed'>('none');
   const [keyStatus, setKeyStatus] = useState<'checking' | 'active' | 'inactive'>('checking');
@@ -17,17 +18,24 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  useEffect(() => {
-    const checkKey = async () => {
-      try {
-        // @ts-ignore
-        const hasKey = await window.aistudio.hasSelectedApiKey();
+  // 检查当前 Key 状态
+  const checkCurrentKeyStatus = async () => {
+    try {
+      // @ts-ignore
+      const aistudio = window.aistudio || window.parent?.aistudio || window.top?.aistudio;
+      if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
+        const hasKey = await aistudio.hasSelectedApiKey();
         setKeyStatus(hasKey ? 'active' : 'inactive');
-      } catch (e) {
+      } else {
         setKeyStatus('inactive');
       }
-    };
-    checkKey();
+    } catch (e) {
+      setKeyStatus('inactive');
+    }
+  };
+
+  useEffect(() => {
+    checkCurrentKeyStatus();
   }, []);
 
   useEffect(() => {
@@ -37,20 +45,30 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   }, [messages, loading]);
 
   /**
-   * 核心重构：确保 openSelectKey 是同步点击后的第一个操作，防止浏览器拦截
+   * 增强型唤醒函数：尝试穿透多层作用域调用接口
    */
-  const handleOpenKeyDialog = () => {
-    // 立即执行弹窗，不使用 await 以保持用户手势有效性
-    // @ts-ignore
-    if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
-      // @ts-ignore
-      window.aistudio.openSelectKey();
-    }
+  const handleWakeUp = () => {
+    setIsWakingUp(true);
     
-    // 立即重置状态，允许用户再次尝试发送，不阻塞用户
-    setErrorType('none');
-    setKeyStatus('active');
-    setLoading(false);
+    // 尝试在不同作用域寻找接口
+    const target = (window as any).aistudio || (window.parent as any)?.aistudio || (window.top as any)?.aistudio;
+    
+    if (target && typeof target.openSelectKey === 'function') {
+      try {
+        target.openSelectKey();
+      } catch (e) {
+        console.error("Target openSelectKey failed:", e);
+      }
+    } else {
+      console.warn("AI Studio interface not found in any scope.");
+    }
+
+    // 乐观 UI：无论弹窗是否显现，2秒后重置报错状态，允许用户再次尝试发送
+    setTimeout(() => {
+      setIsWakingUp(false);
+      setErrorType('none');
+      setKeyStatus('active');
+    }, 2000);
   };
 
   const handleSend = async () => {
@@ -68,7 +86,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
       setKeyStatus('active');
     } catch (err: any) {
-      console.error("Oracle error caught in view:", err);
+      console.error("Oracle invocation failed:", err);
       if (err.message === "RESELECT_KEY") {
         setErrorType('missing');
         setKeyStatus('inactive');
@@ -124,13 +142,13 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel">AI Scent Oracle · 元香 UNIO</p>
-                <div onClick={handleOpenKeyDialog} className="cursor-pointer">
+                <div onClick={handleWakeUp} className="cursor-pointer">
                   {keyStatus === 'active' ? <ShieldOk size={10} className="text-green-500" /> : <ShieldAlert size={10} className="text-red-500 animate-pulse" />}
                 </div>
               </div>
             </div>
           </div>
-          <button onClick={() => setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。' }])} className="p-2 hover:bg-stone-50 rounded-full text-black/20 hover:text-[#D75437] transition-all">
+          <button onClick={() => setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。' }])} className="p-2 hover:bg-stone-50 rounded-full text-black/20 transition-all">
             <RefreshCw size={20} />
           </button>
         </div>
@@ -139,7 +157,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-500`}>
-              <div className={`group relative max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${m.role === 'user' ? 'bg-[#1a1a1a] text-white rounded-tr-none' : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh'}`}>
+              <div className={`group relative max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${m.role === 'user' ? 'bg-[#1a1a1a] text-white rounded-tr-none shadow-xl' : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh'}`}>
                 {m.content}
                 {m.role === 'assistant' && (
                   <button onClick={() => handleVoice(m.content, i)} className={`absolute -bottom-4 -right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-white text-black hover:scale-110 transition-all ${playingAudio === i ? 'bg-[#D75437] text-white' : ''}`}>
@@ -159,34 +177,43 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             </div>
           )}
 
-          {/* 重点：优化后的错误提示与操作按钮 */}
+          {/* 针对无响应深度优化的报错区 */}
           {errorType === 'missing' && (
-            <div className="flex flex-col items-center gap-6 p-12 bg-red-50/50 rounded-[3rem] border border-red-100 animate-in zoom-in-95">
-              <Key className="text-red-400" size={48} />
-              <div className="text-center space-y-2">
-                <p className="text-red-900 font-serif-zh font-bold text-xl">极境密钥未对齐 (Billing Required)</p>
-                <p className="text-red-600/70 text-sm">祭坛无法连接。这通常是因为选中的密钥所属项目未开启结算。</p>
-                <p className="text-[10px] text-red-500 font-bold uppercase tracking-[0.2em] mt-4">请点击下方按钮并在弹出窗口中选择一个【付费项目】密钥</p>
+            <div className="flex flex-col items-center gap-8 p-12 bg-red-50/50 rounded-[3rem] border border-red-100 animate-in zoom-in-95">
+              <Key className="text-red-400" size={56} />
+              <div className="text-center space-y-3">
+                <p className="text-red-900 font-serif-zh font-bold text-2xl">极境连接已中断</p>
+                <p className="text-red-600/70 text-sm max-w-md">无法检测到已启用计费的 API 密钥。如果点击下方按钮没有弹出窗口，请检查浏览器地址栏右侧是否显示“已拦截弹出窗口”。</p>
+                <div className="flex flex-col items-center gap-1 pt-4 opacity-50">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-red-500">连接方案：请选择一个 Paid Project</p>
+                </div>
               </div>
+              
               <button 
-                onClick={handleOpenKeyDialog}
-                className="px-10 py-5 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-2xl hover:bg-red-700 transition-all flex items-center gap-3 active:scale-95"
+                onClick={handleWakeUp}
+                disabled={isWakingUp}
+                className="group relative px-12 py-6 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-2xl hover:bg-red-700 transition-all active:scale-95 flex items-center gap-4"
               >
-                <ShieldCheck size={20} /> 唤醒祭坛连接
+                {isWakingUp ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
+                {isWakingUp ? "正在尝试唤醒..." : "点击唤醒祭坛连接"}
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center animate-ping pointer-events-none">
+                  <MousePointerClick size={10} className="text-red-600" />
+                </div>
               </button>
-              <div className="flex flex-col items-center gap-2">
-                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-[10px] text-red-600/40 hover:underline flex items-center gap-1 font-bold">
-                  <ExternalLink size={10} /> 如何开启计费 (Paid Account Guide)
+
+              <div className="flex flex-col items-center gap-3">
+                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-[10px] text-red-600/60 hover:underline flex items-center gap-1 font-bold">
+                  <ExternalLink size={10} /> 确认您的 API 计费状态
                 </a>
-                <p className="text-[8px] text-red-400 opacity-50">如果点击无反应，请检查浏览器地址栏右侧是否拦截了弹窗</p>
+                <p className="text-[9px] text-red-400 font-serif-zh italic">如果多次点击无反应，请尝试刷新整个页面并重试。</p>
               </div>
             </div>
           )}
 
           {errorType === 'failed' && (
              <div className="flex flex-col items-center gap-4 p-8 bg-amber-50 rounded-3xl text-amber-800 border border-amber-100">
-               <p className="text-sm md:text-xl font-serif-zh text-center">当前信号波动。请确认您的 API Key 属于一个【已绑定付款方式】的项目，并点击上方盾牌标识重试。</p>
-               <button onClick={handleSend} className="px-6 py-2 bg-amber-200/50 rounded-full text-xs font-bold uppercase tracking-widest">再次尝试频率对位</button>
+               <p className="text-sm md:text-xl font-serif-zh text-center">当前频率无法对位。请确认您的项目已开启 Billing（计费），并点击盾牌重试。</p>
+               <button onClick={handleSend} className="px-6 py-2 bg-amber-200/50 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-amber-200 transition-all">重新对位频率</button>
              </div>
           )}
         </div>
@@ -198,11 +225,11 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-              placeholder={loading ? "祭司正在沉思..." : "倾诉你内心的杂音..."} 
+              placeholder={loading ? "正在调配分子..." : "倾诉你内心的杂音..."} 
               disabled={loading}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
-            <button onClick={handleSend} disabled={loading || !input.trim()} className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90">
+            <button onClick={handleSend} disabled={loading || !input.trim()} className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90 shadow-xl">
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />}
             </button>
           </div>
