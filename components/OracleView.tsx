@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw, Sparkles } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice, getAIQuota } from '../services/gemini';
 
@@ -15,7 +15,6 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // 初始化并监听配额
   useEffect(() => {
     const updateQuota = () => {
       const q = getAIQuota();
@@ -36,11 +35,10 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     const trimmedInput = input.trim();
     if (!trimmedInput || loading) return;
     
-    // 再次双重校验配额
     if (remaining <= 0) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "今日的感官频率已达上限。祭司需要时间沉淀今日汲取的分子记忆，请待明日晨曦初现时再来开启祭坛。" 
+        content: "今日的感官频率已达上限。祭司需要时间沉淀今日汲取的分子记忆，请待明日晨曦初现时再来开启沟通。" 
       }]);
       return;
     }
@@ -53,18 +51,16 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-      
-      // 更新配额
       const q = getAIQuota();
       setRemaining(Math.max(0, 5 - q.count));
     } catch (err: any) {
       if (err.message === "QUOTA_EXCEEDED") {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: "今日的感官频率已达上限。祭司需要时间沉淀今日汲取的分子记忆，请待明日晨曦初现时再来开启祭坛。" 
+          content: "今日的感官频率已达上限。祭司需要时间沉淀今日汲取的分子记忆，请待明日晨曦初现时再来开启沟通。" 
         }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: "祭坛波段不稳定，请确保您的网络环境通畅。" }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: err.message || "祭司感官波段不稳定，请确保您的网络环境通畅。" }]);
       }
     } finally {
       setLoading(false);
@@ -100,26 +96,24 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   return (
     <div className="h-screen flex flex-col pt-24 md:pt-48 pb-32 md:pb-48 px-4 md:px-20 bg-[#F5F5F5] relative overflow-hidden">
       
-      {/* 顶部悬浮状态栏 */}
       <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[600]">
         <div className="px-6 py-2 rounded-full border bg-white/80 backdrop-blur-xl shadow-lg border-green-100 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-[10px] font-bold tracking-widest uppercase text-black/60">
-            祭坛在线 / 今日剩余 {remaining} 次感知
+            祭司在线 / 今日剩余 {remaining} 次感知
           </span>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden border border-black/5 relative">
         
-        {/* Header */}
         <div className="p-6 md:p-12 border-b border-black/5 bg-white/90 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 md:w-14 md:h-14 bg-black rounded-full flex items-center justify-center text-[#D4AF37]">
                <Activity size={24} className={loading ? "animate-pulse" : ""} />
             </div>
             <div>
-              <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
+              <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭司</h3>
               <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel mt-1">AI Scent Oracle · UNIO</p>
             </div>
           </div>
@@ -135,7 +129,6 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           </button>
         </div>
 
-        {/* Chat Area */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-500`}>
@@ -153,20 +146,19 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             <div className="flex justify-start">
                <div className="bg-[#FAF9F5] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-black/30 italic font-serif-zh flex items-center gap-4">
                   <Wind size={20} className="animate-spin text-[#D75437]" />
-                  正在调配极境分子频率...
+                  祭司正在调配极境分子频率...
                </div>
             </div>
           )}
         </div>
 
-        {/* Input Area */}
         <div className="p-4 md:p-14 bg-[#F5F5F5]/50 border-t border-black/5">
           <div className="max-w-3xl mx-auto flex gap-4 md:gap-8 bg-white p-2 md:p-5 rounded-full shadow-2xl border border-black/5">
             <input 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-              placeholder={remaining <= 0 ? "今日对话已罄，明日再见..." : (loading ? "祭司沉思中..." : "倾诉你内心的杂音...")} 
+              placeholder={remaining <= 0 ? "今日感悟已罄，明日再见..." : (loading ? "祭司沉思中..." : "倾诉你内心的杂音...")} 
               disabled={loading || remaining <= 0}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
