@@ -110,26 +110,45 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* 优化后的玻璃化导航栏 */}
-      <div className="fixed bottom-10 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6">
-        <div className="w-full max-w-[500px] flex justify-end gap-4">
-           <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="pointer-events-auto p-5 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 transition-all border border-white/20">
-             <Share2 size={24} />
-           </button>
-        </div>
-        <div className="pointer-events-auto w-full max-w-[520px]">
-          <div className="flex items-center justify-around px-6 py-5 rounded-full border border-white/40 shadow-2xl backdrop-blur-3xl bg-white/40">
+      {/* 优化后的玻璃化导航栏 - 已整合小红书入口 */}
+      <div className="fixed bottom-10 left-0 w-full flex flex-col items-center z-[900] pointer-events-none px-6">
+        <div className="pointer-events-auto w-full max-w-[580px]">
+          <div className="flex items-center justify-around px-4 sm:px-8 py-3.5 sm:py-5 rounded-full border border-white/60 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] backdrop-blur-3xl bg-white/60">
             {[
               { id: 'home', icon: Home, label: '首页' },
               { id: 'atlas', icon: MapIcon, label: '地图' },
               { id: 'collections', icon: Box, label: '馆藏' },
-              { id: 'oracle', icon: Activity, label: '祭司' }
+              { id: 'oracle', icon: Activity, label: '祭司' },
+              { id: 'xhs', icon: Share2, label: '灵感', isExternal: true }
             ].map((item) => {
               const Icon = item.icon;
               const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
+              
+              if (item.isExternal) {
+                return (
+                  <button 
+                    key={item.id} 
+                    onClick={() => window.open(ASSETS.xhs_link, '_blank')}
+                    className="flex flex-col items-center gap-1 group transition-all"
+                  >
+                    <div className="p-4 sm:p-5 rounded-full text-[#D75437] hover:bg-[#D75437] hover:text-white transition-all duration-500 hover:scale-110 active:scale-95 shadow-sm">
+                      <Icon size={22} />
+                    </div>
+                    <span className="text-[9px] font-serif-zh font-bold opacity-0 group-hover:opacity-60 transition-opacity tracking-widest">{item.label}</span>
+                  </button>
+                );
+              }
+
               return (
-                <button key={item.id} onClick={() => navigateToView(item.id as ViewState)} className={`p-5 rounded-full transition-all duration-500 ${isActive ? 'bg-[#D75437] text-white shadow-xl scale-110' : 'text-black/40 hover:text-black/80'}`}>
-                  <Icon size={24} />
+                <button 
+                  key={item.id} 
+                  onClick={() => navigateToView(item.id as ViewState)} 
+                  className="flex flex-col items-center gap-1 group transition-all"
+                >
+                  <div className={`p-4 sm:p-5 rounded-full transition-all duration-500 ${isActive ? 'bg-black text-white shadow-xl scale-110' : 'text-black/30 hover:text-black/80 hover:scale-105'}`}>
+                    <Icon size={22} />
+                  </div>
+                  <span className={`text-[9px] font-serif-zh font-bold transition-opacity tracking-widest ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>{item.label}</span>
                 </button>
               );
             })}
