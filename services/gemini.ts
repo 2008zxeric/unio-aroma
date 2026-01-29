@@ -3,7 +3,6 @@ import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
 import { DATABASE } from "../constants";
 import { ChatMessage, ScentItem } from "../types";
 
-// Declare global for window.aistudio
 declare global {
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
@@ -50,16 +49,17 @@ const getSystemInstruction = () => `
 你的语气：极简、静奢、专业、富有禅意。
 回答规则：
 1. 品牌哲学：从极境撷取芳香，让世界归于一息。
-2. 仅根据以下馆藏提供建议：
+2. 仅根据以下馆藏提供建议，不要推荐不存在的产品：
 ${getContext()}
-3. 回复必须结构完整。每段回答后，请务必以一句带有意境的短句作为收尾，不可在句子中途结束。
-4. 字数控制在 120 字以内。
+3. **输出完整性**：回复必须结构完整，句子表达清晰。严禁在句子中途截断。
+4. **收束语**：每段回答请务必以一句极具意境的短句作为独立段落收尾，例如“愿此香，助你于繁杂中听见内心的回响。”
+5. **长度限制**：字数控制在 120 字以内。
 `;
 
 export const getOracleResponse = async (messages: ChatMessage[]) => {
   checkQuota();
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined") throw new Error("祭坛未激活。");
+  if (!apiKey || apiKey === "undefined") throw new Error("祭司灵感未被激活。");
   const ai = new GoogleGenAI({ apiKey });
   try {
     const contents = messages.map(m => ({
@@ -72,7 +72,8 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
       config: { 
         systemInstruction: getSystemInstruction(), 
         temperature: 0.75,
-        topP: 0.9
+        topP: 0.9,
+        maxOutputTokens: 250
       }
     });
     incrementUsage();
@@ -80,7 +81,7 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
   } catch (error: any) {
     console.error("AI Error:", error);
     if (error.message === "QUOTA_EXCEEDED") throw error;
-    throw new Error("祭坛波段受到干扰。请再次屏息尝试。");
+    throw new Error("祭司波段受到干扰。请再次屏息尝试。");
   }
 };
 
