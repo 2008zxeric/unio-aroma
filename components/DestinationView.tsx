@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft, MapPin, Home, Microscope, Zap, BookOpen, X, Sparkles, Camera } from 'lucide-react';
 import { Destination, ViewState, Category } from '../types';
-import { DATABASE, ASSETS } from '../constants';
+import { DATABASE } from '../constants';
 
 const DestinationView: React.FC<{ 
   dest: Destination, 
@@ -23,7 +23,7 @@ const DestinationView: React.FC<{
       const catPool = allProducts.filter(p => p.category === cat);
       const itemCount = (seed % 4) + 3; 
       const selectedItems = catPool.sort(() => (seed % 11) - 5.5).slice(0, itemCount);
-      const themeMap = { yuan: '元 · 极境单方', he: '和 · 复方疗愈', jing: '境 · 空间美学' };
+      const themeMap: Record<string, string> = { yuan: '元 · 极境单方', he: '和 · 复方疗愈', jing: '境 · 空间美学' };
       return { title: themeMap[cat], items: selectedItems };
     });
   }, [dest]);
@@ -119,22 +119,26 @@ const DestinationView: React.FC<{
 
       <section className="py-32 sm:py-64 max-w-7xl mx-auto px-4">
         <div className="space-y-32 sm:space-y-64">
+          {/* Fix: Rendered group.title instead of the group object to resolve ReactNode error */}
           {groupedProducts.map((group, gIdx) => (
             <div key={gIdx} className="space-y-16">
               <div className="flex items-center gap-6 sm:gap-10">
                 <Sparkles className="text-[#D4AF37]" size={24} />
                 <h3 className="text-2xl sm:text-6xl font-serif-zh font-bold text-black/85 tracking-widest">{group.title}</h3>
-                <div className="flex-1 h-px bg-black/5" />
               </div>
-              <div className="grid grid-cols-3 gap-6 sm:gap-16 lg:gap-24">
-                {group.items.map((p) => (
-                  <div key={p.id} onClick={() => onProductSelect(p.id)} className="group cursor-pointer flex flex-col space-y-4 sm:space-y-10 active:scale-95 transition-all">
-                    <div className="aspect-[3/4] overflow-hidden rounded-[2rem] sm:rounded-[4.5rem] shadow-xl border border-black/5 bg-stone-50">
-                      <img src={p.hero} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" alt={p.herb} loading="lazy" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-12">
+                {group.items.map((item) => (
+                  <div 
+                    key={item.id} 
+                    onClick={() => onProductSelect(item.id)}
+                    className="group flex flex-col cursor-pointer transition-all duration-700 animate-in fade-in slide-in-from-bottom-4"
+                  >
+                    <div className="relative aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden bg-white border border-black/5 shadow-sm group-hover:shadow-2xl transition-all duration-700">
+                       <img src={item.hero} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.herb} />
                     </div>
-                    <div className="px-2 text-center sm:text-left space-y-2 sm:space-y-4">
-                       <h4 className="text-xs sm:text-4xl font-serif-zh font-bold text-black/85 group-hover:text-[#D75437] transition-colors line-clamp-1">{p.herb}</h4>
-                       <p className="text-[6px] sm:text-xs tracking-widest opacity-25 font-bold uppercase line-clamp-1 font-cinzel">{p.herbEn}</p>
+                    <div className="mt-4 text-center sm:text-left space-y-1">
+                       <h4 className="text-sm sm:text-2xl font-serif-zh font-bold tracking-widest text-black/80 group-hover:text-[#D75437] transition-colors line-clamp-1">{item.herb}</h4>
+                       <span className="text-[7px] sm:text-[10px] tracking-widest opacity-20 font-bold uppercase block">{item.herbEn}</span>
                     </div>
                   </div>
                 ))}
@@ -147,4 +151,5 @@ const DestinationView: React.FC<{
   );
 };
 
+// Fix: Added missing default export for DestinationView
 export default DestinationView;
