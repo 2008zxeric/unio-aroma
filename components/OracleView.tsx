@@ -17,6 +17,9 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const audioContextRef = useRef<AudioContext | null>(null);
 
   const triggerKeySelection = () => {
+    // 立即进入连接状态，避免 Race Condition
+    setKeyStatus('connected');
+    
     const trigger = (target: any) => {
       try {
         if (target && target.aistudio && target.aistudio.openSelectKey) {
@@ -32,14 +35,21 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   useEffect(() => {
     const check = () => {
       const hasKey = !!process.env.API_KEY && process.env.API_KEY !== "undefined" && process.env.API_KEY.length > 5;
-      setKeyStatus(hasKey ? 'connected' : 'unauthorized');
+      // 只有在未连接且检测到有 Key 时才自动连接
+      // 如果已经是 connected（被用户手动点击触发），则不再回退
+      if (hasKey && keyStatus !== 'connected') {
+        setKeyStatus('connected');
+      } else if (!hasKey && keyStatus === 'scanning') {
+        setKeyStatus('unauthorized');
+      }
+      
       const q = getAIQuota();
       setRemaining(5 - q.count);
     };
     check();
-    const timer = setInterval(check, 2000);
+    const timer = setInterval(check, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [keyStatus]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -59,7 +69,6 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-      setKeyStatus('connected');
     } catch (err: any) {
       if (err.message === "QUOTA_EXCEEDED") {
         setMessages(prev => [...prev, { 
@@ -68,7 +77,6 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         }]);
       } else if (err.message === "RESELECT_KEY" || err.status === 401 || err.status === 403) {
         setKeyStatus('unauthorized');
-        triggerKeySelection();
         setMessages(prev => [...prev, { role: 'assistant', content: "感官链接受阻。点击顶部「同步密钥」即可恢复。" }]);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: "祭坛波段不稳定，请确保您的网络环境通畅。" }]);
@@ -125,7 +133,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden border border-black/5 relative">
         
         {keyStatus === 'unauthorized' && messages.length <= 1 && (
-          <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-md flex flex-col items-center justify-center p-12 text-center">
+          <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-md flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-500">
             <div className="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mb-8 border border-black/5 shadow-inner">
                <Lock className="text-black/20" size={32} />
             </div>
