@@ -3,7 +3,7 @@ import { ScentItem, Destination, Category } from './types';
 
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
 const PROVINCE_BASE = `${RAW_BASE}province/`;
-const CACHE_V = '?v=1006.25'; 
+const CACHE_V = '?v=1006.35'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
@@ -27,7 +27,7 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {};
  * ============================================================
  */
 const ERIC_JOURNAL: Record<string, string> = {
-  '神圣乳香': '在阿曼的多法尔山脉，我看到采集者在岩石缝隙中收集这些琥珀色的泪滴。',
+  '神圣乳香': '在阿曼的多法尔山脉，我看到采集者在岩石缝隙中收集这些琥珀色的泪滴。那是大地因干旱而流出的慈悲。',
   '老山檀香': '三十载春秋化作一段心材。在它被剖开的一瞬，我仿佛听到了时间在年轮深处缓慢呼吸的声音。',
   '大马士革玫瑰': '清晨五点的谷地，露水尚未蒸发。我伸出手，指尖触碰到的是整个春天最娇羞、最纯粹的秘密。',
   '巅峰薄荷': '在阿尔卑斯的冷冽风中，我撕碎一片薄荷叶，那股直冲眉心的凉意，彻底洗礼了灵魂。',
