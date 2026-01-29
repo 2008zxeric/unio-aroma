@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2 } from 'lucide-react';
 import { ViewState, Category } from './types';
@@ -116,7 +117,7 @@ const App: React.FC = () => {
            </button>
         </div>
         <div className="pointer-events-auto w-full max-w-[520px]">
-          <div className="flex items-center justify-around px-6 py-5 rounded-full border border-white/10 shadow-2xl backdrop-blur-3xl bg-black/90">
+          <div className="flex items-center justify-around px-6 py-5 rounded-full border border-white/40 shadow-2xl backdrop-blur-3xl bg-white/40">
             {[
               { id: 'home', icon: Home, label: '首页' },
               { id: 'atlas', icon: MapIcon, label: '地图' },
@@ -126,7 +127,7 @@ const App: React.FC = () => {
               const Icon = item.icon;
               const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
               return (
-                <button key={item.id} onClick={() => navigateToView(item.id as ViewState)} className={`p-5 rounded-full transition-all duration-500 ${isActive ? 'bg-[#D75437] text-white shadow-xl scale-110' : 'text-white/30 hover:text-white/80'}`}>
+                <button key={item.id} onClick={() => navigateToView(item.id as ViewState)} className={`p-5 rounded-full transition-all duration-500 ${isActive ? 'bg-[#D75437] text-white shadow-xl scale-110' : 'text-black/40 hover:text-black/80'}`}>
                   <Icon size={24} />
                 </button>
               );
