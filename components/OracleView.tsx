@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk, ExternalLink, MousePointerClick, Info } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk, ExternalLink, MousePointerClick, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
@@ -12,26 +12,32 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const [loading, setLoading] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
-  const [errorType, setErrorType] = useState<'none' | 'missing' | 'failed'>('none');
+  const [errorType, setErrorType] = useState<'none' | 'missing' | 'failed' | 'billing'>('none');
   const [keyStatus, setKeyStatus] = useState<'checking' | 'active' | 'inactive'>('checking');
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  // 链路诊断逻辑
+  const checkLinkHealth = async () => {
+    try {
+      const win = window as any;
+      const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
+      if (!api) return 'missing_api';
+      
+      if (typeof api.hasSelectedApiKey === 'function') {
+        const hasKey = await api.hasSelectedApiKey();
+        setKeyStatus(hasKey ? 'active' : 'inactive');
+        return hasKey ? 'healthy' : 'no_key';
+      }
+      return 'invalid_api';
+    } catch (e) { 
+      return 'error'; 
+    }
+  };
+
   useEffect(() => {
-    const checkKey = async () => {
-      try {
-        const win = window as any;
-        const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
-        if (api && typeof api.hasSelectedApiKey === 'function') {
-          const hasKey = await api.hasSelectedApiKey();
-          setKeyStatus(hasKey ? 'active' : 'inactive');
-        } else {
-          setKeyStatus('inactive');
-        }
-      } catch (e) { setKeyStatus('inactive'); }
-    };
-    checkKey();
+    checkLinkHealth();
   }, []);
 
   useEffect(() => {
@@ -40,28 +46,24 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     }
   }, [messages, loading]);
 
-  /**
-   * 增强型唤醒：绝对同步执行
-   */
   const handleWakeUpAction = (e: React.MouseEvent) => {
-    // 阻止冒泡
     e.stopPropagation();
-    
-    // 1. 立即尝试在所有可能的作用域寻找接口并触发
     const win = window as any;
     const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
     
     if (api && typeof api.openSelectKey === 'function') {
       api.openSelectKey();
+      setIsWakingUp(true);
+      // 乐观重置逻辑：即便不弹窗，也让界面看起来在尝试连接
+      setTimeout(() => {
+        setIsWakingUp(false);
+        setErrorType('none');
+        setKeyStatus('active');
+      }, 1500);
     } else {
-      console.warn("AI Studio interface missing.");
+      // 链路彻底断开时的反馈
+      setErrorType('missing');
     }
-
-    // 2. 乐观重置：即便弹窗被拦截，也先让 UI 恢复可用，避免用户卡死
-    setErrorType('none');
-    setKeyStatus('active');
-    setIsWakingUp(true);
-    setTimeout(() => setIsWakingUp(false), 2000);
   };
 
   const handleSend = async () => {
@@ -79,9 +81,12 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
       setKeyStatus('active');
     } catch (err: any) {
-      if (err.message === "RESELECT_KEY") {
+      const msg = err.message || "";
+      if (msg === "RESELECT_KEY") {
         setErrorType('missing');
         setKeyStatus('inactive');
+      } else if (msg.includes("billing") || msg.includes("quota")) {
+        setErrorType('billing');
       } else {
         setErrorType('failed');
       }
@@ -170,41 +175,58 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           )}
 
           {/* 深度重构的错误/连接引导区 */}
-          {errorType === 'missing' && (
+          {(errorType === 'missing' || errorType === 'billing') && (
             <div className="flex flex-col items-center gap-8 p-10 bg-stone-50 rounded-[3rem] border border-black/5 animate-in zoom-in-95">
-              <ShieldAlert className="text-red-500 animate-pulse" size={64} />
+              {errorType === 'billing' ? (
+                <AlertTriangle className="text-amber-500" size={64} />
+              ) : (
+                <ShieldAlert className="text-red-500 animate-pulse" size={64} />
+              )}
               
               <div className="text-center space-y-3">
-                <p className="text-black font-serif-zh font-bold text-2xl tracking-widest">祭坛连接已阻断</p>
-                <p className="text-black/40 text-sm max-w-sm mx-auto leading-relaxed">
-                  祭司感知不到你的支付凭证。请点击下方按钮唤醒连接，并选择一个**已启用结算(Paid)**的项目。
+                <p className="text-black font-serif-zh font-bold text-2xl tracking-widest">
+                  {errorType === 'billing' ? "祭坛能量不足 (计费限制)" : "祭坛连接已阻断"}
                 </p>
+                <div className="text-black/40 text-xs max-w-sm mx-auto leading-relaxed space-y-4">
+                  <p>
+                    {errorType === 'billing' 
+                      ? "您的 Google Cloud 账号目前处于“免费试用”状态。付费模型要求您激活完整账号。" 
+                      : "无法检测到已启用计费的 API 密钥。如果点击下方按钮没有弹出窗口，请查看浏览器地址栏右侧是否显示“已拦截弹出窗口”。"}
+                  </p>
+                  
+                  {/* 针对用户提到的试用金状态的特别引导 */}
+                  <div className="p-4 bg-white rounded-2xl border border-black/5 text-left">
+                    <p className="font-bold text-black/60 mb-2 flex items-center gap-2">
+                       <CheckCircle size={12} className="text-green-500" /> 您已拥有赠金，只需最后一步：
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 opacity-80">
+                      <li>前往 <a href="https://console.cloud.google.com/billing" target="_blank" className="text-blue-600 underline">Google Cloud 计费页</a></li>
+                      <li>找到顶部的“**激活 (Activate)**”横幅并点击</li>
+                      <li>刷新本页面，再次点击下方唤醒按钮</li>
+                    </ol>
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col items-center gap-4 w-full max-w-md">
                 <button 
                   onMouseDown={handleWakeUpAction} 
-                  className="w-full py-6 bg-red-600 text-white rounded-full font-bold tracking-[0.2em] shadow-2xl hover:bg-red-700 transition-all flex items-center justify-center gap-4 active:scale-95"
+                  className="w-full py-6 bg-black text-white rounded-full font-bold tracking-[0.2em] shadow-2xl hover:bg-[#D75437] transition-all flex items-center justify-center gap-4 active:scale-95"
                 >
                   {isWakingUp ? <Loader2 className="animate-spin" /> : <MousePointerClick />}
-                  {isWakingUp ? "唤醒指令已发送..." : "立即唤醒祭坛 (强制触发)"}
+                  {isWakingUp ? "唤醒指令已发送..." : "立即唤醒祭坛连接"}
                 </button>
                 
-                {/* 针对弹窗拦截的硬核提示 */}
                 <div className="p-6 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-4">
                   <Info className="text-amber-600 shrink-0 mt-1" size={18} />
                   <div className="text-left space-y-2">
                     <p className="text-amber-900 text-[11px] font-bold">弹窗拦截排查：</p>
                     <p className="text-amber-800/70 text-[10px] leading-relaxed">
-                      如果点击后无窗口，请查看浏览器**地址栏右侧**（网址输入框最右端）。若出现“拦截弹窗”的小图标，请点击并选择“**始终允许**”，然后再次点击上方按钮。
+                      若无窗口，请检查**地址栏右侧**。若出现“拦截弹窗”图标，请选择“**始终允许**”，然后刷新页面重试。
                     </p>
                   </div>
                 </div>
               </div>
-
-              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="flex items-center gap-2 text-[10px] font-bold tracking-widest opacity-20 hover:opacity-100 hover:text-blue-600 transition-all">
-                <ExternalLink size={12} /> 检查 Google Cloud 项目计费状态
-              </a>
             </div>
           )}
 
