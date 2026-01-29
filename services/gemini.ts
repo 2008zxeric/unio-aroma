@@ -49,7 +49,10 @@ const getSystemInstruction = () => {
 export const getOracleResponse = async (messages: ChatMessage[]) => {
   checkAndThrowQuota();
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined") throw new Error("RESELECT_KEY");
+  if (!apiKey || apiKey === "undefined") {
+    console.error("API_KEY IS MISSING IN ENVIRONMENT");
+    throw new Error("祭坛未激活，请检查环境变量配置。");
+  }
 
   const ai = new GoogleGenAI({ apiKey });
   try {
@@ -63,18 +66,17 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
     });
 
     if (!response.text) throw new Error("EMPTY_RESPONSE");
-    incrementUsage(); // 成功才扣除额度
+    incrementUsage(); 
     return response.text;
   } catch (error: any) {
     if (error.message === "QUOTA_EXCEEDED") throw error;
-    const status = error.status || (error.message?.includes('403') ? 403 : null);
-    if (status === 401 || status === 403 || status === 404) throw new Error("RESELECT_KEY");
-    throw error;
+    // 简化错误，不再提示重新选择密钥，因为当前是方案 B (全局 Key)
+    console.error("Gemini API Error:", error);
+    throw new Error("祭坛连接受阻，请稍后再试。");
   }
 };
 
 export const generateOracleVoice = async (text: string) => {
-  // TTS 暂时不计入 5 次严格限制，以保证交互体验，或可根据需求增加限制
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === "undefined") return null;
   const ai = new GoogleGenAI({ apiKey });
@@ -83,7 +85,6 @@ export const generateOracleVoice = async (text: string) => {
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: `用空灵语调诵读：${text}` }] }],
       config: {
-        // Fixed: Corrected typo responseModalalities to responseModalities
         responseModalities: [Modality.AUDIO],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
       },
@@ -95,7 +96,7 @@ export const generateOracleVoice = async (text: string) => {
 export const editImageWithGemini = async (base64Image: string, prompt: string) => {
   checkAndThrowQuota();
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined") throw new Error("RESELECT_KEY");
+  if (!apiKey || apiKey === "undefined") throw new Error("API_KEY_ERROR");
   const ai = new GoogleGenAI({ apiKey });
   const data = base64Image.split(',')[1];
   const mimeType = base64Image.split(';')[0].split(':')[1] || 'image/png';
@@ -119,7 +120,7 @@ export const editImageWithGemini = async (base64Image: string, prompt: string) =
 export const generateScentVideo = async (prompt: string, onProgress: (msg: string) => void) => {
   checkAndThrowQuota();
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined") throw new Error("RESELECT_KEY");
+  if (!apiKey || apiKey === "undefined") throw new Error("API_KEY_ERROR");
   const ai = new GoogleGenAI({ apiKey });
   onProgress("影像初始化中...");
   try {
