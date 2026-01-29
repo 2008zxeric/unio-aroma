@@ -20,10 +20,45 @@ export const ASSETS = {
 
 /**
  * ============================================================
- * 🌿 CONTENT HUB / 内容中心
+ * 🌿 ERIC & ALICE CONTENT HUB / 叙事内容中枢
+ * 这里是后期修改所有文字内容的唯一入口
  * ============================================================
  */
 
+// [1] Eric 的感性随笔 (Eric's Journal)
+// 键名可以是产品名，也可以是目的地ID (如 w_thai, cn_云南)
+const ERIC_JOURNAL: Record<string, string> = {
+  // 产品篇
+  '神圣乳香': '在阿曼的多法尔山脉，我看到采集者在岩石缝隙中收集这些琥珀色的泪滴，那是大地因干旱而流出的慈悲。',
+  '喜马雪松': '海拔三千米的空气是薄而利的。每一口呼吸，都像是与千年不化的积雪进行一场无声的对谈。',
+  '赤道依兰': '那个闷热的午后，科摩罗群岛的风里全是这种让人沉醉的、几乎带有重量的甜，它是热带灵魂的呼吸。',
+  '老山檀香': '三十年的沉淀，心材的香气在被切开的一瞬，仿佛让周围飞扬的尘埃都静止了。',
+  
+  // 全球目的地篇
+  'w_thai': '清迈的清晨，僧侣的橘色僧袍掠过湿漉漉的香茅丛。那种色彩与气味的重叠，是我对东南亚永恒的记忆锚点。',
+  'w_is': '在雷克雅未克的黑沙滩，风甚至能吹走你的思绪。我意识到，最极端的荒凉里，往往藏着最原始的宁静。',
+  'w_fr': '格拉斯的午后，阳光穿透实验室的玻璃窗。这里不是工厂，而是人类试图用玻璃瓶锁住自然的野心。',
+  'w_eg': '尼罗河边的微风吹动古老的石柱，没药的苦涩感在烈日下反而生出一种庄严。',
+  
+  // 神州目的地补充
+  'cn_西藏': '在冈仁波齐脚下，经幡飞舞。那里的风是咸的，带着信仰、岩石和尚未稀释的寂静。',
+  'cn_浙江': '龙井村的雨，是墨色的。茶烟袅袅中，我读懂了江南对“淡泊”二字的终极诠释。',
+  'cn_新疆': '在赛里木湖畔，空气里有冰川融水的冷冽和雪松的坚韧，那是人类从未真正踏足过的自由。',
+  'cn_云南': '横断山脉的云永远低垂。在那里，生姜不仅是本草，更是山民在湿冷雨夜里相依为命的火种。'
+};
+
+// [2] 神州省份自动生成的叙事语调模板
+// 如果 ERIC_JOURNAL 中没写，程序会从这里组合
+const ERIC_PROVINCE_VIBE: Record<string, string> = {
+  '西南': '山川的重叠让时间慢了下来，在这里，每一缕香气都带着森林的湿度。',
+  '西北': '大漠孤烟。风沙磨砺出的香气，拥有任何繁华都市都无法企及的骨骼感。',
+  '华南': '季风与海洋的交汇，空气是热烈而流动的，充满了生命的张力。',
+  '华东': '在精致与古老之间，香气是最好的过渡，像是一场未完的游园惊梦。',
+  '华北': '厚重的历史与现代的秩序，在凛冽的冬日里，需要一抹温热的木质调来中和。',
+  '东北': '黑土地的广袤，以及风穿过红松林的呼啸，那是大地的呼吸声。'
+};
+
+// [3] Alice 实验室分析 - 技术指标与科学数据
 const ALICE_LAB_DIARY: Record<string, string> = {
   '神圣乳香': '树脂结晶率＞12%，冷压蒸馏保留α-蒎烯活性，冥想时使用可降低皮质醇17%。',
   '野性香茅': '高柠檬醛含量（38%），天然驱蚊效力达DEET的82%，敏感肌需稀释。',
@@ -68,25 +103,14 @@ const ALICE_LAB_DIARY: Record<string, string> = {
 };
 
 const CATEGORY_NARRATIVES: Record<Category, (n: string) => string> = {
-  yuan: (n) => `“在 ${n} 的极质分子中，我寻得了大地最初的抗争与和解。”`,
-  he: (n) => `“${n} 不止是调配，它是 Alice 实验室关于身心频率重构的最终解法。”`,
+  yuan: (n) => `“在 ${n} 的分子震颤中，我寻得了大地最初的抗争与和解。”`,
+  he: (n) => `“${n} 是身心频率重构的解法，让繁杂的外部世界归于一息。”`,
   jing: (n) => `“器物是芳香的骨骼，${n} 让无形的嗅觉在空间中有了诗性的栖居。”`
 };
 
-const ERIC_DIARY: Record<string, string> = {
-  '神圣乳香': '在阿曼的多法尔山脉，我看到采集者在岩石缝隙中收集这些琥珀色的泪滴。',
-  '老山檀香': '三十年的沉淀，心材的香气在被切开的一瞬，仿佛让时间停止了流动。',
-  '大马士革玫瑰': '清晨五点的保加利亚谷地，露水尚未蒸发，三千公斤的芬芳正等待被浓缩成永恒。',
-  'w_thai': '第 40 次踏上泰国。在清迈的丛林边缘，野性香茅的辛辣感让我找回了久违的生命力。',
-  'cn_云南': '横断山脉的生姜带着大地的体温，在寒冷的雨夜，它是最直接的疗愈。'
-};
-
-const ALICE_DIARY: Record<string, string> = {
-  '神圣乳香': '我们通过 GC/MS 发现其独特的分子配位，这在单方中极为罕见。',
-  '止语雾': '这是我最满意的复方，岩兰草的沉降感与雪松的广袤达成了完美的意识对冲。',
-  'w_thai': '泰国的极端湿度使得这里的香茅柠檬醛含量显著优于其他产区。',
-  'cn_云南': '由于海拔落差，云南产区的本草表现出极强的分子抗逆性。'
-};
+/**
+ * ============================================================
+ */
 
 export const ASSET_REGISTRY = {
   brand: ASSETS
@@ -118,24 +142,33 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
     price, specification: spec, hero: heroUrl,
-    shortDesc: cat === 'yuan' ? '极境溯源 / 单方生存原力' : (cat === 'he' ? '一人一方 / 科学频率重构' : '境之感知 / 极简芳香美学'), 
+    shortDesc: cat === 'yuan' ? '溯源单方' : (cat === 'he' ? '科学重构' : '芳香美学'), 
     narrative: CATEGORY_NARRATIVES[cat](n),
     benefits: ['意识重构', '深度频率校准', '内在秩序恢复'],
     usage: '取三滴精油于掌心，合十温热，闭目由鼻息深处缓慢引入意识核心，感受分子频率的精准对位。',
     precautions: 'UNIO 馆藏坚持高纯度提取。敏感肤质请在实验室建议下稀释使用。',
-    ericDiary: ERIC_DIARY[n] || `见证了 ${n} 在极端重压下迸发的顽强。`, 
-    aliceDiary: ALICE_DIARY[n] || `我们在实验室尝试将 ${n} 的分子结构完整保留。`,
+    ericDiary: ERIC_JOURNAL[n] || `见证了 ${n} 在极端重压下迸发的顽强。`, 
+    aliceDiary: `我们在实验室尝试将 ${n} 的分子结构完整保留，这是一种跨越经纬的连接。`,
     aliceLabDiary: ALICE_LAB_DIARY[n] || `GC/MS 质谱分析揭示了 ${n} 非凡的化学序位。`, 
     recommendation: '元香 UNIO 限量馆藏。仅为 1% 的觉知灵魂保留。'
   } as ScentItem;
 };
 
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, mPhots?: string[]) => {
+  // Eric 目的地日记逻辑：优先查找精确 ID，其次查找省份 Vibe
+  let diary = ERIC_JOURNAL[id] || ERIC_JOURNAL[`cn_${n}`] || ERIC_JOURNAL[n];
+  if (!diary && isCN && sub) {
+    diary = ERIC_PROVINCE_VIBE[sub] || `踏上 ${n}，在极地边缘，我找到了共鸣的本草分子。`;
+  }
+  if (!diary) {
+    diary = `在 ${n}，我意识到大地的呼吸比任何言语都更具力量。`;
+  }
+
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: '极境原生分子档案', knowledge:'已存入元香 UNIO 核心频率库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
-    ericDiary: ERIC_DIARY[id] || `第 ${c} 次踏上 ${n}。在极地边缘，我找到了共鸣的本草分子。`, 
-    aliceDiary: ALICE_DIARY[id] || `我们在实验室尝试将 ${n} 的分子结构完整保留，这是一种跨越经纬的连接。`, 
+    ericDiary: diary, 
+    aliceDiary: `我们在实验室尝试将 ${n} 的分子结构完整保留，这是一种跨越经纬的连接。`, 
     memoryPhotos: mPhots || [img, img, img]
   };
 };
