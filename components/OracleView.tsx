@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw, ShieldAlert, ShieldCheck, MousePointerClick, AlertTriangle, Info, Terminal, ExternalLink, HelpCircle } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw, ShieldAlert, ShieldCheck, MousePointerClick, AlertTriangle, Terminal, Cpu, Zap, Info, HelpCircle } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
@@ -11,30 +11,46 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorType, setErrorType] = useState<'none' | 'auth_failed' | 'billing_required'>('none');
-  const [bridgeStatus, setBridgeStatus] = useState<'searching' | 'ready' | 'missing'>('searching');
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   
+  // 诊断状态
+  const [diagInfo, setDiagInfo] = useState({
+    bridgeFound: false,
+    bridgePath: 'Scanning...',
+    apiKeyStatus: process.env.API_KEY ? 'Present (Hidden)' : 'Missing',
+    origin: window.location.origin
+  });
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // 1. 多层级环境嗅探
+  // 1. 深度环境诊断逻辑
   useEffect(() => {
-    const checkBridge = () => {
-      try {
-        const win = window as any;
-        const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
-        if (api && typeof api.openSelectKey === 'function') {
-          setBridgeStatus('ready');
-        } else {
-          setBridgeStatus('missing');
-        }
-      } catch (e) {
-        setBridgeStatus('missing');
-      }
+    const runDiagnostic = () => {
+      let found = false;
+      let path = 'None';
+      
+      const check = (target: any, name: string) => {
+        try {
+          if (target && target.aistudio && typeof target.aistudio.openSelectKey === 'function') {
+            found = true;
+            path = name;
+            return true;
+          }
+        } catch (e) {}
+        return false;
+      };
+
+      if (check(window, 'Local Window')) {}
+      else if (check(window.parent, 'Parent Frame')) {}
+      else if (check(window.top, 'Top Window')) {}
+
+      setDiagInfo(prev => ({ ...prev, bridgeFound: found, bridgePath: path }));
     };
-    checkBridge();
-    const t = setInterval(checkBridge, 2000);
-    return () => clearInterval(t);
+
+    runDiagnostic();
+    const timer = setInterval(runDiagnostic, 3000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -44,21 +60,29 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   }, [messages, loading]);
 
   /**
-   * 2. 原子化触发器：直接调用最顶层接口，不经过任何异步转换
+   * 2. 原子级唤醒函数 (Atomic Trigger)
+   * 剥离所有异步和状态管理，直接命中原生接口
    */
-  const triggerKeySelection = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // 强制获取最新的 API 对象
-    const win = window as any;
-    const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
+  const handlePureOpenKey = (e: React.MouseEvent) => {
+    // 强制同步执行，不给浏览器任何拦截的借口
+    console.log(">>> SYSTEM: FORCING POPUP CALL");
     
-    if (api && typeof api.openSelectKey === 'function') {
-      console.log("Attempting to open SelectKey...");
-      api.openSelectKey();
-      // 触发后延迟重置状态
-      setTimeout(() => setErrorType('none'), 1000);
+    const trigger = (target: any) => {
+      try {
+        if (target && target.aistudio && target.aistudio.openSelectKey) {
+          target.aistudio.openSelectKey();
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    };
+
+    const success = trigger(window) || trigger(window.parent) || trigger(window.top);
+    
+    if (!success) {
+      alert("错误：在当前环境的所有层级中均未发现 aistudio 接口。\n请确认您是在 Google AI Studio 的 Preview 模式下运行此页面，而不是直接打开的本地 HTML 文件。");
     } else {
-      alert("⚠️ 环境接口未响应：请尝试点击浏览器刷新按钮，或检查是否安装了高强度的广告拦截插件（如 AdBlock/uBlock）阻断了脚本。");
+      setErrorType('none');
     }
   };
 
@@ -76,11 +100,10 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err: any) {
-      console.error("API Error Captured:", err.message);
       if (err.message === "RESELECT_KEY" || err.message.includes("not found") || err.status === 404) {
         setErrorType('billing_required');
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: "祭坛链接不稳定。您可以尝试点击左上角的“链路检查”按钮。" }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "祭坛连接不稳定。建议通过左侧诊断面板尝试修复。" }]);
       }
     } finally {
       setLoading(false);
@@ -114,28 +137,35 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   return (
     <div className="h-screen flex flex-col pt-24 md:pt-48 pb-32 md:pb-48 px-4 md:px-20 bg-[#F5F5F5] animate-in fade-in duration-1000 relative overflow-hidden">
       
-      {/* 顶部环境监控条：如果接口丢失则始终显示 */}
-      {bridgeStatus !== 'ready' && (
-        <div className="fixed top-0 left-0 w-full z-[1000] bg-red-600 text-white px-6 py-3 flex items-center justify-center gap-4 animate-bounce">
-           <ShieldAlert size={18} />
-           <p className="text-xs font-bold tracking-widest uppercase">
-             {bridgeStatus === 'searching' ? "正在搜索环境接口..." : "警告：环境接口加载失败，弹窗将无法呼出。请刷新页面。"}
-           </p>
-           <button onClick={() => window.location.reload()} className="px-4 py-1 bg-white text-red-600 rounded-full text-[10px] font-bold">立即刷新页面</button>
-        </div>
-      )}
+      {/* 侧边：实时诊断终端 (帮助用户定位问题) */}
+      <div className="fixed top-32 left-4 md:left-10 z-[600] flex flex-col gap-4">
+        <div className={`p-6 rounded-[2rem] border bg-white/80 backdrop-blur-xl shadow-2xl space-y-4 max-w-[240px] transition-all ${diagInfo.bridgeFound ? 'border-green-100' : 'border-red-100'}`}>
+           <div className="flex items-center gap-3">
+              {diagInfo.bridgeFound ? <ShieldCheck className="text-green-500" size={18} /> : <ShieldAlert className="text-red-500" size={18} />}
+              <span className="text-[10px] font-bold uppercase tracking-widest text-black/60">系统诊断中心</span>
+           </div>
+           
+           <div className="space-y-3 font-mono text-[8px] leading-tight">
+              <div className="flex justify-between">
+                <span className="opacity-40">BRIDGE:</span>
+                <span className={diagInfo.bridgeFound ? 'text-green-600' : 'text-red-600'}>{diagInfo.bridgePath}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="opacity-40">API KEY:</span>
+                <span className="text-black/60">{diagInfo.apiKeyStatus}</span>
+              </div>
+              <div className="pt-2 border-t border-black/5 opacity-30 truncate">
+                {diagInfo.origin}
+              </div>
+           </div>
 
-      {/* 侧边链路检查器 */}
-      <div className="fixed top-32 left-10 z-[600] hidden md:flex items-center gap-3">
-        <button 
-          onClick={triggerKeySelection}
-          className={`group flex items-center gap-3 px-6 py-3 rounded-full border transition-all ${bridgeStatus === 'ready' ? 'bg-white/80 border-green-100 text-green-600 shadow-lg' : 'bg-red-50 border-red-100 text-red-600'}`}
-        >
-          {bridgeStatus === 'ready' ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-          <span className="text-[10px] font-bold tracking-widest uppercase">
-            {bridgeStatus === 'ready' ? "链路正常 · 点击重选" : "链路中断 · 接口缺失"}
-          </span>
-        </button>
+           <button 
+             onClick={handlePureOpenKey}
+             className={`w-full py-3 rounded-full text-[9px] font-bold tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${diagInfo.bridgeFound ? 'bg-black text-white hover:bg-[#D75437]' : 'bg-red-50 text-red-600 border border-red-100'}`}
+           >
+             <Zap size={10} /> {diagInfo.bridgeFound ? "强制重连 / RECONNECT" : "修复连接 / REPAIR"}
+           </button>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden border border-black/5 relative">
@@ -181,17 +211,17 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             </div>
           )}
 
-          {/* 最后的防线：报错遮罩 */}
+          {/* 终极排障遮罩 */}
           {errorType !== 'none' && (
-            <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-2xl flex items-center justify-center p-6 animate-in fade-in">
-               <div className="max-w-lg w-full bg-white rounded-[3rem] p-10 shadow-[0_40px_80px_rgba(0,0,0,0.1)] border border-black/5 flex flex-col gap-10">
+            <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-2xl flex items-center justify-center p-6 animate-in fade-in">
+               <div className="max-w-xl w-full bg-white rounded-[3rem] p-10 shadow-2xl border border-black/5 flex flex-col gap-10">
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center text-[#D75437] shrink-0">
                       <AlertTriangle size={32} />
                     </div>
                     <div>
                       <h4 className="text-2xl font-serif-zh font-bold tracking-widest text-black">弹窗唤醒深度指引</h4>
-                      <p className="text-[10px] text-black/30 font-bold uppercase tracking-widest">Popup Recovery Mode</p>
+                      <p className="text-[10px] text-black/30 font-bold uppercase tracking-widest">Popup Debug Assistant</p>
                     </div>
                   </div>
                   
@@ -199,33 +229,33 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
                     <div className="flex gap-4 p-5 bg-stone-50 rounded-2xl border border-black/5">
                        <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[10px] shrink-0">1</div>
                        <p className="text-xs text-black/60 leading-relaxed">
-                         虽然您已设置允许弹窗，但 Chrome 偶尔会因为**多个窗口尝试重叠**而再次拦截。请再次点击下方按钮，并仔细观察地址栏最右侧。
+                         点击下方按钮。如果页面无反应，请观察地址栏右侧是否有红色拦截图标。
                        </p>
                     </div>
                     <div className="flex gap-4 p-5 bg-stone-50 rounded-2xl border border-black/5">
                        <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[10px] shrink-0">2</div>
                        <p className="text-xs text-black/60 leading-relaxed">
-                         若下方按钮仍无效，请检查您是否开启了 **AdBlock** 或 **uBlock Origin**。这些插件会把 AI Studio 的 Key 选择窗口误判为广告。
+                         确保已在 Google Cloud 中启用了计费，并为 <strong>{diagInfo.origin.split('//')[1].split('.')[0]}</strong> 项目选择了 API Key。
                        </p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <button 
-                      onClick={triggerKeySelection}
-                      className="w-full py-7 bg-black text-white rounded-full font-bold tracking-[0.3em] shadow-2xl hover:bg-[#D75437] transition-all flex items-center justify-center gap-4 group active:scale-95"
+                      onClick={handlePureOpenKey}
+                      className="w-full py-7 bg-black text-white rounded-full font-bold tracking-[0.3em] shadow-xl hover:bg-[#D75437] transition-all flex items-center justify-center gap-4 group active:scale-95"
                     >
                       <MousePointerClick className="group-hover:scale-125 transition-transform" />
-                      强制唤醒选择弹窗 (RETRY)
+                      强制唤醒选择弹窗 (FORCE)
                     </button>
                     
                     <button onClick={() => window.location.reload()} className="w-full py-4 text-[10px] font-bold tracking-widest text-black/20 hover:text-red-600 transition-colors uppercase flex items-center justify-center gap-2">
-                      <RefreshCw size={12} /> 还是没反应？尝试强制刷新整个页面
+                      <RefreshCw size={12} /> 无效？尝试整页重载 (RELOAD)
                     </button>
                   </div>
                   
                   <div className="pt-4 border-t border-black/5 flex justify-between items-center opacity-30">
-                    <span className="text-[8px] font-bold">UNIO LAB SYSTEM v2.5</span>
+                    <span className="text-[8px] font-bold">UNIO LAB SYSTEM v2.7</span>
                     <HelpCircle size={14} />
                   </div>
                </div>
