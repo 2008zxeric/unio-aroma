@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { 
-  ArrowLeft, ShoppingBag, CheckCircle2, MapPin, Wind, Microscope, 
+  ArrowLeft, ShoppingBag, CheckCircle2, MapPin, Microscope, 
   BookOpen, Sparkles, Share2, Home, Tag
 } from 'lucide-react';
 import { ScentItem, ViewState } from '../types';
@@ -15,36 +15,36 @@ const ProductDetail: React.FC<{
   return (
     <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
       
-      {/* 聚合式右上角导航舱 (避开左侧 Logo) */}
-      <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 delay-300">
-        <div className="bg-white/60 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] gap-2 group">
+      {/* 右上角：静奢导航舱 (Navigation Cabin) - 解决重叠问题 */}
+      <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
+        <div className="bg-white/60 backdrop-blur-3xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] gap-3 group pointer-events-auto">
           <button 
             onClick={() => setView(previousView)} 
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90 group/btn"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
             title="BACK"
           >
-            <ArrowLeft size={22} className="group-hover/btn:-translate-x-1 transition-transform" />
+            <ArrowLeft size={22} />
           </button>
           <div className="h-px w-6 bg-black/[0.05] mx-auto" />
           <button 
             onClick={() => setView('home')} 
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
             title="HOME"
           >
             <Home size={22} />
           </button>
         </div>
-        <span className="text-[8px] tracking-[0.5em] font-bold text-black/20 uppercase vertical-text mt-4 select-none">Navigation</span>
+        <span className="text-[8px] tracking-[0.5em] font-bold text-black/20 uppercase vertical-text mt-4 select-none">Navigator</span>
       </div>
 
-      <div className="max-w-7xl mx-auto mt-12 md:mt-24">
+      <div className="max-w-7xl mx-auto mt-12 md:mt-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-32 items-start">
           
           <div className="space-y-12 lg:sticky lg:top-48">
             <div className="aspect-[3/4] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-2xl border border-black/5 bg-[#F9FAFB] group relative">
               <img 
                 src={item.hero} 
-                className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110 img-fade-in" 
+                className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" 
                 alt={item.herb} 
                 loading="lazy"
               />
@@ -59,7 +59,7 @@ const ProductDetail: React.FC<{
               <div className="text-center space-y-3 border-x border-black/5">
                 <Tag size={20} className="mx-auto opacity-20 text-[#1C39BB]" />
                 <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Spec / 规格</span>
-                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.specification || '10ml'}</span>
+                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.specification || 'N/A'}</span>
               </div>
               <div className="text-center space-y-3">
                 <Microscope size={20} className="mx-auto opacity-20 text-[#2C3E28]" />
@@ -97,20 +97,17 @@ const ProductDetail: React.FC<{
               </p>
             </div>
 
-            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden group/lab">
-               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover/lab:opacity-20 transition-opacity">
-                  <Microscope size={120} />
-               </div>
-               <div className="flex items-center gap-6 mb-10 relative z-10">
+            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden">
+               <div className="flex items-center gap-6 mb-10">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-[#1C39BB]/10 rounded-full flex items-center justify-center text-[#1C39BB]">
                      <Microscope size={24} />
                   </div>
                   <div>
                     <h3 className="text-xl md:text-3xl font-serif-zh font-bold tracking-widest text-[#1C39BB]">Alice's Lab Diary</h3>
-                    <p className="text-[8px] md:text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold mt-1">首席实验室分析</p>
+                    <p className="text-[8px] md:text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold mt-1">实验室分析日记</p>
                   </div>
                </div>
-               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2 relative z-10">
+               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2">
                  {item.aliceLabDiary}
                </p>
             </section>
@@ -119,7 +116,7 @@ const ProductDetail: React.FC<{
                <div className="space-y-8">
                   <div className="flex items-center gap-4">
                      <Sparkles size={20} className="text-[#D75437]" />
-                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Benefits / 极境功效</h5>
+                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Benefits / 功效</h5>
                   </div>
                   <div className="space-y-4">
                      {item.benefits.map(b => (
@@ -134,7 +131,7 @@ const ProductDetail: React.FC<{
                <div className="space-y-8">
                   <div className="flex items-center gap-4">
                      <BookOpen size={20} className="text-[#1C39BB]" />
-                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Usage / 祭司建议</h5>
+                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Usage / 使用</h5>
                   </div>
                   <div className="p-8 bg-white border border-black/5 rounded-[2rem] shadow-sm">
                      <p className="text-sm md:text-lg font-serif-zh text-black/70 leading-[2] whitespace-pre-wrap">
@@ -146,18 +143,13 @@ const ProductDetail: React.FC<{
 
             <div className="pt-12 md:pt-20 border-t border-black/5">
               <button 
-                className="w-full py-8 md:py-10 bg-[#1A1A1A] text-white rounded-full transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-2xl border border-white/10 group overflow-hidden"
+                className="w-full py-8 md:py-12 bg-[#D75437] text-white rounded-full text-xs md:text-xl tracking-[0.4em] uppercase font-bold shadow-[0_20px_40px_-15px_rgba(215,84,55,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(215,84,55,0.6)] flex items-center justify-center gap-4 md:gap-6 group transition-all duration-500 hover:scale-[1.02] active:scale-95 border border-white/20"
                 onClick={() => window.open(ASSETS.xhs_link, '_blank')}
               >
-                <div className="flex items-center justify-center gap-4 md:gap-8 px-6">
-                  <div className="p-2 md:p-3 bg-[#D75437] rounded-full group-hover:bg-white group-hover:text-[#D75437] transition-colors">
-                    <ShoppingBag size={22} className="group-hover:rotate-12 transition-transform" />
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-xs md:text-2xl font-serif-zh font-bold tracking-widest whitespace-nowrap uppercase">SHOP ON REDNOTE · 极速购</span>
-                    <span className="text-[6px] md:text-[10px] opacity-40 tracking-[0.4em] font-cinzel uppercase whitespace-nowrap">Official Inspiration Sanctuary</span>
-                  </div>
+                <div className="p-2 md:p-3 bg-white/20 rounded-full group-hover:bg-white group-hover:text-[#D75437] transition-colors">
+                  <ShoppingBag size={20} className="group-hover:rotate-12 transition-transform" />
                 </div>
+                <span className="whitespace-nowrap">SHOP ON REDNOTE · 极速购</span>
               </button>
             </div>
           </div>
