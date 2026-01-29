@@ -310,11 +310,11 @@ heData.forEach((g, i) => g.items.forEach((item, j) => {
 // --- [境系列：10款芳香美学] ---
 const jingData = [
   { group: '芳香美学', folder: 'place', items: [
-    ['陶瓷皿', 'Crackled', '388', 'Set', 'Crackled.webp'], 
+    ['扩香石', 'Crackled', '388', 'Set', 'Crackled.webp'], 
     ['芳香链', 'Necklace ', '368', 'Piece', 'Necklace .webp'], 
     ['木核扩', 'Walnut', '198', 'Piece', 'Walnut.webp'], 
-    ['蜡烛', 'candle', '228', '200g', 'candle.webp'], 
-    ['存香瓶', 'Vessel', '158', 'Piece', 'Vessel.webp']
+    ['精油烛', 'candle', '228', '200g', 'candle.webp'], 
+    ['雾露瓶', 'Vessel', '158', 'Piece', 'Vessel.webp']
   ]},
   { group: '凝思之物', folder: 'Meditation', items: [
     ['一柱香', 'Incense Sticks', '128', '30pcs', 'Incense Sticks.webp'], 
