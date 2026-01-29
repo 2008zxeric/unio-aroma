@@ -110,6 +110,7 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
+      {/* 优化后的玻璃化导航栏 */}
       <div className="fixed bottom-10 left-0 w-full flex flex-col items-center gap-6 z-[900] pointer-events-none px-6">
         <div className="w-full max-w-[500px] flex justify-end gap-4">
            <button onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="pointer-events-auto p-5 bg-[#D75437] text-white rounded-full shadow-2xl hover:scale-110 transition-all border border-white/20">
