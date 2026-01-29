@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice, getAIQuota } from '../services/gemini';
 
-// Fixed: Added missing closing logic and default export to resolve "no default export" error in App.tsx
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }
@@ -16,14 +15,14 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // 定期更新配额显示
+  // 初始化并监听配额
   useEffect(() => {
     const updateQuota = () => {
       const q = getAIQuota();
       setRemaining(Math.max(0, 5 - q.count));
     };
     updateQuota();
-    const timer = setInterval(updateQuota, 5000);
+    const timer = setInterval(updateQuota, 3000);
     return () => clearInterval(timer);
   }, []);
 
@@ -37,7 +36,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     const trimmedInput = input.trim();
     if (!trimmedInput || loading) return;
     
-    // 检查前端配额
+    // 再次双重校验配额
     if (remaining <= 0) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
@@ -54,7 +53,8 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-      // 成功发送后刷新配额
+      
+      // 更新配额
       const q = getAIQuota();
       setRemaining(Math.max(0, 5 - q.count));
     } catch (err: any) {
@@ -100,9 +100,9 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   return (
     <div className="h-screen flex flex-col pt-24 md:pt-48 pb-32 md:pb-48 px-4 md:px-20 bg-[#F5F5F5] relative overflow-hidden">
       
-      {/* 状态指示器 - 简化显示 */}
+      {/* 顶部悬浮状态栏 */}
       <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[600]">
-        <div className="px-6 py-2 rounded-full border bg-white/80 backdrop-blur-xl shadow-lg border-green-100 flex items-center gap-3">
+        <div className="px-6 py-2 rounded-full border bg-white/80 backdrop-blur-xl shadow-lg border-green-100 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-[10px] font-bold tracking-widest uppercase text-black/60">
             祭坛在线 / 今日剩余 {remaining} 次感知
@@ -123,11 +123,14 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel mt-1">AI Scent Oracle · UNIO</p>
             </div>
           </div>
-          <button onClick={() => {
-            if (window.confirm("确定要重置祭坛对话吗？")) {
-              setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。' }]);
-            }
-          }} className="p-2 hover:bg-stone-50 rounded-full text-black/20 transition-all">
+          <button 
+            onClick={() => {
+              if (messages.length > 1 && window.confirm("确定要重置与祭司的对话吗？")) {
+                setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。' }]);
+              }
+            }} 
+            className="p-2 hover:bg-stone-50 rounded-full text-black/20 transition-all"
+          >
             <RefreshCw size={20} />
           </button>
         </div>
@@ -168,11 +171,11 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
             <button 
-              onClick={handleSend}
-              disabled={loading || remaining <= 0}
-              className={`p-4 md:p-8 rounded-full transition-all ${loading || remaining <= 0 ? 'bg-stone-100 text-stone-300' : 'bg-[#D75437] text-white shadow-xl hover:scale-110 active:scale-95'}`}
+              onClick={handleSend} 
+              disabled={loading || !input.trim() || remaining <= 0} 
+              className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90 shadow-xl"
             >
-              <ArrowRight size={24} />
+              {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />}
             </button>
           </div>
         </div>
