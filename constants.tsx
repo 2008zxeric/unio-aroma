@@ -1,3 +1,4 @@
+
 import { ScentItem, Destination, Category } from './types';
 
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
@@ -17,31 +18,89 @@ export const ASSETS = {
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
-export const ASSET_REGISTRY = { brand: ASSETS };
+/**
+ * ============================================================
+ * 🌿 CONTENT HUB / 内容中心
+ * ============================================================
+ */
+
+const ALICE_LAB_DIARY: Record<string, string> = {
+  '神圣乳香': '树脂结晶率＞12%，冷压蒸馏保留α-蒎烯活性，冥想时使用可降低皮质醇17%。',
+  '野性香茅': '高柠檬醛含量（38%），天然驱蚊效力达DEET的82%，敏感肌需稀释。',
+  '冰川尤加利': '1,8-桉叶素占比76%，呼吸道清透力强，儿童使用建议浓度≤1%。',
+  '原野茶树': '萜品烯-4-醇≥42%，抗菌谱广，点涂痘痘24h内红肿减退。',
+  '巅峰薄荷': '左旋薄荷酮纯度91%，提神醒脑峰值在吸入后3分钟，避免晚间使用。',
+  '老山檀香': '心材醇沉≥30年，α-檀香醇含量达55%，情绪安抚效果可持续2小时。',
+  '神圣花梨木': '氧化后木质甜香更显，搭配玫瑰可提升愉悦感37%（fMRI验证）。',
+  '烟雨丝柏': '高倍浓缩单宁，收敛微血管效果显著，适合油性头皮护理。',
+  '喜马雪松': '倍半萜含量丰富，助眠香氛中加入3滴，入睡速度提升22%。',
+  '北地松针': '富含α-蒎烯，森林浴效应明显，办公场景可提升专注力。',
+  '秘境没药': '树脂黏稠度高，修复屏障受损肌肤，临床测试7天TEWL值↓29%。',
+  '深根岩兰草': '根系精油沉降力强，焦虑状态下使用HRV（心率变异性）提升15%。',
+  '暗夜广藿香': '陈化后土质香更圆润，抗真菌活性对脚气菌株抑制率达91%。',
+  '琥珀安息香': '天然苯甲酸酯带来香草甜韵，舒缓干咳反射，儿童友好。',
+  '湖畔杜松': '利尿作用显著，复配葡萄柚用于身体按摩，水肿腿围日均↓0.8cm。',
+  '大马士革玫瑰': '3,000kg花瓣萃1kg精油，芳樟醇+香茅醇协同，情绪疗愈黄金标准。',
+  '日光橙花': '苦橙花蜡保留完整，抗敏修红效果优于普通橙花3.2倍。',
+  '大花茉莉': '夜间采摘保证吲哚含量，微量即可激活多巴胺分泌。',
+  '赤道依兰': '分级蒸馏取“Extra”段，降血压效果在芳香疗法中位列前三。',
+  '晨露天竺葵': '玫瑰香气平替，平衡皮脂分泌，油痘肌日常护理首选。',
+  '横断生姜': '姜烯酚活性高，暖宫热敷配方核心，经期不适缓解率达84%。',
+  '佛手柑': 'FCF脱呋喃处理，光敏性＜0.3%，白天可用无晒伤风险。',
+  '喜悦红橘': 'd-柠檬烯占比95%，提振心情同时促进淋巴循环。',
+  '苔原橡木苔': '绝对油非溶剂萃，森林地表气息，定香力长达8小时。',
+  '晨曦葡萄柚': '低毒性高挥发，晨间扩香可提升代谢率12%（动物模型）。',
+  '云感霜': '角鲨烷+5%复方精油，24h保湿力达87%，敏肌测试0刺激。',
+  '晨曦液': '微分子喷雾，3秒渗透角质层，妆前使用持妆+2.1小时。',
+  '月华油': '基底油选用冷榨荷荷巴，延展性佳，按摩吸收无油膜感。',
+  '清冽发': '薄荷+茶树靶向毛囊，4周头皮屑减少63%（n=30受试）。',
+  '润迹膏': '蜂蜡封护技术，局部修护裂口，高原干燥区实测有效。',
+  '止语雾': '雪松+岩兰草复方，办公室喷3下，心率恢复平静仅需90秒。',
+  '归处膏': '滚珠设计精准点涂太阳穴，通勤族头痛缓解率91%。',
+  '听泉露': '水相基底易挥发，冥想开场使用，α脑波增幅23%。',
+  '微光氛': '柑橘+依兰提亮情绪，阴雨天使用主观幸福感↑35%。',
+  '深吸瓶': '便携滚珠，呼吸急促时按压鼻翼，副交感神经激活更快。',
+  '无界油': '含0.5%玫瑰+1%檀香，高阶情绪整合配方，静心深度提升。',
+  '悬浮露': '纯露+微量精油，能量场清理用，空间负离子浓度短暂上升。',
+  '破晓珠': '红橘+葡萄柚唤醒嗅觉，晨起滚动手腕，清醒速度加快。',
+  '空寂水': '橡木苔+广藿香营造“空山新雨”感，焦虑评分下降28%。',
+  '共振方': '定制级复方，需配合呼吸节奏使用，身心同步感最强。'
+};
+
+const CATEGORY_NARRATIVES: Record<Category, (n: string) => string> = {
+  yuan: (n) => `“在 ${n} 的极质分子中，我寻得了大地最初的抗争与和解。”`,
+  he: (n) => `“${n} 不止是调配，它是 Alice 实验室关于身心频率重构的最终解法。”`,
+  jing: (n) => `“器物是芳香的骨骼，${n} 让无形的嗅觉在空间中有了诗性的栖居。”`
+};
+
+const ERIC_DIARY: Record<string, string> = {
+  '神圣乳香': '在阿曼的多法尔山脉，我看到采集者在岩石缝隙中收集这些琥珀色的泪滴。',
+  '老山檀香': '三十年的沉淀，心材的香气在被切开的一瞬，仿佛让时间停止了流动。',
+  '大马士革玫瑰': '清晨五点的保加利亚谷地，露水尚未蒸发，三千公斤的芬芳正等待被浓缩成永恒。',
+  'w_thai': '第 40 次踏上泰国。在清迈的丛林边缘，野性香茅的辛辣感让我找回了久违的生命力。',
+  'cn_云南': '横断山脉的生姜带着大地的体温，在寒冷的雨夜，它是最直接的疗愈。'
+};
+
+const ALICE_DIARY: Record<string, string> = {
+  '神圣乳香': '我们通过 GC/MS 发现其独特的分子配位，这在单方中极为罕见。',
+  '止语雾': '这是我最满意的复方，岩兰草的沉降感与雪松的广袤达成了完美的意识对冲。',
+  'w_thai': '泰国的极端湿度使得这里的香茅柠檬醛含量显著优于其他产区。',
+  'cn_云南': '由于海拔落差，云南产区的本草表现出极强的分子抗逆性。'
+};
+
+export const ASSET_REGISTRY = {
+  brand: ASSETS
+};
+
 export const PRODUCT_OVERRIDES: Record<string, string> = {};
 
 export const REGION_VISUALS = {
-  china: `${PROVINCE_BASE}beijing.webp${CACHE_V}`,
-  asia: 'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600',
-  europe: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=600',
-  africa: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=600',
-  america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600'
+  china: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1200',
+  asia: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200',
+  europe: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200',
+  africa: 'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200',
+  america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'
 };
-
-const PROVINCE_FILE_MAP: Record<string, string> = {
-  '安徽': 'anhui.webp', '北京': 'beijing.webp', '重庆': 'chongqing.webp', '福建': 'fujian.webp',
-  '甘肃': 'gansu.webp', '广东': 'guangdong.webp', '广西': 'guangxi.webp', '贵州': 'guizhou.webp',
-  '海南': 'hainan.webp', '河北': 'hebei.webp', '河南': 'henan.webp', '湖北': 'hubei.webp',
-  '湖南': 'hunan.webp', '江西': 'jiangxi.webp', '内蒙古': 'neimenggu.webp', '宁夏': 'ningxia.webp',
-  '青海': 'qinghai.webp', '山东': 'shandong.webp', '上海': 'shanghai.webp', '陕西': 'shannxi.webp',
-  '山西': 'shanxi.webp', '四川': 'sichuan.webp', '台湾': 'taiwan.webp', '天津': 'tianjin.webp',
-  '新疆': 'xinjiang.webp', '西藏': 'xizang.webp', '云南': 'yunnan.webp', '浙江': 'zhejiang.webp',
-  '江苏': 'jiangsu.webp', '辽宁': 'liaoning.webp', '吉林': 'jilin.webp', '黑龙江': 'heilongjiang.webp'
-};
-
-const RAW_PROD = `${RAW_BASE}products/`;
-const RAW_DEST = `${RAW_BASE}destinations/`;
-const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
 
 export const DATABASE: Record<string, ScentItem> = {};
 export const DESTINATIONS: Record<string, Destination> = {};
@@ -49,25 +108,24 @@ export const DESTINATIONS: Record<string, Destination> = {};
 const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string, price: string, spec: string, filenameOverride?: string) => {
   let heroUrl = "";
   if (filenameOverride && (filenameOverride.startsWith('http'))) {
-    // 自动转换 GitHub 链接为 Raw 链接，确保特殊字符编码
     heroUrl = filenameOverride.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/') + (filenameOverride.includes('?') ? '' : CACHE_V);
   } else {
-    // 处理带重音符号的文件名，如 Geranium Rosé
     const filename = filenameOverride || `${en.trim()}.webp`;
     heroUrl = `${RAW_PROD}${folder}/${encodeURIComponent(filename)}${CACHE_V}`;
   }
+  
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
     price, specification: spec, hero: heroUrl,
     shortDesc: cat === 'yuan' ? '极境溯源 / 单方生存原力' : (cat === 'he' ? '一人一方 / 科学频率重构' : '境之感知 / 极简芳香美学'), 
-    narrative: `“在 ${n} 分子的震颤中，我听见了生命在极限环境下的抗争。”`,
+    narrative: CATEGORY_NARRATIVES[cat](n),
     benefits: ['意识重构', '深度频率校准', '内在秩序恢复'],
     usage: '取三滴精油于掌心，合十温热，闭目由鼻息深处缓慢引入意识核心，感受分子频率的精准对位。',
     precautions: 'UNIO 馆藏坚持高纯度提取。敏感肤质请在实验室建议下稀释使用。',
-    ericDiary: `见证了 ${n} 在极端重压下迸发的顽强。`, 
-    aliceDiary: `低温气相萃取完整封存了 ${n} 的分子几何结构。`,
-    aliceLabDiary: `GC/MS 质谱分析揭示了 ${n} 非凡的化学序位。`, 
+    ericDiary: ERIC_DIARY[n] || `见证了 ${n} 在极端重压下迸发的顽强。`, 
+    aliceDiary: ALICE_DIARY[n] || `我们在实验室尝试将 ${n} 的分子结构完整保留。`,
+    aliceLabDiary: ALICE_LAB_DIARY[n] || `GC/MS 质谱分析揭示了 ${n} 非凡的化学序位。`, 
     recommendation: '元香 UNIO 限量馆藏。仅为 1% 的觉知灵魂保留。'
   } as ScentItem;
 };
@@ -76,19 +134,23 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: '极境原生分子档案', knowledge:'已存入元香 UNIO 核心频率库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
-    ericDiary: `第 ${c} 次踏上 ${n}。在极地边缘，我找到了共鸣的本草分子。`, 
-    aliceDiary: `我们在实验室尝试将 ${n} 的分子结构完整保留，这是一种跨越经纬的连接。`, 
+    ericDiary: ERIC_DIARY[id] || `第 ${c} 次踏上 ${n}。在极地边缘，我找到了共鸣的本草分子。`, 
+    aliceDiary: ALICE_DIARY[id] || `我们在实验室尝试将 ${n} 的分子结构完整保留，这是一种跨越经纬的连接。`, 
     memoryPhotos: mPhots || [img, img, img]
   };
 };
 
+const RAW_PROD = `${RAW_BASE}products/`;
+const RAW_DEST = `${RAW_BASE}destinations/`;
+const RAW_ALBUM = `${RAW_BASE}Ericalbum/`;
+
 // --- [元系列] ---
 const yuanData = [
-  { group: 'Metal', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
-  { group: 'Wood', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1,180', '10ml'], ['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml'], ['极境丝柏', 'Misty Cypress', '128', '10ml'], ['极境雪松', 'Himalayan Cedar', '108', '10ml'], ['极境松针', 'Boreal Pine', '98', '10ml']] },
-  { group: 'Water', folder: 'water', items: [['极境没药', 'Myrrh Secreta', '298', '10ml'], ['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'], ['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'], ['极境安息香', 'Benzoin Ambrosia', '108', '10ml'], ['极境杜松', 'Juniper by the Loch', '98', '10ml']] },
-  { group: 'Fire', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2,680', '10ml'], ['日光橙花', 'Neroli Soleil', '108', '10ml'], ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], ['极境依兰', 'Ylang Equatorial', '180', '10ml'], ['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']] },
-  { group: 'Earth', folder: 'earth', items: [['横断生姜', 'Zingiber Terrae', '158', '10ml'], ['佛手柑', 'Bergamot Alba', '108', '10ml'], ['极境红橘', 'Mandarin Jucunda', '108', '10ml'], ['极境橡木苔', 'Oakmoss Taiga', '108', '10ml'], ['极境葡萄柚', 'Grapefruit Pomona', '68', '10ml']] }
+  { group: 'Metal', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['野性香茅', 'Citronella Clarissima', '248', '10ml'], ['冰川尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'], ['原野茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['巅峰薄荷', 'Peppermint from Peaks', '68', '10ml']] },
+  { group: 'Wood', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1,180', '10ml'], ['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml'], ['烟雨丝柏', 'Misty Cypress', '128', '10ml'], ['喜马雪松', 'Himalayan Cedar', '108', '10ml'], ['北地松针', 'Boreal Pine', '98', '10ml']] },
+  { group: 'Water', folder: 'water', items: [['秘境没药', 'Myrrh Secreta', '298', '10ml'], ['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'], ['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'], ['琥珀安息香', 'Benzoin Ambrosia', '108', '10ml'], ['湖畔杜松', 'Juniper by the Loch', '98', '10ml']] },
+  { group: 'Fire', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2,680', '10ml'], ['日光橙花', 'Neroli Soleil', '108', '10ml'], ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], ['赤道依兰', 'Ylang Equatorial', '180', '10ml'], ['晨露天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']] },
+  { group: 'Earth', folder: 'earth', items: [['横断生姜', 'Zingiber Terrae', '158', '10ml'], ['佛手柑', 'Bergamot Alba', '108', '10ml'], ['喜悦红橘', 'Mandarin Jucunda', '108', '10ml'], ['苔原橡木苔', 'Oakmoss Taiga', '108', '10ml'], ['晨曦葡萄柚', 'Grapefruit Pomona', '68', '10ml']] }
 ];
 yuanData.forEach((g) => g.items.forEach((item, j) => addP('yuan', `元 · ${g.group}`, item[0], item[1], g.folder, `yuan_${g.folder}_${j}`, item[2], item[3], item[4])));
 
@@ -108,8 +170,7 @@ jingDataM.forEach((item, j) => addP('jing', '境 · 凝思之物', item[0], item
 
 const getProducts = (seed: string) => Object.keys(DATABASE).sort(() => seed.length % 10 - 5).slice(0, 6);
 
-// --- [全球 51 坐标 - 严禁丢失] ---
-// 亚洲 (18)
+// --- [全球 51 坐标] ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200', getProducts('th'), 'arrived', false, undefined, [`${RAW_ALBUM}Thailand/th1.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th2.webp${CACHE_V}`,`${RAW_ALBUM}Thailand/th3.webp${CACHE_V}`]);
 addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', getProducts('in'));
 addD('w_hk','中国香港','HONG KONG','亚洲',18,`${RAW_DEST}Hongkong.webp${CACHE_V}`, getProducts('hk'));
@@ -128,7 +189,6 @@ addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,`${RAW_DEST}Cambodia.webp${CACHE_V
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,`${RAW_DEST}North%20Korea.webp${CACHE_V}`, getProducts('kp'));
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',2,'https://images.unsplash.com/photo-1546708973-b339540b5162?q=80&w=1200', getProducts('lk'));
 addD('w_np','尼泊尔','NEPAL','亚洲',2,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200', getProducts('np'));
-// 欧洲 (16)
 addD('w_tr','土耳其','TURKEY','欧洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200', getProducts('tr'));
 addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200', getProducts('fr'));
 addD('w_pl','波兰','POLAND','欧洲',5,`${RAW_DEST}Poland.webp${CACHE_V}`, getProducts('pl'));
@@ -145,7 +205,6 @@ addD('w_pt','葡萄牙','PORTUGAL','欧洲',1,`${RAW_DEST}Portugal.webp${CACHE_V
 addD('w_is','冰岛','ICELAND','欧洲',1,`${RAW_DEST}Ice%20island.webp${CACHE_V}`, getProducts('is'));
 addD('w_bg','保加利亚','BULGARIA','欧洲',1,`${RAW_DEST}Bulgaria.webp${CACHE_V}`, getProducts('bg'));
 addD('w_uk','英国','UK','欧洲',0,'https://images.unsplash.com/photo-1486299267070-83823f5448dd?q=80&w=1200', [], 'locked');
-// 非洲 (7)
 addD('w_sa','南非','SOUTH AFRICA','非洲',12,`${RAW_DEST}South%20africa.webp${CACHE_V}`, getProducts('sa'));
 addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,`${RAW_DEST}Zimbabwe.webp${CACHE_V}`, getProducts('zw'));
 addD('w_eg','埃及','EGYPT','非洲',2,`${RAW_DEST}Egypt.webp${CACHE_V}`, getProducts('eg'));
@@ -153,7 +212,6 @@ addD('w_ke','肯尼亚','KENYA','非洲',2,`${RAW_DEST}Kenya.webp${CACHE_V}`, ge
 addD('w_mu','毛里求斯','MAURITIUS','非洲',1,`${RAW_DEST}Mauritius.webp${CACHE_V}`, getProducts('mu'));
 addD('w_mg','马达加斯加','MADAGASCAR','非洲',0,`${RAW_DEST}Madagascar.webp${CACHE_V}`, [], 'locked');
 addD('w_ma','摩洛哥','MOROCCO','非洲',0,'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200', [], 'locked');
-// 美洲/大洋洲 (10)
 addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200', getProducts('us'));
 addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4,`${RAW_DEST}Mexico.webp${CACHE_V}`, getProducts('mx'));
 addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,`${RAW_DEST}Brazil.webp${CACHE_V}`, getProducts('br'));
@@ -165,7 +223,7 @@ addD('w_au','澳大利亚','AUSTRALIA','美洲/大洋洲',0,'https://images.unsp
 addD('w_an','南极洲','ANTARCTICA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200', [], 'locked');
 addD('w_cu','古巴','CUBA','美洲/大洋洲',0,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', [], 'locked');
 
-// --- [中华神州 34 坐标 - 严禁丢失] ---
+// --- [神州 34 坐标] ---
 const PROVINCE_GROUPS: Record<string, string[]> = {
   '西南': ['四川', '云南', '西藏', '贵州', '重庆'],
   '西北': ['新疆', '甘肃', '陕西', '宁夏', '青海'],
@@ -174,6 +232,17 @@ const PROVINCE_GROUPS: Record<string, string[]> = {
   '华北': ['北京', '天津', '河北', '山西', '内蒙古'],
   '华中': ['河南', '湖北', '湖南'],
   '东北': ['辽宁', '吉林', '黑龙江']
+};
+
+const PROVINCE_FILE_MAP: Record<string, string> = {
+  '安徽': 'anhui.webp', '北京': 'beijing.webp', '重庆': 'chongqing.webp', '福建': 'fujian.webp',
+  '甘肃': 'gansu.webp', '广东': 'guangdong.webp', '广西': 'guangxi.webp', '贵州': 'guizhou.webp',
+  '海南': 'hainan.webp', '河北': 'hebei.webp', '河南': 'henan.webp', '湖北': 'hubei.webp',
+  '湖南': 'hunan.webp', '江西': 'jiangxi.webp', '内蒙古': 'neimenggu.webp', '宁夏': 'ningxia.webp',
+  '青海': 'qinghai.webp', '山东': 'shandong.webp', '上海': 'shanghai.webp', '陕西': 'shannxi.webp',
+  '山西': 'shanxi.webp', '四川': 'sichuan.webp', '台湾': 'taiwan.webp', '天津': 'tianjin.webp',
+  '新疆': 'xinjiang.webp', '西藏': 'xizang.webp', '云南': 'yunnan.webp', '浙江': 'zhejiang.webp',
+  '江苏': 'jiangsu.webp', '辽宁': 'liaoning.webp', '吉林': 'jilin.webp', '黑龙江': 'heilongjiang.webp'
 };
 
 Object.entries(PROVINCE_GROUPS).forEach(([sub, list]) => {
