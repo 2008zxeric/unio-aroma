@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Sparkles, Wind, Volume2, Loader2, AlertCircle, Key, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '欢迎来到感官祭坛。我是 Alice 与 Eric 的数字化意识。请告诉我，你此刻内心的杂音是什么？我们将从拾载寻香的馆藏中，为你寻找那份跨越山海的寻香处方。' }
+    { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好倾听你内心的杂音。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,10 +17,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, loading]);
 
@@ -28,9 +25,8 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       // @ts-ignore
       await window.aistudio.openSelectKey();
-      // 假设授权成功，立即尝试清除错误状态并允许对话
       setErrorType('none');
-      // 如果消息列表只有欢迎语，且用户之前尝试过发送但失败了，可以提示用户重试
+      // 选择后假设成功，让用户可以再次点击发送
     } catch (e) {
       console.error("Failed to open key dialog", e);
     }
@@ -42,19 +38,18 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     
     setInput('');
     setErrorType('none');
-    const updatedMessages: ChatMessage[] = [...messages, { role: 'user', content: trimmedInput }];
-    setMessages(updatedMessages);
+    const userMsg: ChatMessage = { role: 'user', content: trimmedInput };
+    setMessages(prev => [...prev, userMsg]);
     setLoading(true);
 
     try {
-      const reply = await getOracleResponse(updatedMessages);
+      const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err: any) {
-      console.error("Send failed:", err);
-      if (err.message === "MISSING_KEY" || err.message === "INVALID_KEY") {
+      console.error("Oracle invocation failed:", err);
+      if (err.message === "RESELECT_KEY") {
         setErrorType('missing');
-        // 自动弹出，减少用户操作
-        handleOpenKeyDialog();
+        handleOpenKeyDialog(); // 自动触发选择
       } else {
         setErrorType('failed');
       }
@@ -107,7 +102,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · 元香 UNIO</p>
             </div>
           </div>
-          <button onClick={() => setMessages([{ role: 'assistant', content: '祭坛已重置，分子频率恢复初始状态。请再次告诉我你的困惑。' }])} className="p-2 hover:bg-stone-50 rounded-full text-black/20 hover:text-[#D75437] transition-all">
+          <button onClick={() => setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。祭坛已重置。' }])} className="p-2 hover:bg-stone-50 rounded-full text-black/20 hover:text-[#D75437] transition-all">
             <RefreshCw size={20} />
           </button>
         </div>
@@ -115,19 +110,10 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-              <div 
-                className={`group relative max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${
-                  m.role === 'user' 
-                  ? 'bg-[#1a1a1a] text-white rounded-tr-none shadow-2xl' 
-                  : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh leading-relaxed tracking-wide shadow-sm border border-black/5'
-                }`}
-              >
+              <div className={`group relative max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${m.role === 'user' ? 'bg-[#1a1a1a] text-white rounded-tr-none shadow-2xl' : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh leading-relaxed tracking-wide border border-black/5'}`}>
                 {m.content}
                 {m.role === 'assistant' && (
-                  <button 
-                    onClick={() => handleVoice(m.content, i)}
-                    className={`absolute -bottom-4 -right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${playingAudio === i ? 'bg-[#D75437] text-white' : 'bg-white text-black hover:scale-110'}`}
-                  >
+                  <button onClick={() => handleVoice(m.content, i)} className={`absolute -bottom-4 -right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${playingAudio === i ? 'bg-[#D75437] text-white' : 'bg-white text-black hover:scale-110'}`}>
                     {playingAudio === i ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />}
                   </button>
                 )}
@@ -137,9 +123,9 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           
           {loading && (
             <div className="flex justify-start animate-in fade-in duration-300">
-               <div className="bg-[#FAF9F5] border border-black/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] rounded-tl-none flex items-center gap-4 text-black/30">
+               <div className="bg-[#FAF9F5] border border-black/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] rounded-tl-none flex items-center gap-4 text-black/30 italic font-serif-zh text-sm md:text-xl">
                   <Wind size={20} className="animate-spin text-[#D75437]" />
-                  <span className="font-serif-zh tracking-widest text-xs md:text-xl italic">正在调配极境分子频率...</span>
+                  正在调配极境分子频率...
                </div>
             </div>
           )}
@@ -149,22 +135,13 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <Key className="text-red-400" size={48} />
               <div className="text-center space-y-2">
                 <p className="text-red-900 font-serif-zh font-bold text-xl">极境密钥未对齐</p>
-                <p className="text-red-600/70 text-sm">祭坛无法连接至极境数据库，请点击下方按钮唤醒连接。</p>
+                <p className="text-red-600/70 text-sm">祭坛无法感知您的身份。请点击下方按钮，在弹出窗口中选择一个【已启用结算】的 API 密钥。</p>
               </div>
-              <button 
-                onClick={handleOpenKeyDialog}
-                className="px-10 py-4 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-xl hover:bg-red-700 transition-all flex items-center gap-3 active:scale-95"
-              >
+              <button onClick={handleOpenKeyDialog} className="px-10 py-4 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-xl hover:bg-red-700 transition-all flex items-center gap-3">
                 <ShieldCheck size={20} /> 唤醒祭坛连接
               </button>
+              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-[10px] text-red-600/40 hover:underline">查看 API 计费说明 (Billing Required)</a>
             </div>
-          )}
-
-          {errorType === 'failed' && (
-             <div className="flex items-center gap-4 p-8 bg-amber-50 rounded-2xl text-amber-800 border border-amber-100">
-               <AlertCircle size={24} />
-               <p className="text-sm font-serif-zh">当前信号不稳定，请静心片刻后再试，或检查您的账户额度。</p>
-             </div>
           )}
         </div>
 
@@ -172,20 +149,13 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           <div className="max-w-3xl mx-auto flex gap-4 md:gap-8 bg-white p-2 md:p-5 rounded-full shadow-2xl border border-black/5">
             <input 
               value={input} 
-              onChange={(e) => {
-                setInput(e.target.value);
-                if (errorType !== 'none') setErrorType('none');
-              }} 
+              onChange={(e) => { setInput(e.target.value); if (errorType !== 'none') setErrorType('none'); }} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
               placeholder={loading ? "祭司正在沉思..." : "倾诉你内心的杂音..."} 
               disabled={loading}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
-            <button 
-              onClick={handleSend} 
-              disabled={loading || !input.trim()}
-              className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90"
-            >
+            <button onClick={handleSend} disabled={loading || !input.trim()} className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90">
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />}
             </button>
           </div>
