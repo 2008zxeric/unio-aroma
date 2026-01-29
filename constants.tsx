@@ -24,7 +24,6 @@ export const PRODUCT_OVERRIDES: Record<string, string> = {};
 /**
  * ============================================================
  * 🌿 ERIC'S EXTREME JOURNALS / 寻香行历日记库
- * 全量补完，包含全球 51 坐标及神州 34 坐标
  * ============================================================
  */
 const ERIC_JOURNAL: Record<string, string> = {
@@ -34,7 +33,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   '大马士革玫瑰': '三千公斤花瓣萃取的一公斤，是清晨五点谷地里尚未蒸发的灵魂，系情绪疗愈的黄金标准。',
   '巅峰薄荷': '左旋薄荷酮的纯净，在吸入后的第三分钟达到峰值，像极了在阿尔卑斯之巅的一次深呼吸。',
 
-  // --- 全球坐标日记 (51个全量) ---
+  // --- 全球坐标日记 ---
   'w_thai': '清迈的雨季，空气里写满了湿热的柠檬草气息。在古刹的香火中，我找到了嗅觉上的某种安宁。',
   'w_in': '迈索尔的尘土里都浸透了檀香。在这里，香气不是奢侈品，而是镌刻在万物骨骼里的祷告。',
   'w_hk': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。它是水泥森林里脉动的、带有烟火气的芳香心脏。',
@@ -87,7 +86,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   'w_pe': '马丘比丘云雾缭绕，古柯叶的微苦混着安第斯山冷空气。印加帝国的呼吸仍未停歇。',
   'w_cu': '哈瓦那老城，雪茄烟草醇厚如绸缎，混着海盐与殖民建筑的霉味。时间在此发酵。',
 
-  // --- 神州坐标日记 (34个全量) ---
+  // --- 神州坐标日记 ---
   'cn_北京': '红墙与古松。干燥的冬日空气里，带着一种历经千载的肃穆与威严，沉静得让人不忍大声呼吸。',
   'cn_天津': '海河边的槐花落满石板路，咸腥水汽混着煎饼馃子的芝麻香。北方港口的市井诗。',
   'cn_河北': '太行山崖柏在风中析出树脂。那是燕赵大地骨子里的刚烈与清苦。',
@@ -119,22 +118,11 @@ const ERIC_JOURNAL: Record<string, string> = {
   'cn_青海': '茶卡盐湖，结晶盐粒在阳光下蒸腾出矿物冷香。天空之镜的呼吸，纯净得令人窒息。',
   'cn_宁夏': '贺兰山下，枸杞晒场飘出微甜药香。塞上江南的丰饶，藏在每一粒红果中。',
   'cn_新疆': '赛里木湖的蓝是不讲理的。空气里有冰川融水的冷冽，那是大自然从未被人类惊扰过的初吻。',
-  'cn_香港': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。它是水泥森林里脉动的、带有烟火气的芳香心脏。',
-  'cn_澳门': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。东西方在此交换一缕魂魄。',
-  'cn_台湾': '阿里山云海，桧木清香混着高山乌龙茶的冷韵。宝岛的灵秀，全在这一呼一吸之间。',
+  'cn_香港': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。',
+  'cn_澳门': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。',
+  'cn_台湾': '阿里山云海，桧木清香混着高山乌龙茶的冷韵。',
 };
 
-const ERIC_FALLBACKS = [
-  "在极境中，我意识到大地的呼吸比人类的言语更具力量。",
-  "每一滴精油都是大地的眼泪，封存了本草在极限环境下的生存意志。",
-  "溯源的意义不在于终点，而在于那份与原始自然不期而遇的震颤。"
-];
-
-/**
- * ============================================================
- * 💧 ALICE'S LAB DIARY / 实验室分析日记
- * ============================================================
- */
 const ALICE_LAB_DIARY: Record<string, string> = {
   // 元系列
   '神圣乳香': '树脂结晶率＞12%，冷压蒸馏保留α-蒎烯活性，冥想时使用可降低皮质醇17%。',
@@ -201,7 +189,7 @@ export const DESTINATIONS: Record<string, Destination> = {};
 const RAW_PROD = `${RAW_BASE}products/`;
 const RAW_DEST = `${RAW_BASE}destinations/`;
 
-const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, folder: string, id: string, price: string, spec: string, override?: string) => {
+const addP = (cat: Category, group: string, n: string, en: string, folder: string, id: string, price: string, spec: string, override?: string) => {
   let heroUrl = override && override.startsWith('http') ? override : `${RAW_PROD}${folder}/${encodeURIComponent(override || `${en.trim()}.webp`)}${CACHE_V}`;
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
@@ -220,33 +208,87 @@ const addP = (cat: 'yuan'|'he'|'jing', group: string, n: string, en: string, fol
 };
 
 const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string) => {
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const fallback = ERIC_FALLBACKS[hash % ERIC_FALLBACKS.length];
-  let diary = ERIC_JOURNAL[id] || ERIC_JOURNAL[`cn_${n}`] || ERIC_JOURNAL[n] || `在 ${n}，${fallback}`;
+  const fallback = ERIC_JOURNAL[id] || `在 ${n} 的微光中，我找到了属于这里的嗅觉注脚。`;
   
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: '极境原生分子档案', knowledge:'已存入 UNIO 核心库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
-    ericDiary: diary, aliceDiary: `我们在实验室对 ${n} 的生态样本进行了分段提取。`, memoryPhotos: [img, img, img]
+    ericDiary: fallback, aliceDiary: `我们在实验室对 ${n} 的生态样本进行了分段提取。`, memoryPhotos: [img, img, img]
   };
 };
 
-// --- [产品库初始化] ---
+// --- [产品库初始化：元 · 香 · 境 稳定路径版] ---
+
+// 1. 元 (Yuan) - 单方系列 (25款)
 const yuanData = [
-  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['野性香茅', 'Citronella Clarissima', '248', '10ml'], ['冰川尤加利', 'Eucalyptus Glaciale', '98', '10ml'], ['原野茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['巅峰薄荷', 'Peppermint from Peaks', '68', '10ml']] },
-  { group: 'Wood木', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1,180', '10ml'], ['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml'], ['烟雨丝柏', 'Misty Cypress', '128', '10ml'], ['喜马雪松', 'Himalayan Cedar', '108', '10ml'], ['北地松针', 'Boreal Pine', '98', '10ml']] },
-  { group: 'Water水', folder: 'water', items: [['秘境没药', 'Myrrh Secreta', '298', '10ml'], ['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'], ['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'], ['琥珀安息香', 'Benzoin Ambrosia', '108', '10ml'], ['湖畔杜松', 'Juniper by the Loch', '98', '10ml']] },
-  { group: 'Fire火', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2,680', '10ml'], ['日光橙花', 'Neroli Soleil', '108', '10ml'], ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], ['赤道依兰', 'Ylang Equatorial', '180', '10ml'], ['晨露天竺葵', 'Geranium Rosé', '98', '10ml']] },
-  { group: 'Earth土', folder: 'earth', items: [['横断生姜', 'Zingiber Terrae', '158', '10ml'], ['佛手柑', 'Bergamot Alba', '108', '10ml'], ['喜悦红橘', 'Mandarin Jucunda', '108', '10ml'], ['苔原橡木苔', 'Oakmoss Taiga', '108', '10ml'], ['晨曦葡萄柚', 'Grapefruit Pomona', '68', '10ml']] }
+  { group: 'Metal金', folder: 'metal', items: [
+    ['神圣乳香', 'Sacred Frankincense', '248', '10ml'], 
+    ['野性香茅', 'Citronella Clarissima', '248', '10ml'], 
+    ['冰川尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'], 
+    ['原野茶树', 'Tea Tree Antiseptic', '98', '10ml'], 
+    ['巅峰薄荷', 'Peppermint from Peaks', '68', '10ml']
+  ]},
+  { group: 'Wood木', folder: 'wood', items: [
+    ['老山檀香', 'Aged Sandalwood', '1,180', '10ml'], 
+    ['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml'], 
+    ['烟雨丝柏', 'Misty Cypress', '128', '10ml'], 
+    ['喜马雪松', 'Himalayan Cedar', '108', '10ml'], 
+    ['北地松针', 'Boreal Pine', '98', '10ml']
+  ]},
+  { group: 'Water水', folder: 'water', items: [
+    ['秘境没药', 'Myrrh Secreta', '298', '10ml'], 
+    ['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'], 
+    ['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'], 
+    ['琥珀安息香', 'Benzoin Ambrosia', '108', '10ml'], 
+    ['湖畔杜松', 'Juniper by the Loch', '98', '10ml']
+  ]},
+  { group: 'Fire火', folder: 'fire', items: [
+    ['大马士革玫瑰', 'Damask Rose Aureate', '2,680', '10ml'], 
+    ['日光橙花', 'Neroli Soleil', '108', '10ml'], 
+    ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], 
+    ['赤道依兰', 'Ylang Equatorial', '180', '10ml'], 
+    ['晨露天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']
+  ]},
+  { group: 'Earth土', folder: 'earth', items: [
+    ['横断生姜', 'Zingiber Terrae', '158', '10ml'], 
+    ['佛手柑', 'Bergamot Alba', '108', '10ml'], 
+    ['喜悦红橘', 'Mandarin Jucunda', '108', '10ml'], 
+    ['苔原橡木苔', 'Oakmoss Taiga', '108', '10ml'], 
+    ['晨曦葡萄柚', 'Grapefruit Pomona', '68', '10ml']
+  ]}
 ];
 yuanData.forEach(g => g.items.forEach((item, j) => addP('yuan', `元 · ${g.group}`, item[0], item[1], g.folder, `yuan_${g.folder}_${j}`, item[2], item[3], item[4])));
 
+// 2. 香 (He/Xiang) - 复方系列 (10款)
 const heData = [
-  { group: 'Body身体', folder: 'body', items: [['云感霜', 'CLOUD VELVET', '268', '50ml'], ['晨曦液', 'DAWN GLOW', '228', '100ml'], ['月华油', 'MOONLIGHT OIL', '298', '30ml'], ['清冽发', 'FROST MINT', '198', '60ml'], ['润迹膏', 'TRACE BALM', '168', '15ml']] },
-  { group: 'Mind心智', folder: 'heart', items: [['止语雾', 'SILENT MIST', '188', '100ml'], ['归处膏', 'SANCTUARY', '158', '10ml'], ['听泉露', 'ZEN FOUNTAIN', '248', '30ml'], ['微光氛', 'GLIMMER', '228', '30ml'], ['深吸瓶', 'DEEP BREATH', '138', '10ml']] },
-  { group: 'Soul灵魂', folder: 'soul', items: [['无界油', 'BOUNDLESS', '328', '30ml'], ['悬浮露', 'FLOATING', '208', '100ml'], ['破晓珠', 'DAYBREAK', '148', '10ml'], ['空寂水', 'VOID MOSS', '198', '100ml'], ['共振方', 'RESONANCE FORMULA', '368', '30ml']] }
+  { group: 'Body身体', folder: 'body', items: [
+    ['云感霜', 'CLOUD VELVET', '268', '50ml', 'cloud velvet.webp'], 
+    ['晨曦液', 'DAWN GLOW', '228', '100ml', 'Dawn Glow.webp'], 
+    ['月华油', 'MOONLIGHT OIL', '298', '30ml', 'Moonlight Oil.webp'], 
+    ['清冽发', 'FROST MINT', '198', '60ml', 'Frost Mint.webp'], 
+    ['润迹膏', 'TRACE BALM', '168', '15ml', 'Trace Balm.webp']
+  ]},
+  { group: 'Mind心智', folder: 'heart', items: [
+    ['止语雾', 'SILENT MIST', '188', '100ml', ASSETS.hero_spary], 
+    ['归处膏', 'SANCTUARY', '158', '10ml', ASSETS.hero_spary], 
+    ['听泉露', 'ZEN FOUNTAIN', '248', '30ml', ASSETS.hero_spary], 
+    ['微光氛', 'GLIMMER', '228', '30ml', ASSETS.hero_spary], 
+    ['深吸瓶', 'DEEP BREATH', '138', '10ml', ASSETS.hero_spary]
+  ]}
 ];
 heData.forEach(g => g.items.forEach((item, j) => addP('he', `香 · ${g.group}`, item[0], item[1], g.folder, `he_${g.folder}_${j}`, item[2], item[3], item[4])));
+
+// 3. 境 (Jing) - 灵魂/空间美学 (5款)
+const jingData = [
+  { group: 'Soul灵魂', folder: 'soul', items: [
+    ['无界油', 'BOUNDLESS', '328', '30ml', ASSETS.hero_spary], 
+    ['悬浮露', 'FLOATING', '208', '100ml', ASSETS.hero_spary], 
+    ['破晓珠', 'DAYBREAK', '148', '10ml', ASSETS.hero_spary], 
+    ['空寂水', 'VOID MOSS', '198', '100ml', ASSETS.hero_spary], 
+    ['共振方', 'RESONANCE FORMULA', '368', '30ml', ASSETS.hero_spary]
+  ]}
+];
+jingData.forEach(g => g.items.forEach((item, j) => addP('jing', `境 · ${g.group}`, item[0], item[1], g.folder, `jing_${g.folder}_${j}`, item[2], item[3], item[4])));
 
 const getProducts = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
