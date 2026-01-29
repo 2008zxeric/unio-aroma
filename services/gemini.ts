@@ -37,14 +37,14 @@ ${context}
 };
 
 export const getOracleResponse = async (messages: ChatMessage[]) => {
-  // 关键：不使用缓存的 key，每次调用直接读取 process.env.API_KEY
   const apiKey = process.env.API_KEY;
   if (!apiKey) throw new Error("RESELECT_KEY");
 
+  // 每次请求前动态实例化
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-flash-preview', // 使用 Flash 确保在高并发或低配额下更稳定
       contents: messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }]
@@ -59,9 +59,16 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
     return response.text || "祭坛沉默了，或许是分子的频率尚未对齐。";
   } catch (error: any) {
     console.error("Gemini Oracle Error:", error);
-    const msg = error.message || "";
-    // 如果实体未找到或密钥无效，抛出重选错误
-    if (msg.includes("entity was not found") || msg.includes("not found") || msg.includes("API_KEY_INVALID")) {
+    const msg = error.message?.toLowerCase() || "";
+    // 捕获所有鉴权、项目未找到、配额超限或权限错误
+    if (
+      msg.includes("not found") || 
+      msg.includes("api_key_invalid") || 
+      msg.includes("forbidden") || 
+      msg.includes("permission") ||
+      msg.includes("billing") ||
+      msg.includes("quota")
+    ) {
       throw new Error("RESELECT_KEY");
     }
     throw error;
