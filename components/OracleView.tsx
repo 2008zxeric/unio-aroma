@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw, ShieldAlert, ShieldCheck, Zap, Info, HelpCircle, Terminal } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw, Zap, ShieldCheck, ShieldAlert, Cpu } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
@@ -10,50 +10,33 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorType, setErrorType] = useState<'none' | 'auth_failed' | 'billing_required'>('none');
-  const [playingAudio, setPlayingAudio] = useState<number | null>(null);
-  
-  // 诊断状态
-  const [diagInfo, setDiagInfo] = useState({
-    bridgeFound: false,
-    bridgePath: 'Scanning...',
-    apiKeyExists: !!process.env.API_KEY,
-    lastTry: 'None'
-  });
+  const [keyStatus, setKeyStatus] = useState<'connected' | 'unauthorized' | 'scanning'>('scanning');
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // 1. 自动持续探测环境
-  useEffect(() => {
-    const detect = () => {
-      let found = false;
-      let path = 'None';
-      const tryTarget = (t: any, name: string) => {
-        try {
-          if (t && t.aistudio && t.aistudio.openSelectKey) {
-            found = true;
-            path = name;
-            return true;
-          }
-        } catch (e) {}
-        return false;
-      };
-
-      if (tryTarget(window, 'Local')) {}
-      else if (tryTarget(window.parent, 'Parent')) {}
-      else if (tryTarget(window.top, 'Top')) {}
-
-      setDiagInfo(prev => ({ 
-        ...prev, 
-        bridgeFound: found, 
-        bridgePath: path,
-        apiKeyExists: !!process.env.API_KEY 
-      }));
+  // 1. 尝试静默唤醒 Key 选择器 (不阻塞用户)
+  const triggerKeySelection = () => {
+    const trigger = (target: any) => {
+      try {
+        if (target && target.aistudio && target.aistudio.openSelectKey) {
+          target.aistudio.openSelectKey();
+          return true;
+        }
+      } catch (e) {}
+      return false;
     };
+    trigger(window) || trigger(window.parent) || trigger(window.top);
+  };
 
-    detect();
-    const timer = setInterval(detect, 2000);
+  // 2. 环境诊断：仅作显示参考，不影响逻辑
+  useEffect(() => {
+    const check = () => {
+      const hasKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
+      setKeyStatus(hasKey ? 'connected' : 'unauthorized');
+    };
+    check();
+    const timer = setInterval(check, 3000);
     return () => clearInterval(timer);
   }, []);
 
@@ -63,31 +46,11 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     }
   }, [messages, loading]);
 
-  // 2. 强力唤醒尝试
-  const handleForceTrigger = () => {
-    setDiagInfo(prev => ({ ...prev, lastTry: new Date().toLocaleTimeString() }));
-    
-    const call = (t: any) => {
-      try {
-        if (t && t.aistudio && t.aistudio.openSelectKey) {
-          t.aistudio.openSelectKey();
-          return true;
-        }
-      } catch (e) {}
-      return false;
-    };
-
-    const ok = call(window) || call(window.parent) || call(window.top);
-    if (ok) setErrorType('none');
-    // 如果不 OK，我们也不再 alert，以免打断用户心流
-  };
-
   const handleSend = async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput || loading) return;
     
     setInput('');
-    setErrorType('none');
     const userMsg: ChatMessage = { role: 'user', content: trimmedInput };
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
@@ -95,14 +58,21 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setKeyStatus('connected');
     } catch (err: any) {
-      console.error("Oracle Error:", err);
-      // 只有在明确需要重选 Key 时才显示遮罩
-      if (err.message === "RESELECT_KEY") {
-        setErrorType('billing_required');
+      console.error("Connection Error:", err);
+      
+      // 如果报错是因为 Key 缺失或无效
+      if (err.message === "RESELECT_KEY" || err.status === 401 || err.status === 403) {
+        setKeyStatus('unauthorized');
+        // 尝试自动唤醒一次弹窗
+        triggerKeySelection();
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: "感官链接受阻。我已为您尝试重置「祭坛密钥」。如果页面依然无反应，请检查地址栏拦截，并确保您在 AI Studio 的预览设置中选择了已开启计费的项目。" 
+        }]);
       } else {
-        const errMsg = "祭坛分子波段异常。请检查您的 API Key 是否在 Google Cloud 中已激活付费。";
-        setMessages(prev => [...prev, { role: 'assistant', content: errMsg }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "祭坛波段不稳定，正在尝试重新对齐..." }]);
       }
     } finally {
       setLoading(false);
@@ -133,29 +103,27 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     } catch (err) { setPlayingAudio(null); }
   };
 
+  const [playingAudio, setPlayingAudio] = useState<number | null>(null);
+
   return (
-    <div className="h-screen flex flex-col pt-24 md:pt-48 pb-32 md:pb-48 px-4 md:px-20 bg-[#F5F5F5] animate-in fade-in duration-1000 relative overflow-hidden">
+    <div className="h-screen flex flex-col pt-24 md:pt-48 pb-32 md:pb-48 px-4 md:px-20 bg-[#F5F5F5] relative overflow-hidden">
       
-      {/* 侧边诊断面板：更紧凑，仅作为参考 */}
-      <div className="fixed top-32 left-4 md:left-10 z-[600] hidden lg:flex flex-col gap-4">
-        <div className={`p-5 rounded-[2rem] border bg-white/90 backdrop-blur-xl shadow-2xl space-y-3 w-56 border-black/5`}>
-           <div className="flex items-center gap-2">
-              <Terminal size={14} className={diagInfo.bridgeFound ? "text-green-500" : "text-amber-500"} />
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/60">System Monitor</span>
-           </div>
-           <div className="space-y-2 font-mono text-[8px] leading-tight opacity-60">
-              <div className="flex justify-between"><span>BRIDGE:</span><span className={diagInfo.bridgeFound ? 'text-green-600' : 'text-red-600'}>{diagInfo.bridgePath}</span></div>
-              <div className="flex justify-between"><span>KEY_ENV:</span><span>{diagInfo.apiKeyExists ? 'LOADED' : 'EMPTY'}</span></div>
-              <div className="flex justify-between"><span>LAST_TRY:</span><span>{diagInfo.lastTry}</span></div>
-           </div>
-           <button onClick={handleForceTrigger} className="w-full py-2 bg-black text-white rounded-full text-[8px] font-bold uppercase tracking-widest hover:bg-[#D75437] transition-all flex items-center justify-center gap-2">
-              <Zap size={10} /> Sync Bridge
-           </button>
+      {/* 极简状态指示器 - 置于顶层但不遮挡 */}
+      <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[600]">
+        <div className={`px-6 py-2 rounded-full border bg-white/80 backdrop-blur-xl shadow-lg flex items-center gap-3 transition-all ${keyStatus === 'connected' ? 'border-green-100' : 'border-amber-100'}`}>
+          <div className={`w-2 h-2 rounded-full ${keyStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`} />
+          <span className="text-[10px] font-bold tracking-widest uppercase text-black/60">
+            {keyStatus === 'connected' ? '祭坛已连接 / Oracle Online' : '待授权 / Authorizing'}
+          </span>
+          {keyStatus !== 'connected' && (
+            <button onClick={triggerKeySelection} className="ml-2 p-1 hover:bg-black/5 rounded-full transition-colors">
+              <RefreshCw size={12} className="text-amber-600" />
+            </button>
+          )}
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden border border-black/5 relative">
-        
         {/* Header */}
         <div className="p-6 md:p-12 border-b border-black/5 bg-white/90 backdrop-blur-xl sticky top-0 z-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -173,8 +141,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         </div>
 
         {/* Chat Area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide relative">
-          
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-16 space-y-10 md:space-y-16 scrollbar-hide">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-500`}>
               <div className={`group relative max-w-[90%] md:max-w-[80%] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-sm md:text-2xl ${m.role === 'user' ? 'bg-[#1a1a1a] text-white rounded-tr-none shadow-xl' : 'bg-[#FAF9F5] text-black/80 rounded-tl-none font-serif-zh'}`}>
@@ -187,54 +154,11 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               </div>
             </div>
           ))}
-          
           {loading && (
             <div className="flex justify-start">
                <div className="bg-[#FAF9F5] p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] text-black/30 italic font-serif-zh flex items-center gap-4">
                   <Wind size={20} className="animate-spin text-[#D75437]" />
                   正在调配极境分子频率...
-               </div>
-            </div>
-          )}
-
-          {/* 只有在必要时显示的 Key 修复遮罩 */}
-          {errorType === 'billing_required' && (
-            <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-2xl flex items-center justify-center p-6 animate-in fade-in">
-               <div className="max-w-xl w-full bg-white rounded-[3rem] p-10 shadow-2xl border border-black/5 flex flex-col gap-10">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center text-[#D75437] shrink-0">
-                      <Zap size={32} />
-                    </div>
-                    <div>
-                      <h4 className="text-2xl font-serif-zh font-bold tracking-widest text-black">祭坛权限待激活</h4>
-                      <p className="text-[10px] text-black/30 font-bold uppercase tracking-widest">Billing & Key Activation Required</p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-8 bg-stone-50 rounded-[2rem] border border-black/5 space-y-4">
-                     <p className="text-sm text-black/60 leading-relaxed font-serif-zh">
-                       您的 API 请求已被拦截。这通常意味着：
-                     </p>
-                     <ul className="text-xs text-black/50 space-y-2 list-disc pl-5">
-                       <li>您尚未在 AI Studio 的预览设置中选择对应的 API Key。</li>
-                       <li>您的 Google Cloud 项目尚未开启计费（Billing）。</li>
-                       <li>浏览器拦截了授权弹窗。</li>
-                     </ul>
-                  </div>
-
-                  <div className="space-y-4">
-                    <button 
-                      onClick={handleForceTrigger}
-                      className="w-full py-7 bg-black text-white rounded-full font-bold tracking-[0.3em] shadow-xl hover:bg-[#D75437] transition-all flex items-center justify-center gap-4 group active:scale-95"
-                    >
-                      <RefreshCw className="group-hover:rotate-180 transition-transform duration-700" size={24} />
-                      尝试唤醒 Key 选择器
-                    </button>
-                    
-                    <button onClick={() => { setErrorType('none'); }} className="w-full py-4 text-[10px] font-bold tracking-widest text-black/40 hover:text-black transition-colors uppercase">
-                      忽略并继续 (可能会导致调用失败)
-                    </button>
-                  </div>
                </div>
             </div>
           )}
