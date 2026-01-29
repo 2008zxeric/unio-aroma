@@ -12,7 +12,6 @@ const DestinationView: React.FC<{
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
 
-  // 随机产品逻辑：严格 2-3 系列，3-6 个产品
   const groupedProducts = useMemo(() => {
     const allProducts = Object.values(DATABASE);
     const categories: Category[] = ['yuan', 'he', 'jing'];
@@ -26,7 +25,7 @@ const DestinationView: React.FC<{
       const itemCount = (seed % 4) + 3; 
       const selectedItems = catPool.sort(() => (seed % 11) - 5.5).slice(0, itemCount);
       
-      const themeMap = { yuan: '元 · 极境单方', he: '和 · 复方疗愈', jing: '境 · 空间美学' };
+      const themeMap = { yuan: '元 · 极境单方', he: '香 · 复方疗愈', jing: '境 · 空间美学' };
       return {
         title: themeMap[cat],
         items: selectedItems
@@ -44,10 +43,26 @@ const DestinationView: React.FC<{
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="fixed top-12 sm:top-24 left-0 w-full px-4 sm:px-10 lg:px-20 z-[500] pointer-events-none flex justify-between">
-         <button onClick={() => setView(dest.isChinaProvince ? 'china-atlas' : 'atlas')} className="pointer-events-auto glass p-3 sm:p-5 rounded-full text-black hover:text-[#D75437] transition-all shadow-xl border border-white/40 active:scale-95"><ArrowLeft size={18} /></button>
-         <button onClick={() => setView('home')} className="pointer-events-auto glass p-3 sm:p-5 rounded-full text-black hover:text-[#D75437] border border-white/40 shadow-xl active:scale-90"><Home size={18} /></button>
+      {/* 聚合式右上角导航舱 */}
+      <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 delay-300">
+        <div className="bg-white/60 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] gap-2 group">
+          <button 
+            onClick={() => setView(dest.isChinaProvince ? 'china-atlas' : 'atlas')} 
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90 group/btn"
+            title="BACK"
+          >
+            <ArrowLeft size={22} className="group-hover/btn:-translate-x-1 transition-transform" />
+          </button>
+          <div className="h-px w-6 bg-black/[0.05] mx-auto" />
+          <button 
+            onClick={() => setView('home')} 
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90"
+            title="HOME"
+          >
+            <Home size={22} />
+          </button>
+        </div>
+        <span className="text-[8px] tracking-[0.5em] font-bold text-black/20 uppercase vertical-text mt-4 select-none">Navigation</span>
       </div>
 
       {/* Hero */}
@@ -63,16 +78,15 @@ const DestinationView: React.FC<{
         </div>
       </div>
 
-      {/* Eric's Album - 恢复 1+2 拼图结构 */}
+      {/* Eric's Album */}
       {dest.memoryPhotos && dest.memoryPhotos.length >= 3 && (
         <section className="py-20 sm:py-48 px-4 sm:px-24 max-w-7xl mx-auto space-y-12">
            <div className="flex items-center gap-4 text-[#D4AF37]">
               <Camera size={24} />
-              <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Eric's Memory Archive / 寻香影像</h3>
+              <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Eric's Archive / 寻香摄影集</h3>
            </div>
            
            <div className="grid grid-cols-2 gap-3 sm:gap-6 h-[50vh] sm:h-[80vh]">
-              {/* 左侧大图 */}
               <div 
                 onClick={() => setActivePhoto(dest.memoryPhotos[0])}
                 className="col-span-1 rounded-[2rem] sm:rounded-[4rem] overflow-hidden shadow-2xl cursor-zoom-in group border border-black/5"
@@ -80,7 +94,6 @@ const DestinationView: React.FC<{
                 <img src={dest.memoryPhotos[0]} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Memory Large" />
               </div>
               
-              {/* 右侧上下两张 */}
               <div className="col-span-1 flex flex-col gap-3 sm:gap-6">
                 <div 
                   onClick={() => setActivePhoto(dest.memoryPhotos[1])}
@@ -105,14 +118,17 @@ const DestinationView: React.FC<{
           <div className="flex items-center gap-4 text-[#D75437]"><BookOpen size={24} /><h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Eric's Journal / 寻香随笔</h3></div>
           <p className="text-xl sm:text-4xl font-serif-zh leading-[1.8] italic text-black/80">“{dest.ericDiary}”</p>
         </div>
-        <div className="lg:col-span-7 space-y-10 bg-[#F9FAFB] p-8 sm:p-16 rounded-[3rem] border border-black/5 relative">
-          <div className="flex items-center gap-4 text-[#1C39BB]"><Microscope size={24} /><h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Alice's Analysis / 实验室分析</h3></div>
-          <p className="text-base sm:text-2xl font-serif-zh text-black/60 leading-relaxed">{dest.aliceDiary}</p>
-          <div className="p-6 bg-white rounded-2xl border border-black/5 flex items-center gap-4"><Zap size={20} className="text-[#1C39BB]" /><p className="text-sm sm:text-2xl font-serif-zh font-bold text-black/70">{dest.knowledge}</p></div>
+        <div className="lg:col-span-7 space-y-10 bg-[#F9FAFB] p-8 sm:p-16 rounded-[3rem] border border-black/5 relative overflow-hidden">
+          <div className="absolute -bottom-10 -right-10 opacity-5">
+            <Microscope size={200} />
+          </div>
+          <div className="flex items-center gap-4 text-[#1C39BB] relative z-10"><Microscope size={24} /><h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Alice's Analysis / 实验室分析</h3></div>
+          <p className="text-base sm:text-2xl font-serif-zh text-black/60 leading-relaxed relative z-10">{dest.aliceDiary}</p>
+          <div className="p-6 bg-white rounded-2xl border border-black/5 flex items-center gap-4 relative z-10"><Zap size={20} className="text-[#1C39BB]" /><p className="text-sm sm:text-2xl font-serif-zh font-bold text-black/70">{dest.knowledge}</p></div>
         </div>
       </div>
 
-      {/* 坐标寻香档案 - 严格紧凑的 3 列排版 */}
+      {/* 坐标寻香档案 */}
       <section className="py-24 sm:py-48 max-w-7xl mx-auto px-4">
         <div className="space-y-24 sm:space-y-48">
           {groupedProducts.map((group, gIdx) => (
@@ -123,7 +139,6 @@ const DestinationView: React.FC<{
                 <div className="flex-1 h-px bg-black/5" />
               </div>
               
-              {/* 核心修正：一行 3 个，紧凑间距 */}
               <div className="grid grid-cols-3 gap-3 sm:gap-10 lg:gap-14">
                 {group.items.map((p) => (
                   <div key={p.id} onClick={() => onProductSelect(p.id)} className="group cursor-pointer flex flex-col space-y-3 sm:space-y-6 active:scale-95 transition-all">
@@ -142,7 +157,6 @@ const DestinationView: React.FC<{
         </div>
       </section>
 
-      {/* Footer Branding */}
       <div className="text-center pt-24 opacity-10"><img src={ASSETS.logo} className="w-24 mx-auto" alt="Logo" /></div>
     </div>
   );
