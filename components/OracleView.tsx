@@ -1,19 +1,31 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好倾听你内心的杂音。' }
+    { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好通过分子的震颤，感知你此刻的杂音。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<number | null>(null);
   const [errorType, setErrorType] = useState<'none' | 'missing' | 'failed'>('none');
+  const [keyStatus, setKeyStatus] = useState<'checking' | 'active' | 'inactive'>('checking');
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+
+  // 检查密钥状态
+  useEffect(() => {
+    const checkKey = async () => {
+      // @ts-ignore
+      const hasKey = await window.aistudio.hasSelectedApiKey();
+      setKeyStatus(hasKey ? 'active' : 'inactive');
+    };
+    checkKey();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -26,7 +38,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       // @ts-ignore
       await window.aistudio.openSelectKey();
       setErrorType('none');
-      // 选择后假设成功，让用户可以再次点击发送
+      setKeyStatus('active');
     } catch (e) {
       console.error("Failed to open key dialog", e);
     }
@@ -45,11 +57,13 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setKeyStatus('active');
     } catch (err: any) {
       console.error("Oracle invocation failed:", err);
       if (err.message === "RESELECT_KEY") {
         setErrorType('missing');
-        handleOpenKeyDialog(); // 自动触发选择
+        setKeyStatus('inactive');
+        handleOpenKeyDialog(); 
       } else {
         setErrorType('failed');
       }
@@ -99,7 +113,12 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             </div>
             <div>
               <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
-              <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">AI Scent Oracle · 元香 UNIO</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel">AI Scent Oracle · 元香 UNIO</p>
+                <div onClick={handleOpenKeyDialog} className="cursor-pointer">
+                  {keyStatus === 'active' ? <ShieldOk size={10} className="text-green-500" /> : <ShieldAlert size={10} className="text-red-500 animate-pulse" />}
+                </div>
+              </div>
             </div>
           </div>
           <button onClick={() => setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。祭坛已重置。' }])} className="p-2 hover:bg-stone-50 rounded-full text-black/20 hover:text-[#D75437] transition-all">
@@ -135,13 +154,20 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <Key className="text-red-400" size={48} />
               <div className="text-center space-y-2">
                 <p className="text-red-900 font-serif-zh font-bold text-xl">极境密钥未对齐</p>
-                <p className="text-red-600/70 text-sm">祭坛无法感知您的身份。请点击下方按钮，在弹出窗口中选择一个【已启用结算】的 API 密钥。</p>
+                <p className="text-red-600/70 text-sm">祭坛无法连接。请确保选择了一个【已启用结算/Paid Project】的密钥。免费项目可能无法使用 Gemini 3 系列模型。</p>
               </div>
               <button onClick={handleOpenKeyDialog} className="px-10 py-4 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-xl hover:bg-red-700 transition-all flex items-center gap-3">
                 <ShieldCheck size={20} /> 唤醒祭坛连接
               </button>
               <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-[10px] text-red-600/40 hover:underline">查看 API 计费说明 (Billing Required)</a>
             </div>
+          )}
+
+          {errorType === 'failed' && (
+             <div className="flex flex-col items-center gap-4 p-8 bg-amber-50 rounded-3xl text-amber-800 border border-amber-100 animate-in slide-in-from-bottom-2">
+               <p className="text-sm md:text-xl font-serif-zh text-center">当前信号波动。这通常是由于您的 API Key 尚未绑定有效账单，或者配额暂时耗尽。建议点击上方盾牌标识重试。</p>
+               <button onClick={handleSend} className="px-6 py-2 bg-amber-200/50 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-amber-200">再次尝试频率对位</button>
+             </div>
           )}
         </div>
 
