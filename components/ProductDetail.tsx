@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   ArrowLeft, ShoppingBag, CheckCircle2, MapPin, Wind, Microscope, 
@@ -128,13 +129,18 @@ const ProductDetail: React.FC<{
                </div>
             </section>
 
+            {/* 优化后的极速购按钮 */}
             <div className="pt-12 md:pt-20 border-t border-black/5">
               <button 
-                className="w-full py-12 md:py-16 bg-[#1a1a1a] text-white rounded-full text-sm md:text-xl tracking-[1.5em] uppercase font-bold btn-rednote shadow-2xl flex items-center justify-center gap-6 group"
+                className="w-full py-8 md:py-12 bg-[#D75437] text-white rounded-full text-xs md:text-xl tracking-[0.4em] uppercase font-bold shadow-[0_20px_40px_-15px_rgba(215,84,55,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(215,84,55,0.6)] flex items-center justify-center gap-4 md:gap-6 group transition-all duration-500 hover:scale-[1.02] active:scale-95 border border-white/20"
                 onClick={() => window.open(ASSETS.xhs_link, '_blank')}
               >
-                <ShoppingBag size={24} className="group-hover:rotate-12 transition-transform" /> SHOP ON REDNOTE / 极速购
+                <div className="p-2 md:p-3 bg-white/20 rounded-full group-hover:bg-white group-hover:text-[#D75437] transition-colors">
+                  <ShoppingBag size={20} className="group-hover:rotate-12 transition-transform" />
+                </div>
+                <span className="whitespace-nowrap">SHOP ON REDNOTE · 极速购</span>
               </button>
+              <p className="text-center mt-6 text-[8px] md:text-[10px] tracking-[0.4em] text-black/20 font-bold uppercase">Official Inspiration Sanctuary</p>
             </div>
           </div>
         </div>
