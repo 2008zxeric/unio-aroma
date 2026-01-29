@@ -13,16 +13,28 @@ const ProductDetail: React.FC<{
   previousView: ViewState 
 }> = ({ item, setView, previousView }) => {
   return (
-    <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden">
+    <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
       
-      <div className="fixed top-24 md:top-36 left-0 w-full px-6 md:px-20 z-[400] pointer-events-none flex justify-between items-center">
-        <button 
-          onClick={() => setView(previousView)} 
-          className="pointer-events-auto flex items-center gap-4 text-black/40 hover:text-[#D75437] transition-all uppercase tracking-[1em] font-bold text-[10px] md:text-xs group glass px-6 py-3 rounded-full border border-white/40"
-        >
-          <ArrowLeft size={18} className="group-hover:-translate-x-2 transition-transform" /> BACK
-        </button>
-        <button onClick={() => setView('home')} className="pointer-events-auto glass p-3 md:p-5 rounded-full text-black hover:text-[#D75437] border border-white/40 shadow-xl active:scale-90"><Home size={18} /></button>
+      {/* 优化后的右上角聚合导航舱 (避免与左侧 Logo 冲突) */}
+      <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 delay-300">
+        <div className="glass flex flex-col p-2 md:p-3 rounded-full border border-black/[0.05] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] gap-2">
+          <button 
+            onClick={() => setView(previousView)} 
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90 group"
+            title="BACK"
+          >
+            <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
+          </button>
+          <div className="h-px w-6 bg-black/[0.05] mx-auto" />
+          <button 
+            onClick={() => setView('home')} 
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90"
+            title="HOME"
+          >
+            <Home size={22} />
+          </button>
+        </div>
+        <span className="text-[8px] tracking-[0.4em] font-bold text-black/20 uppercase vertical-text mt-4">Navigator</span>
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 md:mt-24">
@@ -129,18 +141,21 @@ const ProductDetail: React.FC<{
                </div>
             </section>
 
-            {/* 优化后的极速购按钮 */}
             <div className="pt-12 md:pt-20 border-t border-black/5">
               <button 
-                className="w-full py-8 md:py-12 bg-[#D75437] text-white rounded-full text-xs md:text-xl tracking-[0.4em] uppercase font-bold shadow-[0_20px_40px_-15px_rgba(215,84,55,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(215,84,55,0.6)] flex items-center justify-center gap-4 md:gap-6 group transition-all duration-500 hover:scale-[1.02] active:scale-95 border border-white/20"
+                className="w-full py-8 md:py-10 bg-[#1A1A1A] text-white rounded-full transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-2xl border border-white/10 group overflow-hidden"
                 onClick={() => window.open(ASSETS.xhs_link, '_blank')}
               >
-                <div className="p-2 md:p-3 bg-white/20 rounded-full group-hover:bg-white group-hover:text-[#D75437] transition-colors">
-                  <ShoppingBag size={20} className="group-hover:rotate-12 transition-transform" />
+                <div className="flex items-center justify-center gap-4 md:gap-8 px-6">
+                  <div className="p-2 md:p-3 bg-[#D75437] rounded-full group-hover:bg-white group-hover:text-[#D75437] transition-colors">
+                    <ShoppingBag size={22} className="group-hover:rotate-12 transition-transform" />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs md:text-2xl font-serif-zh font-bold tracking-widest whitespace-nowrap uppercase">SHOP ON REDNOTE · 极速购</span>
+                    <span className="text-[6px] md:text-[10px] opacity-40 tracking-[0.4em] font-cinzel uppercase whitespace-nowrap">Official Inspiration Sanctuary</span>
+                  </div>
                 </div>
-                <span className="whitespace-nowrap">SHOP ON REDNOTE · 极速购</span>
               </button>
-              <p className="text-center mt-6 text-[8px] md:text-[10px] tracking-[0.4em] text-black/20 font-bold uppercase">Official Inspiration Sanctuary</p>
             </div>
           </div>
         </div>
