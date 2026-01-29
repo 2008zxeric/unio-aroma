@@ -26,8 +26,8 @@ ${context}
 export const getOracleResponse = async (messages: ChatMessage[]) => {
   const apiKey = process.env.API_KEY;
   
-  // 如果环境里完全没 key，才报错
-  if (!apiKey || apiKey.length < 5) {
+  // 即使 key 看起来不符合预期，我们也尝试请求，因为预览环境可能有特殊的注入方式
+  if (!apiKey || apiKey === "undefined") {
     throw new Error("RESELECT_KEY");
   }
 
@@ -49,10 +49,10 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
     if (!response.text) throw new Error("EMPTY_RESPONSE");
     return response.text;
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    const msg = error.message?.toLowerCase() || "";
-    // 如果报错信息包含 404, 403, 计费或未授权，通常意味着需要重选 Key
-    if (msg.includes("not found") || msg.includes("unauthorized") || msg.includes("403") || msg.includes("404")) {
+    console.warn("Gemini Attempt Failed:", error);
+    // 识别 401, 403, 404 等由于 API Key 或项目权限引起的错误
+    const status = error.status || (error.message?.includes('403') ? 403 : null);
+    if (status === 401 || status === 403 || status === 404 || error.message?.includes("not found")) {
       throw new Error("RESELECT_KEY");
     }
     throw error;
@@ -61,7 +61,7 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
 
 export const generateOracleVoice = async (text: string) => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey || apiKey === "undefined") return null;
   const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
@@ -78,7 +78,7 @@ export const generateOracleVoice = async (text: string) => {
 
 export const editImageWithGemini = async (base64Image: string, prompt: string) => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("RESELECT_KEY");
+  if (!apiKey || apiKey === "undefined") throw new Error("RESELECT_KEY");
   const ai = new GoogleGenAI({ apiKey });
   const data = base64Image.split(',')[1];
   const mimeType = base64Image.split(';')[0].split(':')[1] || 'image/png';
@@ -98,7 +98,7 @@ export const editImageWithGemini = async (base64Image: string, prompt: string) =
 
 export const generateScentVideo = async (prompt: string, onProgress: (msg: string) => void) => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("RESELECT_KEY");
+  if (!apiKey || apiKey === "undefined") throw new Error("RESELECT_KEY");
   const ai = new GoogleGenAI({ apiKey });
   onProgress("影像初始化中...");
   try {
