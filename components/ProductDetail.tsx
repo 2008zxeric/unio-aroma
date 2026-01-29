@@ -15,9 +15,9 @@ const ProductDetail: React.FC<{
   return (
     <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
       
-      {/* 右上角：静奢导航舱 (Navigation Cabin) - 解决重叠问题 */}
+      {/* 右上角：静奢导航舱 (Navigation Sanctuary) - 完全隔离左侧 Logo */}
       <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
-        <div className="bg-white/60 backdrop-blur-3xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] gap-3 group pointer-events-auto">
+        <div className="bg-white/70 backdrop-blur-3xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] gap-3 group pointer-events-auto">
           <button 
             onClick={() => setView(previousView)} 
             className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
@@ -25,7 +25,7 @@ const ProductDetail: React.FC<{
           >
             <ArrowLeft size={22} />
           </button>
-          <div className="h-px w-6 bg-black/[0.05] mx-auto" />
+          <div className="h-px w-6 bg-black/[0.05] mx-auto opacity-50" />
           <button 
             onClick={() => setView('home')} 
             className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
@@ -34,14 +34,14 @@ const ProductDetail: React.FC<{
             <Home size={22} />
           </button>
         </div>
-        <span className="text-[8px] tracking-[0.5em] font-bold text-black/20 uppercase vertical-text mt-4 select-none">Navigator</span>
+        <span className="text-[8px] tracking-[0.5em] font-bold text-black/15 uppercase vertical-text mt-4 select-none group-hover:text-black/30 transition-colors">Sanctuary Nav</span>
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 md:mt-24 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-32 items-start">
           
           <div className="space-y-12 lg:sticky lg:top-48">
-            <div className="aspect-[3/4] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-2xl border border-black/5 bg-[#F9FAFB] group relative">
+            <div className="aspect-[3/4] rounded-[2rem] md:rounded-[4.5rem] overflow-hidden shadow-2xl border border-black/5 bg-[#F9FAFB] group relative">
               <img 
                 src={item.hero} 
                 className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" 
@@ -83,7 +83,7 @@ const ProductDetail: React.FC<{
                    <h2 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-[0.1em] text-black leading-tight">{item.herb}</h2>
                    <div className="flex flex-col items-end gap-1">
                       <span className="text-2xl md:text-5xl font-serif-zh font-bold text-[#D75437]">¥ {item.price || '---'}</span>
-                      <span className="text-[8px] md:text-xs tracking-widest text-black/30 font-bold uppercase">建议零售价</span>
+                      <span className="text-[8px] md:text-xs tracking-widest text-black/30 font-bold uppercase">馆藏建议零售价</span>
                    </div>
                 </div>
                 {item.shortDesc && (
@@ -92,13 +92,16 @@ const ProductDetail: React.FC<{
                   </p>
                 )}
               </div>
-              <p className="text-lg md:text-3xl font-serif-zh opacity-80 leading-relaxed italic border-l-4 border-black/5 pl-8">
+              <p className="text-lg md:text-3xl font-serif-zh opacity-80 leading-relaxed italic border-l-4 border-black/5 pl-8 py-2">
                 “{item.narrative}”
               </p>
             </div>
 
-            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden">
-               <div className="flex items-center gap-6 mb-10">
+            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden group shadow-inner">
+               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Microscope size={120} strokeWidth={1} />
+               </div>
+               <div className="flex items-center gap-6 mb-10 relative z-10">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-[#1C39BB]/10 rounded-full flex items-center justify-center text-[#1C39BB]">
                      <Microscope size={24} />
                   </div>
@@ -107,7 +110,7 @@ const ProductDetail: React.FC<{
                     <p className="text-[8px] md:text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold mt-1">实验室分析日记</p>
                   </div>
                </div>
-               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2">
+               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2 relative z-10">
                  {item.aliceLabDiary}
                </p>
             </section>
@@ -133,7 +136,7 @@ const ProductDetail: React.FC<{
                      <BookOpen size={20} className="text-[#1C39BB]" />
                      <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Usage / 使用</h5>
                   </div>
-                  <div className="p-8 bg-white border border-black/5 rounded-[2rem] shadow-sm">
+                  <div className="p-8 bg-white border border-black/5 rounded-[2.5rem] shadow-sm">
                      <p className="text-sm md:text-lg font-serif-zh text-black/70 leading-[2] whitespace-pre-wrap">
                         {item.usage}
                      </p>
@@ -149,7 +152,7 @@ const ProductDetail: React.FC<{
                 <div className="p-2 md:p-3 bg-white/20 rounded-full group-hover:bg-white group-hover:text-[#D75437] transition-colors">
                   <ShoppingBag size={20} className="group-hover:rotate-12 transition-transform" />
                 </div>
-                <span className="whitespace-nowrap">SHOP ON REDNOTE · 极速购</span>
+                <span className="whitespace-nowrap">REDNOTE · 极速购</span>
               </button>
             </div>
           </div>
