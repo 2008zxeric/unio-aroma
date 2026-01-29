@@ -12,12 +12,14 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const [loading, setLoading] = useState(false);
   const [keyStatus, setKeyStatus] = useState<'connected' | 'unauthorized' | 'scanning'>('scanning');
   const [remaining, setRemaining] = useState(5);
+  // 使用 Ref 记录用户是否已经手动触发过“连接”，防止被自动检查重置回 unauthorized
+  const hasManuallyConnected = useRef(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   const triggerKeySelection = () => {
-    // 立即进入连接状态，避免 Race Condition
+    hasManuallyConnected.current = true;
     setKeyStatus('connected');
     
     const trigger = (target: any) => {
@@ -35,12 +37,14 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   useEffect(() => {
     const check = () => {
       const hasKey = !!process.env.API_KEY && process.env.API_KEY !== "undefined" && process.env.API_KEY.length > 5;
-      // 只有在未连接且检测到有 Key 时才自动连接
-      // 如果已经是 connected（被用户手动点击触发），则不再回退
-      if (hasKey && keyStatus !== 'connected') {
+      
+      // 如果用户已经手动点过“仪式”，我们不再强制将其设为 unauthorized
+      if (hasKey) {
         setKeyStatus('connected');
-      } else if (!hasKey && keyStatus === 'scanning') {
-        setKeyStatus('unauthorized');
+      } else {
+        if (!hasManuallyConnected.current && keyStatus !== 'connected') {
+          setKeyStatus('unauthorized');
+        }
       }
       
       const q = getAIQuota();
@@ -59,8 +63,14 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
 
   const handleSend = async () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput || loading) return;
+    if (!trimmedInput || loading || remaining <= 0) return;
     
+    // 如果当前状态是未授权，先尝试触发一次授权
+    if (keyStatus === 'unauthorized') {
+      triggerKeySelection();
+      // 这里不 return，允许请求继续发出，如果环境已经准备好 key 就能成功
+    }
+
     setInput('');
     const userMsg: ChatMessage = { role: 'user', content: trimmedInput };
     setMessages(prev => [...prev, userMsg]);
@@ -69,6 +79,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     try {
       const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setKeyStatus('connected');
     } catch (err: any) {
       if (err.message === "QUOTA_EXCEEDED") {
         setMessages(prev => [...prev, { 
@@ -77,7 +88,9 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         }]);
       } else if (err.message === "RESELECT_KEY" || err.status === 401 || err.status === 403) {
         setKeyStatus('unauthorized');
-        setMessages(prev => [...prev, { role: 'assistant', content: "感官链接受阻。点击顶部「同步密钥」即可恢复。" }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: "感官链接受阻。点击顶部「同步密钥」并选择有效的付费项目即可恢复。" }]);
+        // 如果是因为 Key 问题报错，再次弹出选择框
+        triggerKeySelection();
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: "祭坛波段不稳定，请确保您的网络环境通畅。" }]);
       }
@@ -122,16 +135,15 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           <span className="text-[10px] font-bold tracking-widest uppercase text-black/60">
             {keyStatus === 'connected' ? `祭坛在线 / 剩余 ${remaining} 次` : '待授权 / Offline'}
           </span>
-          {keyStatus !== 'connected' && (
-            <button onClick={triggerKeySelection} className="ml-2 px-3 py-1 bg-black text-white rounded-full text-[8px] font-bold uppercase tracking-tighter hover:bg-[#D75437] transition-all">
-              同步 SYNC
-            </button>
-          )}
+          <button onClick={triggerKeySelection} className="ml-2 px-3 py-1 bg-black text-white rounded-full text-[8px] font-bold uppercase tracking-tighter hover:bg-[#D75437] transition-all">
+            {keyStatus === 'connected' ? '同步 SYNC' : '开启 START'}
+          </button>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden border border-black/5 relative">
         
+        {/* 初始遮罩：仅在未授权且没有任何对话时显示 */}
         {keyStatus === 'unauthorized' && messages.length <= 1 && (
           <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-md flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-500">
             <div className="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mb-8 border border-black/5 shadow-inner">
@@ -199,10 +211,11 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
               placeholder={remaining <= 0 ? "今日对话已罄，明日再见..." : (loading ? "祭司沉思中..." : "倾诉你内心的杂音...")} 
-              disabled={loading || keyStatus !== 'connected' || remaining <= 0}
+              // 关键修正：即使 keyStatus !== 'connected' 也不禁用输入，允许用户尝试发送
+              disabled={loading || remaining <= 0}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
-            <button onClick={handleSend} disabled={loading || !input.trim() || keyStatus !== 'connected' || remaining <= 0} className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90 shadow-xl">
+            <button onClick={handleSend} disabled={loading || !input.trim() || remaining <= 0} className="w-12 h-12 md:w-20 md:h-20 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-90 shadow-xl">
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-6 h-6 md:w-9 md:h-9" />}
             </button>
           </div>
