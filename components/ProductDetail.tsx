@@ -15,15 +15,15 @@ const ProductDetail: React.FC<{
   return (
     <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
       
-      {/* 优化后的右上角聚合导航舱 (避免与左侧 Logo 冲突) */}
+      {/* 聚合式右上角导航舱 (避开左侧 Logo) */}
       <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 delay-300">
-        <div className="glass flex flex-col p-2 md:p-3 rounded-full border border-black/[0.05] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] gap-2">
+        <div className="bg-white/60 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.15)] gap-2 group">
           <button 
             onClick={() => setView(previousView)} 
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90 group"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-lg transition-all active:scale-90 group/btn"
             title="BACK"
           >
-            <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft size={22} className="group-hover/btn:-translate-x-1 transition-transform" />
           </button>
           <div className="h-px w-6 bg-black/[0.05] mx-auto" />
           <button 
@@ -34,7 +34,7 @@ const ProductDetail: React.FC<{
             <Home size={22} />
           </button>
         </div>
-        <span className="text-[8px] tracking-[0.4em] font-bold text-black/20 uppercase vertical-text mt-4">Navigator</span>
+        <span className="text-[8px] tracking-[0.5em] font-bold text-black/20 uppercase vertical-text mt-4 select-none">Navigation</span>
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 md:mt-24">
@@ -59,7 +59,7 @@ const ProductDetail: React.FC<{
               <div className="text-center space-y-3 border-x border-black/5">
                 <Tag size={20} className="mx-auto opacity-20 text-[#1C39BB]" />
                 <span className="text-[8px] tracking-[0.3em] uppercase opacity-40 block font-bold">Spec / 规格</span>
-                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.specification || 'N/A'}</span>
+                <span className="text-xs md:text-sm font-serif-zh font-bold text-black/80">{item.specification || '10ml'}</span>
               </div>
               <div className="text-center space-y-3">
                 <Microscope size={20} className="mx-auto opacity-20 text-[#2C3E28]" />
@@ -97,17 +97,20 @@ const ProductDetail: React.FC<{
               </p>
             </div>
 
-            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden">
-               <div className="flex items-center gap-6 mb-10">
+            <section className="bg-[#FAF9F5] p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border border-[#E8E6E1] relative overflow-hidden group/lab">
+               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover/lab:opacity-20 transition-opacity">
+                  <Microscope size={120} />
+               </div>
+               <div className="flex items-center gap-6 mb-10 relative z-10">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-[#1C39BB]/10 rounded-full flex items-center justify-center text-[#1C39BB]">
                      <Microscope size={24} />
                   </div>
                   <div>
                     <h3 className="text-xl md:text-3xl font-serif-zh font-bold tracking-widest text-[#1C39BB]">Alice's Lab Diary</h3>
-                    <p className="text-[8px] md:text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold mt-1">实验室分析日记</p>
+                    <p className="text-[8px] md:text-[10px] tracking-[0.4em] uppercase opacity-40 font-bold mt-1">首席实验室分析</p>
                   </div>
                </div>
-               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2">
+               <p className="text-base md:text-2xl font-serif-zh text-black/70 leading-[2.2] pl-2 relative z-10">
                  {item.aliceLabDiary}
                </p>
             </section>
@@ -116,7 +119,7 @@ const ProductDetail: React.FC<{
                <div className="space-y-8">
                   <div className="flex items-center gap-4">
                      <Sparkles size={20} className="text-[#D75437]" />
-                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Benefits / 功效</h5>
+                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Benefits / 极境功效</h5>
                   </div>
                   <div className="space-y-4">
                      {item.benefits.map(b => (
@@ -131,7 +134,7 @@ const ProductDetail: React.FC<{
                <div className="space-y-8">
                   <div className="flex items-center gap-4">
                      <BookOpen size={20} className="text-[#1C39BB]" />
-                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Usage / 使用</h5>
+                     <h5 className="text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-bold text-black/40">Usage / 祭司建议</h5>
                   </div>
                   <div className="p-8 bg-white border border-black/5 rounded-[2rem] shadow-sm">
                      <p className="text-sm md:text-lg font-serif-zh text-black/70 leading-[2] whitespace-pre-wrap">
