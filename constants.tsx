@@ -48,44 +48,44 @@ const ERIC_JOURNAL: Record<string, string> = {
   'w_kr': '济州岛的海风裹挟着柑橘皮的微苦。火山岩土壤孕育的香气，带着倔强的生命力。',
   'w_np': '加德满都的杜巴广场，乳香与酥油灯交织。每一次呼吸，都是对喜马拉雅神性的低语。',
   'w_tr': '卡帕多奇亚的洞穴教堂，干燥空气中残留着没药与蜂蜡。千年信仰在此凝结成香。',
-  'w_kz': '草原尽头，哈萨克牧民的毡房飘出马奶酒与干草的暖香。',
+  'w_kz': '草原尽头，哈萨克牧民的毡房飘出马奶酒与干草的暖香。那是游牧民族流动的故乡。',
   'w_jo': '佩特拉古城的砂岩缝隙间，风带来乳香与沙漠鼠尾草的辛凉。石头也会呼吸。',
   'w_mac': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。东西方在此交换一缕魂魄。',
   'w_kh': '吴哥窟的晨雾中，湿热空气裹着莲花与腐叶的气息。神庙在呼吸，千年未停。',
   'w_kp': '平壤的冬日，松针与煤烟构成沉默的底调。香气在此成为一种隐秘的抵抗。',
   'w_lk': '康提佛牙寺外，肉桂树皮在阳光下裂开。斯里兰卡的甜，是大地献给佛陀的供品。',
   'w_fr': '格拉斯的晨曦。我在茉莉花田里行走，呼吸着香水工业最原始的母语，每一片花瓣都是一段历史。',
-  'w_de': '黑森林深处，冷杉树脂滴落的声音清晰可闻。',
-  'w_it': '托斯卡纳的橄榄园，果实在石磨下迸裂出青绿苦香。',
-  'w_uk': '康沃尔海岸，海盐、石楠花与旧羊毛毯的气息缠绕。',
-  'w_is': '冰与火的交界。空气干净到凛冽，带着火山岩矿物质和万年冰川融水的冷感。',
-  'w_es': '安达卢西亚的橙花盛开，甜香漫过摩尔式庭院。',
-  'w_nl': '阿姆斯特丹运河边，郁金香茎秆折断时的青汁味，混着老书店的纸霉。',
-  'w_pl': '克拉科夫老城，苹果派烤箱飘出肉桂暖香。',
-  'w_at': '萨尔茨堡山麓，阿尔卑斯草甸的干花香随风而下。',
-  'w_dk': '哥本哈根冬日，肉桂卷与桦木燃烧的烟交织。',
-  'w_hu': '布达佩斯温泉浴场，硫磺水汽氤氲。',
-  'w_mc': '摩纳哥悬崖花园，晚香玉在夜色中释放浓烈甜香。',
-  'w_lu': '卢森堡峡谷，湿润苔藓覆盖古老堡垒。',
-  'w_pt': '里斯本海边，鳕鱼干咸腥混着橙花香。',
-  'w_bg': '玫瑰谷的五月，整片山谷蒸腾着粉红香气。',
-  'w_sa': '南非的好望角。咸腥的海风撕碎了野花的芬芳。',
-  'w_eg': '尼罗河畔的没药。这里的空气干燥而古老。',
-  'w_ke': '马赛马拉草原，雨后泥土蒸腾出野性腥甜。',
-  'w_mg': '马达加斯加的森林。香草的甜美混合着潮湿的腐殖土。',
-  'w_zw': '维多利亚瀑布水雾弥漫，热带蕨类与湿岩的清冷扑面而来。',
-  'w_mu': '毛里求斯甘蔗田焚烧后的焦甜，混着海风与依兰依兰。',
-  'w_ma': '撒哈拉边缘，阿甘树坚果烘烤出坚果香。',
-  'w_us': '新墨西哥沙漠，鼠尾草燃烧的烟驱散邪灵。',
-  'w_ca': '落基山脉雪松林，冷冽空气刺穿肺腑。',
-  'w_br': '亚马逊的丛林。每一次呼吸都是绿色的。',
-  'w_au': '北领地乌鲁鲁巨岩，桉树精油在热浪中挥发。',
-  'w_an': '在零度的极点，嗅觉几乎停滞。那是一种金属般的、臭氧充盈的纯净。',
-  'w_mx': '墨西哥亡灵节，万寿菊铺满街道。',
-  'w_ar': '巴塔哥尼亚荒原，风卷起干草与羊膻味。',
-  'w_ht': '海地伏都教仪式，朗姆酒、辣椒与熏香混合成迷幻气息。',
-  'w_pe': '马丘比丘云雾缭绕，古柯叶的微苦混着安第斯山冷空气。',
-  'w_cu': '哈瓦那老城，雪茄烟草醇厚如绸缎。',
+  'w_de': '黑森林深处，冷杉树脂滴落的声音清晰可闻。那是德国灵魂里深藏的、理性的幽暗芬芳。',
+  'w_it': '托斯卡纳的橄榄园，果实在石磨下迸裂出青绿苦香。意大利的浪漫，从不回避生命的粗粝。',
+  'w_uk': '康沃尔海岸，海盐、石楠花与旧羊毛毯的气息缠绕。英伦的忧郁，带着潮湿的温柔。',
+  'w_is': '冰与火的交界。空气干净到凛冽，带着火山岩矿物质和万年冰川融水的冷感，纯粹得近乎残忍。',
+  'w_es': '安达卢西亚的橙花盛开，甜香漫过摩尔式庭院。西班牙的热情，藏在每一缕夜风里。',
+  'w_nl': '阿姆斯特丹运河边，郁金香茎秆折断时的青汁味，混着老书店的纸霉。理性国度里的感性裂缝。',
+  'w_pl': '克拉科夫老城，苹果派烤箱飘出肉桂暖香。东欧的苦难，被日常的甜味轻轻覆盖。',
+  'w_at': '萨尔茨堡山麓，阿尔卑斯草甸的干花香随风而下。莫扎特的音符，或许就藏在这气息里。',
+  'w_dk': '哥本哈根冬日，肉桂卷与桦木燃烧的烟交织。北欧的“hygge”，是嗅觉上的围炉取暖。',
+  'w_hu': '布达佩斯温泉浴场，硫磺水汽氤氲。千年罗马遗迹的呼吸，带着地心深处的暖意。',
+  'w_mc': '摩纳哥悬崖花园，晚香玉在夜色中释放浓烈甜香。微型王国的奢靡，全写在空气里。',
+  'w_lu': '卢森堡峡谷，湿润苔藓覆盖古老堡垒。小国的宁静，是欧洲心脏最柔软的跳动。',
+  'w_pt': '里斯本海边，鳕鱼干咸腥混着橙花香。航海时代的冒险精神，仍在风中飘荡。',
+  'w_bg': '玫瑰谷的五月，整片山谷蒸腾着粉红香气。保加利亚的浪漫，是大地慷慨的馈赠。',
+  'w_sa': '南非的好望角。咸腥的海风撕碎了野花的芬芳，那是大地的终点，也是嗅觉冒险的起点。',
+  'w_eg': '尼罗河畔的没药。这里的空气干燥而古老，那是法老时代留下的、关于永恒的秘密。',
+  'w_ke': '马赛马拉草原，雨后泥土蒸腾出野性腥甜。那是生命与死亡共舞的原始气息。',
+  'w_mg': '马达加斯加的森林。香草的甜美混合着潮湿的腐殖土，这是大自然未经调教的野性诱惑。',
+  'w_zw': '维多利亚瀑布水雾弥漫，热带蕨类与湿岩的清冷扑面而来。非洲之心在此跳动。',
+  'w_mu': '毛里求斯甘蔗田焚烧后的焦甜，混着海风与依兰依兰。印度洋的蜜糖陷阱。',
+  'w_ma': '撒哈拉边缘，阿甘树坚果烘烤出坚果香。柏柏尔女人的手掌，揉捏着沙漠的黄金。',
+  'w_us': '新墨西哥沙漠，鼠尾草燃烧的烟驱散邪灵。美洲原住民的智慧，在风中低语。',
+  'w_ca': '落基山脉雪松林，冷冽空气刺穿肺腑。加拿大的辽阔，是寂静的木质回响。',
+  'w_br': '亚马逊的丛林。每一次呼吸都是绿色的，那是亿万个生命在潮湿中疯狂竞争、爆发、腐烂再重生的交响。',
+  'w_au': '北领地乌鲁鲁巨岩，桉树精油在热浪中挥发。澳洲内陆的呼吸，带着药性的清醒。',
+  'w_an': '在零度的极点，嗅觉几乎停滞。那是一种金属般的、臭氧充盈的纯净，让灵魂在空白中战栗。',
+  'w_mx': '墨西哥亡灵节，万寿菊铺满街道。浓烈花香是对死亡最盛大的欢迎。',
+  'w_ar': '巴塔哥尼亚荒原，风卷起干草与羊膻味。南美尽头的孤独，粗粝却自由。',
+  'w_ht': '海地伏都教仪式，朗姆酒、辣椒与熏香混合成迷幻气息。神灵在此附体。',
+  'w_pe': '马丘比丘云雾缭绕，古柯叶的微苦混着安第斯山冷空气。印加帝国的呼吸仍未停歇。',
+  'w_cu': '哈瓦那老城，雪茄烟草醇厚如绸缎，混着海盐与殖民建筑的霉味。时间在此发酵。',
 
   // --- 神州坐标日记 ---
   'cn_北京': '红墙与古松。干燥的冬日空气里，带着一种历经千载的肃穆与威严，沉静得让人不忍大声呼吸。',
@@ -106,7 +106,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   'cn_河南': '洛阳牡丹谢后，泥土中仍残留脂粉甜香。中原的厚重，是千年花事沉淀的余韵。',
   'cn_湖北': '武汉东湖，荷花凋零后莲蓬的微苦混着长江水腥。荆楚的浪漫，带着江湖的野性。',
   'cn_湖南': '岳麓山下，橘子洲头，湘江水汽裹着辣椒与腊肉的辛香。湖南人的火辣，从呼吸开始。',
-  'cn_广东': '荔枝花开的季节，岭南的空气是甜腻而温润的。那是属于南方的、极其丰盛而优雅的生命力。',
+  'cn_广东': '荔枝花开的季节，岭南的空气是甜腻而温润的。那是属于南方的那种极其丰盛而优雅的生命力。',
   'cn_广西': '桂林漓江，晨雾中桂花甜香混着喀斯特岩壁的湿冷。山水甲天下，香亦如此。',
   'cn_海南': '黎寨里的沉香烟。海风吹过椰林的咸，与那抹近乎神圣的木质香气，构成了海岛的灵魂。',
   'cn_重庆': '山城雾都，火锅牛油香穿透层层楼阁。巴渝的江湖气，在每一口呼吸里沸腾。',
@@ -196,9 +196,9 @@ const RAW_PROD = `${RAW_BASE}products/`;
 const RAW_DEST = `${RAW_BASE}destinations/`;
 
 const addP = (cat: Category, group: string, n: string, en: string, folder: string, id: string, price: string, spec: string, customImg?: string) => {
-  // 特殊编码处理文件名：空格 -> %20, 玫瑰符号特殊处理
-  const filename = en.replace(/\s/g, '%20');
-  let heroUrl = customImg || `${RAW_PROD}${folder}/${filename}.webp${CACHE_V}`;
+  // 特殊编码处理文件名：空格 -> %20, 处理带重音符号或空格的特殊路径
+  const encodedFilename = (customImg || `${en.trim()}.webp`).replace(/\s/g, '%20');
+  let heroUrl = customImg && customImg.startsWith('http') ? customImg : `${RAW_PROD}${folder}/${encodedFilename}${CACHE_V}`;
   
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
@@ -230,64 +230,104 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 // ============================================================
 
 // --- [元系列：25款极境单方] ---
-const yuanGroups = ['Metal金', 'Wood木', 'Water水', 'Fire火', 'Earth土'];
-const yuanFolders = ['metal', 'wood', 'water', 'fire', 'earth'];
-const yuanNames = [
-  ['神圣乳香', '极境薄荷', '极境尤加利', '极境茶树', '极境香茅'],
-  ['老山檀香', '极境丝柏', '极境雪松', '极境松针', '神圣花梨木'],
-  ['极境没药', '深根岩兰草', '暗夜广藿香', '极境杜松', '极境安息香'],
-  ['大马士革玫瑰', '极境依兰', '大花茉莉', '日光橙花', '极境天竺葵'],
-  ['佛手柑', '横断生姜', '极境红橘', '极境葡萄柚', '极境橡木苔']
+const yuanData = [
+  { group: 'Metal金', folder: 'metal', items: [
+    ['神圣乳香', 'Sacred Frankincense', '248', '10ml'], 
+    ['极境香茅', 'Citronella Clarissima', '248', '10ml'], 
+    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'], 
+    ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], 
+    ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']
+  ]},
+  { group: 'Wood木', folder: 'wood', items: [
+    ['老山檀香', 'Aged Sandalwood', '1180', '10ml'], 
+    ['极境丝柏', 'Misty Cypress', '128', '10ml'], 
+    ['极境雪松', 'Himalayan Cedar', '108', '10ml'], 
+    ['极境松针', 'Boreal Pine', '98', '10ml'], 
+    ['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml']
+  ]},
+  { group: 'Water水', folder: 'water', items: [
+    ['极境没药', 'Myrrh Secreta', '298', '10ml'], 
+    ['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'], 
+    ['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'], 
+    ['极境杜松', 'Juniper by the Loch', '98', '10ml'], 
+    ['极境安息香', 'Benzoin Ambrosia', '108', '10ml']
+  ]},
+  { group: 'Fire火', folder: 'fire', items: [
+    ['大马士革玫瑰', 'Damask Rose Aureate', '2680', '10ml'], 
+    ['极境依兰', 'Ylang Equatorial', '180', '10ml'], 
+    ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'], 
+    ['日光橙花', 'Neroli Soleil', '108', '10ml'], 
+    ['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']
+  ]},
+  { group: 'Earth土', folder: 'earth', items: [
+    ['佛手柑', 'Bergamot Alba', '108', '10ml'], 
+    ['横断生姜', 'Zingiber Terrae', '158', '10ml'], 
+    ['极境红橘', 'Mandarin Jucunda', '108', '10ml'], 
+    ['极境葡萄柚', 'Grapefruit Pomona', '68', '10ml'], 
+    ['极境橡木苔', 'Oakmoss Taiga', '108', '10ml']
+  ]}
 ];
-const yuanEns = [
-  ['Sacred Frankincense', 'Peppermint from Peaks', 'Eucalyptus Glaciale', 'Tea Tree Antiseptic', 'Citronella Clarissima'],
-  ['Aged Sandalwood', 'Misty Cypress', 'Himalayan Cedar', 'Boreal Pine', 'Sacred Rosewood Isle'],
-  ['Myrrh Secreta', 'Deep Root Vetiver', 'Patchouli Nocturne', 'Juniper by the Loch', 'Benzoin Ambrosia'],
-  ['Damask Rose Aureate', 'Ylang Equatorial', 'Jasminum Grandiflorum', 'Neroli Soleil', 'Geranium Rose\u0301'],
-  ['Bergamot Alba', 'Zingiber Terrae', 'Mandarin Jucunda', 'Grapefruit Pomona', 'Oakmoss Taiga']
-];
-const yuanPrices = [['248','68','98','98','248'],['1180','128','108','98','158'],['298','158','158','98','108'],['2680','180','108','108','98'],['108','158','108','68','108']];
 
-yuanNames.forEach((group, i) => group.forEach((name, j) => {
-  addP('yuan', `元 · ${yuanGroups[i]}`, name, yuanEns[i][j], yuanFolders[i], `yuan_${yuanFolders[i]}_${j}`, yuanPrices[i][j], '10ml');
+yuanData.forEach(g => g.items.forEach((item, j) => {
+  addP('yuan', `元 · ${g.group}`, item[0], item[1], g.folder, `yuan_${g.folder}_${j}`, item[2], item[3], item[4]);
 }));
 
 // --- [香系列：15款复方疗愈] ---
-const heGroups = ['Body身体', 'Mind心智', 'Soul灵魂'];
-const heNames = [
-  ['云感霜', '晨曦液', '月华油', '清冽发', '润迹膏'], 
-  ['止语雾', '归处膏', '听泉露', '微光氛', '深吸瓶'], 
-  ['无界油', '悬浮露', '破晓珠', '空寂水', '共振方']
+const heData = [
+  { group: 'Body身体', folder: 'body', items: [
+    ['云感霜', 'cloud velvet', '268', '50ml', 'cloud velvet.webp'], 
+    ['晨曦液', 'Dawn Glow', '228', '100ml', 'Dawn Glow.webp'], 
+    ['月华油', 'Moonlight Oil', '298', '30ml', 'Moonlight Oil.webp'], 
+    ['清冽发', 'Frost Mint', '198', '60ml', 'Frost Mint.webp'], 
+    ['润迹膏', 'Trace Balm', '168', '15ml', 'Trace Balm.webp']
+  ]},
+  { group: 'Mind心智', folder: 'heart', items: [
+    ['止语雾', 'Silent Mist', '188', '100ml'], 
+    ['归处膏', 'Sanctuary', '158', '10ml'], 
+    ['听泉露', 'Zen Fountain', '248', '30ml'], 
+    ['微光氛', 'Glimmer', '228', '30ml'], 
+    ['深吸瓶', 'Deep Breath', '138', '10ml']
+  ]},
+  { group: 'Soul灵魂', folder: 'soul', items: [
+    ['无界油', 'Boundless', '328', '30ml'], 
+    ['悬浮露', 'Floating', '208', '100ml'], 
+    ['破晓珠', 'Daybreak', '148', '10ml'], 
+    ['空寂水', 'Void Moss', '198', '100ml'], 
+    ['共振方', 'Resonant', '368', '30ml']
+  ]}
 ];
-const heEns = [
-  ['cloud velvet', 'Dawn Glow', 'Moonlight Oil', 'Frost Mint', 'Trace Balm'], 
-  ['Silent Mist', 'Sanctuary', 'Zen Fountain', 'Glimmer', 'Deep Breath'], 
-  ['Boundless', 'Floating', 'Daybreak', 'Void Moss', 'Resonant']
-];
-const hePrices = [['268','228','298','198','168'],['188','158','248','228','138'],['328','208','148','198','368']];
-const heSpecs = [['50ml','100ml','30ml','60ml','15ml'],['100ml','10ml','30ml','30ml','10ml'],['30ml','100ml','10ml','100ml','30ml']];
-const heFolders = ['body', 'heart', 'soul'];
 
-heNames.forEach((group, i) => group.forEach((name, j) => {
-  const groupLabel = heGroups[i];
-  // 保持原有逻辑：Soul系列第5款（下标4）使用包装样图，Mind/Soul其他使用品牌形象
-  let customImg = undefined;
-  if (i === 1 || i === 2) {
-      customImg = ASSETS.brand_image;
+heData.forEach((g, i) => g.items.forEach((item, j) => {
+  const groupLabel = g.group;
+  let customImg = item[4];
+  if (!customImg) {
+    if (i >= 1) customImg = ASSETS.brand_image; // Mind/Soul 默认用品牌形象
+    if (i === 2 && j === 4) customImg = ASSETS.packaging_sample; // 共振方特殊样图
   }
-  if (i === 2 && j === 4) {
-      customImg = ASSETS.packaging_sample;
-  }
-  addP('he', `香 · ${groupLabel}`, name, heEns[i][j], heFolders[i], `he_${i}_${j}`, hePrices[i][j], heSpecs[i][j], customImg);
+  addP('he', `香 · ${groupLabel}`, item[0], item[1], g.folder, `he_${i}_${j}`, item[2], item[3], customImg);
 }));
 
 // --- [境系列：10款芳香美学] ---
-const jingNames = [['陶瓷皿', '芳香链', '木核扩', '蜡烛', '存香瓶'], ['一柱香', '觉知珠', '清空石', '归真座', '承露璃']];
-const jingEns = [['Crackled', 'Necklace ', 'Walnut', 'candle', 'Vessel'], ['Incense Sticks', 'Rollerball', 'Gypsum', 'mountain', 'glass']];
-const jingPrices = [['388','368','198','228','158'],['128','88','168','258','328']];
+const jingData = [
+  { group: '芳香美学', folder: 'place', items: [
+    ['陶瓷皿', 'Crackled', '388', 'Set', 'Crackled.webp'], 
+    ['芳香链', 'Necklace ', '368', 'Piece', 'Necklace .webp'], 
+    ['木核扩', 'Walnut', '198', 'Piece', 'Walnut.webp'], 
+    ['蜡烛', 'candle', '228', '200g', 'candle.webp'], 
+    ['存香瓶', 'Vessel', '158', 'Piece', 'Vessel.webp']
+  ]},
+  { group: '凝思之物', folder: 'Meditation', items: [
+    ['一柱香', 'Incense Sticks', '128', '30pcs', 'Incense Sticks.webp'], 
+    ['觉知珠', 'Rollerball', '88', '10ml', 'Rollerball.webp'], 
+    ['清空石', 'Gypsum', '168', 'Piece', 'Gypsum.webp'], 
+    ['归真座', 'mountain', '258', 'Piece', 'mountain.webp'], 
+    ['承露璃', 'glass', '328', 'Piece', 'glass.webp']
+  ]}
+];
 
-jingNames[0].forEach((n, j) => addP('jing', '境 · 芳香美学', n, jingEns[0][j], 'place', `jing_place_${j}`, jingPrices[0][j], 'Piece'));
-jingNames[1].forEach((n, j) => addP('jing', '境 · 凝思之物', n, jingEns[1][j], 'Meditation', `jing_meditation_${j}`, jingPrices[1][j], 'Piece'));
+jingData.forEach((g, i) => g.items.forEach((item, j) => {
+  addP('jing', `境 · ${g.group}`, item[0], item[1], g.folder, `jing_${i}_${j}`, item[2], item[3], item[4]);
+}));
 
 const getProducts = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
