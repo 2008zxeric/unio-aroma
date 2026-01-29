@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk, ExternalLink, MousePointerClick } from 'lucide-react';
+import { ArrowRight, Activity, Wind, Volume2, Loader2, Key, ShieldCheck, RefreshCw, ShieldAlert, ShieldCheck as ShieldOk, ExternalLink, MousePointerClick, Info } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice } from '../services/gemini';
 
@@ -18,24 +18,20 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // 检查当前 Key 状态
-  const checkCurrentKeyStatus = async () => {
-    try {
-      // @ts-ignore
-      const aistudio = window.aistudio || window.parent?.aistudio || window.top?.aistudio;
-      if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
-        const hasKey = await aistudio.hasSelectedApiKey();
-        setKeyStatus(hasKey ? 'active' : 'inactive');
-      } else {
-        setKeyStatus('inactive');
-      }
-    } catch (e) {
-      setKeyStatus('inactive');
-    }
-  };
-
   useEffect(() => {
-    checkCurrentKeyStatus();
+    const checkKey = async () => {
+      try {
+        const win = window as any;
+        const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
+        if (api && typeof api.hasSelectedApiKey === 'function') {
+          const hasKey = await api.hasSelectedApiKey();
+          setKeyStatus(hasKey ? 'active' : 'inactive');
+        } else {
+          setKeyStatus('inactive');
+        }
+      } catch (e) { setKeyStatus('inactive'); }
+    };
+    checkKey();
   }, []);
 
   useEffect(() => {
@@ -45,30 +41,27 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
   }, [messages, loading]);
 
   /**
-   * 增强型唤醒函数：尝试穿透多层作用域调用接口
+   * 增强型唤醒：绝对同步执行
    */
-  const handleWakeUp = () => {
-    setIsWakingUp(true);
+  const handleWakeUpAction = (e: React.MouseEvent) => {
+    // 阻止冒泡
+    e.stopPropagation();
     
-    // 尝试在不同作用域寻找接口
-    const target = (window as any).aistudio || (window.parent as any)?.aistudio || (window.top as any)?.aistudio;
+    // 1. 立即尝试在所有可能的作用域寻找接口并触发
+    const win = window as any;
+    const api = win.aistudio || win.parent?.aistudio || win.top?.aistudio;
     
-    if (target && typeof target.openSelectKey === 'function') {
-      try {
-        target.openSelectKey();
-      } catch (e) {
-        console.error("Target openSelectKey failed:", e);
-      }
+    if (api && typeof api.openSelectKey === 'function') {
+      api.openSelectKey();
     } else {
-      console.warn("AI Studio interface not found in any scope.");
+      console.warn("AI Studio interface missing.");
     }
 
-    // 乐观 UI：无论弹窗是否显现，2秒后重置报错状态，允许用户再次尝试发送
-    setTimeout(() => {
-      setIsWakingUp(false);
-      setErrorType('none');
-      setKeyStatus('active');
-    }, 2000);
+    // 2. 乐观重置：即便弹窗被拦截，也先让 UI 恢复可用，避免用户卡死
+    setErrorType('none');
+    setKeyStatus('active');
+    setIsWakingUp(true);
+    setTimeout(() => setIsWakingUp(false), 2000);
   };
 
   const handleSend = async () => {
@@ -86,7 +79,6 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
       setKeyStatus('active');
     } catch (err: any) {
-      console.error("Oracle invocation failed:", err);
       if (err.message === "RESELECT_KEY") {
         setErrorType('missing');
         setKeyStatus('inactive');
@@ -142,7 +134,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               <h3 className="text-xl md:text-4xl font-serif-zh font-bold tracking-widest text-black/80">感官祭坛</h3>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold font-cinzel">AI Scent Oracle · 元香 UNIO</p>
-                <div onClick={handleWakeUp} className="cursor-pointer">
+                <div onClick={handleWakeUpAction} className="cursor-pointer">
                   {keyStatus === 'active' ? <ShieldOk size={10} className="text-green-500" /> : <ShieldAlert size={10} className="text-red-500 animate-pulse" />}
                 </div>
               </div>
@@ -177,43 +169,49 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             </div>
           )}
 
-          {/* 针对无响应深度优化的报错区 */}
+          {/* 深度重构的错误/连接引导区 */}
           {errorType === 'missing' && (
-            <div className="flex flex-col items-center gap-8 p-12 bg-red-50/50 rounded-[3rem] border border-red-100 animate-in zoom-in-95">
-              <Key className="text-red-400" size={56} />
-              <div className="text-center space-y-3">
-                <p className="text-red-900 font-serif-zh font-bold text-2xl">极境连接已中断</p>
-                <p className="text-red-600/70 text-sm max-w-md">无法检测到已启用计费的 API 密钥。如果点击下方按钮没有弹出窗口，请检查浏览器地址栏右侧是否显示“已拦截弹出窗口”。</p>
-                <div className="flex flex-col items-center gap-1 pt-4 opacity-50">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-red-500">连接方案：请选择一个 Paid Project</p>
-                </div>
-              </div>
+            <div className="flex flex-col items-center gap-8 p-10 bg-stone-50 rounded-[3rem] border border-black/5 animate-in zoom-in-95">
+              <ShieldAlert className="text-red-500 animate-pulse" size={64} />
               
-              <button 
-                onClick={handleWakeUp}
-                disabled={isWakingUp}
-                className="group relative px-12 py-6 bg-red-600 text-white rounded-full font-bold tracking-widest shadow-2xl hover:bg-red-700 transition-all active:scale-95 flex items-center gap-4"
-              >
-                {isWakingUp ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
-                {isWakingUp ? "正在尝试唤醒..." : "点击唤醒祭坛连接"}
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center animate-ping pointer-events-none">
-                  <MousePointerClick size={10} className="text-red-600" />
-                </div>
-              </button>
-
-              <div className="flex flex-col items-center gap-3">
-                <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-[10px] text-red-600/60 hover:underline flex items-center gap-1 font-bold">
-                  <ExternalLink size={10} /> 确认您的 API 计费状态
-                </a>
-                <p className="text-[9px] text-red-400 font-serif-zh italic">如果多次点击无反应，请尝试刷新整个页面并重试。</p>
+              <div className="text-center space-y-3">
+                <p className="text-black font-serif-zh font-bold text-2xl tracking-widest">祭坛连接已阻断</p>
+                <p className="text-black/40 text-sm max-w-sm mx-auto leading-relaxed">
+                  祭司感知不到你的支付凭证。请点击下方按钮唤醒连接，并选择一个**已启用结算(Paid)**的项目。
+                </p>
               </div>
+
+              <div className="flex flex-col items-center gap-4 w-full max-w-md">
+                <button 
+                  onMouseDown={handleWakeUpAction} 
+                  className="w-full py-6 bg-red-600 text-white rounded-full font-bold tracking-[0.2em] shadow-2xl hover:bg-red-700 transition-all flex items-center justify-center gap-4 active:scale-95"
+                >
+                  {isWakingUp ? <Loader2 className="animate-spin" /> : <MousePointerClick />}
+                  {isWakingUp ? "唤醒指令已发送..." : "立即唤醒祭坛 (强制触发)"}
+                </button>
+                
+                {/* 针对弹窗拦截的硬核提示 */}
+                <div className="p-6 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-4">
+                  <Info className="text-amber-600 shrink-0 mt-1" size={18} />
+                  <div className="text-left space-y-2">
+                    <p className="text-amber-900 text-[11px] font-bold">弹窗拦截排查：</p>
+                    <p className="text-amber-800/70 text-[10px] leading-relaxed">
+                      如果点击后无窗口，请查看浏览器**地址栏右侧**（网址输入框最右端）。若出现“拦截弹窗”的小图标，请点击并选择“**始终允许**”，然后再次点击上方按钮。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="flex items-center gap-2 text-[10px] font-bold tracking-widest opacity-20 hover:opacity-100 hover:text-blue-600 transition-all">
+                <ExternalLink size={12} /> 检查 Google Cloud 项目计费状态
+              </a>
             </div>
           )}
 
           {errorType === 'failed' && (
              <div className="flex flex-col items-center gap-4 p-8 bg-amber-50 rounded-3xl text-amber-800 border border-amber-100">
-               <p className="text-sm md:text-xl font-serif-zh text-center">当前频率无法对位。请确认您的项目已开启 Billing（计费），并点击盾牌重试。</p>
-               <button onClick={handleSend} className="px-6 py-2 bg-amber-200/50 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-amber-200 transition-all">重新对位频率</button>
+               <p className="text-sm md:text-xl font-serif-zh text-center">当前频率无法对位。请确认您的项目已开启 Billing（计费），并点击左上角盾牌标识重试。</p>
+               <button onClick={handleSend} className="px-6 py-2 bg-amber-200/50 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-amber-200 transition-all">再次尝试对位</button>
              </div>
           )}
         </div>
@@ -225,7 +223,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => e.key === 'Enter' && handleSend()} 
-              placeholder={loading ? "正在调配分子..." : "倾诉你内心的杂音..."} 
+              placeholder={loading ? "祭司沉思中..." : "倾诉你内心的杂音..."} 
               disabled={loading}
               className="flex-1 px-6 md:px-14 outline-none text-xs md:text-xl bg-transparent font-serif-zh placeholder:opacity-20" 
             />
