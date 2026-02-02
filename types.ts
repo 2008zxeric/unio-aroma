@@ -1,5 +1,5 @@
 
-export type ViewState = 'home' | 'atlas' | 'china-atlas' | 'collections' | 'oracle' | 'product' | 'destination' | 'image-lab';
+export type ViewState = 'home' | 'atlas' | 'china-atlas' | 'collections' | 'oracle' | 'product' | 'destination' | 'image-lab' | 'story';
 export type Category = 'yuan' | 'he' | 'jing';
 
 export type ScentStatus = 'arrived_origin' | 'planned_origin' | 'arrived' | 'planned';
