@@ -96,7 +96,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 // 🏛️ 全量产品矩阵 (50款)
 // ============================================================
 const yuanData = [
-  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', `https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/metal/Eucalyptus%20Glaciale.webp${CACHE_V}`], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
+  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', `https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/metal/%20Eucalyptus%20Glaciale.webp${CACHE_V}`], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
   { group: 'Wood木', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1180', '10ml'],['极境丝柏', 'Misty Cypress', '128', '10ml'],['极境雪松', 'Himalayan Cedar', '108', '10ml'],['极境松针', 'Boreal Pine', '98', '10ml'],['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml']] },
   { group: 'Water水', folder: 'water', items: [['极境没药', 'Myrrh Secreta', '298', '10ml'],['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'],['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'],['极境杜松', 'Juniper by the Loch', '98', '10ml'],['极境安息香', 'Benzoin Ambrosia', '108', '10ml']] },
   { group: 'Fire火', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2680', '10ml'],['极境依兰', 'Ylang Equatorial', '180', '10ml'],['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'],['日光橙花', 'Neroli Soleil', '108', '10ml'],['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']] },
@@ -127,7 +127,7 @@ jingData.forEach((g, i) => g.items.forEach((item, j) => addP('jing', `境 · ${g
 const getP = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
 // ============================================================
-// 🌍 寻香地理志 (亚洲19/欧洲16/非洲8/美洲9)
+// 🌍 寻香地理志 (亚洲19/欧洲14/非洲8/美洲9)
 // ============================================================
 
 // --- 亚洲 (19) ---
@@ -151,7 +151,7 @@ addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,`${RAW_DEST}Cambodia.webp${CACHE_V
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,`${RAW_DEST}North%20Korea.webp${CACHE_V}`);
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',2,'https://images.unsplash.com/photo-1546708973-b339540b5162?q=80&w=1200');
 
-// --- 欧洲 (16 - 移除希腊、挪威) ---
+// --- 欧洲 (14 - 移除希腊、挪威) ---
 addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200');
 addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200');
 addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200');
