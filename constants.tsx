@@ -96,7 +96,7 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 // 🏛️ 全量产品矩阵 (50款)
 // ============================================================
 const yuanData = [
-  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', 'Eucalyptus%20Glaciale.webp'], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
+  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', `https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/metal/Eucalyptus%20Glaciale.webp${CACHE_V}`], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
   { group: 'Wood木', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1180', '10ml'],['极境丝柏', 'Misty Cypress', '128', '10ml'],['极境雪松', 'Himalayan Cedar', '108', '10ml'],['极境松针', 'Boreal Pine', '98', '10ml'],['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml']] },
   { group: 'Water水', folder: 'water', items: [['极境没药', 'Myrrh Secreta', '298', '10ml'],['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'],['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'],['极境杜松', 'Juniper by the Loch', '98', '10ml'],['极境安息香', 'Benzoin Ambrosia', '108', '10ml']] },
   { group: 'Fire火', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2680', '10ml'],['极境依兰', 'Ylang Equatorial', '180', '10ml'],['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'],['日光橙花', 'Neroli Soleil', '108', '10ml'],['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']] },
@@ -127,7 +127,7 @@ jingData.forEach((g, i) => g.items.forEach((item, j) => addP('jing', `境 · ${g
 const getP = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
 // ============================================================
-// 🌍 寻香地理志 (亚洲19/欧洲18/非洲8/美洲9)
+// 🌍 寻香地理志 (亚洲19/欧洲16/非洲8/美洲9)
 // ============================================================
 
 // --- 亚洲 (19) ---
@@ -151,7 +151,7 @@ addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,`${RAW_DEST}Cambodia.webp${CACHE_V
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,`${RAW_DEST}North%20Korea.webp${CACHE_V}`);
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',2,'https://images.unsplash.com/photo-1546708973-b339540b5162?q=80&w=1200');
 
-// --- 欧洲 (18) ---
+// --- 欧洲 (16 - 移除希腊、挪威) ---
 addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200');
 addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200');
 addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200');
@@ -168,10 +168,8 @@ addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1,`${RAW_DEST}Luxembourg.webp${CAC
 addD('w_pt','葡萄牙','PORTUGAL','欧洲',1,`${RAW_DEST}Portugal.webp${CACHE_V}`);
 addD('w_bg','保加利亚','BULGARIA','欧洲',1,`${RAW_DEST}Bulgaria.webp${CACHE_V}`);
 addD('w_ch','瑞士','SWITZERLAND','欧洲',3,'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200');
-addD('w_gr','希腊','GREECE','欧洲',2,'https://images.unsplash.com/photo-1503152397458-715dc0d01d4b?q=80&w=1200');
-addD('w_no','挪威','NORWAY','欧洲',2,'https://images.unsplash.com/photo-1513530534585-c7b1394c6d51?q=80&w=1200');
 
-// --- 非洲 (8 - 移除突尼斯、索马里) ---
+// --- 非洲 (8) ---
 addD('w_sa','南非','SOUTH AFRICA','非洲',12,`${RAW_DEST}South%20africa.webp${CACHE_V}`);
 addD('w_eg','埃及','EGYPT','非洲',2,`${RAW_DEST}Egypt.webp${CACHE_V}`);
 addD('w_ke','肯尼亚','KENYA','非洲',2,`${RAW_DEST}Kenya.webp${CACHE_V}`);
@@ -181,7 +179,7 @@ addD('w_mu','毛里求斯','MAURITIUS','非洲',1,`${RAW_DEST}Mauritius.webp${CA
 addD('w_ma','摩洛哥','MOROCCO','非洲',2,'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200');
 addD('w_et','埃塞俄比亚','ETHIOPIA','非洲',2,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200');
 
-// --- 美洲/大洋洲 (9 - 移除古巴、新西兰) ---
+// --- 美洲/大洋洲 (9) ---
 addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200');
 addD('w_ca','加拿大','CANADA','美洲/大洋洲',3,'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?q=80&w=1200');
 addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,`${RAW_DEST}Brazil.webp${CACHE_V}`);
