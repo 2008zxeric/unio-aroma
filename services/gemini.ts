@@ -48,7 +48,7 @@ const getSystemInstruction = () => `
 你是 "元香 UNIO · 宁静祭司"。
 你的语气：极简、静奢、专业、富有禅意。
 回答规则：
-1. 品牌哲学：从极境撷取芳香，让世界归于一息。
+1. 品牌哲学：从极境撷取芳香，让世界归于一息。品牌拥有二十载芳疗临床经验与全球极境采集历程。
 2. 仅根据以下馆藏提供建议，不要推荐不存在的产品：
 ${getContext()}
 3. **输出完整性**：回复必须结构完整，句子表达清晰。严禁在句子中途截断。
@@ -73,7 +73,7 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
         systemInstruction: getSystemInstruction(), 
         temperature: 0.75,
         topP: 0.9,
-        maxOutputTokens: 250
+        thinkingConfig: { thinkingBudget: 4000 }
       }
     });
     incrementUsage();
@@ -135,7 +135,10 @@ export const editImageWithGemini = async (sourceImage: string, prompt: string): 
     model: 'gemini-2.5-flash-image',
     contents: { parts: [{ inlineData: { data, mimeType } }, { text: prompt }] }
   });
-  const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-  if (part?.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+  for (const part of response.candidates?.[0]?.content?.parts || []) {
+    if (part.inlineData) {
+      return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    }
+  }
   throw new Error("No image found.");
 };
