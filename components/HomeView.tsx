@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowRight, Globe, MapPin, Activity, Compass, Wind, Sparkles } from 'lucide-react';
+import { ArrowRight, Globe, MapPin, Activity, Compass, Wind, Sparkles, BookOpen } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState, Category } from '../types';
 
@@ -39,23 +39,23 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 2. 姐弟搭档 & 品牌根基 (简述) */}
+      {/* 2. 创始搭档 & 品牌根基 */}
       <section className="py-32 sm:py-64 px-6 bg-stone-50 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
            <div className="flex-1 space-y-12">
               <div className="flex items-center gap-6 text-[#D75437]">
                 <Sparkles size={24} />
-                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">The Sibling Bond / 廿载传承</h3>
+                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">The Founding Partners / 廿载传承</h3>
               </div>
               <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold text-black/80 leading-tight">
                 起于西南，<br />
                 <span className="text-black/20">行至全球 85 个芳香极境。</span>
               </h2>
               <p className="text-lg sm:text-2xl font-serif-zh text-black/40 leading-loose max-w-2xl">
-                芳疗师姐姐 Alice 深耕西南二十余载，以临床之心调配灵魂；行者弟弟 Eric 受其感召游历全球，于荒野极境寻觅真香。这份血脉里的默契，构建了元香 UNIO 独特的“医者心”与“行者魂”。
+                首席专家 Alice 致力于将芳香生活传播给更多人，以二十载临床经验调配灵魂；首席行者 Eric 则在全球行走中寻找芳香的源头。这份基于信任与热爱的专业协作，构建了元香 UNIO 独特的品牌基石。
               </p>
               <button onClick={() => setView('story')} className="flex items-center gap-4 text-[#D75437] font-bold text-sm tracking-[0.4em] uppercase group">
-                 了解完整品牌故事 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                 查看品牌叙事详情 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
               </button>
            </div>
            <div className="flex-1 relative">
@@ -67,18 +67,18 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               <div className="absolute inset-0 flex items-center justify-center">
                  <div className="bg-white px-10 py-6 rounded-2xl shadow-2xl border border-black/5 text-center">
                     <span className="text-3xl font-serif-zh font-bold text-black block">20+ Years</span>
-                    <span className="text-[8px] tracking-widest text-black/30 font-bold uppercase mt-1">Heritage in SW China</span>
+                    <span className="text-[8px] tracking-widest text-black/30 font-bold uppercase mt-1">Founding Vision</span>
                  </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* 3. 三大领域：视觉交互 */}
+      {/* 3. 三大领域视觉切片 */}
       <section className="py-24 sm:py-56 px-6 sm:px-10 max-w-[2560px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
           {[
-            { id: 'yuan', title: '元 · 极境', sub: 'Single Origins', desc: '对抗工业平庸，只取原始能量。单方本草的生存原力。', img: ASSETS.hero_zen },
-            { id: 'he', title: '香 · 复方', sub: 'Clinical Blends', desc: 'Alice 二十载一线临床配方沉淀，手法与心法的交响。', img: ASSETS.hero_spary },
+            { id: 'yuan', title: '元 · 极境', sub: 'Single Origins', desc: '由 Eric 亲自溯源，只取原始能量。单方本草的生存原力。', img: ASSETS.hero_zen },
+            { id: 'he', title: '香 · 复方', sub: 'Clinical Blends', desc: 'Alice 二十载临床配方沉淀，将芳香治愈带入现代生活。', img: ASSETS.hero_spary },
             { id: 'jing', title: '境 · 空间', sub: 'Aesthetic Living', desc: '让东方留白走进日常呼吸。静奢生活的嗅觉载体。', img: ASSETS.brand_image }
           ].map((realm) => (
             <div 
@@ -99,32 +99,45 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
           ))}
       </section>
 
-      {/* 4. 地图与祭司引导 */}
-      <section className="pb-64 px-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div onClick={() => setView('atlas')} className="bg-[#1a1a1a] p-12 sm:p-20 rounded-[4rem] flex flex-col justify-between group cursor-pointer overflow-hidden relative shadow-2xl">
-            <Globe size={200} className="absolute -bottom-20 -right-20 text-white/5 group-hover:scale-110 transition-transform duration-1000" />
-            <div className="space-y-8 relative z-10">
-              <Compass size={40} className="text-[#D75437]" />
-              <h3 className="text-4xl sm:text-6xl font-serif-zh font-bold text-white tracking-widest">寻香地理志</h3>
-              <p className="text-lg font-serif-zh text-white/40 leading-loose">
-                追随 Eric 二十载全球采集路径，探索 85 个极境原点。
+      {/* 4. 核心引导区 */}
+      <section className="pb-64 px-6 max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div onClick={() => setView('atlas')} className="bg-[#1a1a1a] p-10 sm:p-14 rounded-[4rem] flex flex-col justify-between group cursor-pointer overflow-hidden relative shadow-2xl h-[400px]">
+            <Globe size={200} className="absolute -bottom-10 -right-10 text-white/5 group-hover:scale-110 transition-transform duration-1000" />
+            <div className="space-y-6 relative z-10">
+              <Compass size={32} className="text-[#D75437]" />
+              <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-white tracking-widest">寻香地理志</h3>
+              <p className="text-base font-serif-zh text-white/40 leading-loose">
+                探索全球 85 个极境原点。
               </p>
             </div>
-            <div className="mt-20 flex items-center gap-4 text-[#D75437] font-bold text-xs tracking-[0.4em] uppercase relative z-10">
-              EXPLORE ATLAS <ArrowRight size={16} />
+            <div className="mt-auto flex items-center gap-4 text-[#D75437] font-bold text-[10px] tracking-[0.4em] uppercase relative z-10">
+              EXPLORE ATLAS <ArrowRight size={14} />
             </div>
           </div>
 
-          <div onClick={() => setView('oracle')} className="bg-white p-12 sm:p-20 rounded-[4rem] border border-black/5 flex flex-col justify-between group cursor-pointer shadow-2xl">
-            <div className="space-y-8">
-              <Wind size={40} className="text-[#1C39BB]" />
-              <h3 className="text-4xl sm:text-6xl font-serif-zh font-bold text-black/80 tracking-widest">宁静祭司</h3>
-              <p className="text-lg font-serif-zh text-black/40 leading-loose">
-                基于 Alice 二十载临床经验，由 AI 祭司为您提供感官建议。
+          <div onClick={() => setView('story')} className="bg-stone-100 p-10 sm:p-14 rounded-[4rem] flex flex-col justify-between group cursor-pointer shadow-2xl h-[400px]">
+            <div className="space-y-6">
+              <BookOpen size={32} className="text-[#2C3E28]" />
+              <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-black/80 tracking-widest">品牌叙事</h3>
+              <p className="text-base font-serif-zh text-black/40 leading-loose">
+                关于拾载寻香的发现之旅。
               </p>
             </div>
-            <div className="mt-20 flex items-center gap-4 text-[#1C39BB] font-bold text-xs tracking-[0.4em] uppercase">
-              CONSULT ORACLE <ArrowRight size={16} />
+            <div className="mt-auto flex items-center gap-4 text-black/40 font-bold text-[10px] tracking-[0.4em] uppercase">
+              READ STORY <ArrowRight size={14} />
+            </div>
+          </div>
+
+          <div onClick={() => setView('oracle')} className="bg-white p-10 sm:p-14 rounded-[4rem] border border-black/5 flex flex-col justify-between group cursor-pointer shadow-2xl h-[400px]">
+            <div className="space-y-6">
+              <Wind size={32} className="text-[#1C39BB]" />
+              <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-black/80 tracking-widest">宁静祭司</h3>
+              <p className="text-base font-serif-zh text-black/40 leading-loose">
+                基于 Alice 专业经验的感官建议。
+              </p>
+            </div>
+            <div className="mt-auto flex items-center gap-4 text-[#1C39BB] font-bold text-[10px] tracking-[0.4em] uppercase">
+              CONSULT ORACLE <ArrowRight size={14} />
             </div>
           </div>
       </section>
