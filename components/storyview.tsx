@@ -23,7 +23,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             <span className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-bold">The Founding Vision / 廿载寻香志</span>
           </div>
           <h1 className="text-6xl md:text-[10rem] font-serif-zh font-bold text-black tracking-widest leading-none">
-            拾载寻香<br /><span className="text-black/20">归于一息</span>
+            廿载寻香<br /><span className="text-black/20">归于一息</span>
           </h1>
           <p className="text-lg md:text-4xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium pt-8">
             从极境撷取芳香，让世界归于一息。
