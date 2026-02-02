@@ -42,7 +42,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
            <div className="flex-1 space-y-12">
               <div className="flex items-center gap-6 text-[#D75437]">
                 <Sparkles size={24} />
-                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Founding Partners / 拾载寻香</h3>
+                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Founding Partners / 廿载寻香</h3>
               </div>
               <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold text-black/80 leading-tight">
                 始于西南，<br />
