@@ -46,10 +46,10 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               </div>
               <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold text-black/80 leading-tight">
                 始于西南，<br />
-                <span className="text-black/20">行至全球 85 个芳香极境。</span>
+                <span className="text-black/20">行至全球 90 个芳香极境。</span>
               </h2>
               <p className="text-lg sm:text-2xl font-serif-zh text-black/40 leading-loose max-w-2xl">
-                创始搭档 Alice 二十载深耕芳疗专业，致力于将芳香的生活美学传播给更多追求觉知的人；首席行者 Eric 则在全球行走中主动感知本草原力，追寻那一抹跨越极境的源头之息。这份基于专业与发现的协作，构筑了元香 UNIO 的基石。
+                首席专家 Alice 二十载深耕芳疗专业，将 Eric 在全球极境感知的生存原力转化为现代愈合艺术。这份基于专业临床与全球发现的协作，构筑了元香 UNIO 的基石。
               </p>
               <button onClick={() => setView('story')} className="flex items-center gap-4 text-[#D75437] font-bold text-sm tracking-[0.4em] uppercase group">
                  查看品牌故事详情 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
@@ -74,7 +74,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
       {/* 3. 三大核心馆藏 */}
       <section className="py-24 sm:py-56 px-6 sm:px-10 max-w-[2560px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
           {[
-            { id: 'yuan', title: '元 · 极境', sub: 'Single Origins', desc: '由 Eric 亲自溯源，感知原始能量。单方本草的生存原力。', img: ASSETS.hero_zen },
+            { id: 'yuan', title: '元 · 单方', sub: 'Single Origins', desc: '由 Eric 亲自溯源，感知原始能量。呈现单方本草的极境生存原力。', img: ASSETS.hero_zen },
             { id: 'he', title: '香 · 复方', sub: 'Clinical Blends', desc: 'Alice 基于专业沉淀，将芳香治愈的美学传播至现代生活。', img: ASSETS.hero_spary },
             { id: 'jing', title: '境 · 空间', sub: 'Aesthetic Living', desc: '让东方留白走进日常呼吸。静奢生活的嗅觉载体。', img: ASSETS.brand_image }
           ].map((realm) => (
@@ -83,7 +83,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               onClick={() => { setFilter(realm.id as Category); setView('collections'); }}
               className="group relative aspect-[3/4] rounded-[4rem] overflow-hidden cursor-pointer shadow-2xl"
             >
-              <img src={realm.img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" />
+              <img src={realm.img} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" alt={realm.title} />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-40 transition-all" />
               <div className="absolute inset-0 p-16 flex flex-col justify-end">
                 <span className="text-[10px] text-white/40 font-bold tracking-[0.5em] uppercase mb-4">{realm.sub}</span>
@@ -94,49 +94,6 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               </div>
             </div>
           ))}
-      </section>
-
-      {/* 4. 底部入口引导区 */}
-      <section className="pb-64 px-6 max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div onClick={() => setView('atlas')} className="bg-[#1a1a1a] p-10 sm:p-14 rounded-[4rem] flex flex-col justify-between group cursor-pointer overflow-hidden relative shadow-2xl h-[400px] hover:scale-[1.02] transition-transform">
-            <Globe size={200} className="absolute -bottom-10 -right-10 text-white/5 group-hover:scale-110 transition-transform duration-1000" />
-            <div className="space-y-6 relative z-10">
-              <Compass size={32} className="text-[#D75437]" />
-              <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-white tracking-widest">寻香地理志</h3>
-              <p className="text-base font-serif-zh text-white/40 leading-loose">
-                探索全球 85 个极境原点。
-              </p>
-            </div>
-            <div className="mt-auto flex items-center gap-4 text-[#D75437] font-bold text-[10px] tracking-[0.4em] uppercase relative z-10">
-              EXPLORE ATLAS <ArrowRight size={14} />
-            </div>
-          </div>
-
-          <div onClick={() => setView('story')} className="bg-stone-100 p-10 sm:p-14 rounded-[4rem] flex flex-col justify-between group cursor-pointer shadow-2xl h-[400px] hover:scale-[1.02] transition-transform border border-black/5">
-            <div className="space-y-6">
-              <BookOpen size={32} className="text-[#2C3E28]" />
-              <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-black/80 tracking-widest">品牌叙事</h3>
-              <p className="text-base font-serif-zh text-black/40 leading-loose">
-                关于创始搭档的感知轨迹。
-              </p>
-            </div>
-            <div className="mt-auto flex items-center gap-4 text-black/40 font-bold text-[10px] tracking-[0.4em] uppercase">
-              READ STORY <ArrowRight size={14} />
-            </div>
-          </div>
-
-          <div onClick={() => setView('oracle')} className="bg-white p-10 sm:p-14 rounded-[4rem] border border-black/5 flex flex-col justify-between group cursor-pointer shadow-2xl h-[400px] hover:scale-[1.02] transition-transform">
-            <div className="space-y-6">
-              <Wind size={32} className="text-[#1C39BB]" />
-              <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-black/80 tracking-widest">宁静祭司</h3>
-              <p className="text-base font-serif-zh text-black/40 leading-loose">
-                基于 Alice 专业经验的感官建议。
-              </p>
-            </div>
-            <div className="mt-auto flex items-center gap-4 text-[#1C39BB] font-bold text-[10px] tracking-[0.4em] uppercase">
-              CONSULT ORACLE <ArrowRight size={14} />
-            </div>
-          </div>
       </section>
     </div>
   );
