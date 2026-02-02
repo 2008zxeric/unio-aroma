@@ -1,5 +1,6 @@
 
-import { useState, useEffect, useRef } from 'react';
+// Import React to fix the 'Cannot find namespace React' error when using React.FC
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice, getAIQuota } from '../services/gemini';
