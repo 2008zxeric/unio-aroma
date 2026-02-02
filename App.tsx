@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen } from 'lucide-react';
 import { ViewState, Category } from './types';
