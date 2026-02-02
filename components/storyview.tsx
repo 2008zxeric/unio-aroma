@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Compass, FlaskConical, Quote, ArrowDown, Mountain, Wind, Shield, ArrowRight, Microscope, Heart, Users } from 'lucide-react';
+import { Compass, FlaskConical, Quote, ArrowDown, Wind, ArrowRight, Users, Globe } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState } from '../types';
 
@@ -39,7 +39,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         </div>
       </section>
 
-      {/* 2. The Root: 创始搭档的源头 */}
+      {/* 2. 创始搭档: 专业积淀 */}
       <section className="py-32 md:py-80 px-6 md:px-24 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-center">
           <div className="lg:col-span-7 space-y-16">
@@ -52,64 +52,81 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             </h2>
             <div className="space-y-12 text-black/60 text-lg md:text-3xl font-serif-zh leading-loose">
               <p>
-                在西南这片丰饶的土地，首席专家 Alice 开启了漫长的芳疗实践。二十多年间，她深耕专业领域，致力于将芳香的生活美学传递给每一个渴望宁静的灵魂。
+                在西南这片丰饶的土地，创始搭档 Alice 开启了漫长的芳疗实践。二十多年间，她深耕专业领域，致力于将芳香的生活美学传播给每一个渴望宁静的灵魂。
               </p>
-              <p className="border-l-4 border-[#D75437]/20 pl-10 italic">
-                “香气不应是昂贵的摆设，它是通往身心平衡的桥梁。” 这份从容的坚持，赋予了元香 UNIO 每一款作品最深沉的温度。
+              <p className="border-l-4 border-[#D75437]/20 pl-10 italic text-[#D75437]">
+                “香气不应是昂贵的摆设，它是通往身心平衡的桥梁。” 这份优雅的坚持，赋予了元香 UNIO 每一款作品最深沉的温度。
               </p>
             </div>
           </div>
-          <div className="lg:col-span-5 relative">
-            <div className="aspect-[3/4] rounded-[4rem] overflow-hidden shadow-2xl relative z-10 border-8 border-white">
-              <img src={ASSETS.brand_image} className="w-full h-full object-cover grayscale" alt="Alice's Heritage" />
+          <div className="lg:col-span-5 relative group">
+            <div className="aspect-[3/4] rounded-[4rem] overflow-hidden shadow-2xl relative z-10 border-8 border-white transition-all duration-[2s]">
+              {/* 色彩苏醒效果 */}
+              <img 
+                src={ASSETS.brand_image} 
+                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] scale-100 group-hover:scale-110" 
+                alt="Alice's Heritage" 
+              />
             </div>
-            <div className="absolute -inset-8 bg-[#D4AF37]/5 rounded-[5rem] -rotate-6" />
+            <div className="absolute -inset-8 bg-[#D4AF37]/5 rounded-[5rem] -rotate-6 transition-transform group-hover:rotate-0 duration-1000" />
+            <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-white rounded-full shadow-2xl flex flex-col items-center justify-center p-8 border border-black/5 z-20 group-hover:scale-110 transition-transform duration-700">
+               <Globe size={40} className="text-[#D4AF37] mb-2 animate-spin-slow" />
+               <span className="text-[10px] font-bold text-black/30 tracking-widest uppercase">79+ Origins</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 4. The Synergy: 传播者与感知者 */}
+      {/* 3. 感知者与传播者 */}
       <section className="py-32 md:py-80 px-6 md:px-24 bg-stone-50">
         <div className="max-w-7xl mx-auto space-y-32 md:space-y-80">
-          {/* Eric's Side */}
+          {/* Eric's Role */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-40 items-center">
-            <div className="order-2 lg:order-1 relative">
-               <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white">
-                  <img src={ASSETS.hero_eric} className="w-full h-full object-cover rounded-[4rem] grayscale" alt="Eric" />
+            <div className="order-2 lg:order-1 relative group">
+               <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white transition-all duration-[2s]">
+                  <img 
+                    src={ASSETS.hero_eric} 
+                    className="w-full h-full object-cover rounded-[4rem] grayscale group-hover:grayscale-0 transition-all duration-[2s]" 
+                    alt="Eric" 
+                  />
                </div>
-               <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white rounded-full p-12 shadow-2xl flex flex-col items-center justify-center text-center">
+               <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white rounded-full p-12 shadow-2xl flex flex-col items-center justify-center text-center border border-black/5 group-hover:scale-110 transition-transform duration-700">
                   <Compass className="text-[#D75437] mb-4" size={40} />
                   <span className="text-xs font-bold tracking-widest uppercase opacity-40">The Explorer / 首席行者</span>
                   <span className="text-2xl font-serif-zh font-bold mt-2">Eric</span>
                </div>
             </div>
             <div className="order-1 lg:order-2 space-y-12">
-              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#2C3E28]">在行走中感知芳香，<br />在荒野中追溯本源。</h3>
-              <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic">
-                “我在全球行走中寻找芳香的源头，让每一滴呼吸都承载自然的记忆。”
+              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#2C3E28]">在行走中感知芳香，<br />寻找生命的本源。</h3>
+              <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-8 py-2">
+                “我在全球行走中感知自然的频率，让每一滴呼吸都承载极境的记忆。”
               </p>
               <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                Eric 是一位天生的寻香者。他认为最真诚的香气一定生长在最纯净的极境。二十载步履不停，他走遍 85 个坐标，只为带回那份未受现代工业干扰的、本草最初的气息。
+                Eric 是一位天生的行者。他坚持亲身抵达全球极境原点，捕捉那一抹未受工业文明干扰的、来自源头的静谧。他带回的每一滴“元 · 单方”，都是对生命的崇高致敬。
               </p>
             </div>
           </div>
 
-          {/* Alice's Side */}
+          {/* Alice's Role */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-40 items-center">
             <div className="space-y-12">
-              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#1C39BB]">将芳香美学，<br />传播给更多追求觉知的人。</h3>
-              <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic">
-                “Alice 将芳香融入日常，让呼吸成为一种治愈生活的艺术。”
+              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#1C39BB]">将芳香美学，<br />传播给追求觉知的人。</h3>
+              <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-8 py-2">
+                “Alice 将芳香融入日常传播，让呼吸成为一种治愈生活的艺术。”
               </p>
               <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                首席专家 Alice 始终相信芳香拥有改变生命质量的力量。她凭借二十载专业实践，将 Eric 带回的原始分子转化为适合现代生活的愈愈之方。这是专业与艺术的交响，亦是对宁静生活的深情传播。
+                首席专家 Alice 二十载深耕临床芳疗。她将 Eric 感知而来的原始能量，转化为适合现代生活的“元 · 单方”。这是专业与传播的共鸣，亦是对宁静美学的深情分享。
               </p>
             </div>
-            <div className="relative">
-               <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white">
-                  <img src={ASSETS.hero_alice} className="w-full h-full object-cover rounded-[4rem] grayscale" alt="Alice" />
+            <div className="relative group">
+               <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white transition-all duration-[2s]">
+                  <img 
+                    src={ASSETS.hero_alice} 
+                    className="w-full h-full object-cover rounded-[4rem] grayscale group-hover:grayscale-0 transition-all duration-[2s]" 
+                    alt="Alice" 
+                  />
                </div>
-               <div className="absolute -top-12 -left-12 w-64 h-64 bg-white rounded-full p-12 shadow-2xl flex flex-col items-center justify-center text-center">
+               <div className="absolute -top-12 -left-12 w-64 h-64 bg-white rounded-full p-12 shadow-2xl flex flex-col items-center justify-center text-center border border-black/5 group-hover:scale-110 transition-transform duration-700">
                   <FlaskConical className="text-[#1C39BB] mb-4" size={40} />
                   <span className="text-xs font-bold tracking-widest uppercase opacity-40">The Expert / 首席专家</span>
                   <span className="text-2xl font-serif-zh font-bold mt-2">Alice</span>
@@ -119,7 +136,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         </div>
       </section>
 
-      {/* 6. Call to Action */}
+      {/* 4. CTA */}
       <section className="pb-80 px-6">
         <div className="max-w-6xl mx-auto p-16 md:p-32 rounded-[5rem] bg-[#1a1a1a] text-white text-center space-y-16 shadow-2xl overflow-hidden relative group">
            <img src={ASSETS.banner} className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:scale-105 transition-transform duration-1000" />
