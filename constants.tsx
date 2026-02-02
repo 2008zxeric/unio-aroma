@@ -4,7 +4,7 @@ import { ScentItem, Destination, Category } from './types';
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
 const PROVINCE_BASE = `${RAW_BASE}province/`;
 const ERIC_PHOTO_BASE = `${RAW_BASE}ericphoto/`;
-const CACHE_V = '?v=1008.25'; 
+const CACHE_V = '?v=1008.65'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
@@ -19,82 +19,14 @@ export const ASSETS = {
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
 
-export const REGION_VISUALS = {
-  china: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560', 
-  asia: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200',
-  europe: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200',
-  africa: 'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200',
-  america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'
-};
-
 export const ASSET_REGISTRY = { brand: ASSETS };
 export const PRODUCT_OVERRIDES: Record<string, string> = {};
 
-/**
- * ============================================================
- * 🌿 ERIC'S EXTREME JOURNALS / 寻香行历日记库
- * ============================================================
- */
 const ERIC_JOURNAL: Record<string, string> = {
   '神圣乳香': '树脂结晶的那一刻，大地停止了呼吸。我们在多法尔山脉捕捉到的，是本草在极端干旱中凝结的生存意志。',
   '老山檀香': '三十载春秋化作一段心材，α-檀香醇的深度超出了实验室的预期，那是时间沉降后的尊严。',
   '大马士革玫瑰': '三千公斤花瓣萃取的一公斤，是清晨五点谷地里尚未蒸发的灵魂，系情绪疗愈的黄金标准。',
   '极境薄荷': '在阿尔卑斯的冷冽风中，我撕碎一片薄荷叶，那股直冲眉心的凉意，彻底洗礼了灵魂。',
-  'w_thai': '清迈的雨季，空气里写满了湿热的柠檬草气息。在古刹的香火中，我找到了嗅觉上的某种安宁。',
-  'w_in': '迈索尔的尘土里都浸透了檀香。在这里，香气不是奢侈品，而是镌刻在万物骨骼里的祷告。',
-  'w_hk': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。它是水泥森林里脉动的、带有烟火气的芳香心脏。',
-  'w_my': '槟城的老街巷，潮湿木门后飘出肉桂与豆蔻的暖意。那是南洋厨房里永不冷却的乡愁。',
-  'w_id': '巴厘岛的清晨，供品中鲜花与椰子油混合成神圣的甜香。神明与凡人共享同一缕呼吸。',
-  'w_uae': '迪拜的夜晚被乌木烟雾包裹。那是沙漠特有的厚重，仿佛能将滚烫的往事悉数压进沙丘。',
-  'w_vn': '河内的巷弄深处，咖啡炭火焦香混着九层塔的青涩。',
-  'w_jp': '京都的苔藓。在细雨中，我闻到了泥土、湿木头和时间的灰尘，那是极致克制的侘寂。',
-  'w_ir': '设拉子的玫瑰园，花瓣蒸馏成露。空气中浮动着波斯诗人的叹息。',
-  'w_sg': '热带雨林与混凝土共生。香兰叶的绿意穿透空调冷气。',
-  'w_kr': '济州岛的海风裹挟着柑橘皮的微苦。',
-  'w_np': '加德满都的杜巴广场，乳香与酥油灯交织。',
-  'w_tr': '卡帕多奇亚的洞穴教堂，干燥空气中残留着没药与蜂蜡。',
-  'w_kz': '草原尽头，哈萨克牧民的毡房飘出马奶酒与干草的暖香。',
-  'w_jo': '佩特拉古城的砂岩缝隙间，风带来乳香与沙漠鼠尾草的辛凉。',
-  'w_mac': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。',
-  'w_kh': '吴哥窟的晨雾中，湿热空气裹着莲花与腐叶的气息。',
-  'w_kp': '平壤的冬日，松针与煤烟构成沉默的底调。',
-  'w_lk': '康提佛牙寺外，肉桂树皮在阳光下裂开。',
-  'w_fr': '格拉斯的晨曦。我在茉莉花田里行走，呼吸着香水工业最原始的母语。',
-  'w_de': '黑森林深处，冷杉树脂滴落的声音清晰可闻。',
-  'w_it': '托斯卡纳的橄榄园，果实在石磨下迸裂出青绿苦香。',
-  'w_is': '冰与火的交界。空气干净到凛冽，带着火山岩矿物质。',
-  'w_es': '安达卢西亚的橙花盛开，甜香漫过摩尔式庭院。',
-  'w_nl': '阿姆斯特丹运河边，郁金香茎秆折断时的青汁味。',
-  'w_pl': '克拉科夫老城，苹果派烤箱飘出肉桂暖香。',
-  'w_at': '萨尔茨堡山麓，阿尔卑斯草甸的干花香随风而下。',
-  'w_dk': '哥本哈根冬日，肉桂卷与桦木燃烧的烟交织。',
-  'w_hu': '布达佩斯温泉浴场，硫磺水汽氤氲。',
-  'w_mc': '摩纳哥悬崖花园，晚香玉在夜色中释放浓烈甜香。',
-  'w_lu': '卢森堡峡谷，湿润苔藓覆盖古老堡垒。',
-  'w_pt': '里斯本海边，鳕鱼干咸腥混着橙花香。',
-  'w_bg': '玫瑰谷的五月，整片山谷蒸腾着粉红香气。',
-  'w_sa': '南非的好望角。咸腥的海风撕碎了野花的芬芳。',
-  'w_eg': '尼罗河畔的没药。这里的空气干燥而古老。',
-  'w_ke': '马赛马拉草原，雨后泥土蒸腾出野性腥甜。',
-  'w_mg': '马达加斯加的森林。',
-  'w_zw': '维多利亚瀑布水雾弥漫。',
-  'w_mu': '毛里求斯甘蔗田焚烧后的焦甜。',
-  'w_ma': '撒哈拉边缘，阿甘树坚果烘烤出坚果香。',
-  'w_us': '新墨西哥沙漠，鼠尾草燃烧的烟。',
-  'w_ca': '落基山脉雪松林，冷冽空气刺穿肺腑。',
-  'w_br': '亚马逊的丛林。每一次呼吸都是绿色的。',
-  'w_au': '北领地乌鲁鲁巨岩，桉树精油在热浪中挥发。',
-  'w_an': '在零度的极点，嗅觉几乎停滞。',
-  'w_mx': '墨西哥亡灵节，万寿菊铺满街道。',
-  'w_ar': '巴塔哥尼亚荒原，风卷起干草与羊膻味。',
-  'w_ht': '海地伏都教仪式，朗姆酒、辣椒与熏香。',
-  'w_pe': '马丘比丘云雾缭绕。',
-  'w_cu': '哈瓦那老城，雪茄烟草醇厚如绸缎。',
-  'cn_北京': '红墙与古松。干燥的冬日空气里，带着一种历经千载的肃穆与威严。',
-  'cn_上海': '梧桐絮飘过石库门，咖啡香混着黄浦江水汽。',
-  'cn_浙江': '西湖的龙井。不仅是味觉，那是嗅觉上的青绿山水。',
-  'cn_云南': '云雾缭绕的茶山。潮湿的红土、野花的芬芳与古茶树的深邃。',
-  'cn_西藏': '冈仁波齐脚下，经幡在风中飞舞。柏木烟雾让灵魂变得轻盈。',
 };
 
 const ALICE_LAB_DIARY: Record<string, string> = {
@@ -102,8 +34,14 @@ const ALICE_LAB_DIARY: Record<string, string> = {
   '极境薄荷': '左旋薄荷酮纯度91%，提神醒脑峰值在吸入后3分钟，建议避免晚间使用。',
   '老山檀香': '心材醇沉≥30年，α-檀香醇含量突破55%，情绪安抚效果可持续2小时以上。',
   '大马士革玫瑰': '3,000kg花瓣仅萃取1kg精油，芳樟醇+香茅醇协同，系情绪疗愈的黄金标准。',
-  '云感霜': '植物角鲨烷载体+5%极境复方精油，24h保湿力达87%，敏肌测试0刺激。',
-  '止语雾': '雪松+岩兰草深度复方，办公空间喷洒3下，心率恢复平静均值仅需90秒。',
+};
+
+export const REGION_VISUALS = {
+  china: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560', 
+  asia: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200',
+  europe: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200',
+  africa: 'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200',
+  america: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'
 };
 
 export const DATABASE: Record<string, ScentItem> = {};
@@ -113,14 +51,20 @@ const RAW_PROD = `${RAW_BASE}products/`;
 const RAW_DEST = `${RAW_BASE}destinations/`;
 
 const addP = (cat: Category, group: string, n: string, en: string, folder: string, id: string, price: string, spec: string, customImg?: string) => {
-  const encodedFilename = (customImg || `${en.trim()}.webp`).replace(/\s/g, '%20');
-  let heroUrl = (customImg && customImg.startsWith('http')) ? customImg : `${RAW_PROD}${folder}/${encodedFilename}${CACHE_V}`;
+  let heroUrl = "";
+  if (customImg && (customImg.startsWith('http') || customImg.startsWith('data:'))) {
+    heroUrl = customImg;
+  } else {
+    const fileName = customImg || `${en.trim()}.webp`;
+    const encodedFileName = fileName.replace(/\s/g, '%20');
+    heroUrl = `${RAW_PROD}${folder}/${encodedFileName}${CACHE_V}`;
+  }
   
   DATABASE[id] = {
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
     price, specification: spec, hero: heroUrl,
-    shortDesc: cat === 'yuan' ? '极境溯源 / 单方生存原力' : (cat === 'he' ? '一人一方 / 科学频率重构' : '境之感知 / 极简芳香美学'), 
+    shortDesc: cat === 'yuan' ? '元 · 单方 / 极境生存原力' : (cat === 'he' ? '香 · 复方 / 科学频率重构' : '境 · 空间 / 极简芳香美学'), 
     narrative: ERIC_JOURNAL[n] || `“在 ${n} 的分子震颤中，找回生命在极限环境下的抗争记忆。”`,
     benefits: ['意识重构', '深度频率校准', '内在秩序恢复'],
     usage: '取三滴精油于掌心，温热后由鼻息深处缓慢引入。',
@@ -149,11 +93,10 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
 };
 
 // ============================================================
-// 🏛️ 全量产品矩阵初始化 (50款)
+// 🏛️ 全量产品矩阵 (50款)
 // ============================================================
-
 const yuanData = [
-  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', '%20Eucalyptus%20Glaciale.webp'], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
+  { group: 'Metal金', folder: 'metal', items: [['神圣乳香', 'Sacred Frankincense', '248', '10ml'], ['极境香茅', 'Citronella Clarissima', '248', '10ml'], ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', 'Eucalyptus%20Glaciale.webp'], ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']] },
   { group: 'Wood木', folder: 'wood', items: [['老山檀香', 'Aged Sandalwood', '1180', '10ml'],['极境丝柏', 'Misty Cypress', '128', '10ml'],['极境雪松', 'Himalayan Cedar', '108', '10ml'],['极境松针', 'Boreal Pine', '98', '10ml'],['神圣花梨木', 'Sacred Rosewood Isle', '158', '10ml']] },
   { group: 'Water水', folder: 'water', items: [['极境没药', 'Myrrh Secreta', '298', '10ml'],['深根岩兰草', 'Deep Root Vetiver', '158', '10ml'],['暗夜广藿香', 'Patchouli Nocturne', '158', '10ml'],['极境杜松', 'Juniper by the Loch', '98', '10ml'],['极境安息香', 'Benzoin Ambrosia', '108', '10ml']] },
   { group: 'Fire火', folder: 'fire', items: [['大马士革玫瑰', 'Damask Rose Aureate', '2680', '10ml'],['极境依兰', 'Ylang Equatorial', '180', '10ml'],['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'],['日光橙花', 'Neroli Soleil', '108', '10ml'],['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/fire/Geranium%20Rose%CC%81.webp']] },
@@ -184,14 +127,15 @@ jingData.forEach((g, i) => g.items.forEach((item, j) => addP('jing', `境 · ${g
 const getP = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
 // ============================================================
-// 🌍 全球 寻香地理志初始化
+// 🌍 寻香地理志 (亚洲19/欧洲18/非洲8/美洲9)
 // ============================================================
 
+// --- 亚洲 (19) ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200');
 addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200');
 addD('w_hk','中国香港','HONG KONG','亚洲',18,`${RAW_DEST}Hongkong.webp${CACHE_V}`);
 addD('w_my','马来西亚','MALAYSIA','亚洲',13,`${RAW_DEST}Malaysia.webp${CACHE_V}`);
-addD('w_id','印度尼西亚','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200');
+addD('w_id','印尼','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200');
 addD('w_uae','阿联酋','UAE','亚洲',12,'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200');
 addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600');
 addD('w_jp','日本','JAPAN','亚洲',2,'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200');
@@ -206,6 +150,8 @@ addD('w_mac','中国澳门','MACAU','亚洲',2,`${RAW_DEST}Macao.webp${CACHE_V}`
 addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,`${RAW_DEST}Cambodia.webp${CACHE_V}`);
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,`${RAW_DEST}North%20Korea.webp${CACHE_V}`);
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',2,'https://images.unsplash.com/photo-1546708973-b339540b5162?q=80&w=1200');
+
+// --- 欧洲 (18) ---
 addD('w_fr','法国','FRANCE','欧洲',5,'https://images.unsplash.com/photo-1499002238440-d264edd596ec?q=80&w=1200');
 addD('w_de','德国','GERMANY','欧洲',4,'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?q=80&w=1200');
 addD('w_it','意大利','ITALY','欧洲',2,'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?q=80&w=1200');
@@ -221,6 +167,11 @@ addD('w_mc','摩纳哥','MONACO','欧洲',1,`${RAW_DEST}Monaco.webp${CACHE_V}`);
 addD('w_lu','卢森堡','LUXEMBOURG','欧洲',1,`${RAW_DEST}Luxembourg.webp${CACHE_V}`);
 addD('w_pt','葡萄牙','PORTUGAL','欧洲',1,`${RAW_DEST}Portugal.webp${CACHE_V}`);
 addD('w_bg','保加利亚','BULGARIA','欧洲',1,`${RAW_DEST}Bulgaria.webp${CACHE_V}`);
+addD('w_ch','瑞士','SWITZERLAND','欧洲',3,'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=1200');
+addD('w_gr','希腊','GREECE','欧洲',2,'https://images.unsplash.com/photo-1503152397458-715dc0d01d4b?q=80&w=1200');
+addD('w_no','挪威','NORWAY','欧洲',2,'https://images.unsplash.com/photo-1513530534585-c7b1394c6d51?q=80&w=1200');
+
+// --- 非洲 (8 - 移除突尼斯、索马里) ---
 addD('w_sa','南非','SOUTH AFRICA','非洲',12,`${RAW_DEST}South%20africa.webp${CACHE_V}`);
 addD('w_eg','埃及','EGYPT','非洲',2,`${RAW_DEST}Egypt.webp${CACHE_V}`);
 addD('w_ke','肯尼亚','KENYA','非洲',2,`${RAW_DEST}Kenya.webp${CACHE_V}`);
@@ -228,6 +179,9 @@ addD('w_mg','马达加斯加','MADAGASCAR', '非洲', 3, `${RAW_DEST}Madagascar.
 addD('w_zw','津巴布韦','ZIMBABWE','非洲',1,`${RAW_DEST}Zimbabwe.webp${CACHE_V}`);
 addD('w_mu','毛里求斯','MAURITIUS','非洲',1,`${RAW_DEST}Mauritius.webp${CACHE_V}`);
 addD('w_ma','摩洛哥','MOROCCO','非洲',2,'https://images.unsplash.com/photo-1489493585363-d69421e0edd3?q=80&w=1200');
+addD('w_et','埃塞俄比亚','ETHIOPIA','非洲',2,'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200');
+
+// --- 美洲/大洋洲 (9 - 移除古巴、新西兰) ---
 addD('w_us','美国','USA','美洲/大洋洲',7,'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200');
 addD('w_ca','加拿大','CANADA','美洲/大洋洲',3,'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?q=80&w=1200');
 addD('w_br','巴西','BRAZIL','美洲/大洋洲',8,`${RAW_DEST}Brazil.webp${CACHE_V}`);
@@ -237,9 +191,8 @@ addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4,`${RAW_DEST}Mexico.webp${C
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',1,`${RAW_DEST}Argentina.webp${CACHE_V}`);
 addD('w_ht','海地','HAITI','美洲/大洋洲',2,`${RAW_DEST}Haiti.webp${CACHE_V}`);
 addD('w_pe','秘鲁','PERU','美洲/大洋洲',1,'https://images.unsplash.com/photo-1526392060635-9d6019884377?q=80&w=1200');
-addD('w_cu','古巴','CUBA','美洲/大洋洲',1,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200');
 
-// --- [神州 34 坐标全覆盖] ---
+// --- 神州 (34) ---
 const PROVINCE_GROUPS: Record<string, string[]> = {
   '华北': ['北京', '天津', '河北', '山西', '内蒙古'],
   '东北': ['辽宁', '吉林', '黑龙江'],
