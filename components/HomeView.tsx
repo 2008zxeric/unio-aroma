@@ -7,7 +7,7 @@ import { ViewState, Category } from '../types';
 const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Category) => void }> = ({ setView, setFilter }) => {
   return (
     <div className="w-full bg-white overflow-x-hidden selection:bg-[#D75437] selection:text-white">
-      {/* 1. 极致纯净 Hero */}
+      {/* 1. Hero: 品牌核心理念 */}
       <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
         <img 
           src={ASSETS.hero_zen} 
@@ -39,23 +39,23 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 2. 创始搭档 & 品牌根基 */}
+      {/* 2. 创始搭档: 传播者与溯源者 */}
       <section className="py-32 sm:py-64 px-6 bg-stone-50 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
            <div className="flex-1 space-y-12">
               <div className="flex items-center gap-6 text-[#D75437]">
                 <Sparkles size={24} />
-                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">The Founding Partners / 廿载传承</h3>
+                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">The Founding Partners / 拾载寻香</h3>
               </div>
               <h2 className="text-4xl sm:text-7xl font-serif-zh font-bold text-black/80 leading-tight">
                 起于西南，<br />
                 <span className="text-black/20">行至全球 85 个芳香极境。</span>
               </h2>
               <p className="text-lg sm:text-2xl font-serif-zh text-black/40 leading-loose max-w-2xl">
-                首席专家 Alice 致力于将芳香生活传播给更多人，以二十载临床经验调配灵魂；首席行者 Eric 则在全球行走中寻找芳香的源头。这份基于信任与热爱的专业协作，构建了元香 UNIO 独特的品牌基石。
+                首席专家 Alice 致力于将芳香生活传播给更多人，以二十载专业经验调配宁静；首席行者 Eric 则在全球行走中感知芳香，追寻那一抹跨越极境的源头之息。这份基于热爱与专业的搭档协作，构筑了元香 UNIO 的灵魂。
               </p>
               <button onClick={() => setView('story')} className="flex items-center gap-4 text-[#D75437] font-bold text-sm tracking-[0.4em] uppercase group">
-                 查看品牌叙事详情 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                 查看品牌故事详情 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
               </button>
            </div>
            <div className="flex-1 relative">
@@ -67,18 +67,18 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               <div className="absolute inset-0 flex items-center justify-center">
                  <div className="bg-white px-10 py-6 rounded-2xl shadow-2xl border border-black/5 text-center">
                     <span className="text-3xl font-serif-zh font-bold text-black block">20+ Years</span>
-                    <span className="text-[8px] tracking-widest text-black/30 font-bold uppercase mt-1">Founding Vision</span>
+                    <span className="text-[8px] tracking-widest text-black/30 font-bold uppercase mt-1">Heritage & Vision</span>
                  </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* 3. 三大领域视觉切片 */}
+      {/* 3. 三大领域: 极境、复方、空间 */}
       <section className="py-24 sm:py-56 px-6 sm:px-10 max-w-[2560px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">
           {[
-            { id: 'yuan', title: '元 · 极境', sub: 'Single Origins', desc: '由 Eric 亲自溯源，只取原始能量。单方本草的生存原力。', img: ASSETS.hero_zen },
-            { id: 'he', title: '香 · 复方', sub: 'Clinical Blends', desc: 'Alice 二十载临床配方沉淀，将芳香治愈带入现代生活。', img: ASSETS.hero_spary },
+            { id: 'yuan', title: '元 · 极境', sub: 'Single Origins', desc: '由 Eric 亲自溯源，感知原始能量。单方本草的生存原力。', img: ASSETS.hero_zen },
+            { id: 'he', title: '香 · 复方', sub: 'Clinical Blends', desc: 'Alice 二十载专业沉淀，将芳香治愈的美学带入现代生活。', img: ASSETS.hero_spary },
             { id: 'jing', title: '境 · 空间', sub: 'Aesthetic Living', desc: '让东方留白走进日常呼吸。静奢生活的嗅觉载体。', img: ASSETS.brand_image }
           ].map((realm) => (
             <div 
@@ -99,7 +99,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
           ))}
       </section>
 
-      {/* 4. 核心引导区 */}
+      {/* 4. 核心引导区: 确保入口同步可见 */}
       <section className="pb-64 px-6 max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <div onClick={() => setView('atlas')} className="bg-[#1a1a1a] p-10 sm:p-14 rounded-[4rem] flex flex-col justify-between group cursor-pointer overflow-hidden relative shadow-2xl h-[400px]">
             <Globe size={200} className="absolute -bottom-10 -right-10 text-white/5 group-hover:scale-110 transition-transform duration-1000" />
@@ -120,7 +120,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               <BookOpen size={32} className="text-[#2C3E28]" />
               <h3 className="text-3xl sm:text-5xl font-serif-zh font-bold text-black/80 tracking-widest">品牌叙事</h3>
               <p className="text-base font-serif-zh text-black/40 leading-loose">
-                关于拾载寻香的发现之旅。
+                关于拾载寻香的感知之旅。
               </p>
             </div>
             <div className="mt-auto flex items-center gap-4 text-black/40 font-bold text-[10px] tracking-[0.4em] uppercase">
