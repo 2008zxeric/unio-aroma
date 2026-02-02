@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Compass, FlaskConical, Quote, ArrowDown, Mountain, Wind, Shield, ArrowRight, Microscope, Heart } from 'lucide-react';
+import { Compass, FlaskConical, Quote, ArrowDown, Mountain, Wind, Shield, ArrowRight, Microscope, Heart, Users } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState } from '../types';
 
 const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   return (
     <div className="min-h-screen bg-white selection:bg-[#D75437] selection:text-white overflow-x-hidden">
-      {/* 1. Hero: 姐弟的最初一息 */}
+      {/* 1. Hero: 创始愿景 */}
       <section className="h-screen relative flex flex-col items-center justify-center text-center px-6">
         <div className="absolute inset-0 overflow-hidden">
           <img 
@@ -20,16 +20,16 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         
         <div className="relative z-10 space-y-12 max-w-5xl">
           <div className="inline-block px-6 py-2 border border-black/20 rounded-full mb-6">
-            <span className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-bold">The Sibling Heritage / 姐弟寻香志</span>
+            <span className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-bold">The Founding Vision / 廿载寻香志</span>
           </div>
           <h1 className="text-6xl md:text-[10rem] font-serif-zh font-bold text-black tracking-widest leading-none">
-            廿载寻香<br /><span className="text-black/20">归于一息</span>
+            拾载寻香<br /><span className="text-black/20">归于一息</span>
           </h1>
           <p className="text-lg md:text-4xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium pt-8">
             从极境撷取芳香，让世界归于一息。
           </p>
           <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
-            元香 UNIO 的故事，起始于对工业平庸的背叛，<br />终结于对极限生命的敬畏。
+            元香 UNIO 的故事，起始于对纯净品质的执着，<br />终结于对极限生命的敬畏。
           </p>
         </div>
         
@@ -39,23 +39,23 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         </div>
       </section>
 
-      {/* 2. The Root: 成都，品牌的起点 */}
+      {/* 2. The Root: 二十载积淀 */}
       <section className="py-32 md:py-80 px-6 md:px-24 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-center">
           <div className="lg:col-span-7 space-y-16">
             <div className="flex items-center gap-6 text-[#D75437]">
-              <Heart size={32} />
-              <h3 className="text-xs md:text-sm tracking-[0.5em] uppercase font-bold">The Roots / 根基</h3>
+              <Users size={32} />
+              <h3 className="text-xs md:text-sm tracking-[0.5em] uppercase font-bold">The Partnership / 搭档</h3>
             </div>
             <h2 className="text-5xl md:text-8xl font-serif-zh font-bold text-[#2C3E28] leading-tight tracking-tighter">
-              深耕芳疗一线，<br />沉淀二十余载。
+              始于西南，<br />沉淀二十余载。
             </h2>
             <div className="space-y-12 text-black/60 text-lg md:text-3xl font-serif-zh leading-loose">
               <p>
-                在西南芳疗重镇成都，姐姐 Alice 开启了漫长的芳疗实践。二十多年间，她面对无数真实的焦虑、失眠与断裂的呼吸。
+                在西南这片丰饶的土地，首席专家 Alice 开启了漫长的芳疗实践。二十多年间，她深耕一线，致力于将芳香的生活方式传递给每一个渴望宁静的灵魂。
               </p>
               <p className="border-l-4 border-[#D75437]/20 pl-10 italic">
-                “香气不应是昂贵的摆设，它是修复生命秩序的最后一道防线。” 这份对临床效果的偏执，构成了元香 UNIO 每一张复方配方、每一次专业手法的灵魂。
+                “香气不应是昂贵的摆设，它是通往身心平衡的桥梁。” 这份优雅的坚持，赋予了元香 UNIO 每一款配方、每一次触碰最深沉的温度。
               </p>
             </div>
           </div>
@@ -68,7 +68,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         </div>
       </section>
 
-      {/* 3. The Manifesto: 对抗工业平庸 */}
+      {/* 3. The Manifesto: 纯净之约 */}
       <section className="bg-black py-48 md:py-80 px-6 text-white text-center overflow-hidden">
         <div className="max-w-5xl mx-auto space-y-24">
            <div className="space-y-12">
@@ -78,23 +78,23 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               </h2>
               <div className="h-px w-32 bg-white/20 mx-auto" />
               <p className="text-xl md:text-4xl font-serif-zh text-white/40 leading-relaxed font-light">
-                市面上多数精油充斥着工业合成与化学稀释。<br />它们不仅无法治愈，反而成为身体的沉重负担。
+                我们坚持只采集具有治愈能量的原生分子，<br />拒绝一切廉价的工业模拟与平庸的化学堆砌。
               </p>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 text-left">
               <div className="p-12 border border-white/10 rounded-[3rem] space-y-8 bg-white/5">
-                 <h4 className="text-2xl font-serif-zh font-bold text-[#D75437]">极境原材 (UNIO Single)</h4>
-                 <p className="text-white/60 font-serif-zh leading-loose">Eric 二十载亲自踏足原产地监采，封存原生分子信号。单方精油不仅是品质，更是生命力的传递，拒绝一切化工中间商。</p>
+                 <h4 className="text-2xl font-serif-zh font-bold text-[#D75437]">极境原材 (UNIO)</h4>
+                 <p className="text-white/60 font-serif-zh leading-loose">Eric 亲自踏足全球 85 个坐标监采，封存原生能量信号，确保 100% 溯源。这是对植物生命尊严的致敬。</p>
               </div>
               <div className="p-12 border border-white/10 rounded-[3rem] space-y-8 opacity-40">
-                 <h4 className="text-2xl font-serif-zh font-bold">工业合成 (Common)</h4>
-                 <p className="text-white/60 font-serif-zh leading-loose">实验室模拟香气，虽然嗅觉接近，但缺乏植物对抗极端环境所产生的修复能效。不仅无益，反而有害。</p>
+                 <h4 className="text-2xl font-serif-zh font-bold">大众消费 (Common)</h4>
+                 <p className="text-white/60 font-serif-zh leading-loose">流水线式的工业香气，虽然嗅觉接近，但缺乏植物对抗极端环境所产生的修复能效。</p>
               </div>
            </div>
         </div>
       </section>
 
-      {/* 4. The Sibling Dynamic: 行者与医者 */}
+      {/* 4. The Synergy: 传播者与寻香者 */}
       <section className="py-32 md:py-80 px-6 md:px-24 bg-stone-50">
         <div className="max-w-7xl mx-auto space-y-32 md:space-y-80">
           {/* Eric's Side */}
@@ -105,17 +105,17 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
                </div>
                <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white rounded-full p-12 shadow-2xl flex flex-col items-center justify-center text-center">
                   <Compass className="text-[#D75437] mb-4" size={40} />
-                  <span className="text-xs font-bold tracking-widest uppercase opacity-40">The Seeker / 行者</span>
-                  <span className="text-2xl font-serif-zh font-bold mt-2">弟弟 Eric</span>
+                  <span className="text-xs font-bold tracking-widest uppercase opacity-40">The Explorer / 寻香者</span>
+                  <span className="text-2xl font-serif-zh font-bold mt-2">Eric</span>
                </div>
             </div>
             <div className="order-1 lg:order-2 space-y-12">
-              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#2C3E28]">因为姐姐的感召，<br />他走向了极境。</h3>
+              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#2C3E28]">在行走中感知芳香，<br />在荒野中追溯本源。</h3>
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic">
-                “姐姐在实验室研究生命，我在世界尽头采集生命。”
+                “我在全球行走中寻找芳香的源头，每一滴油都承载着经纬的记忆。”
               </p>
               <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                Eric 本是纯粹的行者。在姐姐对极致原材的渴求驱动下，他开始了二十载的寻香苦行。走遍 85 个经纬点，只为带回那滴不经工业污染、蕴含极限能量的本草之源。
+                Eric 是一位天生的行者。他认为最真诚的香气一定生长在最纯净的极境。二十载步履不停，他走遍 85 个坐标，只为带回那份未受工业文明干扰的、本草最初的气息。
               </p>
             </div>
           </div>
@@ -123,12 +123,12 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           {/* Alice's Side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-40 items-center">
             <div className="space-y-12">
-              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#1C39BB]">从配方到手法，<br />皆是廿载一线的真章。</h3>
+              <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#1C39BB]">将芳香生活，<br />传播给更多追求觉知的人。</h3>
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic">
-                “每一个百分比的调整，都源于我曾在那些枯竭的灵魂面前所学到的真理。”
+                “Alice 将芳香美学融入日常，让呼吸成为一种治愈。”
               </p>
               <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                Alice 的复方精油，不仅是科学比例的堆砌，更是对生命力的转译。她将二十载成都工作室的真实临床案例，浓缩进元香 UNIO 的每一瓶“云感”、“止语”中。配方、手法、使用指导，三位一体，方能治愈。
+                首席专家 Alice 始终相信芳香拥有改变生命质量的力量。她凭借二十载临床实践，将 Eric 带回的原始分子转化为适合现代生活的愈愈之方。这是专业与艺术的交响，亦是对宁静生活的深情传播。
               </p>
             </div>
             <div className="relative">
@@ -137,8 +137,8 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
                </div>
                <div className="absolute -top-12 -left-12 w-64 h-64 bg-white rounded-full p-12 shadow-2xl flex flex-col items-center justify-center text-center">
                   <FlaskConical className="text-[#1C39BB] mb-4" size={40} />
-                  <span className="text-xs font-bold tracking-widest uppercase opacity-40">The Expert / 医者</span>
-                  <span className="text-2xl font-serif-zh font-bold mt-2">姐姐 Alice</span>
+                  <span className="text-xs font-bold tracking-widest uppercase opacity-40">The Expert / 传播者</span>
+                  <span className="text-2xl font-serif-zh font-bold mt-2">Alice</span>
                </div>
             </div>
           </div>
@@ -153,9 +153,9 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
          </div>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
-              { icon: Wind, title: '极境采集', desc: '由弟弟 Eric 二十载亲赴产地监采，绕过工业贸易链，封存原生信号。' },
-              { icon: Microscope, title: '专业复方', desc: '姐姐 Alice 基于二十载一线临床经验，从配方到用法实现精准干预。' },
-              { icon: Compass, title: '一人一方', desc: '拒绝大众化的化学伤害，根据个体身心频率，寻找跨越极境的治愈能效。' }
+              { icon: Wind, title: '极境溯源', desc: '由 Eric 亲自监采，绕过工业贸易链，封存植物原生生命信号。' },
+              { icon: Microscope, title: '生活美学', desc: 'Alice 基于二十载经验，将专业芳疗转化为日常可感的审美体验。' },
+              { icon: Compass, title: '觉知灵魂', desc: '拒绝平庸的化学合成，为那 1% 懂得呼吸价值的人，寻找跨越极境的契合。' }
             ].map((rule, i) => (
               <div key={i} className="p-16 border border-black/5 rounded-[4rem] space-y-8 hover:bg-black hover:text-white transition-all duration-700 group">
                 <rule.icon size={48} className="text-[#D75437] group-hover:text-white transition-colors" />
@@ -187,4 +187,3 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
 };
 
 export default StoryView;
-
