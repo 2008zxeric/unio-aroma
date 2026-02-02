@@ -34,7 +34,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             <span className="text-[10px] tracking-[0.6em] text-[#D4AF37] uppercase font-extrabold">Original Harmony / 廿载寻香志</span>
           </div>
           <h1 className="text-7xl md:text-[12rem] font-serif-zh font-bold text-black tracking-[0.1em] leading-none animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            拾载寻香<br /><span className="text-black/20">归于一息</span>
+            廿载寻香<br /><span className="text-black/20">归于一息</span>
           </h1>
           <div className="h-px w-32 bg-black/10 mx-auto my-10" />
           <p className="text-xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium">
