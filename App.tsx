@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Home, Map as MapIcon, Box, Activity, Share2 } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, Share2, Microscope, BookOpen } from 'lucide-react';
 import { ViewState, Category } from './types';
 import { DATABASE, DESTINATIONS, ASSETS } from './constants';
 import HomeView from './components/HomeView';
@@ -10,6 +10,8 @@ import ChinaAtlasView from './components/ChinaAtlasView';
 import OracleView from './components/OracleView';
 import ProductDetail from './components/ProductDetail';
 import DestinationView from './components/DestinationView';
+import ImageLabView from './components/ImageLabView';
+import StoryView from './components/StoryView';
 
 const App: React.FC = () => {
   const savedView = localStorage.getItem('unio_view') as ViewState || 'home';
@@ -106,16 +108,18 @@ const App: React.FC = () => {
         {view === 'atlas' && <AtlasView setView={navigateToView} onSelectDest={handleSelectDest} />}
         {view === 'china-atlas' && <ChinaAtlasView setView={navigateToView} onSelectDest={handleSelectDest} />}
         {view === 'oracle' && <OracleView setView={navigateToView} />}
+        {view === 'image-lab' && <ImageLabView setView={navigateToView} />}
+        {view === 'story' && <StoryView setView={navigateToView} />}
         {view === 'product' && selectedId && <ProductDetail item={DATABASE[selectedId]} setView={navigateToView} previousView={prevView} />}
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* 优化后的玻璃化导航栏 - 已整合小红书入口 */}
       <div className="fixed bottom-10 left-0 w-full flex flex-col items-center z-[900] pointer-events-none px-6">
-        <div className="pointer-events-auto w-full max-w-[580px]">
+        <div className="pointer-events-auto w-full max-w-[720px]">
           <div className="flex items-center justify-around px-4 sm:px-8 py-3.5 sm:py-5 rounded-full border border-white/60 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] backdrop-blur-3xl bg-white/60">
             {[
               { id: 'home', icon: Home, label: '首页' },
+              { id: 'story', icon: BookOpen, label: '故事' },
               { id: 'atlas', icon: MapIcon, label: '地图' },
               { id: 'collections', icon: Box, label: '馆藏' },
               { id: 'oracle', icon: Activity, label: '祭司' },
