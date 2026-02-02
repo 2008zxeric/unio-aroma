@@ -114,9 +114,10 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      <div className="fixed bottom-10 left-0 w-full flex flex-col items-center z-[900] pointer-events-none px-6">
-        <div className="pointer-events-auto w-full max-w-[720px]">
-          <div className="flex items-center justify-around px-4 sm:px-8 py-3.5 sm:py-5 rounded-full border border-white/60 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] backdrop-blur-3xl bg-white/60">
+      {/* 底部导航栏优化 */}
+      <div className="fixed bottom-6 sm:bottom-10 left-0 w-full flex flex-col items-center z-[900] pointer-events-none px-4">
+        <div className="pointer-events-auto w-full max-w-[640px]">
+          <div className="flex items-center justify-between px-2 sm:px-6 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] backdrop-blur-3xl bg-white/70">
             {[
               { id: 'home', icon: Home, label: '首页' },
               { id: 'story', icon: BookOpen, label: '故事' },
@@ -133,12 +134,12 @@ const App: React.FC = () => {
                   <button 
                     key={item.id} 
                     onClick={() => window.open(ASSETS.xhs_link, '_blank')}
-                    className="flex flex-col items-center gap-1 group transition-all"
+                    className="flex flex-col items-center gap-1 group transition-all flex-1"
                   >
-                    <div className="p-4 sm:p-5 rounded-full text-[#D75437] hover:bg-[#D75437] hover:text-white transition-all duration-500 hover:scale-110 active:scale-95 shadow-sm">
-                      <Icon size={22} />
+                    <div className="p-3 sm:p-5 rounded-full text-[#D75437] hover:bg-[#D75437] hover:text-white transition-all duration-300 hover:scale-105 active:scale-95">
+                      <Icon size={18} className="sm:size-[22px]" />
                     </div>
-                    <span className="text-[9px] font-serif-zh font-bold opacity-0 group-hover:opacity-60 transition-opacity tracking-widest">{item.label}</span>
+                    <span className="text-[8px] sm:text-[9px] font-serif-zh font-bold opacity-0 group-hover:opacity-60 transition-opacity tracking-widest">{item.label}</span>
                   </button>
                 );
               }
@@ -147,12 +148,12 @@ const App: React.FC = () => {
                 <button 
                   key={item.id} 
                   onClick={() => navigateToView(item.id as ViewState)} 
-                  className="flex flex-col items-center gap-1 group transition-all"
+                  className="flex flex-col items-center gap-1 group transition-all flex-1"
                 >
-                  <div className={`p-4 sm:p-5 rounded-full transition-all duration-500 ${isActive ? 'bg-black text-white shadow-xl scale-110' : 'text-black/30 hover:text-black/80 hover:scale-105'}`}>
-                    <Icon size={22} />
+                  <div className={`p-3 sm:p-5 rounded-full transition-all duration-300 ${isActive ? 'bg-black text-white shadow-lg scale-105' : 'text-black/30 hover:text-black/80'}`}>
+                    <Icon size={18} className="sm:size-[22px]" />
                   </div>
-                  <span className={`text-[9px] font-serif-zh font-bold transition-opacity tracking-widest ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>{item.label}</span>
+                  <span className={`text-[8px] sm:text-[9px] font-serif-zh font-bold transition-opacity tracking-widest ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>{item.label}</span>
                 </button>
               );
             })}
