@@ -91,7 +91,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 顶部导航 */}
+      {/* 顶部 Logo 导航 */}
       <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
         <div className="pointer-events-auto cursor-pointer flex flex-col items-center group gap-4" onClick={handleLogoClick}>
           <div className="w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all group-hover:scale-110 group-hover:rotate-[360deg] duration-1000">
@@ -104,7 +104,7 @@ const App: React.FC = () => {
         </div>
       </nav>
 
-      {/* 主内容区 */}
+      {/* 主内容视图渲染 */}
       <main className="relative z-10 min-h-screen max-w-[2560px] mx-auto">
         {view === 'home' && <HomeView setView={navigateToView} setFilter={setFilter} />}
         {view === 'collections' && <CollectionsView filter={filter} setFilter={setFilter} onSelect={handleSelectProduct} setView={navigateToView} />}
@@ -117,10 +117,10 @@ const App: React.FC = () => {
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
-      {/* 底部导航栏：针对 6 项进行极致压缩优化，确保移动端不消失 */}
-      <div className="fixed bottom-4 sm:bottom-10 left-0 w-full flex flex-col items-center z-[950] pointer-events-none px-2 sm:px-4">
-        <div className="pointer-events-auto w-full max-w-[660px]">
-          <div className="flex items-center justify-between px-1 sm:px-6 py-1.5 sm:py-4 rounded-full border border-white/60 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.2)] backdrop-blur-3xl bg-white/80">
+      {/* 底部导航栏：采用 Grid 6列强约束布局，彻底解决发布后显示不全的问题 */}
+      <div className="fixed bottom-4 sm:bottom-10 left-0 w-full flex flex-col items-center z-[950] pointer-events-none px-4">
+        <div className="pointer-events-auto w-full max-w-[720px]">
+          <div className="grid grid-cols-6 items-center px-1 sm:px-6 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.2)] backdrop-blur-3xl bg-white/80">
             {[
               { id: 'home', icon: Home, label: '首页' },
               { id: 'story', icon: BookOpen, label: '叙事' },
@@ -132,34 +132,28 @@ const App: React.FC = () => {
               const Icon = item.icon;
               const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
               
-              const baseStyles = "flex flex-col items-center gap-0.5 sm:gap-1 group transition-all flex-1 min-w-0";
-              const iconContainerStyles = `flex-shrink-0 p-2 sm:p-5 rounded-full transition-all duration-300 ${isActive ? 'bg-black text-white shadow-lg scale-105' : 'text-black/30 hover:text-black/80'}`;
+              const btnContent = (
+                <div className="flex flex-col items-center gap-0.5 sm:gap-1 group transition-all w-full">
+                  <div className={`p-2.5 sm:p-5 rounded-full transition-all duration-300 ${item.isExternal ? 'text-[#D75437] hover:bg-[#D75437] hover:text-white' : (isActive ? 'bg-black text-white shadow-lg scale-105' : 'text-black/30 hover:text-black/80')}`}>
+                    <Icon size={15} className="sm:size-[22px]" />
+                  </div>
+                  <span className={`text-[6px] sm:text-[9px] font-serif-zh font-bold tracking-widest truncate w-full text-center transition-opacity ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>
+                    {item.label}
+                  </span>
+                </div>
+              );
 
               if (item.isExternal) {
                 return (
-                  <button 
-                    key={item.id} 
-                    onClick={() => window.open(ASSETS.xhs_link, '_blank')}
-                    className={baseStyles}
-                  >
-                    <div className="flex-shrink-0 p-2 sm:p-5 rounded-full text-[#D75437] hover:bg-[#D75437] hover:text-white transition-all duration-300 hover:scale-105 active:scale-95">
-                      <Icon size={16} className="sm:size-[22px]" />
-                    </div>
-                    <span className="text-[7px] sm:text-[9px] font-serif-zh font-bold opacity-0 group-hover:opacity-60 transition-opacity tracking-widest truncate w-full text-center">{item.label}</span>
+                  <button key={item.id} onClick={() => window.open(ASSETS.xhs_link, '_blank')} className="w-full flex justify-center">
+                    {btnContent}
                   </button>
                 );
               }
 
               return (
-                <button 
-                  key={item.id} 
-                  onClick={() => navigateToView(item.id as ViewState)} 
-                  className={baseStyles}
-                >
-                  <div className={iconContainerStyles}>
-                    <Icon size={16} className="sm:size-[22px]" />
-                  </div>
-                  <span className={`text-[7px] sm:text-[9px] font-serif-zh font-bold transition-opacity tracking-widest truncate w-full text-center ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>{item.label}</span>
+                <button key={item.id} onClick={() => navigateToView(item.id as ViewState)} className="w-full flex justify-center">
+                  {btnContent}
                 </button>
               );
             })}
