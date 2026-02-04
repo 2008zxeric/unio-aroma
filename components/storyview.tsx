@@ -62,15 +62,15 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           <div className="lg:col-span-5 relative group">
             <div className="aspect-[3/4] rounded-[4rem] overflow-hidden shadow-2xl relative z-10 border-8 border-white transition-all duration-[2s]">
               <img 
-                src={ASSETS.brand_image} 
+                src={ASSETS.map} 
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] scale-100 group-hover:scale-110" 
-                alt="Alice's Heritage" 
+                alt="Brand Heritage Map" 
               />
             </div>
             <div className="absolute -inset-8 bg-[#D4AF37]/5 rounded-[5rem] -rotate-6 transition-transform group-hover:rotate-0 duration-1000" />
             <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-white rounded-full shadow-2xl flex flex-col items-center justify-center p-8 border border-black/5 z-20 group-hover:scale-110 transition-transform duration-700">
                <Globe size={40} className="text-[#D4AF37] mb-2 animate-spin-slow" />
-               <span className="text-[10px] font-bold text-black/30 tracking-widest uppercase">79+ Origins</span>
+               <span className="text-[10px] font-bold text-black/30 tracking-widest uppercase">85+ Origins</span>
             </div>
           </div>
         </div>
