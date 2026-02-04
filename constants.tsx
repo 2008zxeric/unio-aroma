@@ -1,4 +1,3 @@
-
 import { ScentItem, Destination, Category } from './types';
 
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
@@ -15,6 +14,7 @@ export const ASSETS = {
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   brand_image: `${RAW_BASE}brand/brand.webp${CACHE_V}`,
+  map: `${RAW_BASE}brand/map.webp${CACHE_V}`,
   packaging_sample: `${RAW_BASE}brand/see.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
@@ -198,7 +198,7 @@ const PROVINCE_GROUPS: Record<string, string[]> = {
   '华中': ['河南', '湖北', '湖南'],
   '华南': ['广东', '广西', '海南', '香港', '澳门'],
   '西南': ['重庆', '四川', '贵州', '云南', '西藏'],
-  '西北': ['陕西', '甘肃', '青海', '宁夏', '新疆']
+  '膨西': ['陕西', '甘肃', '青海', '宁夏', '新疆']
 };
 const PROVINCE_FILE_MAP: Record<string, string> = {
   '北京': 'beijing.webp', '天津': 'tianjin.webp', '河北': 'hebei.webp', '山西': 'shanxi.webp', '内蒙古': 'neimenggu.webp',
