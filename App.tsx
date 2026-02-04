@@ -78,9 +78,9 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           <div className="lg:col-span-5 relative group">
             <div className="aspect-[3/4] rounded-[5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] relative z-10 border-[12px] border-white transition-all duration-1000">
               <img 
-                src={ASSETS.brand_image} 
+                src={ASSETS.map} 
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] scale-100 group-hover:scale-110" 
-                alt="Brand Heritage" 
+                alt="Brand Heritage Map" 
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
             </div>
