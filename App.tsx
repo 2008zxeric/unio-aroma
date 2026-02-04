@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen, Compass, FlaskConical, Quote, ArrowDown, ArrowRight, Users, Sparkles, Globe, Wind } from 'lucide-react';
 import { ViewState, Category } from './types';
@@ -32,13 +33,13 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             <span className="text-[10px] tracking-[0.6em] text-[#D4AF37] uppercase font-extrabold">Original Harmony / 廿载寻香志</span>
           </div>
           <h1 className="text-6xl md:text-[12rem] font-serif-zh font-bold text-black tracking-[0.1em] leading-none animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            廿载寻香<br /><span className="text-black/20">归于一息</span>
+            廿载寻香<br /><span className="text-black/20">元于一息</span>
           </h1>
           <div className="h-px w-32 bg-black/10 mx-auto my-6 md:my-10" />
           {/* 使用 whitespace-nowrap 确保标语在移动端不换行 */}
           <div className="overflow-visible px-4">
              <p className="text-xl sm:text-2xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-full mx-auto font-medium whitespace-nowrap">
-              从极境撷取芳香，让世界归于一息。
+              从极境撷取芳香，因世界元于一息。
              </p>
           </div>
           <p className="text-xs md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
@@ -164,7 +165,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
            <div className="relative z-10 space-y-16">
              <Quote size={80} className="mx-auto text-[#D4AF37] opacity-60 animate-pulse" />
              <div className="space-y-6">
-                <h3 className="text-5xl md:text-[10rem] font-serif-zh font-bold tracking-[0.1em] text-white/95 leading-none">让世界归于一息</h3>
+                <h3 className="text-5xl md:text-[10rem] font-serif-zh font-bold tracking-[0.1em] text-white/95 leading-none">元于一息</h3>
                 <p className="text-sm md:text-3xl font-serif-zh text-white/40 tracking-widest uppercase">Origin · Sanctuary · Breath</p>
              </div>
              <button 
