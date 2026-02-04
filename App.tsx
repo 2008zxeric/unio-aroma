@@ -13,7 +13,7 @@ import DestinationView from './components/DestinationView';
 import ImageLabView from './components/ImageLabView';
 
 /**
- * StoryView - 丰富版品牌叙事组件
+ * StoryView - 丰富版品牌叙事组件 (修复断行与品牌年限)
  */
 const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   return (
@@ -36,9 +36,12 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             廿载寻香<br /><span className="text-black/20">归于一息</span>
           </h1>
           <div className="h-px w-32 bg-black/10 mx-auto my-6 md:my-10" />
-          <p className="text-[15px] sm:text-2xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium whitespace-nowrap">
-            从极境撷取芳香，让世界归于一息。
-          </p>
+          {/* 使用 whitespace-nowrap 确保标语在移动端不换行 */}
+          <div className="overflow-visible px-4">
+             <p className="text-xl sm:text-2xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-full mx-auto font-medium whitespace-nowrap">
+              从极境撷取芳香，让世界归于一息。
+             </p>
+          </div>
           <p className="text-xs md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
             元香 UNIO 的故事，起始于对纯净品质的执着，<br />终结于对极限生命的敬畏与分享。
           </p>
@@ -134,7 +137,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               </p>
             </div>
             <div className="relative group">
-               <div className="aspect-[4/5] rounded-[6rem] overflow-hidden shadow-2xl p-4 bg-white">
+               <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white">
                   <img 
                     src={ASSETS.hero_alice} 
                     className="w-full h-full object-cover rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]" 
@@ -181,7 +184,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
 const App: React.FC = () => {
   // 版本验证
   useEffect(() => {
-    console.log("%c UNIO 元香 %c v2.4 - Harmony Refactor %c", 
+    console.log("%c UNIO 元香 %c v2.5 - Aesthetic Impact %c", 
       "background:#D75437;color:#fff;padding:4px 8px;border-radius:4px 0 0 4px;", 
       "background:#1a1a1a;color:#fff;padding:4px 8px;border-radius:0 4px 4px 0;", 
       "color:transparent;");
