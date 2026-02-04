@@ -41,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
        </div>
     </div>
     <div className="mt-3 sm:mt-8 px-0.5 text-center sm:text-left space-y-0.5 sm:space-y-2" onClick={() => onSelect(item.id)}>
-       <h4 className="text-[11px] sm:text-2xl lg:text-3xl font-serif-zh font-bold tracking-wider sm:tracking-widest text-black/80 group-hover:text-[#D75437] transition-colors line-clamp-2 cursor-pointer leading-tight sm:leading-normal">{item.herb}</h4>
+       <h4 className="text-[10px] sm:text-2xl lg:text-3xl font-serif-zh font-bold tracking-wider sm:tracking-widest text-black/80 group-hover:text-[#D75437] transition-colors line-clamp-2 cursor-pointer leading-tight sm:leading-normal">{item.herb}</h4>
        <span className="text-[6px] sm:text-[10px] tracking-widest opacity-20 font-bold uppercase font-cinzel block truncate">{item.herbEn}</span>
     </div>
   </div>
@@ -98,7 +98,7 @@ const CollectionsView: React.FC<{
                 <button 
                   key={c} 
                   onClick={() => setFilter(c)} 
-                  className={`text-[10px] sm:text-sm tracking-[0.2em] sm:tracking-[0.4em] uppercase font-bold py-2.5 sm:py-5 rounded-full transition-all duration-500 whitespace-nowrap ${filter === c ? 'bg-white text-black shadow-lg scale-[1.02]' : 'text-black/30 hover:text-black/60'}`}
+                  className={`text-[11px] sm:text-sm tracking-[0.2em] sm:tracking-[0.4em] uppercase font-bold py-3 sm:py-5 rounded-full transition-all duration-500 whitespace-nowrap ${filter === c ? 'bg-white text-black shadow-lg scale-[1.02]' : 'text-black/30 hover:text-black/60'}`}
                 >
                   <span className="hidden sm:inline">{themes[c].fullLabel}</span>
                   <span className="inline sm:hidden">{themes[c].label}</span>
@@ -110,7 +110,7 @@ const CollectionsView: React.FC<{
         <div className="space-y-16 sm:space-y-64">
           {(Object.entries(groups) as [string, ScentItem[]][]).map(([groupName, groupItems]) => (
             <section key={groupName} className="space-y-6 sm:space-y-24">
-              {/* 产品网格：移动端一行三个 */}
+              {/* 产品网格：移动端一行三个 (grid-cols-3) */}
               <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-12 lg:gap-20">
                 {/* 组标题卡片：占据第一个格位 */}
                 <div className="col-span-1 bg-[#FAF9F6] rounded-3xl sm:rounded-[4.5rem] p-3 sm:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-[3/4]">
@@ -122,7 +122,7 @@ const CollectionsView: React.FC<{
                            <span className="sm:hidden">{groupName.includes('金') ? '金' : groupName.includes('木') ? '木' : groupName.includes('水') ? '水' : groupName.includes('火') ? '火' : groupName.includes('土') ? '土' : groupName.split('·')[1]?.trim() || groupName}</span>
                            <span className="hidden sm:inline">{groupName}</span>
                          </h3>
-                         <div className="flex items-center gap-1 sm:gap-6">
+                         <div className="flex items-center gap-1 sm:gap-4">
                             <div className="scale-75 sm:scale-100">{getGroupIcon(groupName)}</div>
                             <span className="text-[5px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] opacity-30 font-bold font-cinzel uppercase">{themes[filter].en.split(' ')[0]}</span>
                          </div>
