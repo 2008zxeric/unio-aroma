@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Compass, FlaskConical, Quote, ArrowDown, Wind, ArrowRight, Users, Globe } from 'lucide-react';
 import { ASSETS } from '../constants';
@@ -22,10 +23,10 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             <span className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-bold">The Founding Vision / 廿载寻香志</span>
           </div>
           <h1 className="text-6xl md:text-[10rem] font-serif-zh font-bold text-black tracking-widest leading-none">
-            廿载寻香<br /><span className="text-black/20">归于一息</span>
+            廿载寻香<br /><span className="text-black/20">元于一息</span>
           </h1>
           <p className="text-[15px] sm:text-2xl md:text-4xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium pt-8 whitespace-nowrap">
-            从极境撷取芳香，让世界归于一息。
+            从极境撷取芳香，因世界元于一息。
           </p>
           <p className="text-xs md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
             元香 UNIO 的故事，起始于对纯净品质的执着，<br />终结于对极限生命的敬畏与分享。
@@ -137,8 +138,10 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         <div className="max-w-6xl mx-auto p-16 md:p-32 rounded-[5rem] bg-[#1a1a1a] text-white text-center space-y-16 shadow-2xl overflow-hidden relative group">
            <img src={ASSETS.banner} className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:scale-105 transition-transform duration-1000" />
            <div className="relative z-10 space-y-12">
-             <Quote size={64} className="mx-auto text-[#D4AF37] opacity-40" />
-             <h3 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-widest text-white/90">让世界归于一息</h3>
+             <div className="flex flex-col items-center gap-6">
+                <Quote size={64} className="text-[#D4AF37] opacity-40" />
+                <h3 className="text-4xl md:text-8xl font-serif-zh font-bold tracking-widest text-white/90">元于一息</h3>
+             </div>
              <button 
                 onClick={() => setView('home')}
                 className="group px-16 py-6 bg-white text-black rounded-full font-bold text-sm tracking-[0.4em] uppercase hover:bg-[#D75437] hover:text-white transition-all flex items-center gap-6 mx-auto shadow-2xl"
