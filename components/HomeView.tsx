@@ -27,10 +27,10 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         
         <div className="relative z-10 text-center px-6 space-y-12">
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            {/* 标题重构：元香 + 陶土红 UNIO */}
+            {/* 标题重构：元香 + 白色系 UNIO (已修正颜色) */}
             <h1 className="text-[12vw] sm:text-[14rem] font-serif-zh font-bold tracking-[0.2em] text-white leading-none drop-shadow-2xl flex items-center justify-center">
               <span className="shimmer-text">元香</span>
-              <span className="text-[0.35em] sm:text-[0.4em] ml-2 sm:ml-6 font-cinzel tracking-tight text-[#D75437] opacity-90 italic">UNIO</span>
+              <span className="text-[0.35em] sm:text-[0.4em] ml-2 sm:ml-6 font-cinzel tracking-tight text-white/80 opacity-90 italic drop-shadow-lg">UNIO</span>
             </h1>
             <div className="h-px w-32 sm:w-96 bg-white/20 mx-auto" />
             <p className="text-[8px] sm:text-2xl tracking-[1.2em] sm:tracking-[1.8em] uppercase font-bold text-white/40 font-cinzel">
@@ -43,7 +43,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               从极境撷取芳香，让世界归于一息。
             </p>
             <p className="text-[10px] sm:text-xl text-white/30 font-serif-zh tracking-[0.5em] uppercase font-bold">
-              廿载寻香 · 始于觉知 / SINCE 2004
+              廿三载寻香 · 始于觉知 / SINCE 2003
             </p>
           </div>
         </div>
@@ -60,14 +60,14 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
            <div className="flex-1 space-y-12">
               <div className="flex items-center gap-6 text-[#D75437]">
                 <div className="p-3 bg-[#D75437]/10 rounded-full"><Sparkles size={24} /></div>
-                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Heritage / 廿载寻香</h3>
+                <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Heritage / 廿三载寻香</h3>
               </div>
               <h2 className="text-4xl sm:text-8xl font-serif-zh font-bold text-black/80 leading-tight tracking-tighter">
                 始于神州西南，<br />
-                <span className="text-black/20">廿载深耕，迹遍全球。</span>
+                <span className="text-black/20">专业深耕，迹遍全球。</span>
               </h2>
               <p className="text-lg sm:text-3xl font-serif-zh text-black/40 leading-loose max-w-2xl">
-                元香 UNIO 凝聚了 Alice 廿载芳疗临床的深厚积淀，将 Eric 在全球极境感知的生存原力转化为精准的现代身心愈合艺术。
+                元香 UNIO 凝聚了 Alice 廿三载芳疗临床的深厚积淀，将 Eric 在全球极境感知的生存原力转化为精准的现代身心愈合艺术。
               </p>
               <button 
                 onClick={() => setView('story')} 
@@ -85,7 +85,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
                  <div className="bg-white/80 backdrop-blur-2xl px-14 py-10 rounded-[2.5rem] shadow-3xl border border-white/50 text-center transform hover:scale-105 transition-transform duration-700">
-                    <span className="text-4xl sm:text-6xl font-serif-zh font-bold text-black block mb-2">20+ Years</span>
+                    <span className="text-4xl sm:text-6xl font-serif-zh font-bold text-black block mb-2">23 Years</span>
                     <span className="text-[8px] sm:text-[10px] tracking-[0.5em] text-[#D4AF37] font-bold uppercase">Expertise & Integrity</span>
                  </div>
               </div>
@@ -93,7 +93,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. 三大核心馆藏 - 封面升级为暗夜广藿香 */}
+      {/* 3. 三大核心馆藏 */}
       <section className="py-24 sm:py-56 px-4 sm:px-12 max-w-[2560px] mx-auto grid grid-cols-3 gap-4 md:gap-12">
           {[
             { 
@@ -101,7 +101,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               title: '元 · 单方', 
               sub: 'Extreme Singles', 
               desc: '呈现本草最原始的生存原力。', 
-              img: patchouliImg, // 精准定位：暗夜广藿香
+              img: patchouliImg,
               icon: <Shield size={18} /> 
             },
             { 
@@ -143,7 +143,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
           ))}
       </section>
 
-      {/* 4. 专业化品牌页脚 - 深度重构 */}
+      {/* 4. 专业化品牌页脚 - 修正版权日期 */}
       <footer className="bg-stone-50 border-t border-black/5 pt-32 sm:pt-64 pb-32 sm:pb-48 px-6 sm:px-24">
         <div className="max-w-[2560px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 sm:gap-32">
           {/* 第一列：品牌哲学 */}
@@ -154,7 +154,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
             </div>
             <div className="h-px w-20 bg-[#D75437]/20" />
             <p className="text-base sm:text-2xl font-serif-zh text-black/40 leading-loose">
-              始于 2004，从西南神州开启寻香之旅。我们坚持极境溯源与廿载临床实证，只为呈现生命最本原的静谧频率。
+              始于 2003，从西南神州开启寻香之旅。我们坚持极境溯源与廿三载临床实证，只为呈现生命最本原的静谧频率。
             </p>
           </div>
 
@@ -202,8 +202,8 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                <div className="flex items-start gap-8 group">
                   <div className="p-4 bg-white rounded-full border border-black/5 text-[#D75437] shadow-sm group-hover:scale-110 transition-transform"><HeartPulse size={20} /></div>
                   <div>
-                    <span className="block text-sm sm:text-2xl font-serif-zh text-black/80 font-bold">廿载芳疗实录</span>
-                    <span className="text-[8px] sm:text-[11px] tracking-widest text-black/20 uppercase font-bold mt-1 block">20Y Clinical Heritage</span>
+                    <span className="block text-sm sm:text-2xl font-serif-zh text-black/80 font-bold">廿三载芳疗实录</span>
+                    <span className="text-[8px] sm:text-[11px] tracking-widest text-black/20 uppercase font-bold mt-1 block">23Y Clinical Heritage</span>
                </div>
                </div>
             </div>
@@ -240,7 +240,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
 
         <div className="mt-40 pt-16 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-10">
            <div className="flex flex-col gap-2">
-             <span className="text-[8px] sm:text-[11px] tracking-[0.6em] text-black/15 font-bold uppercase font-cinzel">© 2004-2024 UNIO LIFE. 廿载寻香，始终如一。</span>
+             <span className="text-[8px] sm:text-[11px] tracking-[0.6em] text-black/15 font-bold uppercase font-cinzel">© 2003-2026 UNIO LIFE. 廿三载寻香，始终如一。</span>
              <span className="text-[8px] text-black/10 font-cinzel">DESIGNED FOR SOULS WHO SEEK SILENCE.</span>
            </div>
            <div className="flex gap-12 opacity-10 text-[8px] sm:text-[11px] font-bold tracking-[0.4em] uppercase">
