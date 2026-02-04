@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unio 元香 UNIO | 从极境撷取芳香</title>
+    <title>Unio 元香 UNIO | 从极境中撷取宁静</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -23,7 +23,7 @@
         .font-cinzel { font-family: 'Cinzel', serif; }
         .font-serif-zh { font-family: 'Noto Serif SC', serif; }
         
-        /* 揭幕动画关键帧 */
+        /* 核心动画定义 */
         @keyframes luxuryReveal {
           0% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; transform: scale(1.1); }
           100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
@@ -40,16 +40,19 @@
           0%, 100% { transform: scale(1); opacity: 0.8; }
           50% { transform: scale(1.03); opacity: 1; }
         }
-        /* 光点滑动动画 */
-        @keyframes glideLight {
-          0% { left: -10%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { left: 110%; opacity: 0; }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         .animate-luxury-reveal { animation: luxuryReveal 1.6s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
         .animate-luxury-mask-exit { animation: luxuryMaskExit 1.0s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        .animate-slide-up { animation: slideUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
         
         .shimmer-text {
           background: linear-gradient(90deg, #2C3E28 0%, #D4AF37 45%, #D75437 55%, #2C3E28 100%);
@@ -60,13 +63,15 @@
         }
 
         .animate-breath { animation: logoPulse 4s ease-in-out infinite; }
-        .animate-glide { animation: glideLight 4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .glass-nav {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         }
 
         ::-webkit-scrollbar { width: 4px; }
