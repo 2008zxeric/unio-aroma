@@ -31,7 +31,7 @@ const ERIC_JOURNAL: Record<string, string> = {
 
 const ALICE_LAB_DIARY: Record<string, string> = {
   '神圣乳香': '树脂结晶率＞12%，冷压蒸馏保留α-蒎烯活性，冥想时使用可降低皮质醇17%。',
-  '极境薄荷': '左旋薄荷酮纯度91%，提神醒脑峰值在吸入后3分钟，建议避免晚间使用。',
+  '极境薄荷': '左旋薄荷酮纯度91%，提神醒脑粉值在吸入后3分钟，建议避免晚间使用。',
   '老山檀香': '心材醇沉≥30年，α-檀香醇含量突破55%，情绪安抚效果可持续2小时以上。',
   '大马士革玫瑰': '3,000kg花瓣仅萃取1kg精油，芳樟醇+香茅醇协同，系情绪疗愈的黄金标准。',
 };
@@ -76,9 +76,10 @@ const addP = (cat: Category, group: string, n: string, en: string, folder: strin
   } as ScentItem;
 };
 
-const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string) => {
+const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, pIds: string[] = [], s:'arrived'|'locked'='arrived', isCN:boolean=false, sub?:string, customPrefix?:string) => {
   const diary = ERIC_JOURNAL[id] || ERIC_JOURNAL[`cn_${n}`] || ERIC_JOURNAL[n] || `第 ${c} 次踏上 ${n}。这里的空气中弥漫着一种坚韧的静谧。`;
-  const prefix = en.toLowerCase().replace(/[^a-z]/g, '').slice(0, 3);
+  // 如果提供了 customPrefix 则使用，否则取英文名前三位
+  const prefix = customPrefix || en.toLowerCase().replace(/[^a-z]/g, '').slice(0, 3);
   const memoryPhotos = [
     `${ERIC_PHOTO_BASE}${prefix}1.webp${CACHE_V}`,
     `${ERIC_PHOTO_BASE}${prefix}2.webp${CACHE_V}`,
@@ -132,7 +133,8 @@ const getP = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
 // --- 亚洲 (19) ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200');
-addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200');
+// 特殊微调：印度使用 inn 前缀
+addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', [], 'arrived', false, undefined, 'inn');
 addD('w_hk','中国香港','HONG KONG','亚洲',18,`${RAW_DEST}Hongkong.webp${CACHE_V}`);
 addD('w_my','马来西亚','MALAYSIA','亚洲',13,`${RAW_DEST}Malaysia.webp${CACHE_V}`);
 addD('w_id','印尼','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200');
