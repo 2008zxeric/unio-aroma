@@ -15,6 +15,7 @@ export const ASSETS = {
   hero_spary: `${RAW_BASE}brand/spary.webp${CACHE_V}`, 
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   brand_image: `${RAW_BASE}brand/brand.webp${CACHE_V}`,
+  map: `${RAW_BASE}brand/map.webp${CACHE_V}`,
   packaging_sample: `${RAW_BASE}brand/see.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
