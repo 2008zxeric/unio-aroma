@@ -40,10 +40,10 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
           
           <div className="space-y-6 max-w-5xl mx-auto px-4">
             <p className="text-lg sm:text-6xl text-white font-serif-zh tracking-[0.2em] sm:tracking-[0.3em] font-medium drop-shadow-lg whitespace-nowrap overflow-visible leading-tight">
-              从极境撷取芳香，让世界归于一息。
+              从极境撷取芳香，因世界元于一息。
             </p>
             <p className="text-[9px] sm:text-xl text-white/30 font-serif-zh tracking-[0.4em] sm:tracking-[0.5em] uppercase font-bold">
-              廿载寻香 · 始于觉知 / SINCE 2003
+              廿三载寻香 · 始于觉知 / SINCE 2003
             </p>
           </div>
         </div>
@@ -244,7 +244,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
 
         <div className="mt-24 sm:mt-40 pt-12 sm:pt-16 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
            <div className="flex flex-col gap-2">
-             <span className="text-[8px] sm:text-[11px] tracking-[0.5em] text-black/15 font-bold uppercase font-cinzel">© 2003-2026 UNIO LIFE. 廿三载寻香，始终如一。</span>
+             <span className="text-[8px] sm:text-[11px] tracking-[0.5em] text-black/15 font-bold uppercase font-cinzel">© 2003-2026 UNIO LIFE. 廿三载寻香，元于一息。</span>
              <span className="text-[8px] text-black/10 font-cinzel">DESIGNED FOR SOULS WHO SEEK SILENCE.</span>
            </div>
            <div className="flex flex-wrap justify-center gap-8 opacity-10 text-[8px] sm:text-[11px] font-bold tracking-[0.3em] uppercase">
