@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen, Compass, FlaskConical, Quote, ArrowDown, ArrowRight, Users, Sparkles, Globe, Wind } from 'lucide-react';
 import { ViewState, Category } from './types';
@@ -78,9 +77,9 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           <div className="lg:col-span-5 relative group">
             <div className="aspect-[3/4] rounded-[5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] relative z-10 border-[12px] border-white transition-all duration-1000">
               <img 
-                src={ASSETS.brand_image} 
+                src={ASSETS.map} 
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] scale-100 group-hover:scale-110" 
-                alt="Brand Heritage" 
+                alt="Brand Heritage Map" 
               />
               <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
             </div>
@@ -118,7 +117,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-10 py-4">
                 “我在全球 85 个极境行走，只为在稀薄的空气中，捕捉那一抹未被现代工业驯化的野性香气。”
               </p>
-              <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl leading-loose">
+              <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
                 作为首席行者，Eric 相信香气的灵魂生长在极限环境。无论是阿尔卑斯的冷冽、多法尔沙漠的炙热，还是神州红土的湿润，他坚持亲身抵达，以“感知者”的身份将大地的语言翻译给世界。
               </p>
             </div>
@@ -132,7 +131,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-10 py-4">
                 “Alice 将 Eric 带回的原始能量，转化为能治愈现代焦虑的生活艺术，让呼吸成为一种美学。”
               </p>
-              <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl leading-loose">
+              <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
                 首席专家 Alice 廿载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的“宁静避难所”。这是专业积淀与分享精神的完美交响。
               </p>
             </div>
