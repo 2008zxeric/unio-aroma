@@ -43,7 +43,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               从极境撷取芳香，让世界归于一息。
             </p>
             <p className="text-[9px] sm:text-xl text-white/30 font-serif-zh tracking-[0.4em] sm:tracking-[0.5em] uppercase font-bold">
-              廿余载寻香 · 始于觉知 / SINCE 2003
+              廿载寻香 · 始于觉知 / SINCE 2003
             </p>
           </div>
         </div>
