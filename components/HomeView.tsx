@@ -49,7 +49,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
                 <span className="text-black/20">行至全球 90 个芳香极境。</span>
               </h2>
               <p className="text-lg sm:text-2xl font-serif-zh text-black/40 leading-loose max-w-2xl">
-                首席专家 Alice 二十载深耕芳疗专业，将 Eric 在全球极境感知的生存原力转化为现代愈合艺术。这份基于专业临床与全球发现的协作，构筑了元香 UNIO 的基石。
+                首席专家 Alice 廿载深耕芳疗专业，将 Eric 在全球极境感知的生存原力转化为现代愈合艺术。这份基于专业临床与全球发现的协作，构筑了元香 UNIO 的基石。
               </p>
               <button onClick={() => setView('story')} className="flex items-center gap-4 text-[#D75437] font-bold text-sm tracking-[0.4em] uppercase group">
                  查看品牌故事详情 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
