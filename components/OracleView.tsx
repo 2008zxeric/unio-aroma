@@ -7,7 +7,7 @@ import { getOracleResponse, generateOracleVoice, getAIQuota } from '../services/
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: '从极境撷取芳香，让世界归于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }
+    { role: 'assistant', content: '从极境撷取芳香，因世界元于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -121,7 +121,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
           <button 
             onClick={() => {
               if (messages.length > 1 && window.confirm("确定要重置与祭司的对话吗？")) {
-                setMessages([{ role: 'assistant', content: '从极境撷取芳香，让世界归于一息。' }]);
+                setMessages([{ role: 'assistant', content: '从极境撷取芳香，因世界元于一息。' }]);
               }
             }} 
             className="p-2 hover:bg-stone-50 rounded-full text-black/20 transition-all"
