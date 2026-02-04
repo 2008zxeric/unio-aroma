@@ -18,17 +18,17 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           <div className="absolute inset-0 bg-gradient-to-b from-stone-100 via-transparent to-white" />
         </div>
         
-        <div className="relative z-10 space-y-12 max-w-5xl">
+        <div className="relative z-10 space-y-8 md:space-y-12 max-w-5xl">
           <div className="inline-block px-6 py-2 border border-black/20 rounded-full mb-6">
             <span className="text-[10px] tracking-[0.5em] text-black/40 uppercase font-bold">The Founding Vision / 廿载寻香志</span>
           </div>
           <h1 className="text-6xl md:text-[10rem] font-serif-zh font-bold text-black tracking-widest leading-none">
             廿载寻香<br /><span className="text-black/20">归于一息</span>
           </h1>
-          <p className="text-lg md:text-4xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium pt-8">
+          <p className="text-[15px] sm:text-2xl md:text-4xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium pt-8 whitespace-nowrap">
             从极境撷取芳香，让世界归于一息。
           </p>
-          <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
+          <p className="text-xs md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
             元香 UNIO 的故事，起始于对纯净品质的执着，<br />终结于对极限生命的敬畏与分享。
           </p>
         </div>
@@ -48,7 +48,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <h3 className="text-xs md:text-sm tracking-[0.5em] uppercase font-bold">The Partnership / 创始搭档</h3>
             </div>
             <h2 className="text-5xl md:text-8xl font-serif-zh font-bold text-[#2C3E28] leading-tight tracking-tighter">
-              始于西南，<br />专业深耕二十余载。
+              始于西南，<br />专业深耕廿载。
             </h2>
             <div className="space-y-12 text-black/60 text-lg md:text-3xl font-serif-zh leading-loose">
               <p>
@@ -61,7 +61,6 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           </div>
           <div className="lg:col-span-5 relative group">
             <div className="aspect-[3/4] rounded-[4rem] overflow-hidden shadow-2xl relative z-10 border-8 border-white transition-all duration-[2s]">
-              {/* 色彩苏醒效果 */}
               <img 
                 src={ASSETS.brand_image} 
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] scale-100 group-hover:scale-110" 
@@ -80,7 +79,6 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
       {/* 3. 感知者与传播者 */}
       <section className="py-32 md:py-80 px-6 md:px-24 bg-stone-50">
         <div className="max-w-7xl mx-auto space-y-32 md:space-y-80">
-          {/* Eric's Role */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-40 items-center">
             <div className="order-2 lg:order-1 relative group">
                <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white transition-all duration-[2s]">
@@ -107,7 +105,6 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             </div>
           </div>
 
-          {/* Alice's Role */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-40 items-center">
             <div className="space-y-12">
               <h3 className="text-4xl md:text-7xl font-serif-zh font-bold text-[#1C39BB]">将芳香美学，<br />传播给追求觉知的人。</h3>
@@ -115,7 +112,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
                 “Alice 将芳香融入日常传播，让呼吸成为一种治愈生活的艺术。”
               </p>
               <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                首席专家 Alice 二十载深耕临床芳疗。她将 Eric 感知而来的原始能量，转化为适合现代生活的“元 · 单方”。这是专业与传播的共鸣，亦是对宁静美学的深情分享。
+                首席专家 Alice 廿载深耕临床芳疗。她将 Eric 感知而来的原始能量，转化为适合现代生活的“元 · 单方”。这是专业与传播的共鸣，亦是对宁静美学的深情分享。
               </p>
             </div>
             <div className="relative group">
