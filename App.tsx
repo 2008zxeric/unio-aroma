@@ -14,7 +14,6 @@ import ImageLabView from './components/ImageLabView';
 
 /**
  * StoryView - 丰富版品牌叙事组件
- * 包含：色彩觉醒滤镜、创始搭档深度卡片、交错式交互排版
  */
 const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   return (
@@ -29,18 +28,18 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           />
           <div className="absolute inset-0 bg-gradient-to-b from-stone-100 via-transparent to-white" />
         </div>
-        <div className="relative z-10 space-y-12 max-w-5xl">
+        <div className="relative z-10 space-y-8 md:space-y-12 max-w-5xl">
           <div className="inline-block px-8 py-2.5 border border-[#D4AF37]/30 rounded-full mb-6 bg-white/50 backdrop-blur-md">
             <span className="text-[10px] tracking-[0.6em] text-[#D4AF37] uppercase font-extrabold">Original Harmony / 廿载寻香志</span>
           </div>
-          <h1 className="text-7xl md:text-[12rem] font-serif-zh font-bold text-black tracking-[0.1em] leading-none animate-in fade-in slide-in-from-bottom-12 duration-1000">
+          <h1 className="text-6xl md:text-[12rem] font-serif-zh font-bold text-black tracking-[0.1em] leading-none animate-in fade-in slide-in-from-bottom-12 duration-1000">
             廿载寻香<br /><span className="text-black/20">归于一息</span>
           </h1>
-          <div className="h-px w-32 bg-black/10 mx-auto my-10" />
-          <p className="text-xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium">
+          <div className="h-px w-32 bg-black/10 mx-auto my-6 md:my-10" />
+          <p className="text-[15px] sm:text-2xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-4xl mx-auto font-medium whitespace-nowrap">
             从极境撷取芳香，让世界归于一息。
           </p>
-          <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
+          <p className="text-xs md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
             元香 UNIO 的故事，起始于对纯净品质的执着，<br />终结于对极限生命的敬畏与分享。
           </p>
         </div>
@@ -59,7 +58,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <h3 className="text-xs md:text-sm tracking-[0.5em] uppercase font-bold">The Heritage / 创始基石</h3>
             </div>
             <h2 className="text-5xl md:text-9xl font-serif-zh font-bold text-[#2C3E28] leading-tight tracking-tighter">
-              始于西南，<br />二十载寻香之路。
+              始于西南，<br />廿载寻香之路。
             </h2>
             <div className="space-y-12 text-black/60 text-lg md:text-3xl font-serif-zh leading-loose max-w-4xl">
               <p>
@@ -91,11 +90,10 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         </div>
       </section>
 
-      {/* 3. 篇章：人物 - 感知者与传播者 (色彩苏醒卡片) */}
+      {/* 3. 篇章：人物 - 感知者与传播者 */}
       <section className="py-32 md:py-80 px-6 md:px-24 bg-[#F9F9F7]">
         <div className="max-w-[1920px] mx-auto space-y-48 md:space-y-96">
-          
-          {/* 行者 Eric: 感知原点 */}
+          {/* 行者 Eric */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 md:gap-48 items-center">
             <div className="order-2 lg:order-1 relative group">
                <div className="aspect-[4/5] rounded-[6rem] overflow-hidden shadow-2xl p-4 bg-white">
@@ -117,13 +115,13 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-10 py-4">
                 “我在全球 85 个极境行走，只为在稀薄的空气中，捕捉那一抹未被现代工业驯化的野性香气。”
               </p>
-              <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
+              <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl leading-loose">
                 作为首席行者，Eric 相信香气的灵魂生长在极限环境。无论是阿尔卑斯的冷冽、多法尔沙漠的炙热，还是神州红土的湿润，他坚持亲身抵达，以“感知者”的身份将大地的语言翻译给世界。
               </p>
             </div>
           </div>
 
-          {/* 专家 Alice: 传播美学 */}
+          {/* 专家 Alice */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 md:gap-48 items-center">
             <div className="space-y-12">
               <div className="flex items-center gap-4"><div className="h-px w-12 bg-[#1C39BB]" /><span className="text-xs tracking-[0.5em] text-[#1C39BB] font-bold uppercase">The Curator / 传播者</span></div>
@@ -131,8 +129,8 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-10 py-4">
                 “Alice 将 Eric 带回的原始能量，转化为能治愈现代焦虑的生活艺术，让呼吸成为一种美学。”
               </p>
-              <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                首席专家 Alice 二十载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的“宁静避难所”。这是专业积淀与分享精神的完美交响。
+              <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl leading-loose">
+                首席专家 Alice 廿载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的“宁静避难所”。这是专业积淀与分享精神的完美交响。
               </p>
             </div>
             <div className="relative group">
@@ -153,7 +151,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
         </div>
       </section>
 
-      {/* 4. 篇章：终章 - 愿景结语 */}
+      {/* 4. 篇章：终章 */}
       <section className="pb-80 px-6">
         <div className="max-w-[1400px] mx-auto p-20 md:p-40 rounded-[6rem] bg-[#1a1a1a] text-white text-center space-y-20 shadow-[0_80px_150px_-30px_rgba(0,0,0,0.5)] overflow-hidden relative group">
            <img 
@@ -167,7 +165,6 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
                 <h3 className="text-5xl md:text-[10rem] font-serif-zh font-bold tracking-[0.1em] text-white/95 leading-none">让世界归于一息</h3>
                 <p className="text-sm md:text-3xl font-serif-zh text-white/40 tracking-widest uppercase">Origin · Sanctuary · Breath</p>
              </div>
-             <div className="h-px w-24 bg-white/10 mx-auto" />
              <button 
                 onClick={() => setView('home')}
                 className="group px-20 py-8 bg-white text-black rounded-full font-bold text-sm md:text-lg tracking-[0.5em] uppercase hover:bg-[#D75437] hover:text-white transition-all duration-700 flex items-center gap-8 mx-auto shadow-2xl hover:scale-105 active:scale-95"
@@ -182,9 +179,9 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
 };
 
 const App: React.FC = () => {
-  // 版本验证：确认 v2.3 是否已上线
+  // 版本验证
   useEffect(() => {
-    console.log("%c UNIO 元香 %c v2.3 - High Fidelity Story %c", 
+    console.log("%c UNIO 元香 %c v2.4 - Harmony Refactor %c", 
       "background:#D75437;color:#fff;padding:4px 8px;border-radius:4px 0 0 4px;", 
       "background:#1a1a1a;color:#fff;padding:4px 8px;border-radius:0 4px 4px 0;", 
       "color:transparent;");
