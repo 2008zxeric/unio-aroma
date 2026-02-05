@@ -1,6 +1,5 @@
-
+import { ZoomIn, Shield, Wind, Droplets, Flame, Mountain, Sparkles } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
-import { Wind, Shield, Droplets, Flame, Mountain, Sparkles, X, ZoomIn } from 'lucide-react';
 import { ViewState, Category, ScentItem } from '../types';
 import { DATABASE, ASSETS } from '../constants';
 
@@ -69,8 +68,8 @@ const CollectionsView: React.FC<{
 
   const themes = {
     yuan: { label: '元', fullLabel: '元 · 单方', en: 'ORIGIN · SINGLES' },
-    he: { label: '香', fullLabel: '香 · 复方', en: 'SCENT · HARMONY' },
-    jing: { label: '境', fullLabel: '境 · 空间', en: 'SANCTUARY · AROMA' }
+    he: { label: '和', fullLabel: '和 · 复方', en: 'HARMONY · BLENDS' },
+    jing: { label: '香', fullLabel: '香 · 空间', en: 'SANCTUARY · AROMA' }
   };
 
   const getGroupIcon = (name: string) => {
