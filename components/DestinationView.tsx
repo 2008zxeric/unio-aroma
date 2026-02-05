@@ -1,6 +1,5 @@
-
-import React, { useState, useMemo } from 'react';
-import { ArrowLeft, MapPin, Home, Microscope, Zap, BookOpen, X, Sparkles, Camera } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, MapPin, Camera, BookOpen, Microscope, Zap, Sparkles, Home, ArrowLeft } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Destination, ViewState, Category } from '../types';
 import { DATABASE } from '../constants';
 
@@ -24,7 +23,31 @@ const DestinationView: React.FC<{
   onProductSelect: (id: string) => void 
 }> = ({ dest, setView, onProductSelect }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+
+  // 键盘交互支持
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activePhotoIndex === null) return;
+      if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'Escape') setActivePhotoIndex(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePhotoIndex]);
+
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (activePhotoIndex === null) return;
+    setActivePhotoIndex((activePhotoIndex + 1) % dest.memoryPhotos.length);
+  };
+
+  const handlePrev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (activePhotoIndex === null) return;
+    setActivePhotoIndex((activePhotoIndex - 1 + dest.memoryPhotos.length) % dest.memoryPhotos.length);
+  };
 
   const groupedProducts = useMemo(() => {
     const allProducts = Object.values(DATABASE);
@@ -34,20 +57,60 @@ const DestinationView: React.FC<{
     
     return activeCats.map(cat => {
       const items = allProducts.filter(p => p.category === cat).slice(0, 4);
-      const themeMap: Record<string, string> = { yuan: '元 · 极境单方', he: '香 · 复方疗愈', jing: '境 · 空间美学' };
+      const themeMap: Record<string, string> = { yuan: '元 · 极境单方', he: '和 · 复方疗愈', jing: '香 · 空间美学' };
       return { title: themeMap[cat], items };
     });
   }, [dest]);
 
   return (
     <div className="min-h-screen bg-white animate-in fade-in duration-1000 pb-48 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
-      {activePhoto && (
-        <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-12 animate-fade cursor-zoom-out" onClick={() => setActivePhoto(null)}>
-          <button className="absolute top-6 sm:top-10 right-6 sm:right-10 text-white/40 hover:text-white"><X size={32} strokeWidth={1} /></button>
-          <img src={activePhoto} className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-lg animate-zoom" alt="Enlarged" />
+      
+      {/* 增强型相册灯箱 */}
+      {activePhotoIndex !== null && (
+        <div 
+          className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl flex items-center justify-center animate-fade cursor-zoom-out" 
+          onClick={() => setActivePhotoIndex(null)}
+        >
+          <button className="absolute top-8 right-8 z-[1010] text-white/40 hover:text-white transition-colors">
+            <X size={40} strokeWidth={1} />
+          </button>
+
+          {/* 导航按钮：左 */}
+          <button 
+            onClick={handlePrev}
+            className="absolute left-4 md:left-12 z-[1010] p-4 text-white/20 hover:text-white transition-all hover:scale-110 active:scale-90"
+          >
+            <ChevronLeft size={60} strokeWidth={1} />
+          </button>
+
+          {/* 核心展示区 */}
+          <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-24 pointer-events-none">
+            <img 
+              key={activePhotoIndex}
+              src={dest.memoryPhotos[activePhotoIndex]} 
+              className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-lg animate-zoom pointer-events-auto" 
+              alt={`Memory ${activePhotoIndex + 1}`} 
+              onClick={(e) => e.stopPropagation()}
+            />
+            {/* 索引指示 */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3">
+              {dest.memoryPhotos.map((_, i) => (
+                <div key={i} className={`h-1 transition-all duration-500 rounded-full ${i === activePhotoIndex ? 'w-12 bg-[#D4AF37]' : 'w-4 bg-white/10'}`} />
+              ))}
+            </div>
+          </div>
+
+          {/* 导航按钮：右 */}
+          <button 
+            onClick={handleNext}
+            className="absolute right-4 md:right-12 z-[1010] p-4 text-white/20 hover:text-white transition-all hover:scale-110 active:scale-90"
+          >
+            <ChevronRight size={60} strokeWidth={1} />
+          </button>
         </div>
       )}
 
+      {/* 导航控制 */}
       <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
         <div className="bg-white/70 backdrop-blur-3xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] gap-3 group pointer-events-auto">
           <button 
@@ -64,6 +127,7 @@ const DestinationView: React.FC<{
         <span className="text-[8px] tracking-[0.5em] font-bold text-black/15 uppercase vertical-text mt-4 select-none">Navigator</span>
       </div>
 
+      {/* Hero 区域 */}
       <div className="relative h-[65vh] sm:h-screen w-full overflow-hidden bg-stone-100">
         <img src={dest.scenery} onLoad={() => setImgLoaded(true)} className={`w-full h-full object-cover transition-all duration-[4s] ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`} alt={dest.name} />
         <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20" />
@@ -76,6 +140,7 @@ const DestinationView: React.FC<{
         </div>
       </div>
 
+      {/* 记忆档案网格 */}
       <section className="py-24 sm:py-56 px-4 sm:px-24 max-w-7xl mx-auto space-y-16">
          <div className="flex items-center gap-6 text-[#D4AF37]">
             <Camera size={24} />
@@ -83,20 +148,21 @@ const DestinationView: React.FC<{
             <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Eric's Memory Archive / 寻香随笔</h3>
          </div>
          <div className="grid grid-cols-2 gap-4 sm:gap-10 h-[55vh] sm:h-[85vh]">
-            <div onClick={() => setActivePhoto(dest.memoryPhotos[0])} className="col-span-1 rounded-[2.5rem] sm:rounded-[5rem] overflow-hidden shadow-2xl cursor-zoom-in group border border-black/5 bg-stone-50">
+            <div onClick={() => setActivePhotoIndex(0)} className="col-span-1 rounded-[2.5rem] sm:rounded-[5rem] overflow-hidden shadow-2xl cursor-zoom-in group border border-black/5 bg-stone-50">
               <MemoryImage src={dest.memoryPhotos[0]} fallback={dest.scenery} />
             </div>
             <div className="col-span-1 flex flex-col gap-4 sm:gap-10">
-              <div onClick={() => setActivePhoto(dest.memoryPhotos[1])} className="flex-1 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50">
+              <div onClick={() => setActivePhotoIndex(1)} className="flex-1 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50">
                 <MemoryImage src={dest.memoryPhotos[1]} fallback={dest.scenery} />
               </div>
-              <div onClick={() => setActivePhoto(dest.memoryPhotos[2])} className="flex-1 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50">
+              <div onClick={() => setActivePhotoIndex(2)} className="flex-1 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50">
                 <MemoryImage src={dest.memoryPhotos[2]} fallback={dest.scenery} />
               </div>
             </div>
          </div>
       </section>
 
+      {/* 文案与分析 */}
       <div className="max-w-7xl mx-auto px-6 sm:px-10 py-24 sm:py-64 grid grid-cols-1 lg:grid-cols-12 gap-20 lg:gap-40 border-y border-black/5">
         <div className="lg:col-span-5 space-y-12">
           <div className="flex items-center gap-6 text-[#D75437]">
@@ -118,6 +184,7 @@ const DestinationView: React.FC<{
         </div>
       </div>
 
+      {/* 关联产品 */}
       <section className="py-32 sm:py-64 max-w-7xl mx-auto px-4">
         <div className="space-y-32 sm:space-y-64">
           {groupedProducts.map((group, gIdx) => (
