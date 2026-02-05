@@ -1,3 +1,4 @@
+
 import { ChevronLeft, ChevronRight, X, MapPin, Camera, BookOpen, Microscope, Zap, Sparkles, Home, ArrowLeft } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Destination, ViewState, Category } from '../types';
@@ -110,21 +111,21 @@ const DestinationView: React.FC<{
         </div>
       )}
 
-      {/* 导航控制 */}
-      <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
-        <div className="bg-white/70 backdrop-blur-3xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] gap-3 group pointer-events-auto">
+      {/* 侧边悬浮：静奢导航舱 (Side Navigation Sanctuary) - 高透明度垂直居中 */}
+      <div className="fixed top-1/2 -translate-y-1/2 right-4 md:right-10 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
+        <div className="bg-white/10 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-white/30 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] gap-4 group pointer-events-auto">
           <button 
             onClick={() => setView(dest.isChinaProvince ? 'china-atlas' : 'atlas')} 
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/60 transition-all active:scale-90"
           >
             <ArrowLeft size={22} />
           </button>
-          <div className="h-px w-6 bg-black/[0.05] mx-auto opacity-50" />
-          <button onClick={() => setView('home')} className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90">
+          <div className="h-px w-6 bg-black/5 mx-auto opacity-20" />
+          <button onClick={() => setView('home')} className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/60 transition-all active:scale-90">
             <Home size={22} />
           </button>
         </div>
-        <span className="text-[8px] tracking-[0.5em] font-bold text-black/15 uppercase vertical-text mt-4 select-none">Navigator</span>
+        <span className="text-[7px] tracking-[0.5em] font-bold text-black/10 uppercase vertical-text mt-4 select-none">Traveler</span>
       </div>
 
       {/* Hero 区域 */}
