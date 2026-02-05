@@ -147,7 +147,7 @@ const ALICE_LAB_DIARY: Record<string, string> = {
   '极境橡木苔': '绝对油非溶剂萃取，呈现森林地表原始气息，定香力长达8小时。',
   '极境葡萄柚': '低毒性高挥发，晨间扩香可提升代谢率12%（基于实验室动物模型）。',
 
-  // 香系列 · 复方疗愈
+  // 和系列 · 复方疗愈
   '云感霜': '植物角鲨烷载体+5%极境复方精油，24h保湿力达87%，敏肌测试0刺激。',
   '晨曦液': '微分子喷雾技术，3秒渗透角质层，妆前使用可提升持妆力约2.1小时。',
   '月华油': '基底选用顶级冷榨荷荷巴，延展性极佳，按摩后完全吸收无油膜残留感。',
@@ -162,7 +162,11 @@ const ALICE_LAB_DIARY: Record<string, string> = {
   '悬浮露': '纯露+微量精油，用于能量场清理，空间负离子浓度在喷洒后短暂上升。',
   '破晓珠': '红橘+葡萄柚瞬间唤醒嗅觉，晨起滚动手腕脉搏处，清醒速度显著加快。',
   '空寂水': '橡木苔+广藿香营造“空山新雨”感，焦虑自评量表（SAS）评分下降28%。',
-  '共振方': '馆藏定制级复方，建议配合特定呼吸频率使用，实现身心同步共振。'
+  '共振方': '馆藏定制级复方，建议配合特定呼吸频率使用，实现身心同步共振。',
+
+  // 香系列 · 空间美学
+  '扩香石': '扩香石多孔结构有利于精油缓慢均匀挥发，适用于3-5平米私人静谧空间。',
+  '精油烛': '采用天然大豆蜡基底，无烟燃烧，精油负载量高达12%，营造深层沉浸感。'
 };
 
 export const REGION_VISUALS = {
@@ -194,7 +198,7 @@ const addP = (cat: Category, group: string, n: string, en: string, folder: strin
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
     price, specification: spec, hero: heroUrl,
-    shortDesc: cat === 'yuan' ? '元 · 单方 / 极境生存原力' : (cat === 'he' ? '香 · 复方 / 科学频率重构' : '境 · 空间 / 极简芳香美学'), 
+    shortDesc: cat === 'yuan' ? '元 · 单方 / 极境生存原力' : (cat === 'he' ? '和 · 复方 / 科学频率重构' : '香 · 空间 / 极简芳香美学'), 
     narrative: ERIC_JOURNAL[n] || `“在 ${n} 的分子震颤中，找回生命在极限环境下的抗争记忆。”`,
     benefits: ['意识重构', '深度频率校准', '内在秩序恢复'],
     usage: '取三滴精油于掌心，温热后由鼻息深处缓慢引入。',
@@ -257,14 +261,14 @@ heData.forEach((g, i) => g.items.forEach((item, j) => {
     if (i >= 1) customImg = ASSETS.brand_image; 
     if (i === 2 && j === 4) customImg = ASSETS.packaging_sample; 
   }
-  addP('he', `香 · ${g.group}`, item[0], item[1], g.folder, `he_${i}_${j}`, item[2], item[3], customImg);
+  addP('he', `和 · ${g.group}`, item[0], item[1], g.folder, `he_${i}_${j}`, item[2], item[3], customImg);
 }));
 
 const jingData = [
   { group: '芳香美学', folder: 'place', items: [['扩香石', 'Crackled', '388', 'Set', 'Crackled.webp'],['芳香链', 'Necklace ', '368', 'Piece', 'Necklace .webp'],['木核扩', 'Walnut', '198', 'Piece', 'Walnut.webp'],['精油烛', 'candle', '228', '200g', 'candle.webp'],['雾露器', 'Vessel', '158', 'Piece', 'Vessel.webp']] },
   { group: '凝思之物', folder: 'Meditation', items: [['一柱香', 'Incense Sticks', '128', '30pcs', 'Incense Sticks.webp'],['觉知珠', 'Rollerball', '88', '10ml', 'Rollerball.webp'],['清空石', 'Gypsum', '168', 'Piece', 'Gypsum.webp'],['归真座', 'mountain', '258', 'Piece', 'mountain.webp'],['承露璃', 'glass', '328', 'Piece', 'glass.webp']] }
 ];
-jingData.forEach((g, i) => g.items.forEach((item, j) => addP('jing', `境 · ${g.group}`, item[0], item[1], g.folder, `jing_${i}_${j}`, item[2], item[3], item[4])));
+jingData.forEach((g, i) => g.items.forEach((item, j) => addP('jing', `香 · ${g.group}`, item[0], item[1], g.folder, `jing_${i}_${j}`, item[2], item[3], item[4])));
 
 const getP = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
