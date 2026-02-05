@@ -15,26 +15,26 @@ const ProductDetail: React.FC<{
   return (
     <div className="pt-32 pb-64 px-6 md:px-20 min-h-screen bg-white animate-in fade-in duration-1000 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
       
-      {/* 右上角：静奢导航舱 (Navigation Sanctuary) - 完全隔离左侧 Logo */}
-      <div className="fixed top-8 md:top-12 right-6 md:right-16 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
-        <div className="bg-white/70 backdrop-blur-3xl flex flex-col p-2 rounded-full border border-black/[0.05] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] gap-3 group pointer-events-auto">
+      {/* 侧边悬浮：静奢导航舱 (Side Navigation Sanctuary) - 高透明度版 */}
+      <div className="fixed top-1/2 -translate-y-1/2 right-4 md:right-10 z-[600] flex flex-col items-center gap-4 animate-in slide-in-from-right-12 duration-1000 pointer-events-none">
+        <div className="bg-white/20 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-white/40 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] gap-4 group pointer-events-auto">
           <button 
             onClick={() => setView(previousView)} 
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/80 transition-all active:scale-90"
             title="BACK"
           >
             <ArrowLeft size={22} />
           </button>
-          <div className="h-px w-6 bg-black/[0.05] mx-auto opacity-50" />
+          <div className="h-px w-6 bg-black/5 mx-auto opacity-30" />
           <button 
             onClick={() => setView('home')} 
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white hover:shadow-xl transition-all active:scale-90"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/80 transition-all active:scale-90"
             title="HOME"
           >
             <Home size={22} />
           </button>
         </div>
-        <span className="text-[8px] tracking-[0.5em] font-bold text-black/15 uppercase vertical-text mt-4 select-none group-hover:text-black/30 transition-colors">Sanctuary Nav</span>
+        <span className="text-[7px] tracking-[0.5em] font-bold text-black/10 uppercase vertical-text mt-4 select-none">Orbit</span>
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 md:mt-24 relative z-10">
