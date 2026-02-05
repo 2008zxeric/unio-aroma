@@ -1,6 +1,5 @@
-
+import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap } from 'lucide-react';
 import React from 'react';
-import { ArrowRight, Sparkles, Wind, Shield, Droplets, MapPin, Microscope, Share2, Globe, HeartPulse, GraduationCap } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { ViewState, Category } from '../types';
 
@@ -106,7 +105,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
             },
             { 
               id: 'he', 
-              title: '香 · 复方', 
+              title: '和 · 复方', 
               sub: 'Clinical Blends', 
               desc: '廿载临床，频率科学重构。', 
               img: ASSETS.hero_spary, 
@@ -114,7 +113,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
             },
             { 
               id: 'jing', 
-              title: '境 · 空间', 
+              title: '香 · 空间', 
               sub: 'Aesthetic Living', 
               desc: '东方留白走进日常呼吸。', 
               img: ASSETS.brand_image, 
