@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Home, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Home, ChevronRight, CheckCircle2, Sparkles, Lock } from 'lucide-react';
 import { ViewState } from '../types';
 import { DESTINATIONS, REGION_VISUALS } from '../constants';
 
@@ -99,8 +98,17 @@ const ChinaAtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: 
                 />
                 <div className="absolute top-4 right-4 z-20 flex items-center gap-2 glass px-3 py-1.5 rounded-full border border-white/20 shadow-lg">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 size={10} className="text-[#2C3E28]" />
-                    <span className="text-[8px] font-bold tracking-widest uppercase text-black">寻香已锁定 Arrived</span>
+                    {p.status === 'arrived' ? (
+                      <>
+                        <CheckCircle2 size={10} className="text-[#2C3E28]" />
+                        <span className="text-[8px] font-bold tracking-widest uppercase text-black">寻香已抵达 Arrived</span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={10} className="text-black/30" />
+                        <span className="text-[8px] font-bold tracking-widest uppercase text-black/40">坐标待开启 Locked</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
