@@ -117,7 +117,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   'cn_新疆': '赛里木湖的蓝是不讲理的。空气里有冰川融水的冷冽。',
   'cn_香港': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。',
   'cn_澳门': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。',
-  'cn_台湾': '阿里山云海，桧木清香混着高山乌龙茶的冷韵。',
+  'cn_台湾': '阿里山云海，桧木清清香混着高山乌龙茶的冷韵。',
 };
 
 const ALICE_LAB_DIARY: Record<string, string> = {
@@ -146,6 +146,7 @@ const ALICE_LAB_DIARY: Record<string, string> = {
   '佛手柑': '经过FCF脱呋喃处理，光敏性＜0.3%，白天使用无光敏性晒伤风险。',
   '极境红橘': 'd-柠檬烯占比高达95%，提振心情的同时能显著促进淋巴循环。',
   '极境橡木苔': '绝对油非溶剂萃取，呈现森林地表原始气息，定香力长达8小时。',
+  '极境依兰依兰': '分级蒸馏提取“Extra”段，降血压效果在芳香疗法记录中位列前三。',
   '极境葡萄柚': '低毒性高挥发，晨间扩香可提升代谢率12%（基于实验室动物模型）。',
 
   // 和系列 · 复方疗愈
@@ -218,8 +219,13 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
     `${ERIC_PHOTO_BASE}${prefix}2.webp${CACHE_V}`,
     `${ERIC_PHOTO_BASE}${prefix}3.webp${CACHE_V}`
   ];
+  
+  // 核心逻辑优化：如果 visitCount > 0，则强制设为 'arrived'。
+  // 否则，使用传入的 s (默认为 'arrived')。这意味着绝大多数国家初始即为解锁状态。
+  const finalStatus = c > 0 ? 'arrived' : s;
+  
   DESTINATIONS[id] = {
-    id, name:n, en, region:reg, status:s, visitCount:c, scenery:img, emoji:'📍',
+    id, name:n, en, region:reg, status:finalStatus, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: '极境原生分子档案', knowledge:'已存入 UNIO 核心库频率库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
     ericDiary: diary, aliceDiary: `我们在实验室对 ${n} 的生态样本进行了分段提取。`, 
     memoryPhotos: memoryPhotos 
@@ -330,7 +336,8 @@ addD('w_mx','墨西哥','MEXICO','美洲/大洋洲',4,`${RAW_DEST}Mexico.webp${C
 addD('w_ar','阿根廷','ARGENTINA','美洲/大洋洲',1,`${RAW_DEST}Argentina.webp${CACHE_V}`);
 addD('w_ht','海地','HAITI','美洲/大洋洲',2,`${RAW_DEST}Haiti.webp${CACHE_V}`);
 addD('w_pe','秘鲁','PERU','美洲/大洋洲',1,'https://images.unsplash.com/photo-1526392060635-9d6019884377?q=80&w=1200');
-addD('w_cu','古巴','CUBA','美洲/大洋洲',1,`${RAW_DEST}Cuba.webp${CACHE_V}`);
+// 恢复古巴图片链接
+addD('w_cu','古巴','CUBA','美洲/大洋洲',1,`${RAW_DEST}cuba.webp${CACHE_V}`);
 
 // --- 神州 (34) ---
 const PROVINCE_GROUPS: Record<string, string[]> = {
