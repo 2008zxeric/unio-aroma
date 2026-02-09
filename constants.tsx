@@ -66,7 +66,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   'w_bg': '玫瑰谷的五月，整片山谷蒸腾着粉红香气。',
   'w_sa': '南非的好望角。咸腥的海风撕碎了野花的芬芳。',
   'w_eg': '尼罗河畔的没药。这里的空气干燥而古老。',
-  'w_ke': '马赛马拉草原，雨后泥土蒸腾出野性腥甜。',
+  'w_ke': '肯尼亚的基础设施虽简陋，但马赛马拉草原的雨后泥土蒸腾出原始的生命力。',
   'w_mg': '马达加斯加的森林。香草的甜美混合着潮湿的腐殖土。',
   'w_zw': '维多利亚瀑布水雾弥漫，热带蕨类与湿岩的清冷扑面而来。',
   'w_mu': '毛里求斯甘蔗田焚烧后的焦甜，混着海风与依兰依兰。',
@@ -81,6 +81,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   'w_ht': '海地伏都教仪式，朗姆酒、辣椒与熏香混合成迷幻气息。',
   'w_pe': '马丘比丘云雾缭绕，古柯叶的微苦混着安第斯山冷空气。',
   'w_cu': '哈瓦那老城，雪茄烟草醇厚如绸缎。',
+  'w_phl': '马尼拉的午后，浓郁的依兰依兰花香在湿润的海风中发酵。那是属于热带岛屿的慵懒与奔放。',
 
   // --- 神州坐标日记 (China Archive) ---
   'cn_北京': '红墙与古松。干燥的冬日空气里，带着一种历经千载的肃穆与威严，沉静得让人不忍大声呼吸。',
@@ -188,7 +189,6 @@ const addP = (cat: Category, group: string, n: string, en: string, folder: strin
   if (customImg && (customImg.startsWith('http') || customImg.startsWith('data:'))) {
     heroUrl = customImg;
   } else {
-    // 处理特定的前导空格和其他特殊字符
     const fileName = customImg || `${en.trim()}.webp`;
     const encodedFileName = fileName.replace(/\s/g, '%20');
     heroUrl = `${RAW_PROD}${folder}/${encodedFileName}${CACHE_V}`;
@@ -233,7 +233,7 @@ const yuanData = [
   { group: 'Metal金', folder: 'metal', items: [
     ['神圣乳香', 'Sacred Frankincense', '248', '10ml'], 
     ['极境香茅', 'Citronella Clarissima', '248', '10ml'], 
-    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'], // 注意：此项包含前导空格
+    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'],
     ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], 
     ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']
   ] },
@@ -244,7 +244,7 @@ const yuanData = [
     ['极境依兰', 'Ylang Equatorial', '180', '10ml'],
     ['大花茉莉', 'Jasminum Grandiflorum', '108', '10ml'],
     ['日光橙花', 'Neroli Soleil', '108', '10ml'],
-    ['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'Geranium%20Rose%CC%81.webp'] // 注意：此项包含特殊字符编码
+    ['极境天竺葵', 'Geranium Rosé', '98', '10ml', 'Geranium%20Rose%CC%81.webp']
   ] },
   { group: 'Earth土', folder: 'earth', items: [['佛手柑', 'Bergamot Alba', '108', '10ml'],['横断生姜', 'Zingiber Terrae', '158', '10ml'],['极境红橘', 'Mandarin Jucunda', '108', '10ml'],['极境葡萄柚', 'Grapefruit Pomona', '68', '10ml'],['极境橡木苔', 'Oakmoss Taiga', '108', '10ml']] }
 ];
@@ -272,7 +272,7 @@ jingData.forEach((g, i) => g.items.forEach((item, j) => addP('jing', `香 · ${g
 
 const getP = (s: string) => Object.keys(DATABASE).slice(0, 3);
 
-// --- 亚洲 (19) ---
+// --- 亚洲 (20) ---
 addD('w_thai','泰国','THAILAND','亚洲',40,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200');
 addD('w_in','印度','INDIA','亚洲',3,'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?q=80&w=1200', [], 'arrived', false, undefined, 'inn');
 addD('w_hk','中国香港','HONG KONG','亚洲',18,`${RAW_DEST}Hongkong.webp${CACHE_V}`);
@@ -281,6 +281,7 @@ addD('w_id','印尼','INDONESIA','亚洲',12,'https://images.unsplash.com/photo-
 addD('w_uae','阿联酋','UAE','亚洲',12,'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200');
 addD('w_vn','越南','VIETNAM','亚洲',6,'https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=600');
 addD('w_jp','日本','JAPAN','亚洲',2,'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200');
+addD('w_phl','菲律宾','PHILIPPINES','亚洲',12,'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?q=80&w=1200');
 addD('w_ir','伊朗','IRAN','亚洲',2,`${RAW_DEST}Iran.webp${CACHE_V}`);
 addD('w_sg','新加坡','SINGAPORE','亚洲',2,`${RAW_DEST}Singapore.webp${CACHE_V}`);
 addD('w_kr','韩国','SOUTH KOREA','亚洲',1,'https://images.unsplash.com/photo-1517154421773-0529f29ea451?q=80&w=1200');
