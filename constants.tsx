@@ -117,7 +117,7 @@ const ERIC_JOURNAL: Record<string, string> = {
   'cn_新疆': '赛里木湖的蓝是不讲理的。空气里有冰川融水的冷冽。',
   'cn_香港': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。',
   'cn_澳门': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。',
-  'cn_台湾': '阿里山云海，桧木清清香混着高山乌龙茶的冷韵。',
+  'cn_台湾': '阿里山云海，桧木清香混着高山乌龙茶的冷韵。',
 };
 
 const ALICE_LAB_DIARY: Record<string, string> = {
@@ -146,7 +146,6 @@ const ALICE_LAB_DIARY: Record<string, string> = {
   '佛手柑': '经过FCF脱呋喃处理，光敏性＜0.3%，白天使用无光敏性晒伤风险。',
   '极境红橘': 'd-柠檬烯占比高达95%，提振心情的同时能显著促进淋巴循环。',
   '极境橡木苔': '绝对油非溶剂萃取，呈现森林地表原始气息，定香力长达8小时。',
-  '极境依兰依兰': '分级蒸馏提取“Extra”段，降血压效果在芳香疗法记录中位列前三。',
   '极境葡萄柚': '低毒性高挥发，晨间扩香可提升代谢率12%（基于实验室动物模型）。',
 
   // 和系列 · 复方疗愈
@@ -219,11 +218,10 @@ const addD = (id:string, n:string, en:string, reg:string, c:number, img:string, 
     `${ERIC_PHOTO_BASE}${prefix}2.webp${CACHE_V}`,
     `${ERIC_PHOTO_BASE}${prefix}3.webp${CACHE_V}`
   ];
-  
-  // 核心逻辑优化：如果 visitCount > 0，则强制设为 'arrived'。
-  // 否则，使用传入的 s (默认为 'arrived')。这意味着绝大多数国家初始即为解锁状态。
-  const finalStatus = c > 0 ? 'arrived' : s;
-  
+
+  // 优化：只要 visitCount > 0，状态即为 'arrived'
+  const finalStatus = (c > 0 || s === 'arrived') ? 'arrived' : 'locked';
+
   DESTINATIONS[id] = {
     id, name:n, en, region:reg, status:finalStatus, visitCount:c, scenery:img, emoji:'📍',
     herbDescription: '极境原生分子档案', knowledge:'已存入 UNIO 核心库频率库', productIds: pIds, isChinaProvince:isCN, subRegion:sub,
@@ -295,7 +293,7 @@ addD('w_np','尼泊尔','NEPAL','亚洲',2,'https://images.unsplash.com/photo-15
 addD('w_tr','土耳其','TURKEY','亚洲',8,'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200');
 addD('w_kz','哈萨克斯坦','KAZAKHSTAN','亚洲',4,`${RAW_DEST}kazakhstan.webp${CACHE_V}`);
 addD('w_jo','约旦','JORDAN','亚洲',2,'https://images.unsplash.com/photo-1547234935-80c7145ec969?q=80&w=1200');
-addD('w_mac','中国澳门','MACAU','亚洲',2,`${RAW_DEST}Macao.webp${CACHE_V}`);
+addD('w_mac','中国澳门','MACAU','亚洲',2,`${RAW_DEST}Macau.webp${CACHE_V}`);
 addD('w_kh','柬埔寨','CAMBODIA','亚洲',1,`${RAW_DEST}Cambodia.webp${CACHE_V}`);
 addD('w_kp','朝鲜','NORTH KOREA','亚洲',1,`${RAW_DEST}North%20Korea.webp${CACHE_V}`);
 addD('w_lk','斯里兰卡','SRI LANKA','亚洲',2,'https://images.unsplash.com/photo-1546708973-b339540b5162?q=80&w=1200');
@@ -354,7 +352,8 @@ const PROVINCE_FILE_MAP: Record<string, string> = {
   '辽宁': 'liaoning.webp', '吉林': 'jilin.webp', '黑龙江': 'heilongjiang.webp',
   '上海': 'shanghai.webp', '江苏': 'jiangsu.webp', '浙江': 'zhejiang.webp', '安徽': 'anhui.webp', '福建': 'fujian.webp', '江西': 'jiangxi.webp', '山东': 'shandong.webp', '台湾': 'taiwan.webp',
   '河南': 'henan.webp', '湖北': 'hubei.webp', '湖南': 'hunan.webp',
-  '广东': 'guangdong.webp', '广西': 'guangxi.webp', '海南': 'hainan.webp', '香港': 'hongkong.webp', '澳门': 'macao.webp',
+  '广东': 'guangdong.webp', '广西': 'guangxi.webp', '海南': 'hainan.webp', 
+  '香港': 'Hongkong.webp', '澳门': 'Macau.webp',
   '重庆': 'chongqing.webp', '四川': 'sichuan.webp', '贵州': 'guizhou.webp', '云南': 'yunnan.webp', '西藏': 'xizang.webp',
   '陕西': 'shannxi.webp', '甘肃': 'gansu.webp', '青海': 'qinghai.webp', '宁夏': 'ningxia.webp', '新疆': 'xinjiang.webp'
 };
@@ -362,7 +361,13 @@ Object.entries(PROVINCE_GROUPS).forEach(([sub, list]) => {
   list.forEach(prov => {
     const id = `cn_${prov}`;
     const en = prov.toUpperCase();
-    const img = `${PROVINCE_BASE}${PROVINCE_FILE_MAP[prov] || 'beijing.webp'}${CACHE_V}`;
+    
+    // 香港和澳门使用 destinations 目录下的图片，其余使用 province 目录
+    let img = `${PROVINCE_BASE}${PROVINCE_FILE_MAP[prov] || 'beijing.webp'}${CACHE_V}`;
+    if (prov === '香港' || prov === '澳门') {
+      img = `${RAW_DEST}${PROVINCE_FILE_MAP[prov]}${CACHE_V}`;
+    }
+    
     addD(id, prov, en, '亚洲', 5, img, getP(prov), 'arrived', true, sub);
   });
 });
