@@ -124,8 +124,10 @@ const AtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: 
                 {/* 状态指示 */}
                 <div className="absolute top-4 left-4 md:top-8 md:left-8">
                   <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full border border-black/5 flex items-center gap-2">
-                    <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                    <span className="text-[8px] md:text-[10px] font-bold text-black/40 tracking-widest uppercase">Locked</span>
+                    <div className={`w-1 h-1 rounded-full animate-pulse shadow-sm ${dest.status === 'arrived' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-stone-300'}`} />
+                    <span className="text-[8px] md:text-[10px] font-bold text-black/40 tracking-widest uppercase">
+                      {dest.status === 'arrived' ? 'Arrived' : 'Locked'}
+                    </span>
                   </div>
                 </div>
 
