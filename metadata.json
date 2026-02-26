@@ -1,0 +1,8 @@
+{
+  "name": "元香 UNIO - 品牌官网 v2.0",
+  "description": "元香 UNIO 品牌官方网站，呈现极简'静奢'美学、交互式极境地图、AI寻香祭司。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
