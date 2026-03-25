@@ -11,6 +11,7 @@ import OracleView from './components/OracleView';
 import ProductDetail from './components/ProductDetail';
 import DestinationView from './components/DestinationView';
 import ImageLabView from './components/ImageLabView';
+import InventoryApp from './components/InventoryApp';
 
 /**
  * StoryView - 丰富版品牌叙事组件 (修复断行与品牌年限)
@@ -203,6 +204,28 @@ const App: React.FC = () => {
   
   const [showSplash, setShowSplash] = useState(savedView === 'home');
   const [isExiting, setIsExiting] = useState(false);
+  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isPressing, setIsPressing] = useState(false);
+  const [wasLongPress, setWasLongPress] = useState(false);
+
+  const handlePressStart = () => {
+    setWasLongPress(false);
+    setIsPressing(true);
+    const timer = setTimeout(() => {
+      navigateToView('inventory');
+      setIsPressing(false);
+      setWasLongPress(true);
+    }, 3000); // 3 seconds long press
+    setPressTimer(timer);
+  };
+
+  const handlePressEnd = () => {
+    setIsPressing(false);
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
+    }
+  };
 
   useEffect(() => {
     if (showSplash) {
@@ -239,6 +262,10 @@ const App: React.FC = () => {
   };
 
   const handleLogoClick = () => {
+    if (wasLongPress) {
+      setWasLongPress(false);
+      return;
+    }
     setShowSplash(true);
     setIsExiting(false);
     setTimeout(() => {
@@ -268,17 +295,25 @@ const App: React.FC = () => {
       )}
 
       {/* 顶部 Logo 导航 */}
-      <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
-        <div className="pointer-events-auto cursor-pointer flex flex-col items-center group gap-4" onClick={handleLogoClick}>
-          <div className="w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all group-hover:scale-110 group-hover:rotate-[360deg] duration-1000">
-            <img src={ASSETS.logo} className="w-full object-contain" alt="Logo" />
+      {view !== 'inventory' && (
+        <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
+          <div 
+            className="pointer-events-auto cursor-pointer flex flex-col items-center group gap-4" 
+            onClick={handleLogoClick}
+            onPointerDown={handlePressStart}
+            onPointerUp={handlePressEnd}
+            onPointerLeave={handlePressEnd}
+          >
+            <div className={`w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all duration-1000 ${isPressing ? 'scale-125 shadow-[#4CAF80]/30 border-[#4CAF80]/40 rotate-[360deg]' : 'group-hover:scale-110 group-hover:rotate-[360deg]'}`}>
+              <img src={ASSETS.logo} className={`w-full object-contain ${isPressing ? 'animate-pulse' : ''}`} alt="Logo" />
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+               <span className={`text-lg sm:text-3xl font-serif-zh font-bold tracking-[0.3em] transition-colors leading-none ${isPressing ? 'text-[#4CAF80]' : 'text-[#2C3E28] group-hover:text-[#D75437]'}`}>元香 UNIO</span>
+               <span className="text-[8px] sm:text-[11px] font-cinzel font-bold text-[#2C3E28]/30 tracking-[0.5em] uppercase">UNIO LIFE</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center space-y-1">
-             <span className="text-lg sm:text-3xl font-serif-zh font-bold text-[#2C3E28] tracking-[0.3em] group-hover:text-[#D75437] transition-colors leading-none">元香 UNIO</span>
-             <span className="text-[8px] sm:text-[11px] font-cinzel font-bold text-[#2C3E28]/30 tracking-[0.5em] uppercase">UNIO LIFE</span>
-          </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* 主视图 */}
       <main className="relative z-10 min-h-screen max-w-[2560px] mx-auto">
@@ -289,43 +324,46 @@ const App: React.FC = () => {
         {view === 'oracle' && <OracleView setView={navigateToView} />}
         {view === 'image-lab' && <ImageLabView setView={navigateToView} />}
         {view === 'story' && <StoryView setView={navigateToView} />}
+        {view === 'inventory' && <InventoryApp onBack={() => navigateToView('home')} />}
         {view === 'product' && selectedId && <ProductDetail item={DATABASE[selectedId]} setView={navigateToView} previousView={prevView} />}
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
 
       {/* 底部导航栏 */}
-      <div className="fixed bottom-4 sm:bottom-10 left-0 w-full flex flex-col items-center z-[999] pointer-events-none px-2 sm:px-4">
-        <div className="pointer-events-auto w-full max-w-[680px]">
-          <div className="flex items-center justify-around px-1 sm:px-4 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.25)] backdrop-blur-3xl bg-white/85">
-            {[
-              { id: 'home', icon: Home, label: '首页' },
-              { id: 'story', icon: BookOpen, label: '叙事' },
-              { id: 'atlas', icon: MapIcon, label: '寻香' },
-              { id: 'collections', icon: Box, label: '馆藏' },
-              { id: 'oracle', icon: Activity, label: '祭司' },
-              { id: 'xhs', icon: Share2, label: '灵感', isExternal: true }
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
-              
-              return (
-                <button 
-                  key={item.id} 
-                  onClick={() => item.isExternal ? window.open(ASSETS.xhs_link, '_blank') : navigateToView(item.id as ViewState)} 
-                  className="flex-1 min-w-0 flex flex-col items-center gap-0.5 sm:gap-1 group"
-                >
-                  <div className={`p-2 sm:p-5 rounded-full transition-all duration-300 ${item.isExternal ? 'text-[#D75437] hover:bg-[#D75437] hover:text-white' : (isActive ? 'bg-black text-white shadow-lg' : 'text-black/30 hover:text-black/80')}`}>
-                    <Icon size={16} className="sm:size-[22px]" />
-                  </div>
-                  <span className={`text-[6.5px] sm:text-[9px] font-serif-zh font-bold tracking-widest text-center transition-opacity whitespace-nowrap ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
+      {view !== 'inventory' && (
+        <div className="fixed bottom-4 sm:bottom-10 left-0 w-full flex flex-col items-center z-[999] pointer-events-none px-2 sm:px-4">
+          <div className="pointer-events-auto w-full max-w-[680px]">
+            <div className="flex items-center justify-around px-1 sm:px-4 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.25)] backdrop-blur-3xl bg-white/85">
+              {[
+                { id: 'home', icon: Home, label: '首页' },
+                { id: 'story', icon: BookOpen, label: '叙事' },
+                { id: 'atlas', icon: MapIcon, label: '寻香' },
+                { id: 'collections', icon: Box, label: '馆藏' },
+                { id: 'oracle', icon: Activity, label: '祭司' },
+                { id: 'xhs', icon: Share2, label: '灵感', isExternal: true }
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
+                
+                return (
+                  <button 
+                    key={item.id} 
+                    onClick={() => item.isExternal ? window.open(ASSETS.xhs_link, '_blank') : navigateToView(item.id as ViewState)} 
+                    className="flex-1 min-w-0 flex flex-col items-center gap-0.5 sm:gap-1 group"
+                  >
+                    <div className={`p-2 sm:p-5 rounded-full transition-all duration-300 ${item.isExternal ? 'text-[#D75437] hover:bg-[#D75437] hover:text-white' : (isActive ? 'bg-black text-white shadow-lg' : 'text-black/30 hover:text-black/80')}`}>
+                      <Icon size={16} className="sm:size-[22px]" />
+                    </div>
+                    <span className={`text-[6.5px] sm:text-[9px] font-serif-zh font-bold tracking-widest text-center transition-opacity whitespace-nowrap ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
