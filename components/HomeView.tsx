@@ -92,8 +92,8 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. 三大核心馆藏 - 优化移动端标题双行显示 */}
-      <section className="py-20 sm:py-56 px-3 sm:px-12 max-w-[2560px] mx-auto grid grid-cols-3 gap-3 md:gap-12">
+      {/* 3. 四大核心馆藏 - 优化移动端标题双行显示 */}
+      <section className="py-20 sm:py-56 px-3 sm:px-12 max-w-[2560px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-12">
           {[
             { 
               id: 'yuan', 
@@ -109,6 +109,14 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               sub: 'Clinical Blends', 
               desc: '廿载临床，频率科学重构。', 
               img: ASSETS.hero_spary, 
+              icon: <Sparkles size={16} /> 
+            },
+            { 
+              id: 'sheng', 
+              title: '生 · 纯露', 
+              sub: 'Plant Hydrosol', 
+              desc: '撷取植物生命之水。', 
+              img: ASSETS.hero_alice, 
               icon: <Droplets size={16} /> 
             },
             { 
