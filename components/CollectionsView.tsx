@@ -69,6 +69,7 @@ const CollectionsView: React.FC<{
   const themes = {
     yuan: { label: '元', fullLabel: '元 · 单方', en: 'ORIGIN · SINGLES' },
     he: { label: '和', fullLabel: '和 · 复方', en: 'HARMONY · BLENDS' },
+    sheng: { label: '生', fullLabel: '生 · 纯露', en: 'LIFE · HYDROSOL' },
     jing: { label: '香', fullLabel: '香 · 空间', en: 'SANCTUARY · AROMA' }
   };
 
@@ -78,6 +79,9 @@ const CollectionsView: React.FC<{
     if (name.includes('Water') || name.includes('水')) return <Droplets size={16} className="text-[#D4AF37]" />;
     if (name.includes('Fire') || name.includes('火')) return <Flame size={16} className="text-[#D4AF37]" />;
     if (name.includes('Earth') || name.includes('土')) return <Mountain size={16} className="text-[#D4AF37]" />;
+    if (name.includes('清.净')) return <Wind size={16} className="text-[#D4AF37]" />;
+    if (name.includes('润.养')) return <Droplets size={16} className="text-[#D4AF37]" />;
+    if (name.includes('舒.缓')) return <Sparkles size={16} className="text-[#D4AF37]" />;
     return <Sparkles size={16} className="text-[#D4AF37]" />;
   };
 
@@ -90,10 +94,10 @@ const CollectionsView: React.FC<{
       )}
 
       <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 space-y-12 sm:space-y-32">
-        {/* 分类切换：移动端一行三个 */}
+        {/* 分类切换：移动端一行四个 */}
         <div className="sticky top-24 z-[100] py-4 bg-[#FDFDFD]/80 backdrop-blur-md">
-            <div className="max-w-xl mx-auto grid grid-cols-3 gap-2 bg-stone-100 p-1 rounded-full border border-black/[0.05] shadow-inner">
-              {(['yuan', 'he', 'jing'] as Category[]).map(c => (
+            <div className="max-w-xl mx-auto grid grid-cols-4 gap-2 bg-stone-100 p-1 rounded-full border border-black/[0.05] shadow-inner">
+              {(['yuan', 'he', 'sheng', 'jing'] as Category[]).map(c => (
                 <button 
                   key={c} 
                   onClick={() => setFilter(c)} 
@@ -118,7 +122,7 @@ const CollectionsView: React.FC<{
                       <div className="space-y-1 sm:space-y-10">
                          <h3 className="text-xs sm:text-5xl lg:text-6xl font-serif-zh font-bold tracking-wider sm:tracking-widest text-black/80 leading-tight">
                            {/* 在移动端只显示核心汉字，如“金” */}
-                           <span className="sm:hidden">{groupName.includes('金') ? '金' : groupName.includes('木') ? '木' : groupName.includes('水') ? '水' : groupName.includes('火') ? '火' : groupName.includes('土') ? '土' : groupName.split('·')[1]?.trim() || groupName}</span>
+                           <span className="sm:hidden">{groupName.includes('金') ? '金' : groupName.includes('木') ? '木' : groupName.includes('水') ? '水' : groupName.includes('火') ? '火' : groupName.includes('土') ? '土' : groupName.includes('清.净') ? '清' : groupName.includes('润.养') ? '润' : groupName.includes('舒.缓') ? '舒' : groupName.split('·')[1]?.trim() || groupName}</span>
                            <span className="hidden sm:inline">{groupName}</span>
                          </h3>
                          <div className="flex items-center gap-1 sm:gap-4">
