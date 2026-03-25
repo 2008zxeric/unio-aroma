@@ -1,0 +1,46 @@
+import { GoogleGenAI } from "@google/genai";
+
+async function generateShengImages() {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  
+  const prompts = [
+    {
+      id: 'sheng_hero',
+      text: 'High-end minimalist product photography of a luxury botanical hydrosol glass bottle, surrounded by fresh morning dew and green leaves, soft natural sunlight, zen aesthetic, 8k resolution, professional skincare brand style.'
+    },
+    {
+      id: 'sheng_clear',
+      text: 'Minimalist photography of fresh peppermint and tea tree leaves with sparkling water droplets, clean white background, purifying and refreshing atmosphere, high-end botanical aesthetic.'
+    },
+    {
+      id: 'sheng_nourish',
+      text: 'Elegant composition of damask rose petals and neroli blossoms in clear water, soft warm lighting, luxurious and nourishing feel, minimalist botanical art.'
+    },
+    {
+      id: 'sheng_soothe',
+      text: 'Calming photography of lavender sprigs and chamomile flowers on a light grey textured stone, peaceful and soothing atmosphere, professional product background.'
+    }
+  ];
+
+  const results = {};
+
+  for (const prompt of prompts) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: { parts: [{ text: prompt.text }] },
+        config: { imageConfig: { aspectRatio: "3:4" } }
+      });
+
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData) {
+          results[prompt.id] = `data:image/png;base64,${part.inlineData.data}`;
+        }
+      }
+    } catch (e) {
+      console.error(`Failed to generate ${prompt.id}`, e);
+    }
+  }
+
+  return results;
+}
