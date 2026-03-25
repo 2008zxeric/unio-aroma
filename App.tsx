@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion'; // 确保使用兼容性导入
 import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen, Compass, FlaskConical, Quote, ArrowDown, ArrowRight, Users, Sparkles, Globe, Wind } from 'lucide-react';
 import { ViewState, Category } from './types';
 import { DATABASE, DESTINATIONS, ASSETS } from './constants';
@@ -14,7 +14,7 @@ import ImageLabView from './components/ImageLabView';
 import InventoryApp from './components/InventoryApp';
 
 /**
- * StoryView - 丰富版品牌叙事组件 (修复断行与品牌年限)
+ * StoryView - 丰富版品牌叙事组件
  */
 const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
   return (
@@ -33,11 +33,10 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           <div className="inline-block px-8 py-2.5 border border-[#D4AF37]/30 rounded-full mb-6 bg-white/50 backdrop-blur-md">
             <span className="text-[10px] tracking-[0.6em] text-[#D4AF37] uppercase font-extrabold">Original Harmony / 廿载寻香志</span>
           </div>
-          <h1 className="text-6xl md:text-[12rem] font-serif-zh font-bold text-black tracking-[0.1em] leading-none animate-in fade-in slide-in-from-bottom-12 duration-1000">
+          <h1 className="text-6xl md:text-[12rem] font-serif-zh font-bold text-black tracking-[0.1em] leading-none">
             廿载寻香<br /><span className="text-black/20">元于一息</span>
           </h1>
           <div className="h-px w-32 bg-black/10 mx-auto my-6 md:my-10" />
-          {/* 使用 whitespace-nowrap 确保标语在移动端不换行 */}
           <div className="overflow-visible px-4">
              <p className="text-xl sm:text-2xl md:text-5xl text-black/80 font-serif-zh tracking-[0.2em] max-w-full mx-auto font-medium whitespace-nowrap">
               从极境撷取芳香，因世界元于一息。
@@ -97,7 +96,6 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
       {/* 3. 篇章：人物 - 感知者与传播者 */}
       <section className="py-32 md:py-80 px-6 md:px-24 bg-[#F9F9F7]">
         <div className="max-w-[1920px] mx-auto space-y-48 md:space-y-96">
-          {/* 行者 Eric */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 md:gap-48 items-center">
             <div className="order-2 lg:order-1 relative group">
                <div className="aspect-[4/5] rounded-[6rem] overflow-hidden shadow-2xl p-4 bg-white">
@@ -125,7 +123,6 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
             </div>
           </div>
 
-          {/* 专家 Alice */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 md:gap-48 items-center">
             <div className="space-y-12">
               <div className="flex items-center gap-4"><div className="h-px w-12 bg-[#1C39BB]" /><span className="text-xs tracking-[0.5em] text-[#1C39BB] font-bold uppercase">The Curator / 传播者</span></div>
@@ -208,6 +205,7 @@ const App: React.FC = () => {
   const [isPressing, setIsPressing] = useState(false);
   const [wasLongPress, setWasLongPress] = useState(false);
 
+  // --- 长按逻辑 ---
   const handlePressStart = () => {
     setWasLongPress(false);
     setIsPressing(true);
@@ -215,7 +213,7 @@ const App: React.FC = () => {
       navigateToView('inventory');
       setIsPressing(false);
       setWasLongPress(true);
-    }, 3000); // 3 seconds long press
+    }, 3000); // 长按 3 秒
     setPressTimer(timer);
   };
 
@@ -294,7 +292,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 顶部 Logo 导航 */}
+      {/* 顶部 Logo 导航 - 核心修改点 */}
       {view !== 'inventory' && (
         <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
           <div 
