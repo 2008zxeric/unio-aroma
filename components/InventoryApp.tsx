@@ -214,7 +214,11 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Update stock and optionally product info
     setProducts(prev => prev.map(p => {
       if (p.id === data.productId) {
-        const stockChange = data.type === 'purchase' ? data.amount : -data.amount;
+        let stockChange = 0;
+        if (data.type === 'purchase') stockChange = data.amount;
+        else if (data.type === 'sale') stockChange = -data.amount;
+        else if (data.type === 'adjustment') stockChange = data.amount;
+
         return { 
           ...p, 
           stock: Math.max(0, p.stock + stockChange),
@@ -352,12 +356,19 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   const handleQuickStockChange = (productId: string, delta: number) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === productId) {
-        return { ...p, stock: Math.max(0, p.stock + delta) };
-      }
-      return p;
-    }));
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    addTransaction({
+      type: 'adjustment',
+      productId: product.id,
+      productName: product.name,
+      amount: delta,
+      unit: product.unit,
+      price: 0,
+      note: '快速库存调整',
+      performedBy: currentUser || '未知管理员'
+    });
   };
 
   const handleDirectStockChange = (productId: string, value: string) => {
@@ -816,12 +827,19 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 ) : (
                   transactions.map(tx => (
                     <div key={tx.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between relative overflow-hidden">
-                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${tx.type === 'purchase' ? 'bg-red-400' : 'bg-[#4CAF80]'}`} />
+                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+                        tx.type === 'purchase' ? 'bg-red-400' : 
+                        tx.type === 'sale' ? 'bg-[#4CAF80]' : 'bg-blue-400'
+                      }`} />
                       <div className="flex flex-col gap-3 flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tx.type === 'purchase' ? 'bg-red-50 text-red-500' : 'bg-[#4CAF80]/10 text-[#4CAF80]'}`}>
-                              {tx.type === 'purchase' ? <Plus size={16} /> : <Minus size={16} />}
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              tx.type === 'purchase' ? 'bg-red-50 text-red-500' : 
+                              tx.type === 'sale' ? 'bg-[#4CAF80]/10 text-[#4CAF80]' : 'bg-blue-50 text-blue-500'
+                            }`}>
+                              {tx.type === 'purchase' ? <Plus size={16} /> : 
+                               tx.type === 'sale' ? <Minus size={16} /> : <RefreshCw size={16} />}
                             </div>
                             <div>
                               <h3 className="font-bold text-sm">{tx.productName}</h3>
@@ -834,10 +852,16 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-right">
-                              <p className={`font-bold ${tx.type === 'purchase' ? 'text-red-500' : 'text-[#4CAF80]'}`}>
-                                {tx.type === 'purchase' ? '-' : '+'}¥{tx.price.toLocaleString()}
+                              <p className={`font-bold ${
+                                tx.type === 'purchase' ? 'text-red-500' : 
+                                tx.type === 'sale' ? 'text-[#4CAF80]' : 'text-blue-500'
+                              }`}>
+                                {tx.type === 'purchase' ? '-¥' : 
+                                 tx.type === 'sale' ? '+¥' : ''}
+                                {tx.price > 0 ? tx.price.toLocaleString() : (tx.amount > 0 ? `+${tx.amount}` : tx.amount)}
+                                {tx.type === 'adjustment' && tx.unit}
                               </p>
-                              <p className="text-[10px] text-slate-400">{tx.amount}{tx.unit}</p>
+                              <p className="text-[10px] text-slate-400">{tx.type !== 'adjustment' && `${tx.amount}${tx.unit}`}</p>
                             </div>
                             <button 
                               onClick={() => deleteTransaction(tx.id)}
