@@ -3,7 +3,7 @@ import { ScentItem, Destination, Category } from './types';
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
 const PROVINCE_BASE = `${RAW_BASE}province/`;
 const ERIC_PHOTO_BASE = `${RAW_BASE}ericphoto/`;
-const CACHE_V = '?v=1008.65'; 
+const CACHE_V = '?v=1008.67'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
