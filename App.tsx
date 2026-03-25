@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; // 兼容性导入
+import { motion, AnimatePresence } from 'framer-motion'; // 统一使用 framer-motion
 import { 
   Menu, X, Instagram, Mail, MapPin, Phone, 
   ChevronRight, ArrowRight, Package, ShieldCheck, 
