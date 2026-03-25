@@ -53,7 +53,7 @@ export interface InventoryProduct {
 export interface Transaction {
   id: string;
   date: string;
-  type: 'purchase' | 'sale';
+  type: 'purchase' | 'sale' | 'adjustment';
   productId: string;
   productName: string;
   amount: number; // quantity
