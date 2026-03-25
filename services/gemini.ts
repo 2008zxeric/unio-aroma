@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-const DAILY_LIMIT = 5;
+const DAILY_LIMIT = 10;
 
 export const getAIQuota = () => {
   const today = new Date().toISOString().split('T')[0];
