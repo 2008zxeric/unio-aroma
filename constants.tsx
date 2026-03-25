@@ -273,7 +273,7 @@ const yuanData = [
   { group: 'Metal金', folder: 'metal', items: [
     ['神圣乳香', 'Sacred Frankincense', '248', '10ml'], 
     ['极境香茅', 'Citronella Clarissima', '248', '10ml'], 
-    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'],
+    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', 'Eucalyptus Glaciale.webp'],
     ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], 
     ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']
   ] },
