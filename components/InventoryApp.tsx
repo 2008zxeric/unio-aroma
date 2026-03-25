@@ -70,7 +70,11 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     return sessionAuth !== 'true';
   });
   const [accessCode, setAccessCode] = useState('');
-  const [storedCode, setStoredCode] = useState('unio2026'); // Default code
+  const [adminPasswords, setAdminPasswords] = useState<Record<AdminUser, string>>({
+    '管理员 A': 'unio2026',
+    '管理员 B': 'unio2026',
+    '管理员 C': 'unio2026'
+  });
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   
   // Modals
@@ -130,7 +134,7 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   useEffect(() => {
     const savedProducts = localStorage.getItem('unio_inventory_products');
     const savedTransactions = localStorage.getItem('unio_inventory_transactions');
-    const savedCode = localStorage.getItem('unio_inventory_code');
+    const savedPasswords = localStorage.getItem('unio_inventory_passwords');
 
     if (savedProducts) {
       setProducts(JSON.parse(savedProducts));
@@ -152,8 +156,12 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       setTransactions(JSON.parse(savedTransactions));
     }
 
-    if (savedCode) {
-      setStoredCode(savedCode);
+    if (savedPasswords) {
+      try {
+        setAdminPasswords(JSON.parse(savedPasswords));
+      } catch (e) {
+        console.error('Failed to parse passwords', e);
+      }
     }
   }, []);
 
@@ -173,7 +181,8 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       notify('请先选择管理员', 'error');
       return;
     }
-    if (accessCode === storedCode) {
+    const expectedPassword = adminPasswords[selectedUser];
+    if (accessCode === expectedPassword) {
       setIsLocked(false);
       setCurrentUser(selectedUser);
       sessionStorage.setItem('unio_inventory_auth', 'true');
@@ -929,24 +938,34 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-50 flex items-center gap-3">
                   <div className="p-2 bg-blue-50 text-blue-500 rounded-lg"><Lock size={16} /></div>
-                  <h3 className="font-bold text-sm">安全设置</h3>
+                  <h3 className="font-bold text-sm">管理员密码设置</h3>
                 </div>
-                <div className="p-6 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">修改访问代码</label>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value={storedCode}
-                        onChange={(e) => {
-                          setStoredCode(e.target.value);
-                          localStorage.setItem('unio_inventory_code', e.target.value);
-                        }}
-                        className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none"
-                      />
-                      <button className="px-4 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold">保存</button>
+                <div className="p-6 space-y-6">
+                  {ADMIN_USERS.map(user => (
+                    <div key={user} className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{user} 密码</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={adminPasswords[user]}
+                          onChange={(e) => {
+                            const newPasswords = { ...adminPasswords, [user]: e.target.value };
+                            setAdminPasswords(newPasswords);
+                          }}
+                          className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none"
+                        />
+                        <button 
+                          onClick={() => {
+                            localStorage.setItem('unio_inventory_passwords', JSON.stringify(adminPasswords));
+                            notify(`${user} 密码已保存`, 'success');
+                          }}
+                          className="px-4 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold active:scale-95 transition-all"
+                        >
+                          保存
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
