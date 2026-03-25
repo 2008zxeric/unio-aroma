@@ -15,6 +15,10 @@ export const ASSETS = {
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   brand_image: `${RAW_BASE}brand/brand.webp${CACHE_V}`,
   map: `${RAW_BASE}brand/map.webp${CACHE_V}`,
+  sheng_hero: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=1200',
+  sheng_clear: 'https://images.unsplash.com/photo-1563170351-be82bc888bb4?q=80&w=800',
+  sheng_nourish: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?q=80&w=800',
+  sheng_soothe: 'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?q=80&w=800',
   packaging_sample: `${RAW_BASE}brand/see.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
@@ -301,29 +305,50 @@ heData.forEach((g, i) => g.items.forEach((item, j) => {
 }));
 
 const shengData = [
-  { group: '清.净', folder: 'hydrosol', items: [
-    ['薄荷纯露', 'Peppermint Hydrosol', '68', '250ml'],
-    ['茶树纯露', 'Tea Tree Hydrosol', '78', '250ml'],
-    ['迷迭香纯露', 'Rosemary Hydrosol', '78', '250ml'],
-    ['尤加利纯露', 'Eucalyptus Hydrosol', '68', '250ml'],
-    ['金缕梅纯露', 'Witch Hazel Hydrosol', '88', '250ml']
-  ] },
-  { group: '润.养', folder: 'hydrosol', items: [
-    ['大马士革玫瑰纯露', 'Damask Rose Hydrosol', '128', '250ml'],
-    ['橙花纯露', 'Neroli Hydrosol', '118', '250ml'],
-    ['菩提花纯露', 'Linden Blossom Hydrosol', '98', '250ml'],
-    ['檀香纯露', 'Sandalwood Hydrosol', '158', '250ml'],
-    ['乳香纯露', 'Frankincense Hydrosol', '138', '250ml']
-  ] },
-  { group: '舒.缓', folder: 'hydrosol', items: [
-    ['罗马洋甘菊纯露', 'Roman Chamomile Hydrosol', '108', '250ml'],
-    ['薰衣草纯露', 'Lavender Hydrosol', '88', '250ml'],
-    ['蜡菊纯露', 'Immortelle Hydrosol', '128', '250ml'],
-    ['矢车菊纯露', 'Cornflower Hydrosol', '98', '250ml'],
-    ['柠檬马鞭草纯露', 'Lemon Verbena Hydrosol', '88', '250ml']
-  ] }
+  { 
+    group: '清.净', 
+    folder: 'hydrosol', 
+    hero: ASSETS.sheng_clear,
+    items: [
+      ['薄荷纯露', 'Peppermint Hydrosol', '68', '250ml'],
+      ['茶树纯露', 'Tea Tree Hydrosol', '78', '250ml'],
+      ['迷迭香纯露', 'Rosemary Hydrosol', '78', '250ml'],
+      ['尤加利纯露', 'Eucalyptus Hydrosol', '68', '250ml'],
+      ['金缕梅纯露', 'Witch Hazel Hydrosol', '88', '250ml']
+    ] 
+  },
+  { 
+    group: '润.养', 
+    folder: 'hydrosol', 
+    hero: ASSETS.sheng_nourish,
+    items: [
+      ['大马士革玫瑰纯露', 'Damask Rose Hydrosol', '128', '250ml'],
+      ['橙花纯露', 'Neroli Hydrosol', '118', '250ml'],
+      ['菩提花纯露', 'Linden Blossom Hydrosol', '98', '250ml'],
+      ['檀香纯露', 'Sandalwood Hydrosol', '158', '250ml'],
+      ['乳香纯露', 'Frankincense Hydrosol', '138', '250ml']
+    ] 
+  },
+  { 
+    group: '舒.缓', 
+    folder: 'hydrosol', 
+    hero: ASSETS.sheng_soothe,
+    items: [
+      ['罗马洋甘菊纯露', 'Roman Chamomile Hydrosol', '108', '250ml'],
+      ['薰衣草纯露', 'Lavender Hydrosol', '88', '250ml'],
+      ['蜡菊纯露', 'Immortelle Hydrosol', '128', '250ml'],
+      ['矢车菊纯露', 'Cornflower Hydrosol', '98', '250ml'],
+      ['柠檬马鞭草纯露', 'Lemon Verbena Hydrosol', '88', '250ml']
+    ] 
+  }
 ];
-shengData.forEach((g, i) => g.items.forEach((item, j) => addP('sheng', `生 · ${g.group}`, item[0], item[1], g.folder, `sheng_${i}_${j}`, item[2], item[3])));
+
+shengData.forEach((g, i) => g.items.forEach((item, j) => {
+  const pId = `sheng_${i}_${j}`;
+  // 为每个产品生成一个唯一的图片种子，确保多样性
+  const productImg = `https://picsum.photos/seed/${pId}/800/1200`;
+  addP('sheng', `生 · ${g.group}`, item[0], item[1], g.folder, pId, item[2], item[3], productImg);
+}));
 
 const jingData = [
   { group: '芳香美学', folder: 'place', items: [['扩香石', 'Crackled', '388', 'Set', 'Crackled.webp'],['芳香链', 'Necklace ', '368', 'Piece', 'Necklace .webp'],['木核扩', 'Walnut', '198', 'Piece', 'Walnut.webp'],['精油烛', 'candle', '228', '200g', 'candle.webp'],['雾露器', 'Vessel', '158', 'Piece', 'Vessel.webp']] },
