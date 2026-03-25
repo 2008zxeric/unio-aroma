@@ -116,7 +116,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               title: '生 · 纯露', 
               sub: 'Plant Hydrosol', 
               desc: '撷取植物生命之水。', 
-              img: ASSETS.hero_alice, 
+              img: ASSETS.sheng_hero, 
               icon: <Droplets size={16} /> 
             },
             { 
