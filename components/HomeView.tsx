@@ -92,7 +92,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
         </div>
       </section>
 
-      {/* 3. 四大核心馆藏 - 优化移动端标题双行显示 */}
+      {/* 3. 四大核心馆藏 - 优化移动端标题双行显示 (Updated: 2026-03-25) */}
       <section className="py-20 sm:py-56 px-3 sm:px-12 max-w-[2560px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-12">
           {[
             { 
