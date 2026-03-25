@@ -61,35 +61,51 @@ ${getContext()}
 
 export const getOracleResponse = async (messages: ChatMessage[]) => {
   checkQuota();
-  const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined") throw new Error("祭司灵感未被激活。");
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  if (!apiKey || apiKey === "undefined") throw new Error("祭司灵感未被激活。请检查配置。");
+  
   const ai = new GoogleGenAI({ apiKey });
   try {
     const contents = messages.map(m => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: m.content }]
     }));
+
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-3-flash-preview',
       contents,
       config: { 
         systemInstruction: getSystemInstruction(), 
-        temperature: 0.75,
-        topP: 0.9,
-        thinkingConfig: { thinkingBudget: 4000 }
+        temperature: 0.7,
+        topP: 0.8,
+        maxOutputTokens: 500
       }
     });
+
+    if (!response.text) {
+      throw new Error("祭司陷入了深沉的冥想，未能给出回应。");
+    }
+
     incrementUsage();
-    return response.text || "祭司正在聆听大地的声音。";
+    return response.text;
   } catch (error: any) {
     console.error("AI Error:", error);
     if (error.message === "QUOTA_EXCEEDED") throw error;
+    // 提供更具体的错误反馈，而不是统一的干扰信息
+    if (error.message?.includes("API key not valid")) {
+      throw new Error("祭司的密钥失效了，波段无法建立。");
+    }
+    if (error.message?.includes("429") || error.message?.includes("Too Many Requests")) {
+      throw new Error("祭司正在接待其他信众，请稍后再试。");
+    }
     throw new Error("祭司波段受到干扰。请再次屏息尝试。");
   }
 };
 
 export const generateOracleVoice = async (text: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+  if (!apiKey || apiKey === "undefined") return null;
+  const ai = new GoogleGenAI({ apiKey });
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
