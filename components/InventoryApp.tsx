@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   LayoutDashboard, 
@@ -21,6 +22,7 @@ import {
   TrendingDown,
   PieChart,
   X,
+  AlertCircle,
   Save,
   RefreshCw,
   FileJson,
@@ -76,6 +78,15 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [transactionType, setTransactionType] = useState<'purchase' | 'sale'>('purchase');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<InventoryProduct | null>(null);
+  
+  // Notifications & Confirmations
+  const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' | 'warning' } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string, onConfirm: () => void } | null>(null);
+
+  const notify = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
   
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -159,7 +170,7 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   // --- Handlers ---
   const handleUnlock = () => {
     if (!selectedUser) {
-      alert('请先选择管理员');
+      notify('请先选择管理员', 'error');
       return;
     }
     if (accessCode === storedCode) {
@@ -169,7 +180,7 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       sessionStorage.setItem('unio_inventory_user', JSON.stringify(selectedUser));
       setAccessCode('');
     } else {
-      alert('密码错误');
+      notify('密码错误', 'error');
       setAccessCode('');
     }
   };
@@ -234,11 +245,14 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   const resetSystem = () => {
-    if (window.confirm('确定要清空所有数据并重置吗？此操作不可恢复。')) {
-      localStorage.removeItem('unio_inventory_products');
-      localStorage.removeItem('unio_inventory_transactions');
-      window.location.reload();
-    }
+    setConfirmDialog({
+      message: '确定要清空所有数据并重置吗？此操作不可恢复。',
+      onConfirm: () => {
+        localStorage.removeItem('unio_inventory_products');
+        localStorage.removeItem('unio_inventory_transactions');
+        window.location.reload();
+      }
+    });
   };
 
   const exportData = () => {
@@ -265,60 +279,64 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const data = XLSX.utils.sheet_to_json(ws) as any[];
 
         if (data.length === 0) {
-          alert('Excel文件为空或格式不正确');
+          notify('Excel文件为空或格式不正确', 'error');
           return;
         }
 
-        if (window.confirm(`检测到 ${data.length} 条数据，是否覆盖现有库存和定价信息？`)) {
-          setProducts(prev => {
-            const newProducts = [...prev];
-            data.forEach(row => {
-              // Match by ID or Name
-              const index = newProducts.findIndex(p => 
-                p.id === String(row['产品编号'] || row['ID']) || 
-                p.name === String(row['产品名称'] || row['Name'])
-              );
+        setConfirmDialog({
+          message: `检测到 ${data.length} 条数据，是否覆盖现有库存和定价信息？`,
+          onConfirm: () => {
+            setProducts(prev => {
+              const newProducts = [...prev];
+              data.forEach(row => {
+                // Match by ID or Name
+                const index = newProducts.findIndex(p => 
+                  p.id === String(row['产品编号'] || row['ID']) || 
+                  p.name === String(row['产品名称'] || row['Name'])
+                );
 
-              if (index !== -1) {
-                const p = newProducts[index];
-                newProducts[index] = {
-                  ...p,
-                  stock: row['当前库存'] !== undefined ? parseFloat(row['当前库存']) : p.stock,
-                  priceB: row['B端售价'] !== undefined ? parseFloat(row['B端售价']) : p.priceB,
-                  priceC: row['C端售价'] !== undefined ? parseFloat(row['C端售价']) : p.priceC,
-                  enName: row['英文名称'] || row['英文名'] || p.enName,
-                  botanicalName: row['学名'] || p.botanicalName,
-                  origin: row['产地'] || p.origin,
-                  method: row['萃取方法'] || (row['萃取方法 / 部位'] ? row['萃取方法 / 部位'].split('/')[0]?.trim() : p.method),
-                  site: row['萃取部位'] || (row['萃取方法 / 部位'] ? row['萃取方法 / 部位'].split('/')[1]?.trim() : p.site),
-                  supplierCode: row['供应商代码'] || p.supplierCode,
-                  cost3ml: row['3ml进价'] !== undefined ? parseFloat(row['3ml进价']) : p.cost3ml,
-                  priceB3ml: row['3ml建议售价B'] !== undefined ? parseFloat(row['3ml建议售价B']) : p.priceB3ml,
-                  priceC3ml: row['3ml建议售价C'] !== undefined ? parseFloat(row['3ml建议售价C']) : p.priceC3ml,
-                  cost5ml: row['5ml进价'] !== undefined ? parseFloat(row['5ml进价']) : p.cost5ml,
-                  priceB5ml: row['5ml建议售价B'] !== undefined ? parseFloat(row['5ml建议售价B']) : p.priceB5ml,
-                  priceC5ml: row['5ml建议售价C'] !== undefined ? parseFloat(row['5ml建议售价C']) : p.priceC5ml,
-                  cost100ml: row['100ml进价'] !== undefined ? parseFloat(row['100ml进价']) : p.cost100ml,
-                  priceB100ml: row['100ml建议售价B'] !== undefined ? parseFloat(row['100ml建议售价B']) : p.priceB100ml,
-                  priceC100ml: row['100ml建议售价C'] !== undefined ? parseFloat(row['100ml建议售价C']) : p.priceC100ml,
-                  cost500ml: row['500ml进价'] !== undefined ? parseFloat(row['500ml进价']) : p.cost500ml,
-                  priceB500ml: row['500ml建议售价B'] !== undefined ? parseFloat(row['500ml建议售价B']) : p.priceB500ml,
-                  priceC500ml: row['500ml建议售价C'] !== undefined ? parseFloat(row['500ml建议售价C']) : p.priceC500ml,
-                  cost1000ml: row['1000ml进价'] !== undefined ? parseFloat(row['1000ml建议售价']) : p.cost1000ml,
-                  priceB1000ml: row['1000ml建议售价B'] !== undefined ? parseFloat(row['1000ml建议售价B']) : p.priceB1000ml,
-                  priceC1000ml: row['1000ml建议售价C'] !== undefined ? parseFloat(row['1000ml建议售价C']) : p.priceC1000ml,
-                  cost10ml: row['10ml成本'] !== undefined ? parseFloat(row['10ml成本']) : p.cost10ml,
-                  cost1L: row['1L成本'] !== undefined ? parseFloat(row['1L成本']) : p.cost1L,
-                };
-              }
+                if (index !== -1) {
+                  const p = newProducts[index];
+                  newProducts[index] = {
+                    ...p,
+                    stock: row['当前库存'] !== undefined ? parseFloat(row['当前库存']) : p.stock,
+                    priceB: row['B端售价'] !== undefined ? parseFloat(row['B端售价']) : p.priceB,
+                    priceC: row['C端售价'] !== undefined ? parseFloat(row['C端售价']) : p.priceC,
+                    enName: row['英文名称'] || row['英文名'] || p.enName,
+                    botanicalName: row['学名'] || p.botanicalName,
+                    origin: row['产地'] || p.origin,
+                    method: row['萃取方法'] || (row['萃取方法 / 部位'] ? row['萃取方法 / 部位'].split('/')[0]?.trim() : p.method),
+                    site: row['萃取部位'] || (row['萃取方法 / 部位'] ? row['萃取方法 / 部位'].split('/')[1]?.trim() : p.site),
+                    supplierCode: row['供应商代码'] || p.supplierCode,
+                    cost3ml: row['3ml进价'] !== undefined ? parseFloat(row['3ml进价']) : p.cost3ml,
+                    priceB3ml: row['3ml建议售价B'] !== undefined ? parseFloat(row['3ml建议售价B']) : p.priceB3ml,
+                    priceC3ml: row['3ml建议售价C'] !== undefined ? parseFloat(row['3ml建议售价C']) : p.priceC3ml,
+                    cost5ml: row['5ml进价'] !== undefined ? parseFloat(row['5ml进价']) : p.cost5ml,
+                    priceB5ml: row['5ml建议售价B'] !== undefined ? parseFloat(row['5ml建议售价B']) : p.priceB5ml,
+                    priceC5ml: row['5ml建议售价C'] !== undefined ? parseFloat(row['5ml建议售价C']) : p.priceC5ml,
+                    cost100ml: row['100ml进价'] !== undefined ? parseFloat(row['100ml进价']) : p.cost100ml,
+                    priceB100ml: row['100ml建议售价B'] !== undefined ? parseFloat(row['100ml建议售价B']) : p.priceB100ml,
+                    priceC100ml: row['100ml建议售价C'] !== undefined ? parseFloat(row['100ml建议售价C']) : p.priceC100ml,
+                    cost500ml: row['500ml进价'] !== undefined ? parseFloat(row['500ml进价']) : p.cost500ml,
+                    priceB500ml: row['500ml建议售价B'] !== undefined ? parseFloat(row['500ml建议售价B']) : p.priceB500ml,
+                    priceC500ml: row['500ml建议售价C'] !== undefined ? parseFloat(row['500ml建议售价C']) : p.priceC500ml,
+                    cost1000ml: row['1000ml进价'] !== undefined ? parseFloat(row['1000ml建议售价']) : p.cost1000ml,
+                    priceB1000ml: row['1000ml建议售价B'] !== undefined ? parseFloat(row['1000ml建议售价B']) : p.priceB1000ml,
+                    priceC1000ml: row['1000ml建议售价C'] !== undefined ? parseFloat(row['1000ml建议售价C']) : p.priceC1000ml,
+                    cost10ml: row['10ml成本'] !== undefined ? parseFloat(row['10ml成本']) : p.cost10ml,
+                    cost1L: row['1L成本'] !== undefined ? parseFloat(row['1L成本']) : p.cost1L,
+                  };
+                }
+              });
+              return newProducts;
             });
-            return newProducts;
-          });
-          alert('导入成功！');
-        }
+            notify('导入成功！', 'success');
+            setConfirmDialog(null);
+          }
+        });
       } catch (err) {
         console.error(err);
-        alert('导入失败，请检查文件格式。');
+        notify('导入失败，请检查文件格式。', 'error');
       }
     };
     reader.readAsBinaryString(file);
@@ -671,12 +689,106 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         : 'bg-white text-slate-400 border border-slate-100'
                       }`}
                     >
-                      {f === 'all' ? '全部类别' : f === 'base' ? '基础油' : f === 'essential' ? '精油' : '纯露'}
+                      {f === 'all' ? '全部类别' : f === 'base' ? '基础油' : f === 'essential' ? '精油' : '生 · 纯露'}
                     </button>
                   ))}
                 </div>
               </div>
-              {activeTab === 'history' && (
+
+              {/* Product List */}
+              <div className="space-y-4">
+                {filteredProducts.map(product => (
+                  productViewMode === 'stock' ? (
+                    <div 
+                      key={product.id} 
+                      className={`bg-white p-5 rounded-3xl border transition-all flex items-center justify-between group ${
+                        product.stock <= 10 ? 'border-red-100 bg-red-50/30' : 'border-slate-100 shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                          product.category === 'essential' ? 'bg-purple-50 text-purple-500' : 
+                          product.category === 'base' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-500'
+                        }`}>
+                          <Package size={20} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm">{product.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[10px] text-slate-400 font-mono">{product.id}</p>
+                            {product.origin && (
+                              <span className="text-[8px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-md font-bold uppercase tracking-tighter">
+                                {product.origin}
+                              </span>
+                            )}
+                          </div>
+                          {product.botanicalName && (
+                            <p className="text-[9px] text-slate-400 italic mt-0.5 line-clamp-1 max-w-[120px]">
+                              {product.botanicalName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center bg-slate-100/50 rounded-xl p-1">
+                          <button 
+                            onClick={() => handleQuickStockChange(product.id, -1)}
+                            className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-red-500 transition-all active:scale-90"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <div className="px-1 text-center min-w-[3.5rem]">
+                            <input 
+                              type="number"
+                              value={product.stock}
+                              onChange={(e) => handleDirectStockChange(product.id, e.target.value)}
+                              className={`w-full bg-transparent text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-[#4CAF80]/30 rounded-md ${product.stock <= 10 ? 'text-red-500' : 'text-slate-900'}`}
+                            />
+                            <div className="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">{product.unit}</div>
+                          </div>
+                          <button 
+                            onClick={() => handleQuickStockChange(product.id, 1)}
+                            className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-[#4CAF80] transition-all active:scale-90"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        
+                        <button 
+                          onClick={() => { setEditingProduct(product); setIsEditModalOpen(true); }}
+                          className="p-2 text-slate-300 hover:text-slate-600 transition-colors"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+
+                        {product.stock <= 10 && (
+                          <div className="hidden sm:flex items-center gap-1 text-red-500 text-[8px] font-bold uppercase tracking-tighter">
+                            <AlertTriangle size={10} />
+                            库存不足
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={product.id} className="relative group">
+                      <PriceItem product={product} />
+                      <button 
+                        onClick={() => { setEditingProduct(product); setIsEditModalOpen(true); }}
+                        className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-slate-100 text-slate-400 hover:text-slate-900 transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <Edit3 size={14} />
+                      </button>
+                    </div>
+                  )
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+
+
+          {activeTab === 'history' && (
             <motion.div 
               key="history"
               initial={{ opacity: 0, x: 20 }}
@@ -703,59 +815,54 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                               {tx.type === 'purchase' ? <Plus size={16} /> : <Minus size={16} />}
                             </div>
                             <div>
-                              <h4 className="font-bold text-sm">{tx.productName}</h4>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                              <h3 className="font-bold text-sm">{tx.productName}</h3>
+                              <p className="text-[10px] text-slate-400">
                                 {new Date(tx.date).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {tx.customerType && ` · ${tx.customerType}端客户`}
+                                {tx.performedBy && ` · 操作人: ${tx.performedBy}`}
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className={`font-bold ${tx.type === 'purchase' ? 'text-red-500' : 'text-[#4CAF80]'}`}>
-                              {tx.type === 'purchase' ? '-' : '+'}¥{tx.price.toLocaleString()}
-                            </p>
-                            <p className="text-[10px] text-slate-400 font-bold">{tx.amount} {tx.unit}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                          <div className="flex items-center gap-3">
-                            <span className="text-[9px] px-2 py-0.5 bg-slate-50 text-slate-400 rounded-md font-bold uppercase tracking-widest">
-                              {tx.performedBy}
-                            </span>
-                            {tx.note && (
-                              <span className="text-[9px] text-slate-400 italic line-clamp-1 max-w-[100px]">
-                                "{tx.note}"
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {tx.type === 'sale' && (
-                              <select 
-                                value={tx.shippingStatus || 'pending'}
-                                onChange={(e) => updateShippingStatus(tx.id, e.target.value as any)}
-                                className={`text-[9px] font-bold px-2 py-1 rounded-lg border-none focus:ring-0 ${
-                                  tx.shippingStatus === 'shipped' ? 'bg-blue-50 text-blue-500' : 
-                                  tx.shippingStatus === 'delivered' ? 'bg-[#4CAF80]/10 text-[#4CAF80]' : 'bg-amber-50 text-amber-500'
-                                }`}
-                              >
-                                <option value="pending">待发货</option>
-                                <option value="shipped">已发货</option>
-                                <option value="delivered">已送达</option>
-                              </select>
-                            )}
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className={`font-bold ${tx.type === 'purchase' ? 'text-red-500' : 'text-[#4CAF80]'}`}>
+                                {tx.type === 'purchase' ? '-' : '+'}¥{tx.price.toLocaleString()}
+                              </p>
+                              <p className="text-[10px] text-slate-400">{tx.amount}{tx.unit}</p>
+                            </div>
                             <button 
-                              onClick={() => {
-                                if (window.confirm('确定要删除这条记录并还原库存吗？')) {
-                                  deleteTransaction(tx.id);
-                                }
-                              }}
-                              className="p-1.5 text-slate-200 hover:text-red-400 transition-colors"
+                              onClick={() => deleteTransaction(tx.id)}
+                              className="p-2 text-slate-200 hover:text-red-400 transition-colors"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </div>
+                        
+                        {tx.type === 'sale' && (
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                            <div className="flex gap-1.5">
+                              {(['pending', 'shipped', 'delivered'] as const).map(s => (
+                                <button
+                                  key={s}
+                                  onClick={() => updateShippingStatus(tx.id, s)}
+                                  className={`px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all border ${
+                                    tx.shippingStatus === s 
+                                    ? 'bg-slate-900 text-white border-slate-900' 
+                                    : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'
+                                  }`}
+                                >
+                                  {s === 'pending' ? '待发货' : s === 'shipped' ? '已发货' : '已签收'}
+                                </button>
+                              ))}
+                            </div>
+                            {tx.note && (
+                              <p className="text-[9px] text-slate-400 italic truncate max-w-[120px]">
+                                "{tx.note}"
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
@@ -773,81 +880,121 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               className="space-y-6"
             >
               <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-50 space-y-1">
-                  <h3 className="font-bold text-lg">系统设置</h3>
-                  <p className="text-slate-400 text-xs">管理数据备份与安全选项</p>
+                <div className="p-6 border-b border-slate-50 flex items-center gap-3">
+                  <div className="p-2 bg-green-50 text-green-500 rounded-lg"><FileSpreadsheet size={16} /></div>
+                  <h3 className="font-bold text-sm">批量导入/更新</h3>
                 </div>
-                
-                <div className="p-4 space-y-2">
-                  <button 
-                    onClick={() => setIsCodeModalOpen(true)}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 rounded-2xl transition-colors group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
-                        <Lock size={18} />
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-8 h-8 mb-3 text-slate-300" />
+                        <p className="mb-1 text-xs text-slate-500 font-bold">点击或拖拽上传 Excel</p>
+                        <p className="text-[10px] text-slate-400">支持字段：产品名称, 当前库存, B端售价, C端售价...</p>
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold">修改访问代码</p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Security Settings</p>
-                      </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-200 group-hover:translate-x-1 transition-transform" />
-                  </button>
-
-                  <button 
-                    onClick={exportData}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 rounded-2xl transition-colors group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center">
-                        <Download size={18} />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold">导出数据备份 (JSON)</p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Data Backup</p>
-                      </div>
-                    </div>
-                    <ChevronRight size={18} className="text-slate-200 group-hover:translate-x-1 transition-transform" />
-                  </button>
-
-                  <label className="w-full flex items-center justify-between p-5 hover:bg-slate-50 rounded-2xl transition-colors group cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-                        <FileSpreadsheet size={18} />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold">从 Excel 导入数据</p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Batch Import</p>
-                      </div>
-                    </div>
-                    <input type="file" accept=".xlsx, .xls" onChange={handleExcelImport} className="hidden" />
-                    <ChevronRight size={18} className="text-slate-200 group-hover:translate-x-1 transition-transform" />
-                  </label>
-
-                  <div className="pt-4 mt-4 border-t border-slate-50">
+                      <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleExcelImport} />
+                    </label>
                     <button 
-                      onClick={resetSystem}
-                      className="w-full flex items-center justify-between p-5 hover:bg-red-50 rounded-2xl transition-colors group"
+                      onClick={() => {
+                        const template = [
+                          { 
+                            '产品编号': 'JC1001',
+                            '产品名称': '甜杏仁油', 
+                            '英文名': 'Almond Oil', 
+                            '学名': 'Prunus amygdalus',
+                            '产地': '英国',
+                            '萃取方法 / 部位': '冷压榨 / 果仁',
+                            '供应商代码': 'SUP001',
+                            '当前库存': 1000, 
+                            '3ml进价': 10, '3ml建议售价B': 20, '3ml建议售价C': 38,
+                            '5ml进价': 15, '5ml建议售价B': 30, '5ml建议售价C': 58,
+                            '100ml进价': 80, '100ml建议售价B': 150, '100ml建议售价C': 280,
+                            '500ml进价': 350, '500ml建议售价B': 600, '500ml建议售价C': 1200,
+                            '1000ml进价': 600, '1000ml建议售价B': 1000, '1000ml建议售价C': 2000,
+                          }
+                        ];
+                        const ws = XLSX.utils.json_to_sheet(template);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "Template");
+                        XLSX.writeFile(wb, "unio_import_template.xlsx");
+                      }}
+                      className="w-full py-3 text-xs font-bold text-blue-500 border border-blue-100 rounded-xl hover:bg-blue-50 transition-all"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center">
-                          <RefreshCw size={18} />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-sm font-bold text-red-500">重置系统数据</p>
-                          <p className="text-[10px] text-red-300 uppercase tracking-widest font-bold">Factory Reset</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={18} className="text-red-100 group-hover:translate-x-1 transition-transform" />
+                      下载 Excel 模板
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="text-center space-y-1">
-                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">UNIO Inventory System v2.0</p>
-                <p className="text-[10px] text-slate-200">© 2026 UNIO Essential Oils</p>
+              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-50 flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 text-blue-500 rounded-lg"><Lock size={16} /></div>
+                  <h3 className="font-bold text-sm">安全设置</h3>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">修改访问代码</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={storedCode}
+                        onChange={(e) => {
+                          setStoredCode(e.target.value);
+                          localStorage.setItem('unio_inventory_code', e.target.value);
+                        }}
+                        className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none"
+                      />
+                      <button className="px-4 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold">保存</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-50 flex items-center gap-3">
+                  <div className="p-2 bg-purple-50 text-purple-500 rounded-lg"><FileJson size={16} /></div>
+                  <h3 className="font-bold text-sm">数据管理</h3>
+                </div>
+                <div className="p-6 space-y-3">
+                  <button 
+                    onClick={() => {
+                      setIsLocked(true);
+                      onBack();
+                    }}
+                    className="w-full flex items-center justify-between p-4 bg-slate-900 rounded-2xl hover:bg-slate-800 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Lock size={18} className="text-white/50" />
+                      <span className="text-sm font-medium text-white">退出管理系统</span>
+                    </div>
+                    <ChevronRight size={16} className="text-white/30 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <button 
+                    onClick={exportData}
+                    className="w-full flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Download size={18} className="text-slate-400" />
+                      <span className="text-sm font-medium">导出 JSON 备份</span>
+                    </div>
+                    <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <button 
+                    onClick={resetSystem}
+                    className="w-full flex items-center justify-between p-4 bg-red-50 rounded-2xl hover:bg-red-100 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <RefreshCw size={18} className="text-red-400" />
+                      <span className="text-sm font-medium text-red-600">重置系统数据</span>
+                    </div>
+                    <Trash2 size={16} className="text-red-300 group-hover:scale-110 transition-transform" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-10 text-center">
+                <p className="text-[10px] text-slate-300 font-bold uppercase tracking-[0.3em]">UNIO Inventory v1.0.0</p>
+                <p className="text-[10px] text-slate-300 mt-1">Designed for Professional Aromatherapists</p>
               </div>
             </motion.div>
           )}
@@ -856,402 +1003,676 @@ const InventoryApp: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
       {/* Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 py-4 flex items-center justify-around z-40">
-        {[
-          { id: 'dashboard', icon: LayoutDashboard, label: '概览' },
-          { id: 'products', icon: Package, label: '库存' },
-          { id: 'history', icon: History, label: '流水' },
-          { id: 'settings', icon: Settings, label: '设置' },
-        ].map(item => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id as Tab)}
-            className={`flex flex-col items-center gap-1 transition-all ${
-              activeTab === item.id ? 'text-[#4CAF80]' : 'text-slate-300 hover:text-slate-400'
-            }`}
-          >
-            <item.icon size={22} strokeWidth={activeTab === item.id ? 2.5 : 2} />
-            <span className="text-[10px] font-bold tracking-wider">{item.label}</span>
-            {activeTab === item.id && (
-              <motion.div layoutId="nav-indicator" className="w-1 h-1 bg-[#4CAF80] rounded-full mt-0.5" />
-            )}
-          </button>
-        ))}
+        <NavButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={20} />} label="看板" />
+        <NavButton active={activeTab === 'products'} onClick={() => setActiveTab('products')} icon={<Package size={20} />} label="产品" />
+        <NavButton active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<History size={20} />} label="流水" />
+        <NavButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings size={20} />} label="设置" />
       </nav>
 
-      {/* Modals */}
-      <Modal 
-        isOpen={isTransactionModalOpen} 
-        onClose={() => setIsTransactionModalOpen(false)}
-        title={transactionType === 'purchase' ? '录入进货' : '录入销售'}
-      >
-        <TransactionForm 
-          type={transactionType} 
-          products={products} 
-          onSubmit={addTransaction} 
-        />
-      </Modal>
-
-      <Modal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)}
-        title="编辑产品信息"
-      >
-        {editingProduct && (
-          <ProductEditForm 
-            product={editingProduct} 
-            onSubmit={updateProduct} 
-          />
-        )}
-      </Modal>
-
-      <Modal 
-        isOpen={isCodeModalOpen} 
-        onClose={() => setIsCodeModalOpen(false)}
-        title="修改访问代码"
-      >
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">新访问代码</label>
-            <input 
-              type="text" 
-              placeholder="输入新代码..."
-              className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const val = (e.target as HTMLInputElement).value;
-                  if (val) {
-                    setStoredCode(val);
-                    localStorage.setItem('unio_inventory_code', val);
-                    setIsCodeModalOpen(false);
-                    alert('访问代码已更新');
-                  }
-                }
-              }}
-            />
-          </div>
-          <p className="text-[10px] text-slate-400 text-center">按回车键确认修改</p>
-        </div>
-      </Modal>
-    </div>
-  );
-};
-
-// --- Sub-components ---
-
-const Modal: React.FC<{ 
-  isOpen: boolean; 
-  onClose: () => void; 
-  title: string; 
-  children: React.ReactNode 
-}> = ({ isOpen, onClose, title, children }) => {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-          />
-          <motion.div 
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold">{title}</h3>
-              <button onClick={onClose} className="p-2 bg-slate-50 text-slate-400 rounded-full hover:text-slate-600 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="max-h-[70vh] overflow-y-auto no-scrollbar">
-              {children}
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-};
-
-const PriceItem: React.FC<{ product: InventoryProduct }> = ({ product }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  return (
-    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden transition-all">
-      <div 
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="p-6 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
-      >
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-            product.category === 'essential' ? 'bg-purple-50 text-purple-500' : 
-            product.category === 'base' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-500'
-          }`}>
-            <Package size={20} />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm">{product.name}</h3>
-            <p className="text-[10px] text-slate-400 font-mono">{product.id}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-xs font-bold text-[#4CAF80]">¥{product.priceB3ml || product.priceB5ml || product.priceB100ml || '---'}</p>
-            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">B端起步价</p>
-          </div>
-          <ChevronDown size={18} className={`text-slate-300 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-        </div>
-      </div>
-      
+      {/* Edit Product Modal */}
       <AnimatePresence>
-        {isExpanded && (
-          <motion.div 
-            initial={{ height: 0 }}
-            animate={{ height: 'auto' }}
-            exit={{ height: 0 }}
-            className="overflow-hidden bg-slate-50/50"
-          >
-            <div className="p-6 pt-0 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 space-y-1">
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">英文名称</p>
-                  <p className="text-xs font-medium line-clamp-1">{product.enName || '---'}</p>
+        {isEditModalOpen && editingProduct && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEditModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh]"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">编辑产品信息</h2>
+                  <p className="text-xs text-slate-400 mt-1">{editingProduct.name} ({editingProduct.id})</p>
                 </div>
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 space-y-1">
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">学名</p>
-                  <p className="text-xs font-medium line-clamp-1 italic">{product.botanicalName || '---'}</p>
-                </div>
+                <button 
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <ProductEditForm 
+                product={editingProduct} 
+                onSubmit={updateProduct} 
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Transaction Modal */}
+      <AnimatePresence>
+        {isTransactionModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsTransactionModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              className="relative w-full max-w-lg bg-white rounded-t-[3rem] sm:rounded-[3rem] p-8 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">{transactionType === 'purchase' ? '录入进货' : '录入销售'}</h2>
+                <button onClick={() => setIsTransactionModalOpen(false)} className="p-2 bg-slate-50 rounded-full text-slate-400"><X size={20} /></button>
               </div>
               
-              <div className="space-y-2">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">详细价目表 (B端 / C端)</p>
-                <div className="space-y-1">
-                  {[
-                    { label: '3ml', b: product.priceB3ml, c: product.priceC3ml },
-                    { label: '5ml', b: product.priceB5ml, c: product.priceC5ml },
-                    { label: '100ml', b: product.priceB100ml, c: product.priceC100ml },
-                    { label: '500ml', b: product.priceB500ml, c: product.priceC500ml },
-                    { label: '1000ml', b: product.priceB1000ml, c: product.priceC1000ml },
-                  ].filter(item => item.b || item.c).map(item => (
-                    <div key={item.label} className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100">
-                      <span className="text-xs font-bold text-slate-600">{item.label}</span>
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs font-bold text-[#4CAF80]">¥{item.b || '---'}</span>
-                        <span className="text-xs font-bold text-amber-600">¥{item.c || '---'}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+              <TransactionForm 
+                type={transactionType} 
+                products={products} 
+                onSubmit={addTransaction} 
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 bg-white border border-slate-100 min-w-[200px]"
+          >
+            <div className={`w-2 h-2 rounded-full ${
+              notification.type === 'success' ? 'bg-[#4CAF80]' : 
+              notification.type === 'error' ? 'bg-red-500' : 'bg-amber-500'
+            }`} />
+            <span className="text-sm font-medium text-slate-700">{notification.message}</span>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirm Dialog */}
+      <AnimatePresence>
+        {confirmDialog && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmDialog(null)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-8 shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">确认操作</h3>
+              <p className="text-slate-500 text-sm leading-relaxed mb-8">{confirmDialog.message}</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setConfirmDialog(null)}
+                  className="flex-1 py-4 bg-slate-50 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-colors"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={confirmDialog.onConfirm}
+                  className="flex-1 py-4 bg-[#4CAF80] text-white font-bold rounded-2xl shadow-lg shadow-[#4CAF80]/20 hover:bg-[#3d9163] transition-colors"
+                >
+                  确定
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
   );
 };
 
-const ProductEditForm: React.FC<{ 
-  product: InventoryProduct; 
-  onSubmit: (p: InventoryProduct) => void 
-}> = ({ product, onSubmit }) => {
-  const [formData, setFormData] = useState(product);
+const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string }> = ({ active, onClick, icon, label }) => (
+  <button 
+    onClick={onClick}
+    className={`flex flex-col items-center gap-1 transition-all ${active ? 'text-[#4CAF80]' : 'text-slate-300'}`}
+  >
+    <div className={`p-2 rounded-xl transition-all ${active ? 'bg-[#4CAF80]/10' : ''}`}>
+      {icon}
+    </div>
+    <span className="text-[10px] font-bold uppercase tracking-tighter">{label}</span>
+  </button>
+);
+
+const PriceItem: React.FC<{ product: InventoryProduct }> = ({ product }) => {
+  const [isOpen, setIsOpen] = useState(false);
   
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">产品名称</label>
-          <input 
-            type="text" 
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">英文名称</label>
-          <input 
-            type="text" 
-            value={formData.enName || ''}
-            onChange={(e) => setFormData({ ...formData, enName: e.target.value })}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">学名</label>
-        <input 
-          type="text" 
-          value={formData.botanicalName || ''}
-          onChange={(e) => setFormData({ ...formData, botanicalName: e.target.value })}
-          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none italic"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">产地</label>
-          <input 
-            type="text" 
-            value={formData.origin || ''}
-            onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">当前库存</label>
-          <input 
-            type="number" 
-            value={formData.stock}
-            onChange={(e) => setFormData({ ...formData, stock: parseFloat(e.target.value) || 0 })}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none font-bold text-[#4CAF80]"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">详细定价 (B端 / C端)</p>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: '3ml', bKey: 'priceB3ml', cKey: 'priceC3ml' },
-            { label: '5ml', bKey: 'priceB5ml', cKey: 'priceC5ml' },
-            { label: '100ml', bKey: 'priceB100ml', cKey: 'priceC100ml' },
-            { label: '500ml', bKey: 'priceB500ml', cKey: 'priceC500ml' },
-            { label: '1000ml', bKey: 'priceB1000ml', cKey: 'priceC1000ml' },
-          ].map(item => (
-            <div key={item.label} className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
-              <p className="text-[9px] font-bold text-slate-500">{item.label}</p>
-              <div className="flex gap-2">
-                <input 
-                  type="number" 
-                  placeholder="B端"
-                  value={(formData as any)[item.bKey] || ''}
-                  onChange={(e) => setFormData({ ...formData, [item.bKey]: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-2 py-1 bg-white border border-slate-100 rounded-md text-[10px] focus:outline-none"
-                />
-                <input 
-                  type="number" 
-                  placeholder="C端"
-                  value={(formData as any)[item.cKey] || ''}
-                  onChange={(e) => setFormData({ ...formData, [item.cKey]: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-2 py-1 bg-white border border-slate-100 rounded-md text-[10px] focus:outline-none"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
+    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden transition-all">
       <button 
-        onClick={() => onSubmit(formData)}
-        className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg transition-all active:scale-95"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-5 flex items-center justify-between hover:bg-slate-50 transition-colors"
       >
-        保存修改
+        <div className="flex items-center gap-4">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            product.category === 'essential' ? 'bg-purple-50 text-purple-500' : 
+            product.category === 'base' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-500'
+          }`}>
+            <Package size={18} />
+          </div>
+          <div className="text-left">
+            <h3 className="font-bold text-sm">{product.name}</h3>
+            <p className="text-[10px] text-slate-400">{product.enName || product.id}</p>
+          </div>
+        </div>
+        <div className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          <ChevronDown size={18} className="text-slate-300" />
+        </div>
       </button>
-    </div>
-  );
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden bg-slate-50/50"
+          >
+            <div className="p-5 pt-0 space-y-6">
+              {/* Product Metadata */}
+              <div className="grid grid-cols-2 gap-y-3 gap-x-4 pt-4 border-t border-slate-100/50">
+                {product.enName && (
+                  <div className="space-y-0.5">
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">English Name</p>
+                    <p className="text-[10px] font-medium text-slate-600">{product.enName}</p>
+                  </div>
+                )}
+                {product.botanicalName && (
+                  <div className="space-y-0.5">
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Botanical Name</p>
+                    <p className="text-[10px] font-medium text-slate-600 italic">{product.botanicalName}</p>
+                  </div>
+                )}
+                {product.origin && (
+                  <div className="space-y-0.5">
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">产地 (Origin)</p>
+                    <p className="text-[10px] font-medium text-slate-600">{product.origin}</p>
+                  </div>
+                )}
+                {product.method && (
+                  <div className="space-y-0.5">
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">萃取方法 (Method)</p>
+                    <p className="text-[10px] font-medium text-slate-600">{product.method}</p>
+                  </div>
+                )}
+                {product.site && (
+                  <div className="space-y-0.5">
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">萃取部位 (Site)</p>
+                    <p className="text-[10px] font-medium text-slate-600">{product.site}</p>
+                  </div>
+                )}
+                {product.supplierCode && (
+                  <div className="space-y-0.5">
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">供应商代码 (Supplier Code)</p>
+                    <p className="text-[10px] font-medium text-slate-600">{product.supplierCode}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Pricing Table (Optimized) */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+                  <span>规格</span>
+                  <span>进价</span>
+                  <span>售价 B</span>
+                  <span>售价 C</span>
+                </div>
+                
+                {[
+                  { size: '3ml', cost: product.cost3ml, b: product.priceB3ml, c: product.priceC3ml },
+                  { size: '5ml', cost: product.cost5ml, b: product.priceB5ml, c: product.priceC5ml },
+                  { size: '100ml', cost: product.cost100ml, b: product.priceB100ml, c: product.priceC100ml },
+                  { size: '500ml', cost: product.cost500ml, b: product.priceB500ml, c: product.priceC500ml },
+                  { size: '1000ml', cost: product.cost1000ml, b: product.priceB1000ml, c: product.priceC1000ml },
+                ].map((item, idx) => (
+                  (item.cost || item.b || item.c) ? (
+                    <div key={idx} className="grid grid-cols-4 gap-2 items-center py-1 border-b border-slate-50 last:border-0">
+                      <span className="text-[10px] font-bold text-slate-600">{item.size}</span>
+                      <span className="text-[10px] font-mono text-slate-400">¥{item.cost || '-'}</span>
+                      <span className="text-[10px] font-bold text-[#4CAF80]">¥{item.b || '-'}</span>
+                      <span className="text-[10px] font-bold text-blue-500">¥{item.c || '-'}</span>
+                    </div>
+                  ) : null
+                ))}
+
+                {/* Legacy Specifications if any */}
+                {product.specifications && product.specifications.length > 0 && (
+                  <div className="pt-2 space-y-2">
+                    <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">其他规格</p>
+                    {product.specifications.map((spec, idx) => (
+                      <div key={idx} className="grid grid-cols-4 gap-2 items-center">
+                        <span className="text-[10px] font-bold text-slate-600">{spec.size}</span>
+                        <span className="text-[10px] font-mono text-slate-400">¥{spec.cost || '-'}</span>
+                        <span className="text-[10px] font-bold text-[#4CAF80]">¥{spec.priceB || '-'}</span>
+                        <span className="text-[10px] font-bold text-blue-500">¥{spec.priceC || '-'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+);
 };
 
-const TransactionForm: React.FC<{ 
-  type: 'purchase' | 'sale'; 
-  products: InventoryProduct[]; 
-  onSubmit: (data: Omit<Transaction, 'id' | 'date'>, updateProductInfo?: Partial<InventoryProduct>) => void 
-}> = ({ type, products, onSubmit }) => {
-  const [selectedProductId, setSelectedProductId] = useState('');
-  const [amount, setAmount] = useState('');
-  const [price, setPrice] = useState('');
-  const [note, setNote] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const filteredProducts = products.filter(p => 
-    p.name.includes(searchTerm) || p.id.includes(searchTerm)
-  );
+const ProductEditForm: React.FC<{ 
+  product: InventoryProduct, 
+  onSubmit: (data: InventoryProduct) => void 
+}> = ({ product, onSubmit }) => {
+  const [formData, setFormData] = useState<InventoryProduct>({ ...product });
 
-  const selectedProduct = products.find(p => p.id === selectedProductId);
+  const handleChange = (field: keyof InventoryProduct, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProductId || !amount || !price) {
-      alert('请填写完整信息');
-      return;
-    }
-
-    onSubmit({
-      productId: selectedProductId,
-      productName: selectedProduct?.name || '',
-      type,
-      amount: parseFloat(amount),
-      price: parseFloat(price),
-      unit: selectedProduct?.unit || '瓶',
-      note,
-      shippingStatus: type === 'sale' ? 'pending' : undefined
-    });
+    onSubmit(formData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-          <input 
-            type="text" 
-            placeholder="搜索产品..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">产品名称</label>
+            <input 
+              type="text" 
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">英文名称</label>
+            <input 
+              type="text" 
+              value={formData.enName || ''}
+              onChange={(e) => handleChange('enName', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto no-scrollbar p-1">
-          {filteredProducts.map(p => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setSelectedProductId(p.id)}
-              className={`p-3 rounded-xl text-left border transition-all ${
-                selectedProductId === p.id 
-                ? 'bg-slate-900 border-slate-900 text-white shadow-md' 
-                : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
-              }`}
-            >
-              <p className="text-[10px] font-bold truncate">{p.name}</p>
-              <p className={`text-[8px] mt-0.5 ${selectedProductId === p.id ? 'text-slate-400' : 'text-slate-300'}`}>库存: {p.stock}</p>
-            </button>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">产地 (Origin)</label>
+            <input 
+              type="text" 
+              value={formData.origin || ''}
+              onChange={(e) => handleChange('origin', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">学名 (Botanical Name)</label>
+            <input 
+              type="text" 
+              value={formData.botanicalName || ''}
+              onChange={(e) => handleChange('botanicalName', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none italic"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">萃取方法</label>
+            <input 
+              type="text" 
+              value={formData.method || ''}
+              onChange={(e) => handleChange('method', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">萃取部位</label>
+            <input 
+              type="text" 
+              value={formData.site || ''}
+              onChange={(e) => handleChange('site', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">供应商代码</label>
+            <input 
+              type="text" 
+              value={formData.supplierCode || ''}
+              onChange={(e) => handleChange('supplierCode', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4 border-t border-slate-100 pt-4">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">规格定价 (3ml / 5ml / 100ml / 500ml / 1000ml)</label>
+          
+          {[
+            { size: '3ml', costKey: 'cost3ml', bKey: 'priceB3ml', cKey: 'priceC3ml' },
+            { size: '5ml', costKey: 'cost5ml', bKey: 'priceB5ml', cKey: 'priceC5ml' },
+            { size: '100ml', costKey: 'cost100ml', bKey: 'priceB100ml', cKey: 'priceC100ml' },
+            { size: '500ml', costKey: 'cost500ml', bKey: 'priceB500ml', cKey: 'priceC500ml' },
+            { size: '1000ml', costKey: 'cost1000ml', bKey: 'priceB1000ml', cKey: 'priceC1000ml' },
+          ].map((item) => (
+            <div key={item.size} className="grid grid-cols-4 gap-2 items-center">
+              <span className="text-xs font-bold text-slate-500">{item.size}</span>
+              <input 
+                type="number" 
+                placeholder="进价"
+                value={formData[item.costKey as keyof InventoryProduct] || ''}
+                onChange={(e) => handleChange(item.costKey as keyof InventoryProduct, parseFloat(e.target.value))}
+                className="px-2 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[10px] focus:outline-none"
+              />
+              <input 
+                type="number" 
+                placeholder="售价B"
+                value={formData[item.bKey as keyof InventoryProduct] || ''}
+                onChange={(e) => handleChange(item.bKey as keyof InventoryProduct, parseFloat(e.target.value))}
+                className="px-2 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[10px] focus:outline-none text-[#4CAF80] font-bold"
+              />
+              <input 
+                type="number" 
+                placeholder="售价C"
+                value={formData[item.cKey as keyof InventoryProduct] || ''}
+                onChange={(e) => handleChange(item.cKey as keyof InventoryProduct, parseFloat(e.target.value))}
+                className="px-2 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[10px] focus:outline-none text-blue-500 font-bold"
+              />
+            </div>
           ))}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">数量 ({selectedProduct?.unit || '瓶'})</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">库存单位</label>
+            <input 
+              type="text" 
+              value={formData.unit}
+              onChange={(e) => handleChange('unit', e.target.value)}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">当前库存 ({formData.unit})</label>
+            <input 
+              type="number" 
+              value={formData.stock}
+              onChange={(e) => handleChange('stock', parseFloat(e.target.value))}
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <button 
+        type="submit"
+        className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
+      >
+        保存修改
+      </button>
+    </form>
+  );
+};
+
+const TransactionForm: React.FC<{ 
+  type: 'purchase' | 'sale', 
+  products: InventoryProduct[], 
+  onSubmit: (data: Omit<Transaction, 'id' | 'date'>, updateProductInfo?: Partial<InventoryProduct>) => void 
+}> = ({ type, products, onSubmit }) => {
+  const [productId, setProductId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [price, setPrice] = useState('');
+  const [customerType, setCustomerType] = useState<'B' | 'C'>('C');
+  const [note, setNote] = useState('');
+  const [shippingStatus, setShippingStatus] = useState<Transaction['shippingStatus']>('pending');
+  
+  // New fields for syncing
+  const [enName, setEnName] = useState('');
+  const [botanicalName, setBotanicalName] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [method, setMethod] = useState('');
+  const [site, setSite] = useState('');
+  const [supplierCode, setSupplierCode] = useState('');
+  const [syncToProduct, setSyncToProduct] = useState(false);
+
+  const selectedProduct = products.find(p => p.id === productId);
+
+  // Auto-fill price and info
+  useEffect(() => {
+    if (selectedProduct) {
+      setEnName(selectedProduct.enName || '');
+      setBotanicalName(selectedProduct.botanicalName || '');
+      setOrigin(selectedProduct.origin || '');
+      setMethod(selectedProduct.method || '');
+      setSite(selectedProduct.site || '');
+      setSupplierCode(selectedProduct.supplierCode || '');
+      
+      if (type === 'sale') {
+        if (selectedProduct.priceB && customerType === 'B') {
+          setPrice(selectedProduct.priceB.toString());
+        } else if (selectedProduct.priceC && customerType === 'C') {
+          setPrice(selectedProduct.priceC.toString());
+        }
+      }
+    }
+  }, [productId, customerType, type, selectedProduct]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productId || !amount || !price) return;
+
+    const updateInfo = syncToProduct ? { enName, botanicalName, origin, method, site, supplierCode } : undefined;
+
+    onSubmit({
+      type,
+      productId,
+      productName: selectedProduct?.name || 'Unknown',
+      amount: parseFloat(amount),
+      unit: selectedProduct?.unit || 'ml',
+      price: parseFloat(price),
+      customerType: type === 'sale' ? customerType : undefined,
+      shippingStatus: type === 'sale' ? shippingStatus : undefined,
+      note: updateInfo ? `${note} (已同步更新产品信息)`.trim() : note
+    }, updateInfo);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">选择产品</label>
+          <select 
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+            className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+            required
+          >
+            <option value="">请选择产品...</option>
+            {products.map(p => (
+              <option key={p.id} value={p.id}>{p.name} ({p.stock}{p.unit})</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedProduct && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="p-4 bg-slate-50 rounded-2xl space-y-4 border border-slate-100"
+          >
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">英文名称</label>
+                <input 
+                  type="text"
+                  value={enName}
+                  onChange={(e) => setEnName(e.target.value)}
+                  className="w-full bg-transparent text-[10px] font-medium text-slate-600 focus:outline-none border-b border-slate-200 pb-1"
+                  placeholder="未设置"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">学名</label>
+                <input 
+                  type="text"
+                  value={botanicalName}
+                  onChange={(e) => setBotanicalName(e.target.value)}
+                  className="w-full bg-transparent text-[10px] font-medium text-slate-600 focus:outline-none border-b border-slate-200 pb-1 italic"
+                  placeholder="未设置"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">产地</label>
+                <input 
+                  type="text"
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value)}
+                  className="w-full bg-transparent text-[10px] font-medium text-slate-600 focus:outline-none border-b border-slate-200 pb-1"
+                  placeholder="未设置"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">供应商代码</label>
+                <input 
+                  type="text"
+                  value={supplierCode}
+                  onChange={(e) => setSupplierCode(e.target.value)}
+                  className="w-full bg-transparent text-[10px] font-medium text-slate-600 focus:outline-none border-b border-slate-200 pb-1"
+                  placeholder="未设置"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">萃取方法</label>
+                <input 
+                  type="text"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value)}
+                  className="w-full bg-transparent text-[10px] font-medium text-slate-600 focus:outline-none border-b border-slate-200 pb-1"
+                  placeholder="未设置"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">萃取部位</label>
+                <input 
+                  type="text"
+                  value={site}
+                  onChange={(e) => setSite(e.target.value)}
+                  className="w-full bg-transparent text-[10px] font-medium text-slate-600 focus:outline-none border-b border-slate-200 pb-1"
+                  placeholder="未设置"
+                />
+              </div>
+            </div>
+            {type === 'purchase' && (
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="checkbox"
+                  checked={syncToProduct}
+                  onChange={(e) => setSyncToProduct(e.target.checked)}
+                  className="w-3 h-3 rounded border-slate-300 text-[#4CAF80] focus:ring-[#4CAF80]"
+                />
+                <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-600 transition-colors">同步更新产品库中的这些信息</span>
+              </label>
+            )}
+          </motion.div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">数量 ({selectedProduct?.unit || 'ml'})</label>
             <input 
               type="number" 
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none font-bold"
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+              required
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">总金额 (¥)</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">总价 (元)</label>
             <input 
               type="number" 
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
-              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none font-bold text-[#4CAF80]"
+              className="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none"
+              required
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">备注</label>
+        {type === 'sale' && (
+          <>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">客户类型</label>
+              <div className="flex gap-2">
+                {(['B', 'C'] as const).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setCustomerType(t)}
+                    className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${
+                      customerType === t 
+                      ? 'bg-[#4CAF80] text-white shadow-md shadow-[#4CAF80]/20' 
+                      : 'bg-slate-50 text-slate-400 border border-slate-100'
+                    }`}
+                  >
+                    {t}端客户
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">发货状态</label>
+              <div className="flex gap-2">
+                {(['pending', 'shipped', 'delivered'] as const).map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setShippingStatus(s)}
+                    className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${
+                      shippingStatus === s 
+                      ? 'bg-slate-900 text-white shadow-md shadow-slate-900/20' 
+                      : 'bg-slate-50 text-slate-400 border border-slate-100'
+                    }`}
+                  >
+                    {s === 'pending' ? '待发货' : s === 'shipped' ? '已发货' : '已签收'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">备注 (可选)</label>
           <input 
             type="text" 
             value={note}
