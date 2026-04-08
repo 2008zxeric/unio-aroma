@@ -159,18 +159,17 @@ function getProductFolder(category: string, series_code: string): string {
     // 生系列 - 都用 body 目录作为 fallback（hydrosol 目录为空）
     '生·润养': 'body', '生·清净': 'body', '生·舒缓': 'body',
     // 香系列
-    '香·凝思之物': 'place', '香·芳香美学': 'place',
-    // 净系列 - 用 Meditation 或 place
+    '香·凝思之物': 'Meditation', '香·芳香美学': 'place',
+    // 净系列
     '净·空间': 'place', '净·冥想': 'Meditation',
   };
   
-  // 优先用 category 推导
   const folder = categoryMap[category] || '';
   if (folder) return folder;
   
   // fallback 到 series_code
   const seriesMap: Record<string, string> = {
-    'yuan': 'metal',  // 默认用 metal
+    'yuan': 'metal',
     'he': 'body',
     'sheng': 'body',
     'xiang': 'place',
@@ -179,6 +178,58 @@ function getProductFolder(category: string, series_code: string): string {
   return seriesMap[series_code] || '';
 }
 
+// 精确映射：name_en（Supabase）→ GitHub 实际文件名（含大小写/空格差异）
+const PRODUCT_IMAGE_MAP: Record<string, string> = {
+  // 元·Metal → metal
+  'Sacred Frankincense': 'Sacred%20Frankincense.webp',
+  'Eucalyptus Glaciale': '%20Eucalyptus%20Glaciale.webp',
+  'Tea Tree Antiseptic': 'Tea%20Tree%20Antiseptic.webp',
+  'Peppermint from Peaks': 'Peppermint%20from%20Peaks.webp',
+  'Citronella Clarissima': 'Citronella%20Clarissima.webp',
+  // 元·Wood → wood
+  'Aged Sandalwood': 'Aged%20Sandalwood.webp',
+  'Misty Cypress': 'Misty%20Cypress.webp',
+  'Himalayan Cedar': 'Himalayan%20Cedar.webp',
+  'Boreal Pine': 'Boreal%20Pine.webp',
+  'Sacred Rosewood Isle': 'Sacred%20Rosewood%20Isle.webp',
+  // 元·Water → water
+  'Myrrh Secreta': 'Myrrh%20Secreta.webp',
+  'Deep Root Vetiver': 'Deep%20Root%20Vetiver.webp',
+  'Patchouli Nocturne': 'Patchouli%20Nocturne.webp',
+  'Juniper by the Loch': 'Juniper%20by%20the%20Loch.webp',
+  'Benzoin Ambrosia': 'Benzoin%20Ambrosia.webp',
+  // 元·Fire → fire
+  'Damask Rose Aureate': 'Damask%20Rose%20Aureate.webp',
+  'Ylang Equatorial': 'Ylang%20Equatorial.webp',
+  'Jasminum Grandiflorum': 'Jasminum%20Grandiflorum.webp',
+  'Neroli Soleil': 'Neroli%20Soleil.webp',
+  'Geranium Rosé': 'Geranium%20Ros%C3%A9.webp',
+  // 元·Earth → earth
+  'Bergamot Alba': 'Bergamot%20Alba.webp',
+  'Zingiber Terrae': 'Zingiber%20Terrae.webp',
+  'Mandarin Jucunda': 'Mandarin%20Jucunda.webp',
+  'Grapefruit Pomona': 'Grapefruit%20Pomona.webp',
+  'Oakmoss Taiga': 'Oakmoss%20Taiga.webp',
+  // 和·Body → body
+  'Cloud Velvet': 'cloud%20velvet.webp',
+  'Dawn Glow': 'Dawn%20Glow.webp',
+  'Moonlight Oil': 'Moonlight%20Oil.webp',
+  'Frost Mint': 'Frost%20Mint.webp',
+  'Trace Balm': 'Trace%20Balm.webp',
+  // 香·芳香美学 → place
+  'Crackled': 'Crackled.webp',
+  'Necklace': 'Necklace%20.webp',
+  'Walnut': 'Walnut.webp',
+  'Candle': 'candle.webp',
+  'Vessel': 'Vessel.webp',
+  // 香·凝思之物 → Meditation
+  'Incense Sticks': 'Incense%20Sticks.webp',
+  'Rollerball': 'Rollerball.webp',
+  'Gypsum': 'Gypsum.webp',
+  'Mountain': 'mountain.webp',
+  'Glass': 'glass.webp',
+};
+
 // 将 Supabase 产品数据转换为 ScentItem 格式
 function transformProduct(product: any): ScentItem {
   let heroUrl = product.image_url || '';
@@ -186,11 +237,17 @@ function transformProduct(product: any): ScentItem {
   // 如果数据库没有图片 URL，尝试从 GitHub 抓取
   if (!heroUrl) {
     const folder = getProductFolder(product.category || '', product.series_code || '');
-    const fileName = product.name_en 
-      ? product.name_en.trim().replace(/ /g, '%20') + '.webp' 
-      : '';
-    if (folder && fileName) {
-      heroUrl = `${RAW_BASE}products/${folder}/${fileName}${CACHE_V}`;
+    const nameEn = (product.name_en || '').trim();
+    
+    if (folder && nameEn) {
+      // 优先用精确映射表处理大小写/空格差异
+      if (PRODUCT_IMAGE_MAP[nameEn]) {
+        heroUrl = `${RAW_BASE}products/${folder}/${PRODUCT_IMAGE_MAP[nameEn]}${CACHE_V}`;
+      } else {
+        // fallback：用 name_en 直接拼接
+        const fileName = nameEn.replace(/ /g, '%20') + '.webp';
+        heroUrl = `${RAW_BASE}products/${folder}/${fileName}${CACHE_V}`;
+      }
     }
   }
   
