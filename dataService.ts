@@ -319,40 +319,49 @@ function transformProduct(product: any): ScentItem {
   };
 }
 
+// 静态备用数据（当 Supabase 不可用时使用）
+import { DATABASE as STATIC_DATABASE, DESTINATIONS as STATIC_DESTINATIONS } from './constants';
+
 // 加载所有产品
 export async function loadProducts(): Promise<Record<string, ScentItem>> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
 
-  if (error) {
-    console.error('Error loading products:', error);
-    return {};
+    if (error || !data || data.length === 0) {
+      console.warn('Supabase products unavailable or empty, using static data');
+      return STATIC_DATABASE;
+    }
+
+    const products: Record<string, ScentItem> = {};
+    data?.forEach((product) => {
+      products[product.code] = transformProduct(product);
+    });
+
+    return products;
+  } catch (e) {
+    console.warn('Supabase connection failed, using static data:', e);
+    return STATIC_DATABASE;
   }
-
-  const products: Record<string, ScentItem> = {};
-  data?.forEach((product) => {
-    products[product.code] = transformProduct(product);
-  });
-
-  return products;
 }
 
 // 加载所有国家/目的地
 export async function loadDestinations(): Promise<Record<string, Destination>> {
-  const { data, error } = await supabase
-    .from('countries')
-    .select('*')
-    .order('sort_order', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('countries')
+      .select('*')
+      .order('sort_order', { ascending: true });
 
-  if (error) {
-    console.error('Error loading destinations:', error);
-    return {};
-  }
+    if (error || !data || data.length === 0) {
+      console.warn('Supabase countries unavailable or empty, using static data');
+      return STATIC_DESTINATIONS;
+    }
 
-  const destinations: Record<string, Destination> = {};
+    const destinations: Record<string, Destination> = {};
   
   // 先添加中国省份（静态数据，与 constants.tsx 保持一致）
   const chinaProvinces = generateChinaProvinces();
@@ -387,5 +396,9 @@ export async function loadDestinations(): Promise<Record<string, Destination>> {
     };
   });
 
-  return destinations;
+    return destinations;
+  } catch (e) {
+    console.warn('Supabase connection failed, using static data:', e);
+    return STATIC_DESTINATIONS;
+  }
 }

@@ -3,7 +3,7 @@ import { ScentItem, Destination, Category } from './types';
 const RAW_BASE = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/';
 const PROVINCE_BASE = `${RAW_BASE}province/`;
 const ERIC_PHOTO_BASE = `${RAW_BASE}ericphoto/`;
-const CACHE_V = '?v=1008.67'; 
+const CACHE_V = '?v=1008.65'; 
 
 export const ASSETS = {
   logo: `${RAW_BASE}brand/logo.svg${CACHE_V}`,
@@ -15,10 +15,6 @@ export const ASSETS = {
   banner: `${RAW_BASE}brand/banner.webp${CACHE_V}`,
   brand_image: `${RAW_BASE}brand/brand.webp${CACHE_V}`,
   map: `${RAW_BASE}brand/map.webp${CACHE_V}`,
-  sheng_hero: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=1200',
-  sheng_clear: 'https://images.unsplash.com/photo-1563170351-be82bc888bb4?q=80&w=800',
-  sheng_nourish: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?q=80&w=800',
-  sheng_soothe: 'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?q=80&w=800',
   packaging_sample: `${RAW_BASE}brand/see.webp${CACHE_V}`,
   placeholder: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800'
 };
@@ -122,21 +118,6 @@ const ERIC_JOURNAL: Record<string, string> = {
   'cn_香港': '霓虹灯与咸水味之间，藏着中药材与旧书页的复杂叠影。',
   'cn_澳门': '大三巴的石阶上，葡式蛋挞焦糖香混着妈阁庙的线香。',
   'cn_台湾': '阿里山云海，桧木清香混着高山乌龙茶的冷韵。',
-  '大马士革玫瑰纯露': '清晨的第一缕阳光洒在保加利亚玫瑰谷，蒸馏出的每一滴纯露都承载着大地的露水与花朵的灵魂。',
-  '罗马洋甘菊纯露': '在温和的田野中，洋甘菊的香气如同母亲的抚摸，安抚着每一寸敏感的肌肤。',
-  '薰衣草纯露': '普罗旺斯的紫色海洋，蒸馏出的纯露带着草本的清香，是夏日里最清凉的慰藉。',
-  '橙花纯露': '地中海的阳光与海风，孕育了橙花的纯净与高雅，那是光影交织的芬芳。',
-  '金缕梅纯露': '深林中的神秘力量，收敛与平衡的艺术，在每一滴纯露中流淌。',
-  '薄荷纯露': '指尖划过叶片，那股清凉直抵心扉，是唤醒感官的晨钟。',
-  '茶树纯露': '澳洲荒野的守护者，纯净而有力，为肌肤筑起天然的屏障。',
-  '迷迭香纯露': '记忆的香气，在清晨的薄雾中升腾，赋予思绪清晰的轮廓。',
-  '蜡菊纯露': '永不凋谢的黄金花，凝结了时间的精华，赋予肌肤重生的力量。',
-  '矢车菊纯露': '深邃的蓝色梦境，温柔地呵护着双眸，如同星光下的湖水。',
-  '檀香纯露': '古老寺庙的静谧，在水汽中氤氲，是通往内心深处的阶梯。',
-  '乳香纯露': '沙漠的眼泪，在蒸馏釜中升华，赋予灵魂神圣的安宁。',
-  '尤加利纯露': '澳洲森林的呼吸，清透而开阔，让每一次吸入都充满生机。',
-  '柠檬马鞭草纯露': '清新的柠檬香气，在午后的阳光下跳跃，是舒缓压力的良方。',
-  '菩提花纯露': '菩提树下的静思，温柔而深沉，是心灵的避风港。',
 };
 
 const ALICE_LAB_DIARY: Record<string, string> = {
@@ -166,23 +147,6 @@ const ALICE_LAB_DIARY: Record<string, string> = {
   '极境红橘': 'd-柠檬烯占比高达95%，提振心情的同时能显著促进淋巴循环。',
   '极境橡木苔': '绝对油非溶剂萃取，呈现森林地表原始气息，定香力长达8小时。',
   '极境葡萄柚': '低毒性高挥发，晨间扩香可提升代谢率12%（基于实验室动物模型）。',
-
-  // 生系列 · 植物纯露
-  '大马士革玫瑰纯露': '饱和饱和度100%，富含水溶性精油成分，补水力是普通水的5倍。',
-  '罗马洋甘菊纯露': '红没药醇含量显著，抗敏修红效果极佳，适合婴儿及敏感肌。',
-  '薰衣草纯露': 'pH值接近皮肤，平衡油脂分泌，对夏季晒后修护有显著效果。',
-  '橙花纯露': '富含橙花素，提亮肤色，长期使用可改善暗沉，赋予肌肤光泽。',
-  '金缕梅纯露': '天然收敛剂，有效收缩毛孔，平衡水油，是油性肌肤的福音。',
-  '薄荷纯露': '瞬间降温3-5度，提神醒脑，缓解肌肉疲劳，夏季必备。',
-  '茶树纯露': '强效抗菌，针对闭口和粉刺有显著改善作用，保持肌肤清爽。',
-  '迷迭香纯露': '激活毛囊循环，促进头发生长，同时也是极佳的提神喷雾。',
-  '蜡菊纯露': '促进微循环，淡化黑眼圈，紧致肌肤，抗氧化力极强。',
-  '矢车菊纯露': '缓解眼部疲劳，湿敷可显著改善眼部浮肿，温和无刺激。',
-  '檀香纯露': '深层补水，安抚焦躁情绪，适合干性及熟龄肌肤。',
-  '乳香纯露': '紧致抗皱，增强肌肤弹性，同时具有极佳的心理安抚作用。',
-  '尤加利纯露': '净化空气，缓解呼吸道不适，是流感季节的家庭守护者。',
-  '柠檬马鞭草纯露': '舒缓神经系统，改善消化不适，清新香气有助于提升心情。',
-  '菩提花纯露': '极佳的镇静效果，改善失眠，舒缓头皮压力，温和滋润。',
 
   // 和系列 · 复方疗愈
   '云感霜': '植物角鲨烷载体+5%极境复方精油，24h保湿力达87%，敏肌测试0刺激。',
@@ -234,7 +198,7 @@ const addP = (cat: Category, group: string, n: string, en: string, folder: strin
     id, category: cat, subGroup: group, name: n, herb: n, herbEn: en.toUpperCase().trim(),
     region: 'Extreme Origin', status: 'arrived_origin', visited: true, accent: '#D75437',
     price, specification: spec, hero: heroUrl,
-    shortDesc: cat === 'yuan' ? '元 · 单方 / 极境生存原力' : (cat === 'he' ? '和 · 复方 / 科学频率重构' : (cat === 'sheng' ? '生 · 纯露 / 植物生命之水' : '香 · 空间 / 极简芳香美学')), 
+    shortDesc: cat === 'yuan' ? '元 · 单方 / 极境生存原力' : (cat === 'he' ? '和 · 复方 / 科学频率重构' : '香 · 空间 / 极简芳香美学'), 
     narrative: ERIC_JOURNAL[n] || `“在 ${n} 的分子震颤中，找回生命在极限环境下的抗争记忆。”`,
     benefits: ['意识重构', '深度频率校准', '内在秩序恢复'],
     usage: '取三滴精油于掌心，温热后由鼻息深处缓慢引入。',
@@ -273,7 +237,7 @@ const yuanData = [
   { group: 'Metal金', folder: 'metal', items: [
     ['神圣乳香', 'Sacred Frankincense', '248', '10ml'], 
     ['极境香茅', 'Citronella Clarissima', '248', '10ml'], 
-    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', 'Eucalyptus Glaciale.webp'],
+    ['极境尤加利', 'Eucalyptus Glaciale', '98', '10ml', ' Eucalyptus Glaciale.webp'],
     ['极境茶树', 'Tea Tree Antiseptic', '98', '10ml'], 
     ['极境薄荷', 'Peppermint from Peaks', '68', '10ml']
   ] },
@@ -302,52 +266,6 @@ heData.forEach((g, i) => g.items.forEach((item, j) => {
     if (i === 2 && j === 4) customImg = ASSETS.packaging_sample; 
   }
   addP('he', `和 · ${g.group}`, item[0], item[1], g.folder, `he_${i}_${j}`, item[2], item[3], customImg);
-}));
-
-const shengData = [
-  { 
-    group: '清.净', 
-    folder: 'hydrosol', 
-    hero: ASSETS.sheng_clear,
-    items: [
-      ['薄荷纯露', 'Peppermint Hydrosol', '68', '250ml'],
-      ['茶树纯露', 'Tea Tree Hydrosol', '78', '250ml'],
-      ['迷迭香纯露', 'Rosemary Hydrosol', '78', '250ml'],
-      ['尤加利纯露', 'Eucalyptus Hydrosol', '68', '250ml'],
-      ['金缕梅纯露', 'Witch Hazel Hydrosol', '88', '250ml']
-    ] 
-  },
-  { 
-    group: '润.养', 
-    folder: 'hydrosol', 
-    hero: ASSETS.sheng_nourish,
-    items: [
-      ['大马士革玫瑰纯露', 'Damask Rose Hydrosol', '128', '250ml'],
-      ['橙花纯露', 'Neroli Hydrosol', '118', '250ml'],
-      ['菩提花纯露', 'Linden Blossom Hydrosol', '98', '250ml'],
-      ['檀香纯露', 'Sandalwood Hydrosol', '158', '250ml'],
-      ['乳香纯露', 'Frankincense Hydrosol', '138', '250ml']
-    ] 
-  },
-  { 
-    group: '舒.缓', 
-    folder: 'hydrosol', 
-    hero: ASSETS.sheng_soothe,
-    items: [
-      ['罗马洋甘菊纯露', 'Roman Chamomile Hydrosol', '108', '250ml'],
-      ['薰衣草纯露', 'Lavender Hydrosol', '88', '250ml'],
-      ['蜡菊纯露', 'Immortelle Hydrosol', '128', '250ml'],
-      ['矢车菊纯露', 'Cornflower Hydrosol', '98', '250ml'],
-      ['柠檬马鞭草纯露', 'Lemon Verbena Hydrosol', '88', '250ml']
-    ] 
-  }
-];
-
-shengData.forEach((g, i) => g.items.forEach((item, j) => {
-  const pId = `sheng_${i}_${j}`;
-  // 为每个产品生成一个唯一的图片种子，确保多样性
-  const productImg = `https://picsum.photos/seed/${pId}/800/1200`;
-  addP('sheng', `生 · ${g.group}`, item[0], item[1], g.folder, pId, item[2], item[3], productImg);
 }));
 
 const jingData = [
