@@ -179,6 +179,7 @@ function getProductFolder(category: string, series_code: string): string {
 }
 
 // 精确映射：name_en（Supabase）→ GitHub 实际文件名（含大小写/空格差异）
+// 注意：以 "unsplash:" 开头的表示直接使用 Unsplash 图片 URL
 const PRODUCT_IMAGE_MAP: Record<string, string> = {
   // 元·Metal → metal
   'Sacred Frankincense': 'Sacred%20Frankincense.webp',
@@ -228,6 +229,25 @@ const PRODUCT_IMAGE_MAP: Record<string, string> = {
   'Gypsum': 'Gypsum.webp',
   'Mountain': 'mountain.webp',
   'Glass': 'glass.webp',
+  // 纯露系列 → Unsplash 图片（与静态网站一致）
+  // 清·清净
+  'Peppermint Hydrosol': 'unsplash:https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80',
+  'Tea Tree Hydrosol': 'unsplash:https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80',
+  'Rosemary Hydrosol': 'unsplash:https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80',
+  'Eucalyptus Hydrosol': 'unsplash:https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80',
+  'Witch Hazel Hydrosol': 'unsplash:https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80',
+  // 生·润养
+  'Damask Rose Hydrosol': 'unsplash:https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80',
+  'Neroli Hydrosol': 'unsplash:https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80',
+  'Linden Blossom Hydrosol': 'unsplash:https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80',
+  'Sandalwood Hydrosol': 'unsplash:https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80',
+  'Frankincense Hydrosol': 'unsplash:https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80',
+  // 生·舒缓
+  'Roman Chamomile Hydrosol': 'unsplash:https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80',
+  'Lavender Hydrosol': 'unsplash:https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80',
+  'Immortelle Hydrosol': 'unsplash:https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80',
+  'Cornflower Hydrosol': 'unsplash:https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80',
+  'Lemon Verbena Hydrosol': 'unsplash:https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80',
 };
 
 // 将 Supabase 产品数据转换为 ScentItem 格式
@@ -239,20 +259,16 @@ function transformProduct(product: any): ScentItem {
     const folder = getProductFolder(product.category || '', product.series_code || '');
     const nameEn = (product.name_en || '').trim();
     
-    // 纯露系列使用 Unsplash 图片（与静态网站一致）
-    if (folder === 'sheng_hydrosol') {
-      const category = product.category || '';
-      if (category.includes('清净') || category.includes('清')) {
-        heroUrl = 'https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80';
-      } else if (category.includes('舒缓') || category.includes('缓')) {
-        heroUrl = 'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80';
-      } else {
-        heroUrl = 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80';
-      }
-    } else if (folder && nameEn) {
+    if (folder && nameEn) {
       // 优先用精确映射表处理大小写/空格差异
-      if (PRODUCT_IMAGE_MAP[nameEn]) {
-        heroUrl = `${RAW_BASE}products/${folder}/${PRODUCT_IMAGE_MAP[nameEn]}${CACHE_V}`;
+      const mappedFile = PRODUCT_IMAGE_MAP[nameEn];
+      if (mappedFile) {
+        // 检查是否是 Unsplash URL（以 unsplash: 开头）
+        if (mappedFile.startsWith('unsplash:')) {
+          heroUrl = mappedFile.replace('unsplash:', '');
+        } else {
+          heroUrl = `${RAW_BASE}products/${folder}/${mappedFile}${CACHE_V}`;
+        }
       } else {
         // fallback：用 name_en 直接拼接
         const fileName = nameEn.replace(/ /g, '%20') + '.webp';
