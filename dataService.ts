@@ -156,8 +156,8 @@ function getProductFolder(category: string, series_code: string): string {
     // 和系列
     '和·Body': 'body', '和·Heart': 'heart', '和·Soul': 'soul',
     '和·Mind': 'soul',  // Mind 用 soul 目录
-    // 生系列 - 都用 body 目录作为 fallback（hydrosol 目录为空）
-    '生·润养': 'body', '生·清净': 'body', '生·舒缓': 'body',
+    // 生系列 - 纯露产品用特殊处理（见下方）
+    '生·润养': 'sheng_hydrosol', '生·清净': 'sheng_hydrosol', '生·舒缓': 'sheng_hydrosol',
     // 香系列
     '香·凝思之物': 'Meditation', '香·芳香美学': 'place',
     // 净系列
@@ -171,7 +171,7 @@ function getProductFolder(category: string, series_code: string): string {
   const seriesMap: Record<string, string> = {
     'yuan': 'metal',
     'he': 'body',
-    'sheng': 'body',
+    'sheng': 'sheng_hydrosol',  // 纯露用特殊处理
     'xiang': 'place',
     'you': 'body',
   };
@@ -239,7 +239,17 @@ function transformProduct(product: any): ScentItem {
     const folder = getProductFolder(product.category || '', product.series_code || '');
     const nameEn = (product.name_en || '').trim();
     
-    if (folder && nameEn) {
+    // 纯露系列使用 Unsplash 图片（与静态网站一致）
+    if (folder === 'sheng_hydrosol') {
+      const category = product.category || '';
+      if (category.includes('清净') || category.includes('清')) {
+        heroUrl = 'https://images.unsplash.com/photo-1563170351-be82bc888bb4?w=600&q=80';
+      } else if (category.includes('舒缓') || category.includes('缓')) {
+        heroUrl = 'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80';
+      } else {
+        heroUrl = 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?w=600&q=80';
+      }
+    } else if (folder && nameEn) {
       // 优先用精确映射表处理大小写/空格差异
       if (PRODUCT_IMAGE_MAP[nameEn]) {
         heroUrl = `${RAW_BASE}products/${folder}/${PRODUCT_IMAGE_MAP[nameEn]}${CACHE_V}`;
