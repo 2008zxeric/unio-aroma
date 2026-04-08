@@ -1,18 +1,27 @@
 
 import React, { useState, useMemo } from 'react';
 import { Camera, Image as ImageIcon, Copy, ArrowLeft, Search, Globe, Map, HelpCircle, X, CheckCircle2, Box, Sparkles, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
-import { ASSET_REGISTRY, DESTINATIONS, DATABASE, PRODUCT_OVERRIDES } from '../constants';
+import { ASSET_REGISTRY, PRODUCT_OVERRIDES } from '../constants';
 import { ViewState, Destination } from '../types';
+import { useData } from '../DataContext';
 
 const BrandDashboard: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
+  const { database, destinations } = useData();
   const [activeTab, setActiveTab] = useState<'brand' | 'destinations' | 'products'>('brand');
   const [registry, setRegistry] = useState(ASSET_REGISTRY);
-  const [dests, setDests] = useState(DESTINATIONS);
+  const [dests, setDests] = useState(destinations);
   const [overrides, setOverrides] = useState<Record<string, string>>(PRODUCT_OVERRIDES);
   const [search, setSearch] = useState('');
   const [copied, setCopied] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [expandedRegions, setExpandedRegions] = useState<Record<string, boolean>>({ '亚洲': true, '欧洲': true });
+
+  // 同步 Supabase 加载的 destinations
+  React.useEffect(() => {
+    if (Object.keys(destinations).length > 0) {
+      setDests(destinations);
+    }
+  }, [destinations]);
 
   const fixUrl = (url: string): string => {
     if (url.includes('github.com') && url.includes('/blob/')) {
@@ -70,10 +79,10 @@ const BrandDashboard: React.FC<{ setView: (v: ViewState) => void }> = ({ setView
   }, [dests, search]);
 
   const filteredProducts = useMemo(() => {
-    const allProducts = Object.values(DATABASE);
+    const allProducts = Object.values(database) as any[];
     if (!search) return allProducts;
     return allProducts.filter(p => p.herb.includes(search) || p.id.includes(search));
-  }, [search]);
+  }, [search, database]);
 
   const toggleRegion = (reg: string) => {
     setExpandedRegions(prev => ({ ...prev, [reg]: !prev[reg] }));

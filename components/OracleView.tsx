@@ -4,8 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice, getAIQuota } from '../services/gemini';
+import { useData } from '../DataContext';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
+  const { database } = useData();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: '从极境撷取芳香，因世界元于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }
   ]);
@@ -53,7 +55,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     setLoading(true);
 
     try {
-      const reply = await getOracleResponse([...messages, userMsg]);
+      const reply = await getOracleResponse([...messages, userMsg], database);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
       const q = getAIQuota();
       setRemaining(Math.max(0, 5 - q.count));
