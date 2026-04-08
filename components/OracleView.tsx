@@ -4,10 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Activity, Wind, Volume2, Loader2, RefreshCw } from 'lucide-react';
 import { ViewState, ChatMessage } from '../types';
 import { getOracleResponse, generateOracleVoice, getAIQuota } from '../services/gemini';
-import { useData } from '../DataContext';
 
 const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
-  const { database } = useData();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: '从极境撷取芳香，因世界元于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }
   ]);
@@ -34,13 +32,10 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     }
   }, [messages, loading]);
 
-  const [error, setError] = useState<string | null>(null);
-
   const handleSend = async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput || loading) return;
     
-    setError(null);
     if (remaining <= 0) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
@@ -55,30 +50,21 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
     setLoading(true);
 
     try {
-      const reply = await getOracleResponse([...messages, userMsg], database);
+      const reply = await getOracleResponse([...messages, userMsg]);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
       const q = getAIQuota();
       setRemaining(Math.max(0, 5 - q.count));
     } catch (err: any) {
-      console.error("Oracle Error:", err);
       if (err.message === "QUOTA_EXCEEDED") {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
           content: "今日的感官频率已达上限。祭司需要时间沉淀今日汲取的分子记忆，请待明日晨曦初现时再来开启沟通。" 
         }]);
       } else {
-        setError(err.message || "祭司波段受到干扰。请再次屏息尝试。");
-        setMessages(prev => [...prev, { role: 'assistant', content: err.message || "祭司波段受到干扰。请再次屏息尝试。" }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: err.message || "祭司感官波段不稳定，请确保您的网络环境通畅。" }]);
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleReset = () => {
-    if (messages.length > 1) {
-      setMessages([{ role: 'assistant', content: '从极境撷取芳香，因世界元于一息。我是宁静祭司，已准备好感知你此刻的杂音。' }]);
-      setError(null);
     }
   };
 
@@ -95,11 +81,7 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        
-        // 确保字节长度是偶数，以正确创建 Int16Array
-        const samplesCount = Math.floor(bytes.length / 2);
-        const dataInt16 = new Int16Array(bytes.buffer, 0, samplesCount);
-        
+        const dataInt16 = new Int16Array(bytes.buffer);
         const buffer = ctx.createBuffer(1, dataInt16.length, 24000);
         const channelData = buffer.getChannelData(0);
         for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
@@ -137,9 +119,12 @@ const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) 
             </div>
           </div>
           <button 
-            onClick={handleReset} 
+            onClick={() => {
+              if (messages.length > 1 && window.confirm("确定要重置与祭司的对话吗？")) {
+                setMessages([{ role: 'assistant', content: '从极境撷取芳香，因世界元于一息。' }]);
+              }
+            }} 
             className="p-2 hover:bg-stone-50 rounded-full text-black/20 transition-all"
-            title="重置对话"
           >
             <RefreshCw size={20} />
           </button>

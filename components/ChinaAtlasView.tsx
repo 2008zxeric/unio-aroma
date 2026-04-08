@@ -1,18 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft, Home, ChevronRight, CheckCircle2, Sparkles, Lock } from 'lucide-react';
-import { ViewState, Destination } from '../types';
-import { REGION_VISUALS } from '../constants';
-import { useData } from '../DataContext';
+import { ViewState } from '../types';
+import { DESTINATIONS, REGION_VISUALS } from '../constants';
 
 const REGIONS = ['西南', '西北', '华东', '华南', '华北', '华中'];
 
 const ChinaAtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: string) => void }> = ({ setView, onSelectDest }) => {
-  const { destinations } = useData();
   const [activeRegion, setActiveRegion] = useState('西南');
   
   const filteredProvinces = useMemo(() => 
-    (Object.values(destinations) as Destination[]).filter(d => d.isChinaProvince && d.subRegion === activeRegion), 
-  [activeRegion, destinations]);
+    Object.values(DESTINATIONS).filter(d => d.isChinaProvince && d.subRegion === activeRegion), 
+  [activeRegion]);
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] pt-32 md:pt-56 pb-48 px-4 md:px-20 relative overflow-hidden selection:bg-[#D75437] selection:text-white">
