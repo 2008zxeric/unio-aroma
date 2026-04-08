@@ -145,24 +145,56 @@ function getMemoryPhotos(code: string): string[] {
   ];
 }
 
+// 根据 category 字段推断图片文件夹
+// GitHub 目录: metal, wood, water, fire, earth, body, heart, soul, place, Meditation
+function getProductFolder(category: string, series_code: string): string {
+  // category 格式如 "元·Metal"、"元·Wood"、"元·Water" 等
+  const categoryMap: Record<string, string> = {
+    // 元系列
+    '元·Metal': 'metal', '元·Wood': 'wood', '元·Water': 'water',
+    '元·Fire': 'fire', '元·Earth': 'earth',
+    // 和系列
+    '和·Body': 'body', '和·Heart': 'heart', '和·Soul': 'soul',
+    '和·Mind': 'soul',  // Mind 用 soul 目录
+    // 生系列 - 都用 body 目录作为 fallback（hydrosol 目录为空）
+    '生·润养': 'body', '生·清净': 'body', '生·舒缓': 'body',
+    // 香系列
+    '香·凝思之物': 'place', '香·芳香美学': 'place',
+    // 净系列 - 用 Meditation 或 place
+    '净·空间': 'place', '净·冥想': 'Meditation',
+  };
+  
+  // 优先用 category 推导
+  const folder = categoryMap[category] || '';
+  if (folder) return folder;
+  
+  // fallback 到 series_code
+  const seriesMap: Record<string, string> = {
+    'yuan': 'metal',  // 默认用 metal
+    'he': 'body',
+    'sheng': 'body',
+    'xiang': 'place',
+    'you': 'body',
+  };
+  return seriesMap[series_code] || '';
+}
+
 // 将 Supabase 产品数据转换为 ScentItem 格式
 function transformProduct(product: any): ScentItem {
-  // 根据 series_code 推断图片路径
-  const seriesFolderMap: Record<string, string> = {
-    'yuan_metal': 'metal', 'yuan_wood': 'wood', 'yuan_water': 'water',
-    'yuan_fire': 'fire', 'yuan_earth': 'earth',
-    'he_body': 'body', 'he_heart': 'heart', 'he_soul': 'soul',
-    'sheng': 'hydrosol', 'jing_place': 'place', 'jing_Meditation': 'Meditation',
-  };
-
   let heroUrl = product.image_url || '';
+  
+  // 如果数据库没有图片 URL，尝试从 GitHub 抓取
   if (!heroUrl) {
-    const folder = seriesFolderMap[product.series_code] || '';
-    const fileName = product.name_en ? product.name_en.trim().replace(/ /g, '%20') + '.webp' : '';
+    const folder = getProductFolder(product.category || '', product.series_code || '');
+    const fileName = product.name_en 
+      ? product.name_en.trim().replace(/ /g, '%20') + '.webp' 
+      : '';
     if (folder && fileName) {
       heroUrl = `${RAW_BASE}products/${folder}/${fileName}${CACHE_V}`;
     }
   }
+  
+  // 如果还是空的，用占位图
   if (!heroUrl) {
     heroUrl = 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
   }
