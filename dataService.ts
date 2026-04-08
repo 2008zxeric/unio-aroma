@@ -253,7 +253,7 @@ function transformProduct(product: any): ScentItem {
   
   // 如果还是空的，用占位图
   if (!heroUrl) {
-    heroUrl = 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
+    heroUrl = 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&q=80';
   }
 
   return {
