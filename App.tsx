@@ -13,6 +13,7 @@ import ProductDetail from './components/ProductDetail';
 import DestinationView from './components/DestinationView';
 import ImageLabView from './components/ImageLabView';
 import InventoryApp from './components/InventoryApp';
+import InquiryView from './components/InquiryView';
 
 /**
  * StoryView - 丰富版品牌叙事组件 (修复断行与品牌年限)
@@ -329,6 +330,7 @@ const AppContent: React.FC = () => {
         {view === 'image-lab' && <ImageLabView setView={navigateToView} />}
         {view === 'story' && <StoryView setView={navigateToView} />}
         {view === 'inventory' && <InventoryApp onBack={() => navigateToView('home')} />}
+        {view === 'inquiry' && <InquiryView setView={navigateToView} />}
         {view === 'product' && selectedId && <ProductDetail item={DATABASE[selectedId]} setView={navigateToView} previousView={prevView} />}
         {view === 'destination' && selectedDestId && <DestinationView dest={DESTINATIONS[selectedDestId]} setView={navigateToView} onProductSelect={handleSelectProduct} />}
       </main>
@@ -344,7 +346,7 @@ const AppContent: React.FC = () => {
                 { id: 'atlas', icon: MapIcon, label: '寻香' },
                 { id: 'collections', icon: Box, label: '馆藏' },
                 { id: 'oracle', icon: Activity, label: '祭司' },
-                { id: 'xhs', icon: Share2, label: '灵感', isExternal: true }
+                { id: 'inquiry', icon: Share2, label: '咨询' }
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id || (item.id === 'atlas' && view === 'china-atlas');
@@ -352,10 +354,10 @@ const AppContent: React.FC = () => {
                 return (
                   <button 
                     key={item.id} 
-                    onClick={() => item.isExternal ? window.open(ASSETS.xhs_link, '_blank') : navigateToView(item.id as ViewState)} 
+                    onClick={() => navigateToView(item.id as ViewState)} 
                     className="flex-1 min-w-0 flex flex-col items-center gap-0.5 sm:gap-1 group"
                   >
-                    <div className={`p-2 sm:p-5 rounded-full transition-all duration-300 ${item.isExternal ? 'text-[#D75437] hover:bg-[#D75437] hover:text-white' : (isActive ? 'bg-black text-white shadow-lg' : 'text-black/30 hover:text-black/80')}`}>
+                    <div className={`p-2 sm:p-5 rounded-full transition-all duration-300 ${isActive ? 'bg-black text-white shadow-lg' : 'text-black/30 hover:text-black/80'}`}>
                       <Icon size={16} className="sm:size-[22px]" />
                     </div>
                     <span className={`text-[6.5px] sm:text-[9px] font-serif-zh font-bold tracking-widest text-center transition-opacity whitespace-nowrap ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`}>
