@@ -1,14 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { Compass, MapPin, ArrowUpRight, Sparkles, Globe, Target } from 'lucide-react';
-import { ViewState } from '../types';
-import { DESTINATIONS, REGION_VISUALS } from '../constants';
+import { ViewState, Destination } from '../types';
+import { REGION_VISUALS } from '../constants';
+import { useData } from '../DataContext';
 
 const AtlasView: React.FC<{ setView: (v: ViewState) => void, onSelectDest: (id: string) => void }> = ({ setView, onSelectDest }) => {
+  const { destinations } = useData();
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
   const globalDestinations = useMemo(() => 
-    Object.values(DESTINATIONS).filter(d => !d.isChinaProvince), 
-  []);
+    (Object.values(destinations) as Destination[]).filter(d => !d.isChinaProvince), 
+  [destinations]);
 
   const filteredList = useMemo(() => 
     selectedRegion ? globalDestinations.filter(d => d.region === selectedRegion) : globalDestinations, 

@@ -1,7 +1,8 @@
 import { ZoomIn, Shield, Wind, Droplets, Flame, Mountain, Sparkles } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { ViewState, Category, ScentItem } from '../types';
-import { DATABASE, ASSETS } from '../constants';
+import { ASSETS } from '../constants';
+import { useData } from '../DataContext';
 
 interface ProductCardProps {
   item: ScentItem;
@@ -52,8 +53,9 @@ const CollectionsView: React.FC<{
   onSelect: (id: string) => void, 
   setView: (v: ViewState) => void 
 }> = ({ filter, setFilter, onSelect, setView }) => {
+  const { database } = useData();
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
-  const items = useMemo(() => Object.values(DATABASE) as ScentItem[], []);
+  const items = useMemo(() => Object.values(database) as ScentItem[], [database]);
   const currentItems = useMemo(() => items.filter(d => d.category === filter), [filter, items]);
 
   const groups = useMemo(() => {
