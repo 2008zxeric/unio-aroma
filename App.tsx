@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen, Compass, FlaskConical, Quote, ArrowDown, ArrowRight, Users, Sparkles, Globe, Wind } from 'lucide-react';
 import { ViewState, Category } from './types';
-import { DATABASE, DESTINATIONS, ASSETS } from './constants';
+import { ASSETS } from './constants';
+import { DataProvider, useData } from './DataContext';
 import HomeView from './components/HomeView';
 import CollectionsView from './components/CollectionsView';
 import AtlasView from './components/AtlasView';
@@ -182,7 +183,8 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
   );
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { database: DATABASE, destinations: DESTINATIONS, loading } = useData();
   // 版本验证
   useEffect(() => {
     console.log("%c UNIO 元香 %c v2.5 - Aesthetic Impact %c", 
@@ -365,6 +367,25 @@ const App: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+// Loading component
+const LoadingScreen: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="text-center">
+      <div className="text-4xl font-serif-zh text-[#D75437] mb-4 animate-breathe">元</div>
+      <div className="text-xs tracking-widest text-black/30 font-serif-zh">加载中...</div>
+    </div>
+  </div>
+);
+
+// Main App with Data Provider
+const App: React.FC = () => {
+  return (
+    <DataProvider>
+      <AppContent />
+    </DataProvider>
   );
 };
 

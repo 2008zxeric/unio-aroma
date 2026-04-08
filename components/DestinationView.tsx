@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, X, MapPin, Camera, BookOpen, Microscope, Zap, Sparkles, Home, ArrowLeft } from 'lucide-react';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Destination, ViewState, Category } from '../types';
-import { DATABASE } from '../constants';
+import { Destination, ViewState, Category, ScentItem } from '../types';
+import { useData } from '../DataContext';
 
 // 增强型图片组件：支持在加载失败时显示主图的不同切面
 const MemoryImage: React.FC<{ src: string, fallback: string, position: string }> = ({ src, fallback, position }) => {
@@ -22,6 +22,7 @@ const DestinationView: React.FC<{
   setView: (v: ViewState) => void,
   onProductSelect: (id: string) => void 
 }> = ({ dest, setView, onProductSelect }) => {
+  const { database } = useData();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
@@ -49,7 +50,7 @@ const DestinationView: React.FC<{
   };
 
   const groupedProducts = useMemo(() => {
-    const allProducts = Object.values(DATABASE);
+    const allProducts = Object.values(database) as ScentItem[];
     const categories: Category[] = ['yuan', 'he', 'sheng', 'jing'];
     const seed = dest.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const activeCats = [...categories].sort(() => (seed % 5) - 2.5).slice(0, 4);
