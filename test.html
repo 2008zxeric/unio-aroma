@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>测试页面</h1>
+    <p id="test">如果能看到这个，说明 HTML 正常</p>
+    <div id="react-root"></div>
+    <script type="module">
+        import React from 'https://esm.sh/react@19';
+        import { createRoot } from 'https://esm.sh/react-dom@19/client';
+        
+        document.getElementById('react-root').innerHTML = '<p style="color:green">React loaded!</p>';
+        
+        const root = createRoot(document.getElementById('react-root'));
+        root.render(React.createElement('h2', null, 'React is working!'));
+    </script>
+</body>
+</html>
