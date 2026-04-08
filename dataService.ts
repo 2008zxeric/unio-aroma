@@ -96,7 +96,14 @@ function transformProduct(product: any): ScentItem {
     specification: product.specification,
     shortDesc: product.description?.substring(0, 50) || '',
     narrative: product.narrative || product.description || '',
-    benefits: typeof product.benefits === 'string' ? JSON.parse(product.benefits || '[]') : (product.benefits || []),
+    benefits: (() => {
+      const b = product.benefits;
+      if (!b) return [];
+      if (typeof b === 'string') {
+        try { return JSON.parse(b); } catch { return []; }
+      }
+      return Array.isArray(b) ? b : [];
+    })(),
     isPopular: product.is_active,
     emoji: '',
     ericDiary: product.eric_diary || product.narrative || '',
@@ -135,7 +142,7 @@ export async function loadDestinations(): Promise<Record<string, Destination>> {
   const { data, error } = await supabase
     .from('countries')
     .select('*')
-    .order('name_cn', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (error) {
     console.error('Error loading destinations:', error);
@@ -144,32 +151,30 @@ export async function loadDestinations(): Promise<Record<string, Destination>> {
 
   const destinations: Record<string, Destination> = {};
   data?.forEach((country) => {
-    // 推导图片 URL
-    let sceneryUrl = country.image_url || '';
-    if (!sceneryUrl && country.code.startsWith('cn_')) {
-      const provName = country.code.replace('cn_', '');
-      const fileName = PROVINCE_FILE_MAP[provName] || 'beijing.webp';
-      const baseUrl = (provName === '香港' || provName === '澳门') ? RAW_DEST : PROVINCE_BASE;
-      sceneryUrl = `${baseUrl}${fileName}${CACHE_V}`;
-    }
+    // countries 表使用 id (UUID) 作为唯一标识
+    const destId = country.id;
+    // is_china 列不存在，默认为 false（如果要支持中国省份，需要在 Supabase 中添加该列）
+    const isChina = (country as any).is_china === true;
+    // 推导图片 URL（优先用 image_url，否则用 scenery_url）
+    let sceneryUrl = country.image_url || country.scenery_url || '';
 
-    destinations[country.code] = {
-      id: country.code,
+    destinations[destId] = {
+      id: destId,
       name: country.name_cn,
-      en: country.name_en,
-      region: country.region,
+      en: country.name_en || '',
+      region: country.region || '',
       status: country.is_active ? 'arrived' : 'locked',
       visitCount: country.visit_count || 0,
       scenery: sceneryUrl,
-      emoji: country.flag_emoji || '📍',
+      emoji: '📍',
       herbDescription: country.description || '',
-      knowledge: country.knowledge || country.description || '',
-      productIds: country.product_ids || [],
-      isChinaProvince: country.is_china,
-      subRegion: country.sub_region || country.region,
+      knowledge: country.description || '',
+      productIds: [],
+      isChinaProvince: isChina,
+      subRegion: country.sub_region || '',
       ericDiary: country.eric_diary || '',
-      aliceDiary: country.alice_diary || '',
-      memoryPhotos: getMemoryPhotos(country.code),
+      aliceDiary: '',
+      memoryPhotos: [],
     };
   });
 
