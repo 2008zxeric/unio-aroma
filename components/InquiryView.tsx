@@ -33,24 +33,35 @@ const InquiryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView })
     setErrorMsg('');
 
     try {
-      const { error } = await supabase.from('inquiries').insert({
+      const baseData = {
         name: form.name.trim(),
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
-        interest: form.interest.trim() || null,
         message: form.message.trim(),
         status: 'new',
+      };
+
+      // 先尝试带 interest 字段插入
+      let result = await supabase.from('inquiries').insert({
+        ...baseData,
+        interest: form.interest.trim() || null,
       });
 
-      if (error) {
-        // 如果表结构不完全匹配，尝试宽松插入
-        if (error.code === '42P01') {
-          // 表不存在，给个提示
+      // 如果 interest 字段不存在，回退到不带 interest
+      if (result.error && result.error.code === 'PGRST204') {
+        result = await supabase.from('inquiries').insert(baseData);
+      }
+
+      if (result.error) {
+        if (result.error.code === '42501') {
+          setErrorMsg('询单系统权限配置中，请联系管理员。');
+        } else if (result.error.code === '42P01') {
           setErrorMsg('询单系统正在部署中，请稍后再试。');
-          setStatus('error');
-          return;
+        } else {
+          throw result.error;
         }
-        throw error;
+        setStatus('error');
+        return;
       }
 
       setStatus('success');
