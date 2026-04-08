@@ -1,5 +1,4 @@
 import { GoogleGenAI, GenerateContentResponse, Modality } from "@google/genai";
-import { DATABASE } from "../constants";
 import { ChatMessage, ScentItem } from "../types";
 
 declare global {
@@ -37,13 +36,13 @@ const checkQuota = () => {
   if (quota.count >= DAILY_LIMIT) throw new Error("QUOTA_EXCEEDED");
 };
 
-const getContext = () => {
-  return (Object.values(DATABASE) as ScentItem[])
+const getContext = (db: Record<string, ScentItem>) => {
+  return (Object.values(db) as ScentItem[])
     .map(d => `- ${d.herb}: 功效 ${d.benefits.join('、')}`)
     .join('\n');
 };
 
-const getSystemInstruction = () => `
+const getSystemInstruction = (db: Record<string, ScentItem>) => `
 你现在是 "元香 UNIO · 宁静祭司"。
 你的身份：拥有廿三载芳疗经验的极境香气引路人。
 你的语气：极简、静奢、富有禅意，像是在空灵的山谷中低语。
@@ -60,7 +59,7 @@ ${getContext()}
 字数要求：保持在 150 字左右，确保言之有物且意境深远。
 `;
 
-export const getOracleResponse = async (messages: ChatMessage[]) => {
+export const getOracleResponse = async (messages: ChatMessage[], database?: Record<string, ScentItem>) => {
   checkQuota();
   const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
   if (!apiKey || apiKey === "undefined") throw new Error("祭司灵感未被激活。请检查配置。");
@@ -76,7 +75,7 @@ export const getOracleResponse = async (messages: ChatMessage[]) => {
       model: 'gemini-3-flash-preview',
       contents,
       config: { 
-        systemInstruction: getSystemInstruction(), 
+        systemInstruction: getSystemInstruction(database || {}), 
         temperature: 0.7,
         topP: 0.8,
         maxOutputTokens: 500

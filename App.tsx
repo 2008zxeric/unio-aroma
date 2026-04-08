@@ -280,6 +280,8 @@ const AppContent: React.FC = () => {
     }, 1500); 
   };
 
+  if (loading) return <LoadingScreen />;
+
   return (
     <div className="min-h-screen relative bg-[#F5F5F5] pb-32 overflow-x-hidden selection:bg-[#D75437] selection:text-white">
       {/* 揭幕动画 */}
