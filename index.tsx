@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
+import App from './App';
 import { DataProvider } from './src/lib/DataContext';
 
 // 环境兼容补丁
@@ -14,16 +14,16 @@ if (typeof window !== 'undefined') {
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  throw new Error("Could not find root element to mount");
 }
 
-// 动态导入 App（支持前后台路由）
+// 使用标准 ES import 替代 require（Vite 不支持 require）
 const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <HashRouter>
       <DataProvider>
-        {React.createElement(require('./App').default)}
+        <App />
       </DataProvider>
     </HashRouter>
   </React.StrictMode>
