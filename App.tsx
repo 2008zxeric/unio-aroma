@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen, Compass, FlaskConical, Quote, ArrowDown, ArrowRight, Users, Sparkles, Globe, Wind } from 'lucide-react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Home, Map as MapIcon, Box, Activity, Share2, BookOpen, Compass, FlaskConical, Quote, ArrowDown, ArrowRight, Users, Sparkles, Globe, Wind, Settings } from 'lucide-react';
 import { ViewState, Category } from './types';
 import { DATABASE, DESTINATIONS, ASSETS } from './constants';
 import HomeView from './components/HomeView';
@@ -11,6 +12,9 @@ import OracleView from './components/OracleView';
 import ProductDetail from './components/ProductDetail';
 import DestinationView from './components/DestinationView';
 import ImageLabView from './components/ImageLabView';
+
+// 后台路由（改为直接导入，避免懒加载路径问题）
+import AdminRouter from './src/admin/router';
 
 /**
  * StoryView - 丰富版品牌叙事组件 (修复断行与品牌年限)
@@ -70,7 +74,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <div className="flex gap-8 items-start bg-stone-50 p-10 rounded-[3rem] border border-black/5">
                 <Quote size={48} className="text-[#D75437]/20 flex-shrink-0" />
                 <p className="italic text-[#D75437] font-medium">
-                  “真正的奢侈并非价格，而是香气背后那份跨越极境、未经干扰的生命原力。我们要做的是将这份觉知，传播给追求内心宁静的人。”
+                  "真正的奢侈并非价格，而是香气背后那份跨越极境、未经干扰的生命原力。我们要做的是将这份觉知，传播给追求内心宁静的人。"
                 </p>
               </div>
             </div>
@@ -116,10 +120,10 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <div className="flex items-center gap-4"><div className="h-px w-12 bg-[#D75437]" /><span className="text-xs tracking-[0.5em] text-[#D75437] font-bold uppercase">The Perceiver / 感知者</span></div>
               <h3 className="text-5xl md:text-9xl font-serif-zh font-bold text-[#2C3E28] leading-tight">在行走中感知，<br />追寻本源。</h3>
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-10 py-4">
-                “我在全球 85 个极境行走，只为在稀薄的空气中，捕捉那一抹未被现代工业驯化的野性香气。”
+                "我在全球 85 个极境行走，只为在稀薄的空气中，捕捉那一抹未被现代工业驯化的野性香气。"
               </p>
               <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
-                作为首席行者，Eric 相信香气的灵魂生长在极限环境。无论是阿尔卑斯的冷冽、多法尔沙漠的炙热，还是神州红土的湿润，他坚持亲身抵达，以“感知者”的身份将大地的语言翻译给世界。
+                作为首席行者，Eric 相信香气的灵魂生长在极限环境。无论是阿尔卑斯的冷冽、多法尔沙漠的炙热，还是神州红土的湿润，他坚持亲身抵达，以"感知者"的身份将大地的语言翻译给世界。
               </p>
             </div>
           </div>
@@ -128,12 +132,12 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 md:gap-48 items-center">
             <div className="space-y-12">
               <div className="flex items-center gap-4"><div className="h-px w-12 bg-[#1C39BB]" /><span className="text-xs tracking-[0.5em] text-[#1C39BB] font-bold uppercase">The Curator / 传播者</span></div>
-              <h3 className="text-5xl md:text-9xl font-serif-zh font-bold text-[#1C39BB] leading-tight">将极境美学，<br />融入日常呼吸。</h3>
+              <h3 className="text-5xl md:text-9xl font-serif-zh font-bold text-[#2C3E28] leading-tight">将极境美学，<br />融入日常呼吸。</h3>
               <p className="text-xl md:text-4xl font-serif-zh text-black/60 leading-relaxed italic border-l-8 border-black/5 pl-10 py-4">
-                “Alice 将 Eric 带回的原始能量，转化为能治愈现代焦虑的生活艺术，让呼吸成为一种美学。”
+                "Alice 将 Eric 带回的原始能量，转化为能治愈现代焦虑的生活艺术，让呼吸成为一种美学。"
               </p>
               <p className="text-base md:text-2xl text-black/40 font-serif-zh tracking-widest max-w-3xl mx-auto leading-loose pt-4">
-                首席专家 Alice 廿载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的“宁静避难所”。这是专业积淀与分享精神的完美交响。
+                首席专家 Alice 廿载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的"宁静避难所"。这是专业积淀与分享精神的完美交响。
               </p>
             </div>
             <div className="relative group">
@@ -160,7 +164,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
            <img 
              src={ASSETS.banner} 
              className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-110 transition-transform duration-[5s] grayscale group-hover:grayscale-0" 
-             alt="Final CTA"
+             alt="Final CTA" 
            />
            <div className="relative z-10 space-y-16">
              <Quote size={80} className="mx-auto text-[#D4AF37] opacity-60 animate-pulse" />
@@ -181,10 +185,13 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
   );
 };
 
-const App: React.FC = () => {
+// ============================================
+// 主应用组件（前台）
+// ============================================
+const FrontendApp: React.FC = () => {
   // 版本验证
   useEffect(() => {
-    console.log("%c UNIO 元香 %c v2.5 - Aesthetic Impact %c", 
+    console.log("%c UNIO 元香 %c v2.5 + CMS %c", 
       "background:#D75437;color:#fff;padding:4px 8px;border-radius:4px 0 0 4px;", 
       "background:#1a1a1a;color:#fff;padding:4px 8px;border-radius:0 4px 4px 0;", 
       "color:transparent;");
@@ -278,6 +285,16 @@ const App: React.FC = () => {
              <span className="text-[8px] sm:text-[11px] font-cinzel font-bold text-[#2C3E28]/30 tracking-[0.5em] uppercase">UNIO LIFE</span>
           </div>
         </div>
+        
+        {/* 后台入口（固定位置） */}
+        <a
+          href="#/admin"
+          className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-medium tracking-wider bg-black/5 hover:bg-[#D75437]/10 text-black/30 hover:text-[#D75437] transition-all duration-300"
+          title="进入管理后台"
+        >
+          <Settings size={11} />
+          后台
+        </a>
       </nav>
 
       {/* 主视图 */}
@@ -327,6 +344,25 @@ const App: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// ============================================
+// 根路由配置（前后台分离）
+// ============================================
+const App: React.FC = () => {
+  return (
+    <Routes>
+      {/* ⚠️ 后台路由必须放在前台前面，否则 /* 会先匹配所有路径 */}
+      {/* 后台路由 — /admin */}
+      <Route path="/admin/*" element={<AdminRouter />} />
+      
+      {/* 前台路由 — 默认路径 */}
+      <Route path="/*" element={<FrontendApp />} />
+      
+      {/* 默认重定向 */}
+      <Route path="/" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
