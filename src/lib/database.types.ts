@@ -72,6 +72,9 @@ export interface Country {
   sort_order: number;
   created_at: string;
 
+  // 🔗 产品绑定：关联到此国家的产品ID列表
+  product_ids?: string[];
+
   // 前台展示用扩展字段
   emoji?: string;
   herb_description?: string;
@@ -87,7 +90,8 @@ export interface Product {
   series_id?: string;           // 关联系列 ID
   country_id?: string;          // 默认关联国家
   code: string;                 // 产品编码
-  name_cn: string;              // 中文名称（展示名称）
+  display_name?: string;        // 前台展示名称（用户看到的友好名称）
+  name_cn: string;              // 中文名称（系统用）
   name_en?: string;             // 英文名称
   scientific_name?: string;     // 学名
   element?: string;             // 五行元素 (jin/mu/shui/huo/tu)
@@ -100,8 +104,21 @@ export interface Product {
   origin?: string;              // 产地
   extraction_method?: string;   // 提炼方式
   price_5ml?: number;           // 5ml售价
-  price_10ml?: number;          // 10ml售价
+  price_10ml?: number;          // 10ml售价（主力价格）
+  price_15ml?: number;          // 15ml售价
   price_30ml?: number;          // 30ml售价
+  price_50ml?: number;          // 50ml售价
+  price_100ml?: number;         // 100ml售价
+  price_piece?: number;         // 香系列单件/套售价
+
+  // ---- 进销存字段 ----
+  supplier_code?: string;       // 供应商代码/名称
+  total_inbound_ml?: number;    // 累计进货(ml)
+  total_sales_ml?: number;      // 累计销售(ml)
+  remaining_ml?: number;        // 剩余库存(ml) = 进货-销售
+  total_cost?: number;          // 成本累计(¥)
+  total_revenue?: number;       // 销售累计(¥)
+  total_profit?: number;        // 利润累计(¥) = 销售-成本
   xiaohongshu_url?: string;     // 小红书购买链接
   image_url?: string;           // 页首大图
   gallery_urls?: string[];      // 产品图片(1-3张)

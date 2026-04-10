@@ -43,11 +43,11 @@ export default function AdminLayout() {
     end ? location.pathname === path : location.pathname.startsWith(path);
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] flex">
+    <div className="min-h-screen bg-[#F4F7F4] flex">
       {/* 移动端遮罩 */}
       {mobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -55,21 +55,21 @@ export default function AdminLayout() {
       {/* 侧边栏 */}
       <aside className={`
         fixed lg:sticky top-0 left-0 z-50 h-screen
-        bg-[#1a1a1a] border-r border-white/5
-        flex flex-col transition-all duration-300 ease-in-out
+        bg-white border-r border-[#E0ECE0]
+        flex flex-col transition-all duration-300 ease-in-out shadow-sm
         ${collapsed ? 'w-[72px]' : 'w-[260px]'}
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Logo 区域 */}
-        <div className="h-16 flex items-center gap-3 px-4 border-b border-white/5">
+        <div className="h-16 flex items-center gap-3 px-4 border-b border-[#E0ECE0]">
           <Link to="/" className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D75437] to-[#D4AF37] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#D75437]/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4A7C59] to-[#7BA689] flex items-center justify-center flex-shrink-0 shadow-md shadow-[#4A7C59]/20">
               <span className="text-white font-bold text-sm">U</span>
             </div>
             {!collapsed && (
               <div className="min-w-0">
-                <h1 className="text-sm font-bold text-white/90 truncate">UNIO AROMA</h1>
-                <p className="text-[10px] text-white/30 font-medium tracking-wider uppercase">CMS 管理系统</p>
+                <h1 className="text-sm font-bold text-[#1A2E1A] truncate">UNIO AROMA</h1>
+                <p className="text-[10px] text-[#9AAA9A] font-medium tracking-wider uppercase">CMS 管理系统</p>
               </div>
             )}
           </Link>
@@ -77,7 +77,7 @@ export default function AdminLayout() {
           {/* 移动端关闭按钮 */}
           <button 
             onClick={() => setMobileOpen(false)} 
-            className="lg:hidden ml-auto p-1.5 text-white/40 hover:text-white"
+            className="lg:hidden ml-auto p-1.5 text-[#9AAA9A] hover:text-[#5C725C]"
           >
             <X size={18} />
           </button>
@@ -87,10 +87,10 @@ export default function AdminLayout() {
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1 scrollbar-thin">
           {MENU_ITEMS.map((item, idx) => {
             if ('type' in item && item.type === 'divider') {
-              if (collapsed) return <div key={idx} className="my-2 border-t border-white/5" />;
+              if (collapsed) return <div key={idx} className="my-2 border-t border-[#E0ECE0]" />;
               return (
                 <div key={idx} className="px-3 pt-4 pb-1">
-                  <span className="text-[10px] font-bold text-white/20 tracking-widest uppercase">
+                  <span className="text-[10px] font-bold text-[#9AAA9A] tracking-widest uppercase">
                     {item.label}
                   </span>
                 </div>
@@ -110,19 +110,19 @@ export default function AdminLayout() {
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
                   ${active 
-                    ? 'bg-[#D75437]/15 text-[#D75437] shadow-inner' 
-                    : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                    ? 'bg-[#E8F3EC] text-[#4A7C59] font-medium shadow-sm' 
+                    : 'text-[#5C725C] hover:text-[#1A2E1A] hover:bg-[#F4F7F4]'
                   }
                 `}
               >
                 {Icon && (
-                  <Icon size={20} className={`flex-shrink-0 ${active ? 'text-[#D75437]' : ''}`} />
+                  <Icon size={20} className={`flex-shrink-0 ${active ? 'text-[#4A7C59]' : ''}`} />
                 )}
                 {!collapsed && 'label' in item && (
-                  <span className="text-sm font-medium truncate">{item.label}</span>
+                  <span className="text-sm truncate">{item.label}</span>
                 )}
                 {active && !collapsed && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#D75437] rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#4A7C59] rounded-r-full" />
                 )}
               </Link>
             );
@@ -130,13 +130,13 @@ export default function AdminLayout() {
         </nav>
 
         {/* 底部：折叠按钮 + 前台链接 */}
-        <div className="p-3 border-t border-white/5 space-y-2">
+        <div className="p-3 border-t border-[#E0ECE0] space-y-2">
           {!collapsed && (
             <a
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-white/35 hover:text-white/60 hover:bg-white/5 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#9AAA9A] hover:text-[#5C725C] hover:bg-[#F4F7F4] transition-colors"
             >
               <ExternalLink size={14} />
               <span>预览前台</span>
@@ -144,7 +144,7 @@ export default function AdminLayout() {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-full p-2 rounded-lg text-white/25 hover:text-white/50 hover:bg-white/5 transition-colors"
+            className="hidden lg:flex items-center justify-center w-full p-2 rounded-lg text-[#9AAA9A] hover:text-[#5C725C] hover:bg-[#F4F7F4] transition-colors"
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
@@ -152,21 +152,20 @@ export default function AdminLayout() {
       </aside>
 
       {/* 主内容区 */}
-      <div className={`flex-1 min-h-screen flex flex-col ${collapsed ? 'lg:ml-0' : 'lg:ml-0'}`}>
+      <div className={`flex-1 min-h-screen flex flex-col transition-all duration-300 ease-in-out ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-[260px]'}`}>
         {/* 顶部栏 */}
-        <header className="sticky top-0 z-30 h-14 bg-[#1a1a1a]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 lg:px-8">
+        <header className="sticky top-0 z-30 h-14 bg-white/80 backdrop-blur-xl border-b border-[#E0ECE0] flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setMobileOpen(true)} 
-              className="lg:hidden p-2 text-white/50 hover:text-white rounded-lg hover:bg-white/5"
+              className="lg:hidden p-2 text-[#5C725C] hover:text-[#1A2E1A] rounded-lg hover:bg-[#F4F7F4]"
             >
               <Menu size={20} />
             </button>
-            {/* 面包屑 / 页面标题可以在这里动态显示 */}
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#D4AF37]/30 to-[#D75437]/30 flex items-center justify-center">
-              <span className="text-xs font-bold text-[#D4AF37]">E</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7BA689]/40 to-[#4A7C59]/30 flex items-center justify-center">
+              <span className="text-xs font-bold text-[#4A7C59]">E</span>
             </div>
           </div>
         </header>

@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type { 
   Product, Country, Series, Banner, SiteText, HomeRecommend,
-  PurchaseRecord, SalesRecord, ProductInventory, DictItem
+  PurchaseRecord, SalesRecord, ProductInventory, DictItem, AdminUser
 } from './database.types';
 
 // ============================================
@@ -135,7 +135,7 @@ export const productService = {
   getAllActive: async (): Promise<Product[]> => {
     const { data, error } = await supabase
       .from('products')
-      .select('*, series(*), country(*)')
+      .select('*, series(*)')   // ⚠️ country_id 已废弃，不 join countries
       .eq('is_active', true)
       .order('sort_order');
     if (error) throw error;
@@ -155,7 +155,7 @@ export const productService = {
 
     const { data, error } = await supabase
       .from('products')
-      .select('*, series(*), country(*)')
+      .select('*, series(*)')   // ⚠️ country_id 已废弃
       .eq('is_active', true)
       .eq('series_id', seriesData.id)
       .order('sort_order');
@@ -163,13 +163,21 @@ export const productService = {
     return transformProducts(data || []);
   },
 
-  // 按国家获取关联产品
+  // 按国家获取关联产品（通过 countries.product_ids 匹配，不再用 country_id）
   getByCountry: async (countryId: string): Promise<Product[]> => {
+    // 先查出该国家的 product_ids
+    const { data: countryData } = await supabase
+      .from('countries')
+      .select('product_ids')
+      .eq('id', countryId)
+      .single();
+    if (!countryData?.product_ids?.length) return [];
+
     const { data, error } = await supabase
       .from('products')
-      .select('*, series(*), country(*)')
+      .select('*, series(*)')
       .eq('is_active', true)
-      .or(`country_id.eq.${countryId}`)
+      .in('id', countryData.product_ids)
       .order('sort_order');
     if (error) throw error;
     return transformProducts(data || []);
@@ -179,7 +187,7 @@ export const productService = {
   getAll: async (): Promise<Product[]> => {
     const { data, error } = await supabase
       .from('products')
-      .select('*, series(*), country(*)')
+      .select('*, series(*)')   // ⚠️ country_id 已废弃，不再 join countries
       .order('sort_order');
     if (error) throw error;
     return transformProducts(data || []);
@@ -188,7 +196,7 @@ export const productService = {
   getById: async (id: string): Promise<Product | null> => {
     const { data, error } = await supabase
       .from('products')
-      .select('*, series(*), country(*)')
+      .select('*, series(*)')    // ⚠️ country_id 已废弃
       .eq('id', id)
       .single();
     if (error) return null;
@@ -213,7 +221,7 @@ export const productService = {
     const { data, error } = await supabase
       .from('products')
       .insert(records)
-      .select('*, series(*), country(*)');
+      .select('*, series(*)');  // ⚠️ country_id 已废弃
     if (error) throw error;
     return transformProducts(data || []);
   },
@@ -335,28 +343,19 @@ export const salesService = {
 
 export const inventoryService = {
   getProductSummary: async (productId: string): Promise<ProductInventory | null> => {
-    // 获取进货汇总
-    const { data: purchases, error: pError } = await supabase
-      .rpc('sum_purchases', { prod_id: productId });
-    
-    // 如果 RPC 不存在，手动计算
-    const { data: allPurchases } = await supabase
-      .from('purchase_records')
-      .select('volume_ml, unit_cost')
-      .eq('product_id', productId);
+    const [allPurchasesRes, allSalesRes, product] = await Promise.all([
+      supabase.from('purchase_records').select('volume_ml, unit_cost').eq('product_id', productId),
+      supabase.from('sales_records').select('volume_ml, sale_price, total_amount').eq('product_id', productId),
+      productService.getById(productId),
+    ]);
 
-    const { data: allSales } = await supabase
-      .from('sales_records')
-      .select('volume_ml, sale_price, total_amount')
-      .eq('product_id', productId);
+    const allPurchases = allPurchasesRes.data || [];
+    const allSales = allSalesRes.data || [];
 
-    const totalPurchased = (allPurchases || []).reduce((s, r) => s + (r.volume_ml || 0), 0);
-    const totalSold = (allSales || []).reduce((s, r) => s + (r.volume_ml || 0), 0);
-    const totalCost = (allPurchases || []).reduce((s, r) => s + ((r.volume_ml || 0) * (r.unit_cost || 0)), 0);
-    const totalRevenue = (allSales || []).reduce((s, r) => s + (r.total_amount || 0), 0);
-
-    // 获取产品名称
-    const product = await productService.getById(productId);
+    const totalPurchased = allPurchases.reduce((s, r) => s + (Number(r.volume_ml) || 0), 0);
+    const totalSold = allSales.reduce((s, r) => s + (Number(r.volume_ml) || 0), 0);
+    const totalCost = allPurchases.reduce((s, r) => s + ((Number(r.volume_ml) || 0) * (Number(r.unit_cost) || 0)), 0);
+    const totalRevenue = allSales.reduce((s, r) => s + (Number(r.total_amount) || 0), 0);
 
     return {
       product_id: productId,
@@ -371,15 +370,49 @@ export const inventoryService = {
   },
 
   getAllSummaries: async (): Promise<ProductInventory[]> => {
-    const products = await productService.getAll();
-    const summaries: ProductInventory[] = [];
-    
-    for (const product of products) {
-      const summary = await inventoryService.getProductSummary(product.id);
-      if (summary) summaries.push(summary);
+    // 批量查询：一次拿所有产品和进货/销售记录，内存汇总（避免 N×3 次请求）
+    const [products, purchasesRes, salesRes] = await Promise.all([
+      productService.getAll(),
+      supabase.from('purchase_records').select('product_id, volume_ml, unit_cost'),
+      supabase.from('sales_records').select('product_id, volume_ml, sale_price, total_amount'),
+    ]);
+
+    const allPurchases = purchasesRes.data || [];
+    const allSales = salesRes.data || [];
+
+    // 按 product_id 汇总
+    const purchaseMap = new Map<string, { totalMl: number; totalCost: number }>();
+    for (const r of allPurchases) {
+      const pid = r.product_id;
+      if (!purchaseMap.has(pid)) purchaseMap.set(pid, { totalMl: 0, totalCost: 0 });
+      const entry = purchaseMap.get(pid)!;
+      entry.totalMl += Number(r.volume_ml) || 0;
+      entry.totalCost += (Number(r.volume_ml) || 0) * (Number(r.unit_cost) || 0);
     }
-    
-    return summaries;
+
+    const salesMap = new Map<string, { totalMl: number; totalRevenue: number }>();
+    for (const r of allSales) {
+      const pid = r.product_id;
+      if (!salesMap.has(pid)) salesMap.set(pid, { totalMl: 0, totalRevenue: 0 });
+      const entry = salesMap.get(pid)!;
+      entry.totalMl += Number(r.volume_ml) || 0;
+      entry.totalRevenue += Number(r.total_amount) || 0;
+    }
+
+    return products.map(p => {
+      const pur = purchaseMap.get(p.id) || { totalMl: 0, totalCost: 0 };
+      const sal = salesMap.get(p.id) || { totalMl: 0, totalRevenue: 0 };
+      return {
+        product_id: p.id,
+        product_name: p.name_cn,
+        total_purchased_ml: pur.totalMl,
+        total_sold_ml: sal.totalMl,
+        current_stock_ml: pur.totalMl - sal.totalMl,
+        total_cost: pur.totalCost,
+        total_revenue: sal.totalRevenue,
+        total_profit: sal.totalRevenue - pur.totalCost,
+      };
+    });
   },
 };
 
@@ -393,6 +426,18 @@ export const dictService = {
       .from('dict_items')
       .select('*')
       .eq('dict_type', type)
+      .eq('is_active', true)
+      .order('sort_order');
+    if (error) throw error;
+    return (data || []) as DictItem[];
+  },
+  /** 获取指定系列下的子分类 */
+  getSubcategoriesBySeries: async (seriesId: string): Promise<DictItem[]> => {
+    const { data, error } = await supabase
+      .from('dict_items')
+      .select('*')
+      .eq('dict_type', 'subcategory')
+      .eq('parent_id', seriesId)
       .eq('is_active', true)
       .order('sort_order');
     if (error) throw error;
@@ -412,6 +457,18 @@ export const dictService = {
 };
 
 // ============================================
+// 用户/权限服务
+// ============================================
+
+export const userService = {
+  getAll: () => getAll<AdminUser>('admin_users', { orderBy: { column: 'created_at', ascending: false } }),
+  getById: (id: string) => getById<AdminUser>('admin_users', id),
+  create: (record: Partial<AdminUser>) => create<AdminUser>('admin_users', record),
+  update: (id: string, record: Partial<AdminUser>) => update<AdminUser>('admin_users', id, record),
+  delete: (id: string) => remove('admin_users', id),
+};
+
+// ============================================
 // 数据转换辅助函数
 // ============================================
 
@@ -422,8 +479,8 @@ function transformProducts(rawData: any[]): Product[] {
     benefits: Array.isArray(row.benefits) ? row.benefits : (row.benefits ? JSON.parse(row.benefits) : []),
     gallery_urls: Array.isArray(row.gallery_urls) ? row.gallery_urls : (row.gallery_urls ? JSON.parse(row.gallery_urls) : []),
     similar_ids: Array.isArray(row.similar_ids) ? row.similar_ids : (row.similar_ids ? JSON.parse(row.similar_ids) : []),
-    // 展开关联数据
+    // 展开关联数据（Supabase 返回的是表名 countries，映射到接口字段 country）
     series: row.series || undefined,
-    country: row.country || undefined,
+    country: row.countries || row.country || undefined,   // ← 兼容两种返回格式
   }));
 }
