@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Package, Globe, Image as ImageIcon, Eye,
   TrendingUp, TrendingDown, DollarSign,
@@ -18,11 +19,13 @@ interface StatCard {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<StatCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [recentProducts, setRecentProducts] = useState<any[]>([]);
 
   const loadStats = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const [products, countries, banners] = await Promise.all([
         productService.getAll(),
         countryService.getAll(),
@@ -33,11 +36,17 @@ export default function AdminDashboard() {
       const inactiveProducts = products.length - activeProducts;
       const activeCountries = countries.filter(c => c.is_active).length;
 
-      // 库存预警（库存 < 10ml 的产品）
+      // 库存预警（独立超时，不阻塞主流程）
       let lowStockCount = 0;
+      const inventoryPromise = inventoryService.getAllSummaries();
+      const timeoutPromise = new Promise<'timeout'>((resolve) =>
+        setTimeout(() => resolve('timeout'), 5000)
+      );
       try {
-        const summaries = await inventoryService.getAllSummaries();
-        lowStockCount = summaries.filter(s => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
+        const result = await Promise.race([inventoryPromise, timeoutPromise]);
+        if (result !== 'timeout') {
+          lowStockCount = result.filter(s => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
+        }
       } catch {}
 
       setStats([
@@ -45,8 +54,8 @@ export default function AdminDashboard() {
           title: '总产品数',
           value: products.length,
           icon: Package,
-          color: '#D75437',
-          bgColor: 'rgba(215,84,55,0.1)',
+          color: '#4A7C59',
+          bgColor: 'rgba(74,124,89,0.12)',
           trend: { value: `${activeProducts} 上架`, up: true },
         },
         {
@@ -61,8 +70,8 @@ export default function AdminDashboard() {
           title: '海报/Banner',
           value: banners.length,
           icon: ImageIcon,
-          color: '#D4AF37',
-          bgColor: 'rgba(212,175,55,0.1)',
+          color: '#7BA689',
+          bgColor: 'rgba(123,166,137,0.15)',
         },
         {
           title: '库存预警',
@@ -78,6 +87,7 @@ export default function AdminDashboard() {
       setRecentProducts(products.slice(-5).reverse());
     } catch (err) {
       console.error('加载仪表盘数据失败:', err);
+      setLoadError((err as Error).message || '加载失败');
     } finally {
       setLoading(false);
     }
@@ -90,9 +100,28 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="flex items-center gap-3 text-white/40">
+        <div className="flex items-center gap-3 text-[#6B856B]">
           <RefreshCw size={20} className="animate-spin" />
           <span>加载数据中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-[#1A2E1A]">控制台</h2>
+          <p className="text-sm text-[#6B856B] mt-1">欢迎回来，Eric。</p>
+        </div>
+        <div className="rounded-2xl bg-red-50 border border-red-200 p-6 text-center">
+          <AlertCircle size={32} className="mx-auto mb-3 text-red-400" />
+          <p className="text-sm text-red-600 font-medium mb-2">加载数据失败</p>
+          <p className="text-xs text-red-400 mb-4">{loadError}</p>
+          <button onClick={loadStats} className="px-4 py-2 bg-[#4A7C59] text-white text-sm rounded-xl hover:bg-[#3D6B4A]">
+            重新加载
+          </button>
         </div>
       </div>
     );
@@ -102,8 +131,8 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       {/* 页面标题 */}
       <div>
-        <h2 className="text-2xl font-bold text-white">控制台</h2>
-        <p className="text-sm text-white/40 mt-1">欢迎回来，Eric。这是你的 UNIO AROMA 数据概览。</p>
+        <h2 className="text-2xl font-bold text-[#1A2E1A]">控制台</h2>
+        <p className="text-sm text-[#6B856B] mt-1">欢迎回来，Eric。这是你的 UNIO AROMA 数据概览。</p>
       </div>
 
       {/* 统计卡片 */}
@@ -113,12 +142,12 @@ export default function AdminDashboard() {
           return (
             <div
               key={idx}
-              className="group p-5 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-white/10 transition-all duration-300 hover:scale-[1.02]"
+              className="group p-5 rounded-2xl bg-white border border-[#E0ECE0] hover:border-[#D5E2D5] transition-all duration-300 hover:scale-[1.02]"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-white/35 uppercase tracking-wider">{stat.title}</p>
-                  <p className="text-3xl font-bold text-white mt-2">{stat.value}</p>
+                  <p className="text-xs font-medium text-[#7A967A] uppercase tracking-wider">{stat.title}</p>
+                  <p className="text-3xl font-bold text-[#1A2E1A] mt-2">{stat.value}</p>
                 </div>
                 <div 
                   className="w-11 h-11 rounded-xl flex items-center justify-center"
@@ -128,7 +157,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               {stat.trend && (
-                <div className={`flex items-center gap-1 mt-3 text-xs ${stat.trend.up ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`flex items-center gap-1 mt-3 text-xs ${stat.trend.up ? 'text-green-600' : 'text-red-500'}`}>
                   {stat.trend.up ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                   <span>{stat.trend.value}</span>
                 </div>
@@ -141,58 +170,58 @@ export default function AdminDashboard() {
       {/* 快捷操作 + 最近产品 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 快捷操作 */}
-        <div className="p-6 rounded-2xl bg-[#1a1a1a] border border-white/5">
-          <h3 className="text-lg font-semibold text-white mb-4">快捷操作</h3>
+        <div className="p-6 rounded-2xl bg-white border border-[#E0ECE0]">
+          <h3 className="text-lg font-semibold text-[#1A2E1A] mb-4">快捷操作</h3>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: '添加产品', desc: '录入新产品信息', href: '/admin/products/new', color: '#D75437' },
-              { label: '添加国家', desc: '新增国家/地区', href: '/admin/countries/new', color: '#1C39BB' },
-              { label: '批量导入', desc: 'CSV 批量导入产品', href: '/admin/products', color: '#D4AF37' },
-              { label: '更换海报', desc: '管理首页海报', href: '/admin/banners', color: '#7B9EA8' },
+              { label: '添加产品', desc: '录入新产品信息', to: '/admin/products', color: '#4A7C59' },
+              { label: '添加国家', desc: '新增国家/地区', to: '/admin/countries', color: '#1C39BB' },
+              { label: '批量导入', desc: 'CSV 批量导入产品', to: '/admin/products?import=true', color: '#7BA689' },
+              { label: '更换海报', desc: '管理首页海报', to: '/admin/banners', color: '#7B9EA8' },
             ].map((action, idx) => (
-              <a
+              <Link
                 key={idx}
-                href={action.href}
-                className="group p-4 rounded-xl border border-white/5 hover:border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-200"
+                to={action.to}
+                className="group p-4 rounded-xl border border-[#E0ECE0] hover:border-[#D5E2D5] bg-[#F2F7F3] hover:bg-[#EEF4EF] transition-all duration-200"
               >
                 <div className="flex items-center gap-2 mb-1">
                   <ArrowUpRight size={16} style={{ color: action.color }} />
-                  <span className="font-medium text-sm text-white group-hover:text-white/90">{action.label}</span>
+                  <span className="font-medium text-sm text-[#1A2E1A] group-hover:text-[#1A2E1A]">{action.label}</span>
                 </div>
-                <p className="text-xs text-white/30 pl-5">{action.desc}</p>
-              </a>
+                <p className="text-xs text-[#8AA08A] pl-5">{action.desc}</p>
+              </Link>
             ))}
           </div>
         </div>
 
         {/* 最近产品 */}
-        <div className="p-6 rounded-2xl bg-[#1a1a1a] border border-white/5">
+        <div className="p-6 rounded-2xl bg-white border border-[#E0ECE0]">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">最近产品</h3>
-            <a href="/admin/products" className="text-xs text-[#D75437] hover:text-[#D75437]/80 transition-colors">
+            <h3 className="text-lg font-semibold text-[#1A2E1A]">最近产品</h3>
+            <Link to="/admin/products" className="text-xs text-[#4A7C59] hover:text-[#3D6B4A] transition-colors">
               查看全部 →
-            </a>
+            </Link>
           </div>
           {recentProducts.length === 0 ? (
-            <p className="text-sm text-white/30 text-center py-8">暂无产品数据，请先导入或手动添加</p>
+            <p className="text-sm text-[#8AA08A] text-center py-8">暂无产品数据，请先导入或手动添加</p>
           ) : (
             <div className="space-y-2">
               {recentProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.05] transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#F8FAF8] hover:bg-[#EEF4EF] transition-colors"
                 >
                   {product.image_url && (
                     <img src={product.image_url} alt="" className="w-8 h-8 rounded-md object-cover" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/90 truncate">{product.name_cn}</p>
-                    <p className="text-xs text-white/30 truncate">{product.name_en || product.code}</p>
+                    <p className="text-sm text-[#1A2E1A] truncate">{product.name_cn}</p>
+                    <p className="text-xs text-[#8AA08A] truncate">{product.name_en || product.code}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
                     product.is_active 
-                      ? 'bg-green-500/15 text-green-400' 
-                      : 'bg-zinc-700 text-white/40'
+                      ? 'bg-green-500/15 text-green-600' 
+                      : 'bg-[#E0ECE0] text-[#6B856B]'
                   }`}>
                     {product.is_active ? '上架' : '下架'}
                   </span>
