@@ -47,6 +47,7 @@ export interface Product {
   sort_order: number;
   series_code?: SeriesCode;
   created_at: string;
+  similar_ids?: string[];
 }
 
 // ---- 国家 ----
@@ -65,6 +66,8 @@ export interface Country {
   visit_count: number;
   is_active: boolean;
   sort_order: number;
+  is_china_province?: boolean;
+  product_ids?: string[];
 }
 
 // ---- Banner ----

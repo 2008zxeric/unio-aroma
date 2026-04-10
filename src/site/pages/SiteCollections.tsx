@@ -9,7 +9,7 @@ import { getSeries, getProducts } from '../siteDataService';
 
 interface SiteCollectionsProps {
   initialSeries?: string;
-  onNavigate: (view: string, params?: { series?: string; productId?: string }) => void;
+  onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
 const getGroupIcon = (name: string) => {

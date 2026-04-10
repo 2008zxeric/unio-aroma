@@ -9,10 +9,11 @@ import { getProductById, getProducts } from '../siteDataService';
 
 interface SiteProductDetailProps {
   productId: string;
-  onNavigate: (view: string, params?: { series?: string; productId?: string }) => void;
+  onNavigate: (view: string, params?: Record<string, string>) => void;
+  previousView?: string;
 }
 
-const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavigate }) => {
+const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavigate, previousView }) => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
