@@ -9,7 +9,7 @@ import { Series, Product, SERIES_CONFIG } from '../types';
 import { getSeries, getProducts } from '../siteDataService';
 
 interface SiteHomeProps {
-  onNavigate: (view: string, params?: { series?: string; productId?: string }) => void;
+  onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
 // Hero 图片（使用原站图片）

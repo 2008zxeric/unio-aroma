@@ -3,7 +3,7 @@
  * 基于 Supabase 的前台数据获取
  */
 
-import { Product, Series, Country, Banner } from './database.types';
+import { Product, Series, Country, Banner } from './types';
 
 // Supabase 配置
 const SUPABASE_URL = 'https://xuicjydgtoltdhkbqoju.supabase.co';
@@ -47,8 +47,37 @@ export async function getProductByCode(code: string): Promise<Product | null> {
 }
 
 // ============ 国家服务 ============
-export async function getCountries(): Promise<Country[]> {
-  return fetchFromSupabase('countries', 'is_active=eq.true&order=sort_order.asc');
+export async function getCountries(region?: string): Promise<Country[]> {
+  let params = 'is_active=eq.true&order=sort_order.asc';
+  if (region) {
+    params += `&region=eq.${encodeURIComponent(region)}`;
+  }
+  return fetchFromSupabase('countries', params);
+}
+
+export async function getCountriesBySubRegion(subRegion?: string): Promise<Country[]> {
+  let params = 'is_active=eq.true&order=sort_order.asc';
+  if (subRegion) {
+    params += `&sub_region=eq.${encodeURIComponent(subRegion)}`;
+  }
+  return fetchFromSupabase('countries', params);
+}
+
+export async function getGlobalCountries(): Promise<Country[]> {
+  // 全球国家 = 非中国省份（is_china_province != true 或该字段不存在）
+  return fetchFromSupabase('countries', 'is_active=eq.true&is_china_province=is.false&order=sort_order.asc').catch(() => {
+    // 如果 is_china_province 字段不存在，则返回所有国家
+    return getCountries();
+  });
+}
+
+export async function getChinaProvinces(): Promise<Country[]> {
+  return fetchFromSupabase('countries', 'is_active=eq.true&is_china_province=is.true&order=sort_order.asc').catch(() => {
+    // 回退：通过 sub_region 判断
+    return getCountries().then(all => all.filter(c => 
+      ['西南', '西北', '华东', '华南', '华北', '华中'].includes(c.sub_region || '')
+    ));
+  });
 }
 
 export async function getCountryById(id: string): Promise<Country | null> {
