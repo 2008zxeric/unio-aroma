@@ -64,11 +64,18 @@ const SiteApp: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const savedView = localStorage.getItem('site_view') as ViewType;
-    const savedParams = localStorage.getItem('site_params');
-    if (savedView) setView(savedView);
-    if (savedParams) {
-      try { setNavParams(JSON.parse(savedParams)); } catch {}
+    // 从后台预览链接进入时，清除上次浏览状态，直接显示首页
+    const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+    if (isPreview) {
+      localStorage.removeItem('site_view');
+      localStorage.removeItem('site_params');
+    } else {
+      const savedView = localStorage.getItem('site_view') as ViewType;
+      const savedParams = localStorage.getItem('site_params');
+      if (savedView) setView(savedView);
+      if (savedParams) {
+        try { setNavParams(JSON.parse(savedParams)); } catch {}
+      }
     }
     const timer = setTimeout(() => {
       setIsExiting(true);
