@@ -272,7 +272,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 >
                   <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-stone-50 mb-4">
                     <img
-                      src={p.image_url || 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png'}
+                      src={p.image_url || 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg'}
                       alt={p.name_cn}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     />

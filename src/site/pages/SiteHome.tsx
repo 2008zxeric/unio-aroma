@@ -14,7 +14,7 @@ interface SiteHomeProps {
 
 // Hero 图片（使用原站图片）
 const HERO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/brand.webp';
-const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png';
+const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
 
 // 各系列配图
 const SERIES_IMAGES: Record<string, string> = {
