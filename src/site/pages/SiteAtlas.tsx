@@ -13,10 +13,11 @@ const REGION_VISUALS = {
 };
 
 const REGIONS = [
-  { id: 'asia', name: '亚洲', en: 'ASIA' },
   { id: 'europe', name: '欧洲', en: 'EUROPE' },
+  { id: 'asia', name: '亚洲', en: 'ASIA' },
   { id: 'africa', name: '非洲', en: 'AFRICA' },
-  { id: 'america', name: '美洲/大洋洲', en: 'AMERICAS' }
+  { id: 'america', name: '美洲', en: 'AMERICAS' },
+  { id: 'oceania', name: '大洋洲', en: 'OCEANIA' }
 ];
 
 interface SiteAtlasProps {
