@@ -1,15 +1,28 @@
 /**
  * UNIO AROMA 前台 - 中华神州页
  * 复刻原站 ChinaAtlasView，数据从 Supabase 获取
+ * 含简化中国地图 SVG 背景 + 省份点位脉冲动画
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ArrowLeft, Home, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { Country } from '../types';
 import { getChinaProvinces } from '../siteDataService';
 
 const CHINA_REGIONS = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
 const CHINA_VISUAL = 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560';
+
+const PROVINCE_COORDS: Record<string, { x: number; y: number }> = {
+  '云南': { x: 38, y: 65 }, '新疆': { x: 15, y: 25 }, '浙江': { x: 72, y: 52 },
+  '江苏': { x: 70, y: 48 }, '广东': { x: 60, y: 72 }, '福建': { x: 68, y: 65 },
+  '四川': { x: 42, y: 55 }, '西藏': { x: 22, y: 45 }, '广西': { x: 52, y: 72 },
+  '贵州': { x: 48, y: 62 }, '甘肃': { x: 35, y: 35 }, '内蒙古': { x: 50, y: 18 },
+  '辽宁': { x: 72, y: 22 }, '吉林': { x: 75, y: 18 }, '黑龙江': { x: 78, y: 12 },
+  '陕西': { x: 48, y: 42 }, '山东': { x: 68, y: 40 }, '河南': { x: 60, y: 45 },
+  '湖南': { x: 58, y: 60 }, '湖北': { x: 58, y: 55 }, '江西': { x: 65, y: 60 },
+  '安徽': { x: 68, y: 50 }, '上海': { x: 75, y: 50 }, '北京': { x: 65, y: 30 },
+  '重庆': { x: 48, y: 58 },
+};
 
 interface SiteChinaAtlasProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
@@ -19,6 +32,7 @@ const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
   const [provinces, setProvinces] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRegion, setActiveRegion] = useState('华东');
+  const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -38,6 +52,14 @@ const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
     provinces.filter(p => p.sub_region === activeRegion),
     [provinces, activeRegion]
   );
+
+  const mapProvinces = useMemo(() => {
+    return provinces.filter(p => PROVINCE_COORDS[p.name_cn]);
+  }, [provinces]);
+
+  const handleDotClick = useCallback((province: Country) => {
+    onNavigate('destination', { countryId: province.id });
+  }, [onNavigate]);
 
   if (loading) {
     return (
@@ -101,6 +123,168 @@ const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+
+        {/* ====== 中国地图区域 ====== */}
+        <section>
+          <div className="relative w-full h-[40vh] md:h-[60vh] rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-[#0a0a0a] border border-white/5">
+            {/* 简化中国地图 SVG 轮廓 */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 1000 1000"
+              preserveAspectRatio="xMidYMid meet"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* 中国大陆轮廓 - 简化鸡形 */}
+              <path d="
+                M 620 100
+                L 680 90 L 740 100 L 780 130 L 800 180
+                L 790 220 L 760 240 L 730 260
+                L 700 300 L 720 340 L 740 360
+                L 720 400 L 700 420 L 680 440
+                L 650 460 L 620 480 L 600 520
+                L 580 540 L 560 580 L 540 620
+                L 500 660 L 480 700 L 460 720
+                L 420 700 L 380 680 L 340 660
+                L 300 640 L 260 600 L 240 560
+                L 220 520 L 200 480 L 180 440
+                L 160 400 L 140 360 L 120 320
+                L 100 280 L 80 240 L 60 200
+                L 80 160 L 120 140 L 160 120
+                L 200 100 L 240 80 L 280 60
+                L 320 80 L 360 100 L 400 120
+                L 440 140 L 480 160 L 520 180
+                L 560 200 L 580 220 L 600 240
+                L 620 260 L 640 280 L 660 300
+                L 680 320 L 700 340 L 720 320
+                L 740 300 L 760 320 L 740 340
+                L 720 360 L 700 380 L 680 400
+                L 660 420 L 640 440 L 620 460
+                L 600 480 L 580 500 L 560 520
+                L 540 540 L 520 560 L 500 580
+                L 480 560 L 460 540 L 440 520
+                L 420 500 L 400 480 L 380 460
+                L 360 440 L 340 420 L 320 400
+                L 300 380 L 280 360 L 260 340
+                L 240 320 L 220 300 L 200 280
+                L 180 260 L 200 240 L 220 220
+                L 240 200 L 260 180 L 280 160
+                L 300 180 L 320 200 L 340 220
+                L 360 200 L 380 180 L 400 160
+                L 420 140 L 440 160 L 460 180
+                L 480 200 L 500 220 L 520 200
+                L 540 180 L 560 160 L 580 140
+                L 600 120 Z
+              "
+                fill="none"
+                stroke="rgba(212,175,55,0.15)"
+                strokeWidth="1.5"
+              />
+              {/* 海南岛 */}
+              <ellipse cx="540" cy="740" rx="20" ry="18"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 台湾 */}
+              <ellipse cx="740" cy="540" rx="12" ry="25"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1"
+                transform="rotate(-20 740 540)" />
+            </svg>
+
+            {/* 经纬网格装饰 */}
+            <div className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(212,175,55,0.3) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(212,175,55,0.3) 1px, transparent 1px)
+                `,
+                backgroundSize: '10% 10%'
+              }}
+            />
+
+            {/* 省份点位 */}
+            {mapProvinces.map((province) => {
+              const coord = PROVINCE_COORDS[province.name_cn];
+              if (!coord) return null;
+              const isHovered = hoveredProvince === province.name_cn;
+              const isFiltered = filteredProvinces.some(p => p.id === province.id);
+              return (
+                <div
+                  key={province.id}
+                  className="absolute cursor-pointer group"
+                  style={{
+                    left: `${coord.x}%`,
+                    top: `${coord.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  onClick={() => handleDotClick(province)}
+                  onMouseEnter={() => setHoveredProvince(province.name_cn)}
+                  onMouseLeave={() => setHoveredProvince(null)}
+                >
+                  {/* 脉冲动画外圈 */}
+                  <div className={`absolute rounded-full ${
+                    isHovered
+                      ? 'bg-[#D4AF37]/30'
+                      : isFiltered
+                        ? 'bg-[#D4AF37]/15'
+                        : 'bg-[#D4AF37]/5'
+                  }`}
+                    style={{
+                      width: isHovered ? 32 : 24,
+                      height: isHovered ? 32 : 24,
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      animation: 'mapPulse 3s ease-in-out infinite',
+                      animationDelay: `${(coord.x * 0.03 + coord.y * 0.02) % 2}s`,
+                    }}
+                  />
+                  {/* 核心圆点 */}
+                  <div className={`relative rounded-full transition-all duration-300 ${
+                    isHovered
+                      ? 'w-3.5 h-3.5 bg-[#D4AF37] shadow-[0_0_16px_rgba(212,175,55,0.6)]'
+                      : isFiltered
+                        ? 'w-2.5 h-2.5 bg-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.3)]'
+                        : 'w-2 h-2 bg-[#D4AF37]/30'
+                  }`} />
+
+                  {/* Tooltip */}
+                  {isHovered && (
+                    <div className="absolute z-50 pointer-events-none whitespace-nowrap"
+                      style={{
+                        left: coord.x > 75 ? 'auto' : '50%',
+                        right: coord.x > 75 ? '0' : 'auto',
+                        bottom: '100%',
+                        transform: coord.x > 75 ? 'translateX(0) translateY(-12px)' : 'translateX(-50%) translateY(-12px)',
+                      }}
+                    >
+                      <div className="bg-black/90 backdrop-blur-md text-white text-xs font-bold tracking-wider px-4 py-2 rounded-full border border-[#D4AF37]/30 shadow-lg">
+                        <span className="text-[#D4AF37] mr-2">◆</span>
+                        {province.name_cn}
+                        {province.name_en && (
+                          <span className="text-white/40 ml-2 text-[10px]">{province.name_en}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* 地图左下角装饰文字 */}
+            <div className="absolute bottom-6 left-8 hidden md:block">
+              <div className="text-[8px] tracking-[0.6em] font-bold text-[#D4AF37]/30 uppercase">
+                Shenzhou Sourcing Map
+              </div>
+              <div className="text-[7px] tracking-[0.3em] text-white/10 mt-1">
+                {mapProvinces.length} / {provinces.length} Provinces Plotted
+              </div>
+            </div>
+
+            {/* 地图右上角图例 */}
+            <div className="absolute top-6 right-8 hidden md:flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+              <span className="text-[8px] tracking-[0.4em] font-bold text-white/30 uppercase">Origin Point</span>
+            </div>
+          </div>
+        </section>
 
         {/* 地区选择器 */}
         <div className="flex flex-wrap justify-center gap-4 md:gap-8">
@@ -168,6 +352,10 @@ const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mapPulse {
+          0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 0; transform: translate(-50%, -50%) scale(2.5); }
         }
       `}</style>
     </div>

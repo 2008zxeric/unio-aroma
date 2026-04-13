@@ -1,9 +1,9 @@
 /**
- * UNIO AROMA 前台馆藏页
+ * UNIO AROMA 前台馆藏页 - 极简紧凑版
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ZoomIn, Shield, Wind, Droplets, Flame, Mountain, Sparkles, ArrowLeft } from 'lucide-react';
+import { ZoomIn, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
 import { getSeries, getProducts } from '../siteDataService';
 
@@ -12,58 +12,60 @@ interface SiteCollectionsProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
-const getGroupIcon = (name: string) => {
-  const lowerName = name.toLowerCase();
-  if (lowerName.includes('金')) return <Shield size={16} className="text-[#D4AF37]" />;
-  if (lowerName.includes('木')) return <Wind size={16} className="text-[#4CAF80]" />;
-  if (lowerName.includes('水')) return <Droplets size={16} className="text-[#1C39BB]" />;
-  if (lowerName.includes('火')) return <Flame size={16} className="text-[#D75437]" />;
-  if (lowerName.includes('土')) return <Mountain size={16} className="text-[#8B4513]" />;
-  return <Sparkles size={16} className="text-[#D4AF37]" />;
-};
+const LOGO_PLACEHOLDER = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
 
 interface ProductCardProps {
   item: Product;
-  idx: number;
   onSelect: (id: string) => void;
   onZoom: (url: string) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }) => {
-  const displayImage = item.image_url || item.gallery_urls?.[0] || 
-    'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
+const ProductCard: React.FC<ProductCardProps> = ({ item, onSelect, onZoom }) => {
+  const displayImage = item.image_url || item.gallery_urls?.[0] || LOGO_PLACEHOLDER;
+  const seriesConfig = item.series_code ? SERIES_CONFIG[item.series_code as keyof typeof SERIES_CONFIG] : null;
+  const categoryName = item.element || item.category || '';
 
   return (
-    <div 
-      className="group flex flex-col transition-all duration-700 animate-in fade-in slide-in-from-bottom-4"
-      style={{ animationDelay: `${idx * 50}ms` }}
-    >
+    <div className="group flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-black/[0.04] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-pointer">
+      {/* 图片区域 - 1:1 正方形 */}
       <div 
-        className="relative aspect-[3/4] rounded-3xl sm:rounded-[4rem] overflow-hidden bg-white border border-black/[0.03] shadow-sm group-hover:shadow-2xl transition-all duration-1000 cursor-pointer"
+        className="relative aspect-square bg-[#FAF9F6]"
         onClick={() => onSelect(item.id)}
       >
         <img 
           src={displayImage} 
-          className="w-full h-full object-cover transition-transform duration-[8s] group-hover:scale-105" 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
           alt={item.name_cn}
-          loading="lazy" 
+          loading="lazy"
+          onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }}
         />
-        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
-          <button 
-            onClick={(e) => { e.stopPropagation(); onZoom(displayImage); }}
-            className="p-3 bg-white/90 backdrop-blur rounded-full shadow-xl hover:scale-110 transition-all"
-          >
-            <ZoomIn size={16} className="text-[#D75437]" />
-          </button>
-        </div>
+        {/* 放大按钮 */}
+        <button 
+          onClick={(e) => { e.stopPropagation(); onZoom(displayImage); }}
+          className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all opacity-0 group-hover:opacity-100"
+        >
+          <div className="p-3 bg-white/90 backdrop-blur rounded-full shadow-lg translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+            <ZoomIn size={18} className="text-[#D75437]" />
+          </div>
+        </button>
       </div>
-      <div className="mt-3 sm:mt-8 text-center sm:text-left" onClick={() => onSelect(item.id)}>
-        <h4 className="text-[10px] sm:text-2xl font-bold tracking-wider text-black/80 group-hover:text-[#D75437] transition-colors line-clamp-2 cursor-pointer">
+      
+      {/* 产品信息 */}
+      <div 
+        className="p-3 sm:p-4 text-center sm:text-left cursor-pointer"
+        onClick={() => onSelect(item.id)}
+      >
+        <h4 className="text-sm sm:text-base font-bold tracking-wide text-black/85 group-hover:text-[#D75437] transition-colors line-clamp-1">
           {item.name_cn}
         </h4>
-        {item.price_10ml && (
-          <span className="text-[8px] sm:text-sm text-black/40 block mt-1">¥{item.price_10ml}</span>
-        )}
+        <div className="flex items-center justify-center sm:justify-start gap-2 mt-1 sm:mt-2">
+          {categoryName && (
+            <span className="text-[10px] sm:text-xs text-black/40">{categoryName}</span>
+          )}
+          {item.price_10ml && (
+            <span className="text-[10px] sm:text-xs text-[#D75437] font-medium">¥{item.price_10ml}</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -75,6 +77,7 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>(initialSeries || 'yuan');
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -95,16 +98,13 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
   }, []);
 
   const filteredProducts = useMemo(() => products.filter(p => p.series_code === filter), [products, filter]);
-
-  const groupedProducts = useMemo(() => {
-    const map: Record<string, Product[]> = {};
-    filteredProducts.forEach(item => {
-      const group = item.group_name || '未分类';
-      if (!map[group]) map[group] = [];
-      map[group].push(item);
-    });
-    return map;
-  }, [filteredProducts]);
+  
+  // 展示的产品数量（默认显示12个）
+  const DISPLAY_COUNT = 12;
+  const displayProducts = useMemo(() => {
+    if (showAll) return filteredProducts;
+    return filteredProducts.slice(0, DISPLAY_COUNT);
+  }, [filteredProducts, showAll]);
 
   const handleSelectProduct = (productId: string) => onNavigate('product', { productId });
 
@@ -112,70 +112,132 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FDFDFD]">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto border-4 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
-          <p className="text-[#2C3E28]/50 text-sm tracking-widest">正在加载馆藏...</p>
+          <div className="w-12 h-12 mx-auto border-3 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+          <p className="text-[#2C3E28]/50 text-xs sm:text-sm tracking-widest">正在加载馆藏...</p>
         </div>
       </div>
     );
   }
 
+  const currentSeries = series.find(s => s.code === filter);
+  const seriesConfig = currentSeries ? SERIES_CONFIG[currentSeries.code as keyof typeof SERIES_CONFIG] : null;
+
   return (
-    <div className="pt-28 sm:pt-48 pb-64 min-h-screen bg-[#FDFDFD]">
+    <div className="min-h-screen bg-[#FDFDFD] pb-20 sm:pb-32">
+      {/* 图片放大查看 */}
       {activePhoto && (
         <div 
-          className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 cursor-zoom-out" 
+          className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-8 cursor-zoom-out" 
           onClick={() => setActivePhoto(null)}
         >
-          <img src={activePhoto} className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" alt="Preview" />
+          <img 
+            src={activePhoto} 
+            className="max-w-full max-h-[90vh] object-contain rounded-xl sm:rounded-2xl shadow-2xl" 
+            alt="Preview" 
+          />
         </div>
       )}
 
-      <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 space-y-12 sm:space-y-32">
-        <button onClick={() => onNavigate('home')} className="flex items-center gap-3 text-black/40 hover:text-black transition-colors">
-          <ArrowLeft size={20} className="group-hover:-translate-x-2 transition-transform" />
-          <span className="text-sm tracking-wider">返回首页</span>
-        </button>
+      {/* 顶部返回导航 */}
+      <div className="sticky top-0 z-[100] bg-[#FDFDFD]/90 backdrop-blur-md border-b border-black/[0.03]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8">
+          <div className="flex items-center justify-between py-4 sm:py-6">
+            <button 
+              onClick={() => onNavigate('home')} 
+              className="flex items-center gap-2 text-black/50 hover:text-black transition-colors"
+            >
+              <ArrowLeft size={18} />
+              <span className="text-xs sm:text-sm tracking-wider hidden sm:inline">返回首页</span>
+            </button>
+            
+            {/* 产品数量统计 */}
+            <div className="text-center">
+              <span className="text-lg sm:text-2xl font-bold text-black tracking-wider">{filteredProducts.length}</span>
+              <span className="text-[10px] sm:text-xs text-black/40 ml-1 tracking-wider">款馆藏</span>
+            </div>
+            
+            <div className="w-12 sm:w-20" /> {/* 占位，保持居中 */}
+          </div>
+        </div>
+      </div>
 
-        <div className="sticky top-24 z-[100] py-4 bg-[#FDFDFD]/80 backdrop-blur-md">
-          <div className="max-w-xl mx-auto grid grid-cols-4 gap-2 bg-stone-100 p-1 rounded-full border border-black/[0.05] shadow-inner">
+      {/* 系列 Tab 切换 */}
+      <div className="sticky top-[60px] sm:top-[72px] z-[90] bg-[#FDFDFD]/90 backdrop-blur-md py-3 sm:py-4">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-1 sm:gap-2 bg-stone-100/80 p-1 rounded-full sm:rounded-2xl">
             {series.map(s => {
-              const config = SERIES_CONFIG[s.code];
+              const config = SERIES_CONFIG[s.code as keyof typeof SERIES_CONFIG];
               const isActive = filter === s.code;
+              const seriesProducts = products.filter(p => p.series_code === s.code);
               return (
                 <button 
                   key={s.code}
-                  onClick={() => setFilter(s.code)}
-                  className={`text-[11px] sm:text-sm tracking-[0.2em] sm:tracking-[0.4em] uppercase font-bold py-3 sm:py-5 rounded-full transition-all duration-500 ${
-                    isActive ? 'bg-white text-black shadow-lg scale-[1.02]' : 'text-black/30 hover:text-black/60'
+                  onClick={() => { setFilter(s.code); setShowAll(false); }}
+                  className={`flex-1 px-2 sm:px-4 py-2 sm:py-3 rounded-full text-[10px] sm:text-xs font-bold tracking-wider transition-all duration-500 flex items-center justify-center gap-1 sm:gap-2 ${
+                    isActive 
+                      ? 'bg-white text-black shadow-md scale-[1.02]' 
+                      : 'text-black/40 hover:text-black/70'
                   }`}
                 >
-                  <span className="hidden sm:inline">{config.fullName_cn}</span>
-                  <span className="inline sm:hidden">{config.name_cn}</span>
+                  <span>{config.name_cn}</span>
+                  <span className={`${isActive ? 'text-[#D75437]' : 'text-black/30'}`}>
+                    {seriesProducts.length}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
+      </div>
 
-        <div className="space-y-16 sm:space-y-64">
-          {Object.entries(groupedProducts).map(([groupName, groupItems]) => (
-            <section key={groupName} className="space-y-6 sm:space-y-24">
-              <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-12 lg:gap-20">
-                <div className="col-span-1 bg-[#FAF9F6] rounded-3xl sm:rounded-[4.5rem] p-3 sm:p-14 flex flex-col justify-between border border-black/[0.03] shadow-sm aspect-[3/4]">
-                  <div className="space-y-2 sm:space-y-12">
-                    <div className="flex items-center gap-1 sm:gap-4">
-                      {getGroupIcon(groupName)}
-                    </div>
-                    <h3 className="text-xs sm:text-5xl font-bold tracking-wider text-black/80 leading-tight">{groupName}</h3>
-                  </div>
-                </div>
-                {groupItems.map((item, idx) => (
-                  <ProductCard key={item.id} item={item} idx={idx} onSelect={handleSelectProduct} onZoom={(url) => setActivePhoto(url)} />
-                ))}
-              </div>
-            </section>
-          ))}
+      {/* 系列描述 */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 pb-4 sm:pb-6">
+        <div className="text-center">
+          <h2 className="text-xl sm:text-3xl font-bold tracking-wider text-black/80">
+            {seriesConfig?.fullName_cn}
+          </h2>
+          <p className="text-[10px] sm:text-sm text-black/40 mt-1 sm:mt-2 tracking-widest uppercase">
+            {seriesConfig?.fullName_en}
+          </p>
+          <p className="text-xs sm:text-base text-black/50 mt-2 sm:mt-3">
+            {seriesConfig?.description}
+          </p>
         </div>
+      </div>
+
+      {/* 产品网格 */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 pb-8">
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-20 sm:py-32">
+            <p className="text-black/30 text-sm sm:text-base">暂无馆藏</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
+              {displayProducts.map((item) => (
+                <ProductCard 
+                  key={item.id} 
+                  item={item} 
+                  onSelect={handleSelectProduct} 
+                  onZoom={(url) => setActivePhoto(url)} 
+                />
+              ))}
+            </div>
+            
+            {/* 查看全部按钮 */}
+            {filteredProducts.length > DISPLAY_COUNT && (
+              <div className="flex justify-center mt-8 sm:mt-12">
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  className="flex items-center gap-2 px-8 sm:px-12 py-3 sm:py-4 bg-black text-white rounded-full text-xs sm:text-sm font-bold tracking-wider hover:bg-[#D75437] transition-all duration-500 hover:scale-105"
+                >
+                  <span>{showAll ? '收起' : `查看全部 ${filteredProducts.length} 款`}</span>
+                  <ArrowRight size={16} className={`transition-transform ${showAll ? '-rotate-90' : ''}`} />
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
