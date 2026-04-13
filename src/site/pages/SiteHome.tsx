@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
-import { getSeries, getProducts } from '../siteDataService';
+import { getSeries, getProducts, getCountries } from '../siteDataService';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
@@ -66,17 +66,24 @@ function useCountUp(target: number, duration: number = 2000, startOnView: boolea
 const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const [series, setSeries] = useState<Series[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [countryCount, setCountryCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  // 动态统计：馆藏精品 = 实际产品数，寻香足迹 = 实际国家数
   const heroStats = useCountUp(90, 2500);
-  const productStats = useCountUp(182, 2000);
-  const countryStats = useCountUp(102, 2200);
+  const productStats = useCountUp(products.length || 0, 2000);
+  const countryStats = useCountUp(countryCount, 2200);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [seriesData, productsData] = await Promise.all([getSeries(), getProducts()]);
+        const [seriesData, productsData, countriesData] = await Promise.all([
+          getSeries(),
+          getProducts(),
+          getCountries()
+        ]);
         setSeries(seriesData);
         setProducts(productsData);
+        setCountryCount(countriesData.length);
       } catch (error) {
         console.error('Failed to load home data:', error);
       } finally {
@@ -176,11 +183,11 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       <section className="bg-[#1C1C1C] py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 gap-4 sm:gap-12">
           {[
-            { num: heroStats.count, suffix: '+', label: '极境坐标', sub: 'Global Origins' },
-            { num: productStats.count, suffix: '', label: '馆藏精品', sub: 'Curated Collection' },
-            { num: countryStats.count, suffix: '', label: '寻香足迹', sub: 'Countries Explored' },
+            { num: heroStats.count, suffix: '+', label: '极境坐标', sub: 'Global Origins', ref: heroStats.ref },
+            { num: productStats.count, suffix: '', label: '馆藏精品', sub: 'Curated Collection', ref: productStats.ref },
+            { num: countryStats.count, suffix: '', label: '寻香足迹', sub: 'Countries Explored', ref: countryStats.ref },
           ].map((item, i) => (
-            <div key={i} className="text-center" ref={i === 0 ? heroStats.ref : undefined}>
+            <div key={i} className="text-center" ref={item.ref}>
               <div className="text-2xl sm:text-5xl font-bold text-white tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {item.num}{item.suffix}
               </div>
