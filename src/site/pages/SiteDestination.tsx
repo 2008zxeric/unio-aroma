@@ -1,26 +1,78 @@
 /**
- * UNIO AROMA 前台 - 目的地详情页
- * 复刻原站 DestinationView，数据从 Supabase 获取
+ * UNIO AROMA 前台 - 目的地详情页（升级版）
+ * 沉浸式全屏 Hero + 杂志排版日记 + 科技感实验室 + 横向滑动相册与产品
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, X, MapPin, Camera, BookOpen, Microscope, Zap, Sparkles, Home, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import {
+  ChevronLeft, ChevronRight, X, MapPin, Camera, BookOpen,
+  Sparkles, Home, ArrowLeft, ChevronDown, Quote,
+  Beaker, FlaskConical, Hexagon
+} from 'lucide-react';
 import { Country, Product } from '../types';
 import { getCountryById, getProducts } from '../siteDataService';
 
 const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
+
+/* inject webkit scrollbar hide */
+if (typeof document !== 'undefined' && !document.getElementById('hide-scrollbar-style')) {
+  const s = document.createElement('style');
+  s.id = 'hide-scrollbar-style';
+  s.textContent = '[data-hide-scrollbar]::-webkit-scrollbar{display:none}@keyframes dest-slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes dest-fadeIn{from{opacity:0}to{opacity:1}}';
+  document.head.appendChild(s);
+}
 
 interface SiteDestinationProps {
   countryId: string;
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
+/* ---------- region label map ---------- */
+const REGION_LABELS: Record<string, string> = {
+  '欧洲': 'EUROPE',
+  '亚洲': 'ASIA',
+  '非洲': 'AFRICA',
+  '大洋洲': 'OCEANIA',
+  '北美洲': 'NORTH AMERICA',
+  '南美洲': 'SOUTH AMERICA',
+  '中东': 'MIDDLE EAST',
+  '神州': 'SHENZHOU · 中华神州',
+};
+
+/* ---------- decorative molecule component ---------- */
+const MoleculeDecor = () => (
+  <svg className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 opacity-[0.06] pointer-events-none" viewBox="0 0 400 400">
+    <circle cx="200" cy="200" r="80" stroke="white" strokeWidth="0.5" fill="none" />
+    <circle cx="200" cy="200" r="140" stroke="white" strokeWidth="0.3" fill="none" />
+    <circle cx="120" cy="120" r="24" stroke="white" strokeWidth="0.5" fill="none" />
+    <circle cx="300" cy="160" r="18" stroke="white" strokeWidth="0.5" fill="none" />
+    <circle cx="160" cy="300" r="20" stroke="white" strokeWidth="0.5" fill="none" />
+    <circle cx="320" cy="280" r="14" stroke="white" strokeWidth="0.5" fill="none" />
+    <line x1="200" y1="200" x2="120" y2="120" stroke="white" strokeWidth="0.3" />
+    <line x1="200" y1="200" x2="300" y2="160" stroke="white" strokeWidth="0.3" />
+    <line x1="200" y1="200" x2="160" y2="300" stroke="white" strokeWidth="0.3" />
+    <line x1="200" y1="200" x2="320" y2="280" stroke="white" strokeWidth="0.3" />
+    <line x1="120" y1="120" x2="300" y2="160" stroke="white" strokeWidth="0.2" />
+    <line x1="300" y1="160" x2="320" y2="280" stroke="white" strokeWidth="0.2" />
+    <line x1="320" y1="280" x2="160" y2="300" stroke="white" strokeWidth="0.2" />
+    <line x1="160" y1="300" x2="120" y2="120" stroke="white" strokeWidth="0.2" />
+    <Hexagon x="200" y="200" size="8" stroke="white" strokeWidth="0.3" fill="none" />
+  </svg>
+);
+
+/* ---------- main component ---------- */
 const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate }) => {
   const [country, setCountry] = useState<Country | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [heroVisible, setHeroVisible] = useState(true);
+
+  // section refs for anchor nav
+  const journalRef = useRef<HTMLElement>(null);
+  const galleryRef = useRef<HTMLElement>(null);
+  const productsRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -41,7 +93,18 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     setImgLoaded(false);
   }, [countryId]);
 
-  // 按 series_code 分组关联产品
+  // hero visibility for sticky nav bg
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroVisible(entry.isIntersecting),
+      { threshold: 0.3 }
+    );
+    const hero = document.getElementById('destination-hero');
+    if (hero) observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
+  // grouped products
   const groupedProducts = useMemo(() => {
     if (!country?.product_ids || country.product_ids.length === 0) return [];
     const themeMap: Record<string, string> = {
@@ -59,15 +122,14 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     });
     return Object.entries(groups).map(([code, items]) => ({
       title: themeMap[code] || code,
-      items: items.slice(0, 4)
+      items: items.slice(0, 8)
     }));
   }, [country, products]);
 
-  // 相册图片列表
+  // photos
   const photos = useMemo(() => {
     const gallery = country?.gallery_urls || [];
     if (gallery.length >= 3) return gallery;
-    // 补齐 3 张：用 scenery_url 和 image_url
     const result = [...gallery];
     while (result.length < 3) {
       result.push(country?.scenery_url || country?.image_url || PLACEHOLDER_IMG);
@@ -75,7 +137,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     return result;
   }, [country]);
 
-  // 键盘导航
+  // keyboard nav
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activePhotoIndex === null) return;
@@ -86,6 +148,16 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePhotoIndex, photos.length]);
+
+  const scrollToSection = useCallback((ref: React.RefObject<HTMLElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  // scroll products container
+  const scrollProducts = useCallback((direction: 'left' | 'right', container: HTMLElement) => {
+    const scrollAmount = container.clientWidth * 0.7;
+    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  }, []);
 
   if (loading || !country) {
     return (
@@ -98,23 +170,27 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     );
   }
 
-  const isChinaProvince = country.sub_region && ['西南', '西北', '华东', '华南', '华北', '华中'].includes(country.sub_region);
+  const isChinaProvince = country.sub_region && ['西南', '西北', '华东', '华南', '华北', '华中', '东北'].includes(country.sub_region);
+  const regionLabel = country.region ? REGION_LABELS[country.region] || country.region.toUpperCase() : '';
 
   return (
-    <div className="min-h-screen bg-white pb-48 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
-      {/* 全屏灯箱 */}
+    <div className="min-h-screen bg-white pb-32 selection:bg-[#D75437] selection:text-white overflow-x-hidden relative">
+      {/* ===== Lightbox ===== */}
       {activePhotoIndex !== null && (
         <div
-          className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl flex items-center justify-center animate-fade cursor-zoom-out"
+          className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl flex items-center justify-center cursor-zoom-out" style={{ animation: 'dest-fadeIn 0.3s ease' }}
           onClick={() => setActivePhotoIndex(null)}
         >
-          <button className="absolute top-8 right-8 z-[1010] text-white/40 hover:text-white transition-colors">
-            <X size={40} strokeWidth={1} />
+          <button className="absolute top-6 right-6 z-[1010] text-white/40 hover:text-white transition-colors p-2">
+            <X size={32} strokeWidth={1.5} />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); setActivePhotoIndex((activePhotoIndex - 1 + photos.length) % photos.length); }} className="absolute left-4 md:left-12 z-[1010] p-4 text-white/20 hover:text-white transition-all hover:scale-110">
-            <ChevronLeft size={60} strokeWidth={1} />
+          <button
+            onClick={(e) => { e.stopPropagation(); setActivePhotoIndex((activePhotoIndex - 1 + photos.length) % photos.length); }}
+            className="absolute left-2 md:left-10 z-[1010] p-3 text-white/20 hover:text-white transition-all hover:scale-110"
+          >
+            <ChevronLeft size={48} strokeWidth={1} />
           </button>
-          <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-24 pointer-events-none">
+          <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-20 pointer-events-none">
             <img
               key={activePhotoIndex}
               src={photos[activePhotoIndex]}
@@ -123,121 +199,317 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
               onClick={(e) => e.stopPropagation()}
             />
           </div>
-          <button onClick={(e) => { e.stopPropagation(); setActivePhotoIndex((activePhotoIndex + 1) % photos.length); }} className="absolute right-4 md:right-12 z-[1010] p-4 text-white/20 hover:text-white transition-all hover:scale-110">
-            <ChevronRight size={60} strokeWidth={1} />
+          <button
+            onClick={(e) => { e.stopPropagation(); setActivePhotoIndex((activePhotoIndex + 1) % photos.length); }}
+            className="absolute right-2 md:right-10 z-[1010] p-3 text-white/20 hover:text-white transition-all hover:scale-110"
+          >
+            <ChevronRight size={48} strokeWidth={1} />
           </button>
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+            {photos.map((_, idx) => (
+              <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === activePhotoIndex ? 'bg-white w-6' : 'bg-white/30'}`} />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* 侧边悬浮导航 */}
-      <div className="fixed top-1/2 -translate-y-1/2 right-4 md:right-10 z-[600] flex flex-col items-center gap-4 pointer-events-none">
-        <div className="bg-white/10 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-white/30 shadow-lg gap-4 pointer-events-auto">
-          <button onClick={() => onNavigate(isChinaProvince ? 'china-atlas' : 'atlas')} className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/60 transition-all">
-            <ArrowLeft size={22} />
+      {/* ===== Side floating nav ===== */}
+      <div className="fixed top-1/2 -translate-y-1/2 right-3 md:right-8 z-[600] pointer-events-none">
+        <div className="bg-white/80 backdrop-blur-2xl flex flex-col p-1.5 md:p-2 rounded-full border border-black/5 shadow-lg gap-2 md:gap-3 pointer-events-auto">
+          <button onClick={() => onNavigate(isChinaProvince ? 'china-atlas' : 'atlas')} className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-black/5 transition-all" title="返回地图">
+            <ArrowLeft size={18} />
           </button>
-          <div className="h-px w-6 bg-black/5 mx-auto opacity-20" />
-          <button onClick={() => onNavigate('home')} className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/60 transition-all">
-            <Home size={22} />
+          <div className="h-px w-5 bg-black/10 mx-auto" />
+          <button onClick={() => scrollToSection(journalRef)} className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-black/5 transition-all" title="日记">
+            <BookOpen size={16} />
+          </button>
+          <button onClick={() => scrollToSection(galleryRef)} className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-black/5 transition-all" title="相册">
+            <Camera size={16} />
+          </button>
+          {groupedProducts.length > 0 && (
+            <button onClick={() => scrollToSection(productsRef)} className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-black/5 transition-all" title="产品">
+              <Sparkles size={16} />
+            </button>
+          )}
+          <div className="h-px w-5 bg-black/10 mx-auto" />
+          <button onClick={() => onNavigate('home')} className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-black/5 transition-all" title="首页">
+            <Home size={16} />
           </button>
         </div>
       </div>
 
-      {/* Hero 横幅 */}
-      <div className="relative h-[65vh] sm:h-screen w-full overflow-hidden bg-stone-100">
+      {/* ===== Sticky anchor nav (top) ===== */}
+      {!heroVisible && (
+        <div className="fixed top-0 left-0 right-0 z-[550] bg-white/90 backdrop-blur-xl border-b border-black/5" style={{ animation: 'dest-slideDown 0.3s ease' }}>
+          <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+            <button onClick={() => onNavigate(isChinaProvince ? 'china-atlas' : 'atlas')} className="flex items-center gap-2 text-black/50 hover:text-[#D75437] transition-colors">
+              <ArrowLeft size={16} />
+              <span className="text-xs tracking-widest uppercase font-medium">{country.name_en || country.name_cn}</span>
+            </button>
+            <div className="flex items-center gap-6">
+              <button onClick={() => scrollToSection(journalRef)} className="text-[10px] tracking-widest uppercase text-black/40 hover:text-black transition-colors font-medium">日记</button>
+              <button onClick={() => scrollToSection(galleryRef)} className="text-[10px] tracking-widest uppercase text-black/40 hover:text-black transition-colors font-medium">相册</button>
+              {groupedProducts.length > 0 && (
+                <button onClick={() => scrollToSection(productsRef)} className="text-[10px] tracking-widest uppercase text-black/40 hover:text-black transition-colors font-medium">产品</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== HERO ===== */}
+      <div id="destination-hero" className="relative h-screen w-full overflow-hidden bg-stone-900">
         <img
           src={country.scenery_url || country.image_url || PLACEHOLDER_IMG}
           onLoad={() => setImgLoaded(true)}
-          className={`w-full h-full object-cover transition-all duration-[4s] ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+          className={`w-full h-full object-cover transition-all duration-[2s] ease-out ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           alt={country.name_cn}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20" />
-        <div className="absolute bottom-12 sm:bottom-24 left-6 sm:left-24 space-y-4">
-          <div className="bg-white/60 backdrop-blur-xl px-5 py-2.5 rounded-full text-black/70 w-fit flex items-center gap-3 border border-white/30">
-            <MapPin size={12} className="text-[#D75437]" />
-            <span className="text-[10px] tracking-widest uppercase font-bold">{country.name_en || ''}</span>
-          </div>
-          <h1 className="text-5xl sm:text-[11rem] font-bold text-black tracking-tighter drop-shadow-sm">{country.name_cn}</h1>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/30" />
+
+        {/* country name - bottom left, large */}
+        <div className="absolute bottom-0 left-0 right-0 px-6 sm:px-16 md:px-24 pb-16 sm:pb-20">
+          {/* region tag */}
+          {regionLabel && (
+            <div className="inline-flex items-center gap-2 mb-4 sm:mb-6">
+              <MapPin size={10} className="text-[#D4AF37]" />
+              <span className="text-[9px] sm:text-[11px] tracking-[0.3em] uppercase font-medium text-white/60">
+                {regionLabel}
+                {country.sub_region && !isChinaProvince && (
+                  <span className="ml-2 text-white/40">· {country.sub_region}</span>
+                )}
+              </span>
+            </div>
+          )}
+
+          {/* name with bg strip */}
+          <h1 className="text-[3.5rem] sm:text-[7rem] md:text-[9rem] lg:text-[11rem] font-bold text-white tracking-tighter leading-[0.85]">
+            <span className="bg-white/10 backdrop-blur-sm px-4 sm:px-8 md:px-12 py-2 sm:py-4 border-l-2 border-[#D4AF37] inline-block">
+              {country.name_cn}
+            </span>
+          </h1>
+
+          {/* english name */}
+          {country.name_en && (
+            <p className="mt-2 sm:mt-4 text-xs sm:text-sm tracking-[0.3em] uppercase text-white/40 font-light">
+              {country.name_en}
+            </p>
+          )}
         </div>
+
+        {/* scroll down hint */}
+        <button
+          onClick={() => scrollToSection(journalRef)}
+          className="absolute bottom-6 right-6 sm:right-12 md:right-24 text-white/40 hover:text-white/80 transition-all animate-bounce z-10"
+        >
+          <ChevronDown size={24} strokeWidth={1.5} />
+        </button>
       </div>
 
-      {/* 记忆相册 */}
-      <section className="py-24 sm:py-56 px-4 sm:px-24 max-w-7xl mx-auto space-y-16">
-        <div className="flex items-center gap-6 text-[#D4AF37]">
-          <Camera size={24} />
-          <div className="h-px w-12 bg-[#D4AF37]/30" />
-          <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Eric's Memory Archive / 寻香随笔</h3>
+      {/* ===== ERIC'S JOURNAL - Magazine style ===== */}
+      <section ref={journalRef} className="py-20 sm:py-40 px-6 sm:px-16 md:px-24 max-w-6xl mx-auto">
+        {/* section label */}
+        <div className="flex items-center gap-4 sm:gap-6 text-[#D75437] mb-16 sm:mb-24">
+          <div className="w-10 sm:w-12 h-px bg-[#D75437]" />
+          <h3 className="text-[9px] sm:text-[11px] tracking-[0.4em] uppercase font-bold whitespace-nowrap">Eric's Journal / 随笔</h3>
+          <div className="flex-1 h-px bg-black/5" />
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:gap-10 h-[55vh] sm:h-[85vh]">
-          <div onClick={() => setActivePhotoIndex(0)} className="col-span-1 rounded-[2.5rem] sm:rounded-[5rem] overflow-hidden shadow-2xl cursor-zoom-in group border border-black/5 bg-stone-50">
-            <img src={photos[0]} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" alt="Memory 1" loading="lazy" />
+
+        <div className="relative pl-6 sm:pl-10 md:pl-14">
+          {/* left decorative line */}
+          <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#D75437]/60 via-[#D75437]/20 to-transparent" />
+
+          {/* quote icon */}
+          <div className="absolute -top-2 -left-1 sm:left-1 text-[#D75437]/15">
+            <Quote size={48} fill="currentColor" />
           </div>
-          <div className="col-span-1 flex flex-col gap-4 sm:gap-10">
-            <div onClick={() => setActivePhotoIndex(1)} className="flex-1 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50">
-              <img src={photos[1]} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" alt="Memory 2" loading="lazy" />
-            </div>
-            <div onClick={() => setActivePhotoIndex(2)} className="flex-1 rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50">
-              <img src={photos[2]} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" alt="Memory 3" loading="lazy" />
+
+          <blockquote className="text-xl sm:text-3xl md:text-5xl leading-[1.7] sm:leading-[1.8] italic text-black/80 font-light tracking-tight">
+            {country.eric_diary || `${country.name_cn}的空气中弥漫着一种坚韧的静谧。`}
+          </blockquote>
+
+          {/* attribution */}
+          <div className="mt-8 sm:mt-12 flex items-center gap-3">
+            <div className="w-8 h-px bg-[#D4AF37]" />
+            <span className="text-[10px] sm:text-xs tracking-[0.2em] uppercase text-black/30 font-medium">Eric · {country.name_cn}</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== GALLERY - Horizontal scroll ===== */}
+      <section ref={galleryRef} className="py-16 sm:py-32">
+        {/* section label */}
+        <div className="px-6 sm:px-16 md:px-24 max-w-6xl mx-auto mb-10 sm:mb-16">
+          <div className="flex items-center gap-4 sm:gap-6 text-[#D4AF37]">
+            <div className="w-10 sm:w-12 h-px bg-[#D4AF37]" />
+            <h3 className="text-[9px] sm:text-[11px] tracking-[0.4em] uppercase font-bold whitespace-nowrap">Eric's Memory Archive / 寻香随笔</h3>
+            <div className="flex-1 h-px bg-black/5" />
+          </div>
+        </div>
+
+        <div className="pl-6 sm:pl-16 md:pl-24">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-4 pr-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} data-hide-scrollbar>
+            {photos.map((photo, idx) => (
+              <div
+                key={idx}
+                onClick={() => setActivePhotoIndex(idx)}
+                className="flex-shrink-0 w-[75vw] sm:w-[55vw] md:w-[35vw] aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50 snap-center relative"
+              >
+                <img
+                  src={photo}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  alt={`Memory ${idx + 1}`}
+                  loading="lazy"
+                />
+                {/* overlay on hover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 flex items-end p-6">
+                  <span className="text-white/0 group-hover:text-white/80 transition-all duration-500 text-xs tracking-[0.2em] uppercase font-medium">
+                    {String(idx + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== ALICE LAB - Sci-fi card ===== */}
+      <section className="py-16 sm:py-32 px-6 sm:px-16 md:px-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative bg-[#1C39BB] rounded-3xl sm:rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden">
+            {/* decorative molecule */}
+            <MoleculeDecor />
+
+            {/* inner glow */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#3B5BDB] rounded-full blur-[120px] opacity-20" />
+            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-[#5C7CFA] rounded-full blur-[100px] opacity-10" />
+
+            <div className="relative z-10 p-8 sm:p-16 md:p-20 lg:p-24">
+              {/* section label */}
+              <div className="flex items-center gap-4 sm:gap-6 text-white/60 mb-12 sm:mb-20">
+                <Beaker size={18} strokeWidth={1.5} />
+                <h3 className="text-[9px] sm:text-[11px] tracking-[0.4em] uppercase font-bold whitespace-nowrap">
+                  Alice's Lab / 分子实验室
+                </h3>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              {/* lab content */}
+              <div className="space-y-10 sm:space-y-16">
+                <p className="text-base sm:text-xl md:text-2xl text-white/75 leading-relaxed sm:leading-loose max-w-3xl">
+                  {country.technical_info || `我们在实验室对 ${country.name_cn} 的生态样本进行了分段提取，通过气相色谱-质谱联用技术（GC-MS）解析了其芳香分子的化学指纹。`}
+                </p>
+
+                {/* conclusion highlight */}
+                <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-6 sm:p-10 flex items-start gap-4 sm:gap-6">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center mt-0.5">
+                    <FlaskConical size={18} className="text-[#D4AF37]" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] sm:text-[10px] tracking-[0.3em] uppercase text-white/40 font-bold mb-2 sm:mb-3">CONCLUSION / 结论</p>
+                    <p className="text-sm sm:text-lg md:text-xl text-white/90 font-medium leading-relaxed">
+                      {country.description || `极境原生分子档案已存入 UNIO 核心频率库，${country.name_cn}的芳香频率特征已被精确记录。`}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 双栏日记 */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 py-24 sm:py-64 grid grid-cols-1 lg:grid-cols-12 gap-20 lg:gap-40 border-y border-black/5">
-        <div className="lg:col-span-5 space-y-12">
-          <div className="flex items-center gap-6 text-[#D75437]">
-            <BookOpen size={24} />
-            <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Eric's Journal / 随笔</h3>
-          </div>
-          <p className="text-xl sm:text-5xl leading-[1.8] italic text-black/85 font-light">
-            &ldquo;{country.eric_diary || `${country.name_cn}的空气中弥漫着一种坚韧的静谧。`}&rdquo;
-          </p>
-        </div>
-        <div className="lg:col-span-7 space-y-12 bg-[#F9FAFB] p-10 sm:p-20 rounded-[3.5rem] border border-black/5 relative">
-          <div className="flex items-center gap-6 text-[#1C39BB]">
-            <Microscope size={24} />
-            <h3 className="text-[10px] tracking-[0.5em] uppercase font-bold">Alice's Analysis / 实验室</h3>
-          </div>
-          <p className="text-base sm:text-3xl text-black/65 leading-loose">
-            {country.technical_info || `我们在实验室对 ${country.name_cn} 的生态样本进行了分段提取。`}
-          </p>
-          <div className="p-8 bg-white rounded-3xl border border-black/5 flex items-center gap-6 shadow-sm">
-            <Zap size={20} className="text-[#1C39BB]" />
-            <p className="text-sm sm:text-2xl font-bold text-black/75 tracking-wide">
-              {country.description || `极境原生分子档案已存入 UNIO 核心频率库`}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 推荐产品 */}
+      {/* ===== RELATED PRODUCTS - Horizontal scroll cards ===== */}
       {groupedProducts.length > 0 && (
-        <section className="py-32 sm:py-64 max-w-7xl mx-auto px-4">
-          <div className="space-y-32 sm:space-y-64">
+        <section ref={productsRef} className="py-16 sm:py-32 px-6 sm:px-16 md:px-24">
+          <div className="max-w-6xl mx-auto">
             {groupedProducts.map((group, gIdx) => (
-              <div key={gIdx} className="space-y-16">
-                <div className="flex items-center gap-6 sm:gap-10">
-                  <Sparkles className="text-[#D4AF37]" size={24} />
-                  <h3 className="text-2xl sm:text-6xl font-bold text-black/85 tracking-widest">{group.title}</h3>
+              <div key={gIdx} className={gIdx > 0 ? 'mt-20 sm:mt-32' : ''}>
+                {/* group title */}
+                <div className="flex items-center justify-between mb-10 sm:mb-14">
+                  <div className="flex items-center gap-4 sm:gap-6">
+                    <Sparkles size={18} className="text-[#D4AF37]" strokeWidth={1.5} />
+                    <h3 className="text-lg sm:text-3xl md:text-4xl font-bold text-black/80 tracking-wider">
+                      {group.title}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById(`products-scroll-${gIdx}`);
+                        if (container) scrollProducts('left', container);
+                      }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-black/10 flex items-center justify-center text-black/30 hover:text-[#D75437] hover:border-[#D75437]/30 transition-all"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById(`products-scroll-${gIdx}`);
+                        if (container) scrollProducts('right', container);
+                      }}
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-black/10 flex items-center justify-center text-black/30 hover:text-[#D75437] hover:border-[#D75437]/30 transition-all"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-12">
-                  {group.items.map((item) => (
-                    <div key={item.id} onClick={() => onNavigate('product', { productId: item.id })} className="group cursor-pointer">
-                      <div className="relative aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden bg-white border border-black/5 group-hover:shadow-2xl transition-all duration-700">
-                        <img src={item.image_url || item.gallery_urls?.[0] || PLACEHOLDER_IMG} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt={item.name_cn} />
+
+                {/* horizontal scroll cards */}
+                <div
+                  id={`products-scroll-${gIdx}`}
+                  className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-4 -mr-6 pr-6"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  data-hide-scrollbar
+                >
+                  {group.items.map((item) => {
+                    const price = item.price_10ml || item.price_5ml || item.price_15ml || item.price_30ml;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => onNavigate('product', { productId: item.id })}
+                        className="flex-shrink-0 w-[45vw] sm:w-[28vw] md:w-[20vw] lg:w-[18vw] snap-start group cursor-pointer"
+                      >
+                        {/* image */}
+                        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-50 border border-black/5 group-hover:shadow-xl group-hover:border-black/10 transition-all duration-500">
+                          <img
+                            src={item.image_url || item.gallery_urls?.[0] || PLACEHOLDER_IMG}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            alt={item.name_cn}
+                            loading="lazy"
+                          />
+                          {/* quick info overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3 sm:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <span className="text-white text-[10px] sm:text-xs tracking-widest uppercase">查看详情 →</span>
+                          </div>
+                        </div>
+                        {/* info */}
+                        <div className="mt-3 sm:mt-4 space-y-1">
+                          <h4 className="text-sm sm:text-base font-bold text-black/75 group-hover:text-[#D75437] transition-colors truncate">
+                            {item.name_cn}
+                          </h4>
+                          {item.name_en && (
+                            <p className="text-[9px] sm:text-[10px] tracking-widest text-black/25 uppercase truncate font-medium">
+                              {item.name_en}
+                            </p>
+                          )}
+                          {price != null && (
+                            <p className="text-xs sm:text-sm text-[#D4AF37] font-medium mt-1">
+                              ¥{price}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="mt-4 text-center sm:text-left">
-                        <h4 className="text-sm sm:text-2xl font-bold text-black/80 group-hover:text-[#D75437] transition-colors">{item.name_cn}</h4>
-                        <span className="text-[7px] sm:text-[10px] tracking-widest opacity-20 font-bold uppercase block">{item.name_en || ''}</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
           </div>
         </section>
       )}
+
+      {/* ===== Bottom spacer for floating nav ===== */}
+      <div className="h-16" />
     </div>
   );
 };

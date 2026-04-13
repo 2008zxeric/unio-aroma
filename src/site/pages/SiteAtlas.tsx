@@ -1,9 +1,10 @@
 /**
  * UNIO AROMA 前台 - 全球寻香地图页
  * 复刻原站 AtlasView，数据从 Supabase 获取
+ * 含简化世界地图 SVG 背景 + 国家点位脉冲动画
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Compass, MapPin, ArrowUpRight, Sparkles } from 'lucide-react';
 import { Country } from '../types';
 import { getGlobalCountries } from '../siteDataService';
@@ -20,6 +21,22 @@ const REGIONS = [
   { id: 'oceania', name: '大洋洲', en: 'OCEANIA' }
 ];
 
+const COUNTRY_COORDS: Record<string, { x: number; y: number }> = {
+  '法国': { x: 48, y: 30 }, '意大利': { x: 52, y: 35 }, '保加利亚': { x: 55, y: 32 },
+  '希腊': { x: 55, y: 38 }, '西班牙': { x: 44, y: 35 }, '摩洛哥': { x: 45, y: 42 },
+  '马达加斯加': { x: 58, y: 65 }, '塞舌尔': { x: 60, y: 55 }, '南非': { x: 55, y: 75 },
+  '印度': { x: 70, y: 42 }, '尼泊尔': { x: 72, y: 38 }, '印尼': { x: 77, y: 55 },
+  '日本': { x: 83, y: 35 }, '澳大利亚': { x: 84, y: 72 }, '埃及': { x: 55, y: 38 },
+  '巴西': { x: 32, y: 65 }, '多米尼加': { x: 26, y: 45 }, '美国': { x: 20, y: 35 },
+  '匈牙利': { x: 53, y: 30 }, '北马其顿': { x: 54, y: 33 }, '突尼斯': { x: 50, y: 38 },
+  '肯尼亚': { x: 58, y: 55 }, '土耳其': { x: 57, y: 35 }, '以色列': { x: 57, y: 38 },
+  '也门': { x: 60, y: 42 }, '越南': { x: 76, y: 45 }, '斯里兰卡': { x: 70, y: 48 },
+  '新西兰': { x: 90, y: 80 }, '德国': { x: 51, y: 28 }, '英国': { x: 47, y: 26 },
+  '俄罗斯': { x: 65, y: 22 }, '韩国': { x: 80, y: 35 }, '菲律宾': { x: 80, y: 48 },
+  '泰国': { x: 74, y: 46 }, '加拿大': { x: 20, y: 25 }, '墨西哥': { x: 17, y: 42 },
+  '哥伦比亚': { x: 26, y: 55 }, '秘鲁': { x: 26, y: 65 },
+};
+
 interface SiteAtlasProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
@@ -28,6 +45,8 @@ const SiteAtlas: React.FC<SiteAtlasProps> = ({ onNavigate }) => {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  const [activeTooltip, setActiveTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -47,6 +66,18 @@ const SiteAtlas: React.FC<SiteAtlasProps> = ({ onNavigate }) => {
     if (!selectedRegion) return countries;
     return countries.filter(c => c.region === selectedRegion);
   }, [countries, selectedRegion]);
+
+  const mapCountries = useMemo(() => {
+    return countries.filter(c => COUNTRY_COORDS[c.name_cn]);
+  }, [countries]);
+
+  const handleDotClick = useCallback((country: Country) => {
+    onNavigate('destination', { countryId: country.id });
+  }, [onNavigate]);
+
+  const handleDotHover = useCallback((name: string, x: number, y: number) => {
+    setActiveTooltip({ name, x, y });
+  }, []);
 
   if (loading) {
     return (
@@ -88,6 +119,149 @@ const SiteAtlas: React.FC<SiteAtlasProps> = ({ onNavigate }) => {
             <p className="text-[9px] tracking-[0.4em] font-bold text-black/20 uppercase">Locations Cataloged</p>
           </div>
         </header>
+
+        {/* ====== 世界地图区域 ====== */}
+        <section className="mb-16 md:mb-28">
+          <div className="relative w-full h-[40vh] md:h-[60vh] rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-[#0a0a0a] border border-white/5">
+            {/* 简化世界地图 SVG 轮廓 */}
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 1000 600"
+              preserveAspectRatio="xMidYMid meet"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* 北美洲 */}
+              <path d="M80 80 L180 60 L220 80 L240 120 L260 160 L240 200 L220 240 L200 260 L180 280 L160 260 L140 240 L120 200 L100 180 L80 140 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 南美洲 */}
+              <path d="M200 280 L240 300 L260 340 L280 380 L290 420 L280 460 L260 500 L240 520 L220 510 L210 470 L200 430 L190 380 L190 340 L195 300 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 欧洲 */}
+              <path d="M420 60 L480 50 L530 60 L560 80 L570 110 L560 140 L540 160 L520 170 L500 160 L480 140 L460 130 L440 120 L420 100 L410 80 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 非洲 */}
+              <path d="M440 200 L480 190 L530 200 L560 240 L580 290 L590 340 L580 390 L560 430 L530 460 L500 470 L470 450 L450 410 L440 370 L430 320 L420 270 L430 230 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 亚洲 */}
+              <path d="M560 40 L620 30 L700 40 L780 50 L840 80 L860 120 L850 160 L830 200 L800 220 L760 240 L720 250 L680 240 L640 220 L600 200 L580 170 L570 140 L570 110 L560 80 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 东南亚群岛 */}
+              <path d="M720 280 L760 270 L800 290 L820 320 L800 340 L760 330 L730 310 L720 290 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 澳大利亚 */}
+              <path d="M780 380 L840 370 L900 380 L920 410 L910 440 L880 460 L840 470 L800 450 L780 420 L770 400 Z"
+                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
+              {/* 格陵兰 */}
+              <path d="M280 20 L320 15 L340 30 L330 50 L310 60 L290 55 L275 40 Z"
+                fill="none" stroke="rgba(212,175,55,0.08)" strokeWidth="0.8" />
+              {/* 日本群岛 */}
+              <path d="M810 100 L820 110 L830 130 L825 150 L815 140 L810 120 Z"
+                fill="none" stroke="rgba(212,175,55,0.08)" strokeWidth="0.8" />
+              {/* 英国 */}
+              <path d="M440 70 L450 65 L455 80 L448 90 L440 85 Z"
+                fill="none" stroke="rgba(212,175,55,0.08)" strokeWidth="0.8" />
+              {/* 马达加斯加 */}
+              <path d="M570 400 L580 390 L585 420 L580 450 L570 440 Z"
+                fill="none" stroke="rgba(212,175,55,0.08)" strokeWidth="0.8" />
+              {/* 新西兰 */}
+              <path d="M900 460 L910 450 L915 470 L910 490 L900 485 Z"
+                fill="none" stroke="rgba(212,175,55,0.08)" strokeWidth="0.8" />
+            </svg>
+
+            {/* 经纬网格装饰 */}
+            <div className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(212,175,55,0.3) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(212,175,55,0.3) 1px, transparent 1px)
+                `,
+                backgroundSize: '10% 10%'
+              }}
+            />
+
+            {/* 国家点位 */}
+            {mapCountries.map((country) => {
+              const coord = COUNTRY_COORDS[country.name_cn];
+              if (!coord) return null;
+              const isHovered = hoveredCountry === country.name_cn;
+              return (
+                <div
+                  key={country.id}
+                  className="absolute cursor-pointer group"
+                  style={{
+                    left: `${coord.x}%`,
+                    top: `${coord.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  onClick={() => handleDotClick(country)}
+                  onMouseEnter={() => {
+                    setHoveredCountry(country.name_cn);
+                    handleDotHover(country.name_cn, coord.x, coord.y);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredCountry(null);
+                    setActiveTooltip(null);
+                  }}
+                >
+                  {/* 脉冲动画外圈 */}
+                  <div className={`absolute inset-0 rounded-full ${isHovered ? 'bg-[#D4AF37]/20' : 'bg-[#D4AF37]/10'}`}
+                    style={{
+                      width: isHovered ? 28 : 20,
+                      height: isHovered ? 28 : 20,
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      animation: 'mapPulse 3s ease-in-out infinite',
+                      animationDelay: `${(coord.x * 0.03 + coord.y * 0.02) % 2}s`,
+                    }}
+                  />
+                  {/* 核心圆点 */}
+                  <div className={`relative rounded-full transition-all duration-300 ${
+                    isHovered
+                      ? 'w-3.5 h-3.5 bg-[#D4AF37] shadow-[0_0_16px_rgba(212,175,55,0.6)]'
+                      : 'w-2 h-2 bg-[#D4AF37]/70 shadow-[0_0_8px_rgba(212,175,55,0.3)]'
+                  }`} />
+
+                  {/* Tooltip */}
+                  {isHovered && (
+                    <div className="absolute z-50 pointer-events-none whitespace-nowrap"
+                      style={{
+                        left: coord.x > 80 ? 'auto' : '50%',
+                        right: coord.x > 80 ? '0' : 'auto',
+                        bottom: '100%',
+                        transform: coord.x > 80 ? 'translateX(0) translateY(-12px)' : 'translateX(-50%) translateY(-12px)',
+                      }}
+                    >
+                      <div className="bg-black/90 backdrop-blur-md text-white text-xs font-bold tracking-wider px-4 py-2 rounded-full border border-[#D4AF37]/30 shadow-lg">
+                        <span className="text-[#D4AF37] mr-2">◆</span>
+                        {country.name_cn}
+                        {country.name_en && (
+                          <span className="text-white/40 ml-2 text-[10px]">{country.name_en}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* 地图左下角装饰文字 */}
+            <div className="absolute bottom-6 left-8 hidden md:block">
+              <div className="text-[8px] tracking-[0.6em] font-bold text-[#D4AF37]/30 uppercase">
+                Global Sourcing Map
+              </div>
+              <div className="text-[7px] tracking-[0.3em] text-white/10 mt-1">
+                {mapCountries.length} / {countries.length} Locations Plotted
+              </div>
+            </div>
+
+            {/* 地图右上角图例 */}
+            <div className="absolute top-6 right-8 hidden md:flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+              <span className="text-[8px] tracking-[0.4em] font-bold text-white/30 uppercase">Origin Point</span>
+            </div>
+          </div>
+        </section>
 
         {/* 地区筛选导航 */}
         <nav className="sticky top-24 z-50 bg-white/60 backdrop-blur-xl -mx-6 px-6 mb-12 md:mb-20 rounded-b-2xl">
@@ -223,6 +397,10 @@ const SiteAtlas: React.FC<SiteAtlasProps> = ({ onNavigate }) => {
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mapPulse {
+          0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 0; transform: translate(-50%, -50%) scale(2.5); }
         }
       `}</style>
     </div>
