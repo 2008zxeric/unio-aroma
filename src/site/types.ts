@@ -37,6 +37,7 @@ export interface Product {
   price_15ml?: number;
   price_30ml?: number;
   price_piece?: number;
+  price?: number;
   xiaohongshu_url?: string;
   image_url?: string;
   gallery_urls?: string[];

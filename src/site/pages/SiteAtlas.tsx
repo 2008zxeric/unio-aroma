@@ -13,6 +13,8 @@ const REGION_VISUALS = {
   china: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560',
 };
 
+const COUNTRY_PLACEHOLDER = 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
+
 const REGIONS = [
   { id: 'europe', name: '欧洲', en: 'EUROPE' },
   { id: 'asia', name: '亚洲', en: 'ASIA' },
@@ -325,10 +327,11 @@ const SiteAtlas: React.FC<SiteAtlasProps> = ({ onNavigate }) => {
             >
               <div className="relative aspect-[3/4] rounded-2xl md:rounded-[4rem] overflow-hidden bg-stone-50 border border-black/5 shadow-sm transition-all duration-700 group-hover:shadow-2xl group-hover:scale-[1.02]">
                 <img
-                  src={dest.scenery_url || dest.image_url || ''}
+                  src={dest.scenery_url || dest.image_url || COUNTRY_PLACEHOLDER}
                   className="w-full h-full object-cover transition-all duration-[2s] grayscale-[0.6] group-hover:grayscale-0"
                   alt={dest.name_cn}
                   loading="lazy"
+                  onError={(e) => { e.currentTarget.src = COUNTRY_PLACEHOLDER; }}
                 />
                 {/* 状态指示 */}
                 <div className="absolute top-4 left-4 md:top-8 md:left-8">

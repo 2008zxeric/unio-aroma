@@ -12,7 +12,7 @@ interface SiteCollectionsProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
-const LOGO_PLACEHOLDER = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
+const LOGO_PLACEHOLDER = '/logo.svg';
 
 interface ProductCardProps {
   item: Product;

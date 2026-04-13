@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
+const LOGO_IMG = '/logo.svg';
 const ADMIN_PWD_KEY = 'admin_authed';
 const ADMIN_PASSWORD = 'unio2024'; // 默认密码，可后台改
 
