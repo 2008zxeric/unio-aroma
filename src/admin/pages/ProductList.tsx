@@ -8,11 +8,12 @@ import {
   Box, TrendingUp, ShoppingCart, DollarSign, AlertCircle,
   Calendar, BarChart3, ArrowDownLeft, ArrowUpRight, Receipt,
   Filter, Download, Eye, ExternalLink, Save, Image as ImageIcon,
-  ArrowLeft, Anchor, Link2,
+  ArrowLeft, Anchor, Link2, Lock,
 } from 'lucide-react';
 import { productService, seriesService, countryService } from '../../lib/dataService';
 import type { Product, Series, Country, SubCategory, SeriesCode } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
+import { useAuth, writeAuditLog } from '../../lib/auth';
 import ProfitReportView from '../components/ProfitReportView';
 import ImageUploadField from '../components/ImageUploadField';
 
@@ -233,10 +234,15 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function AdminProducts() {
   const [searchParams] = useSearchParams();
+  const { user, hasPermission } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [series, setSeries] = useState<Series[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 权限标记
+  const canEdit = hasPermission('edit_products');
+  const canToggle = hasPermission('toggle_product_status');
 
   // 搜索 & 筛选
   const [searchQuery, setSearchQuery] = useState('');
@@ -600,7 +606,17 @@ export default function AdminProducts() {
 
   const handleToggleActive = async (product: Product) => {
     try {
-      await productService.update(product.id, { is_active: !product.is_active });
+      const newStatus = !product.is_active;
+      await productService.update(product.id, { is_active: newStatus });
+      // 审计日志
+      if (user) {
+        await writeAuditLog(user.id, 'toggle_status', 'product', product.id, {
+          product_name: product.name_cn,
+          product_code: product.code,
+          from: product.is_active ? '上架' : '下架',
+          to: newStatus ? '上架' : '下架',
+        });
+      }
       await loadData();
     } catch (err: any) { alert('操作失败：' + err.message); }
   };
@@ -666,10 +682,12 @@ export default function AdminProducts() {
             title="批量导入">
             <FileSpreadsheet size={16} /><span className="hidden sm:inline">批量导入</span>
           </button>
-          <button onClick={startCreate}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#E8F3EC] hover:bg-[#D4EDDA] text-[#4A7C59] rounded-xl font-medium text-sm transition-colors border border-[#4A7C59]/20">
-            <Plus size={16} /> 添加新产品
-          </button>
+          {canEdit && (
+            <button onClick={startCreate}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#E8F3EC] hover:bg-[#D4EDDA] text-[#4A7C59] rounded-xl font-medium text-sm transition-colors border border-[#4A7C59]/20">
+              <Plus size={16} /> 添加新产品
+            </button>
+          )}
         </div>
       </div>
 
@@ -757,9 +775,11 @@ export default function AdminProducts() {
         <div className="text-center py-20 text-[#8AA08A]">
           <Package size={48} className="mx-auto mb-4 opacity-30" />
           <p className="text-lg">{searchQuery || filterSeriesCode || filterCategory ? '没有匹配的产品' : '暂无产品数据'}</p>
-          <button onClick={startCreate} className="mt-4 px-5 py-2.5 bg-[#4A7C59] hover:bg-[#4A7C59]/80 text-[#1A2E1A] text-sm rounded-xl transition-colors inline-flex items-center gap-2">
-            <Plus size={14} /> 添加第一个产品
-          </button>
+          {canEdit && (
+            <button onClick={startCreate} className="mt-4 px-5 py-2.5 bg-[#4A7C59] hover:bg-[#4A7C59]/80 text-[#1A2E1A] text-sm rounded-xl transition-colors inline-flex items-center gap-2">
+              <Plus size={14} /> 添加第一个产品
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
@@ -810,6 +830,8 @@ export default function AdminProducts() {
                             onToggleActive={() => handleToggleActive(product)}
                             showDetail={showDetailId === product.id}
                             onToggleDetail={() => setShowDetailId(showDetailId === product.id ? null : product.id)}
+                            canToggle={canToggle}
+                            canEdit={canEdit}
                           />
                         ))}
                       </div>
@@ -888,13 +910,15 @@ export default function AdminProducts() {
         </div>
 
         {/* 添加新产品 — 主按钮 */}
-        <button
-          onClick={startCreate}
-          className="w-14 h-14 rounded-full bg-[#4A7C59] hover:bg-[#3D6B4A] shadow-xl hover:shadow-2xl flex items-center justify-center text-white transition-all active:scale-95"
-          title="添加新产品"
-        >
-          <Plus size={24} />
-        </button>
+        {canEdit && (
+          <button
+            onClick={startCreate}
+            className="w-14 h-14 rounded-full bg-[#4A7C59] hover:bg-[#3D6B4A] shadow-xl hover:shadow-2xl flex items-center justify-center text-white transition-all active:scale-95"
+            title="添加新产品"
+          >
+            <Plus size={24} />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -905,7 +929,7 @@ export default function AdminProducts() {
 // 产品卡片组件（列表行）
 // ============================================
 
-function ProductCard({ product, productBoundCountries, onEdit, onDelete, onToggleActive, showDetail, onToggleDetail }: {
+function ProductCard({ product, productBoundCountries, onEdit, onDelete, onToggleActive, showDetail, onToggleDetail, canToggle, canEdit }: {
   product: Product;
   productBoundCountries: Record<string, string[]>;
   onEdit: () => void;
@@ -913,6 +937,8 @@ function ProductCard({ product, productBoundCountries, onEdit, onDelete, onToggl
   onToggleActive: () => void;
   showDetail: boolean;
   onToggleDetail: () => void;
+  canToggle: boolean;
+  canEdit: boolean;
 }) {
   // 检查是否是香系列
   const isJing = product.category === 'aesthetic' || product.category === 'meditation';
@@ -982,14 +1008,18 @@ function ProductCard({ product, productBoundCountries, onEdit, onDelete, onToggl
 
         {/* 操作按钮 */}
         <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-          <button onClick={(e) => { e.stopPropagation(); onToggleActive(); }} title={product.is_active ? '下架' : '上架'}
-            className="p-1.5 hover:bg-[#EEF4EF] rounded-lg transition-colors">
-            {product.is_active ? <ToggleRight size={22} className="text-green-400" /> : <ToggleLeft size={22} className="text-[#9AAA9A]" />}
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onEdit(); }} title="编辑"
-            className="p-1.5 hover:bg-[#EEF4EF] rounded-lg transition-colors">
-            <Edit2 size={14} className="text-[#5C725C]" />
-          </button>
+          {canToggle && (
+            <button onClick={(e) => { e.stopPropagation(); onToggleActive(); }} title={product.is_active ? '下架' : '上架'}
+              className="p-1.5 hover:bg-[#EEF4EF] rounded-lg transition-colors">
+              {product.is_active ? <ToggleRight size={22} className="text-green-400" /> : <ToggleLeft size={22} className="text-[#9AAA9A]" />}
+            </button>
+          )}
+          {canEdit && (
+            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} title="编辑"
+              className="p-1.5 hover:bg-[#EEF4EF] rounded-lg transition-colors">
+              <Edit2 size={14} className="text-[#5C725C]" />
+            </button>
+          )}
           <button onClick={(e) => { e.stopPropagation(); onToggleDetail(); }}
             className="p-1.5 hover:bg-[#EEF4EF] rounded-lg" title={showDetail ? '收起' : '详情'}>
             {showDetail ? <ChevronUp size={14} className="text-[#5C725C]" /> : <ChevronDown size={14} className="text-[#5C725C]" />}

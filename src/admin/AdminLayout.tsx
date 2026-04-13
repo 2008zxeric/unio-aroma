@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth, ROLE_LABELS, type PermissionAction } from '../lib/auth';
 import {
   LayoutDashboard,
   Package,
@@ -19,22 +20,26 @@ import {
   LogOut,
   RefreshCw,
   Eye,
+  ScrollText,
+  Shield,
 } from 'lucide-react';
 
+// 菜单项定义 — 每项绑定权限
 const MENU_ITEMS = [
-  { path: '/admin', icon: LayoutDashboard, label: '仪表盘', end: true },
+  { path: '/admin', icon: LayoutDashboard, label: '仪表盘', end: true, perm: 'view_dashboard' as PermissionAction },
   { type: 'divider', label: '内容管理' },
-  { path: '/admin/products', icon: Package, label: '产品管理' },
-  { path: '/admin/countries', icon: Globe, label: '国家管理' },
-  { path: '/admin/banners', icon: Image, label: '海报管理' },
-  { path: '/admin/texts', icon: Type, label: '文字管理' },
-  { path: '/admin/recommends', icon: Star, label: '首页推荐' },
+  { path: '/admin/products', icon: Package, label: '产品管理', perm: 'view_products' as PermissionAction },
+  { path: '/admin/countries', icon: Globe, label: '国家管理', perm: 'view_countries' as PermissionAction },
+  { path: '/admin/banners', icon: Image, label: '海报管理', perm: 'view_banners' as PermissionAction },
+  { path: '/admin/texts', icon: Type, label: '文字管理', perm: 'view_texts' as PermissionAction },
+  { path: '/admin/recommends', icon: Star, label: '首页推荐', perm: 'view_recommends' as PermissionAction },
   { type: 'divider', label: '运营数据' },
-  { path: '/admin/inventory', icon: Warehouse, label: '库存利润' },
+  { path: '/admin/inventory', icon: Warehouse, label: '库存利润', perm: 'view_inventory' as PermissionAction },
   { type: 'divider', label: '系统' },
-  { path: '/admin/dicts', icon: BookText, label: '字典管理' },
-  { path: '/admin/users', icon: Users, label: '权限管理' },
-  { path: '/admin/settings', icon: Settings, label: '系统设置' },
+  { path: '/admin/dicts', icon: BookText, label: '字典管理', perm: 'view_dicts' as PermissionAction },
+  { path: '/admin/audit-logs', icon: ScrollText, label: '操作日志', perm: 'view_dashboard' as PermissionAction, adminOnly: true },
+  { path: '/admin/users', icon: Users, label: '权限管理', perm: 'view_users' as PermissionAction },
+  { path: '/admin/settings', icon: Settings, label: '系统设置', perm: 'view_settings' as PermissionAction },
 ];
 
 // 页面标题映射
@@ -49,11 +54,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/dicts': '字典管理',
   '/admin/users': '权限管理',
   '/admin/settings': '系统设置',
+  '/admin/audit-logs': '操作日志',
 };
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, hasPermission, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
@@ -64,13 +71,22 @@ export default function AdminLayout() {
   const currentTitle = PAGE_TITLES[location.pathname] || '后台管理';
 
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_authed');
+    logout();
     navigate('/admin/login', { replace: true });
   };
 
   const handleRefresh = () => {
     window.location.reload();
   };
+
+  // 按权限过滤菜单
+  const filteredMenuItems = MENU_ITEMS.filter(item => {
+    if ('type' in item && item.type === 'divider') return true;
+    if ('perm' in item) return hasPermission(item.perm);
+    return true;
+  });
+
+  const roleInfo = user ? ROLE_LABELS[user.role] : null;
 
   return (
     <div className="min-h-screen bg-[#F4F7F4] flex">
@@ -144,7 +160,7 @@ export default function AdminLayout() {
 
         {/* 导航菜单 */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1 scrollbar-thin">
-          {MENU_ITEMS.map((item, idx) => {
+          {filteredMenuItems.map((item, idx) => {
             if ('type' in item && item.type === 'divider') {
               if (collapsed) return <div key={idx} className="my-2 border-t border-[#E0ECE0]" />;
               return (
@@ -266,16 +282,24 @@ export default function AdminLayout() {
               <span>预览前台</span>
             </a>
 
-            {/* 管理员头像 + 退出 */}
+            {/* 管理员信息 + 退出 */}
             <button
               onClick={() => setLogoutConfirm(true)}
               title="退出登录"
               className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border border-[#E0ECE0] hover:border-red-200 hover:bg-red-50 transition-colors group"
             >
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7BA689]/40 to-[#4A7C59]/30 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-[#4A7C59]">E</span>
-              </div>
-              <span className="text-xs text-[#9AAA9A] group-hover:text-red-400 transition-colors hidden sm:inline">退出</span>
+              {roleInfo && (
+                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: roleInfo.color + '20' }}>
+                  <Shield size={12} style={{ color: roleInfo.color }} />
+                </div>
+              )}
+              <span className="text-xs font-medium text-[#1A2E1A] hidden sm:inline max-w-[100px] truncate">
+                {user?.display_name || user?.username || '?'}
+              </span>
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full hidden sm:inline" style={{ color: roleInfo?.color, backgroundColor: roleInfo?.color + '15' }}>
+                {roleInfo?.label}
+              </span>
+              <span className="text-[10px] text-[#9AAA9A] group-hover:text-red-400 transition-colors hidden md:inline">退出</span>
             </button>
           </div>
         </header>
