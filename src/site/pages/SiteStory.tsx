@@ -11,7 +11,7 @@ const ASSETS = {
   hero_alice: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920',
   map: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920',
   banner: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=2560',
-  logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/logo/unio-logo.webp?v=1008.67',
+  logo: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png',
 };
 
 interface SiteStoryProps {

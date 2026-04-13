@@ -15,7 +15,7 @@ import SiteDestination from './pages/SiteDestination';
 import SiteStory from './pages/SiteStory';
 import SiteOracle from './pages/SiteOracle';
 
-const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/logo/unio-logo.webp?v=1008.67';
+const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png';
 
 type ViewType = 'home' | 'collections' | 'product' | 'story' | 'atlas' | 'china-atlas' | 'destination' | 'oracle';
 

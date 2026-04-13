@@ -13,15 +13,15 @@ interface SiteHomeProps {
 }
 
 // Hero 图片（使用原站图片）
-const HERO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/hero/home-hero.webp?v=1008.67';
-const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/logo/unio-logo.webp?v=1008.67';
+const HERO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/brand.webp';
+const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png';
 
 // 各系列配图
 const SERIES_IMAGES: Record<string, string> = {
-  yuan: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/products/water/Patchouli%20Nocturne.webp?v=1008.67',
-  he: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/hero/spary-hero.webp?v=1008.67',
-  sheng: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/hero/sheng-hero.webp?v=1008.67',
-  jing: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/main/assets/hero/home-hero.webp?v=1008.67'
+  yuan: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/products/water/Patchouli%20Nocturne.webp',
+  he: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/spary.webp',
+  sheng: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/see.webp',
+  jing: 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/brand.webp'
 };
 
 // 系列图标
