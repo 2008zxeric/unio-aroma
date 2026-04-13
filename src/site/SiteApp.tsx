@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SiteHome from './pages/SiteHome';
 import SiteCollections from './pages/SiteCollections';
@@ -355,10 +355,43 @@ const SiteApp: React.FC = () => {
             <Home size={18} />
           </button>
         )}
+
+        {/* 微信客服悬浮按钮（桌面端） */}
+        <div className="relative group">
+          <button
+            className="w-11 h-11 rounded-full bg-[#07C160] shadow-lg flex items-center justify-center text-white hover:scale-110 transition-all duration-300"
+            title="微信客服"
+          >
+            <MessageCircle size={20} />
+          </button>
+          <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <div className="bg-white rounded-xl shadow-2xl p-3 text-center">
+              <div className="text-xs text-black/50 mb-2">微信客服二维码待配置</div>
+              <div className="w-32 h-32 bg-stone-100 rounded-lg flex items-center justify-center text-black/20 text-xs">
+                二维码占位
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ===== 移动端浮动按钮（回到顶部 + 回首页） ===== */}
+      {/* ===== 移动端浮动按钮（回到顶部 + 回首页 + 微信客服） ===== */}
       <div className="sm:hidden fixed bottom-24 right-4 z-[998] flex flex-col gap-2">
+        {/* 微信客服悬浮按钮 */}
+        <div className="relative group">
+          <button
+            className="w-10 h-10 rounded-full bg-[#07C160] shadow-lg flex items-center justify-center text-white hover:scale-110 transition-all"
+            title="微信客服"
+          >
+            <MessageCircle size={18} />
+          </button>
+          {/* 悬停提示：待二维码 */}
+          <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <div className="bg-white rounded-lg shadow-xl px-3 py-2 text-xs text-black/60 whitespace-nowrap">
+              微信客服二维码待配置
+            </div>
+          </div>
+        </div>
         {view !== 'home' && (
           <button
             onClick={() => handleNavigate('home')}
