@@ -31,7 +31,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }) => {
   const displayImage = item.image_url || item.gallery_urls?.[0] || 
-    'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png';
+    'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
 
   return (
     <div 

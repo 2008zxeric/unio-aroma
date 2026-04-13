@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2 } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowLeft, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SiteHome from './pages/SiteHome';
 import SiteCollections from './pages/SiteCollections';
@@ -15,7 +15,7 @@ import SiteDestination from './pages/SiteDestination';
 import SiteStory from './pages/SiteStory';
 import SiteOracle from './pages/SiteOracle';
 
-const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.png';
+const LOGO_IMG = 'https://raw.githubusercontent.com/2008zxeric/unio-aroma/feature/supabase/assets/brand/logo.svg';
 
 type ViewType = 'home' | 'collections' | 'product' | 'story' | 'atlas' | 'china-atlas' | 'destination' | 'oracle';
 
@@ -32,11 +32,35 @@ const SiteApp: React.FC = () => {
   const [prevView, setPrevView] = useState<ViewType>('home');
   const [showSplash, setShowSplash] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
+  const [showBackTop, setShowBackTop] = useState(false);
 
   // 长按 Logo 3 秒进入后台
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [longPressProgress, setLongPressProgress] = useState(0);
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // 页面滚动监听 - 显示/隐藏回到顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goBack = () => {
+    if (prevView && prevView !== view) {
+      setView(prevView);
+      setNavParams({});
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      handleNavigate('home');
+    }
+  };
 
   const startLongPress = useCallback(() => {
     setLongPressProgress(0);
@@ -125,9 +149,13 @@ const SiteApp: React.FC = () => {
 
   // 详情页隐藏底部导航和顶部Logo
   const hideBottomNav = ['product', 'destination'].includes(view);
+  const isDetailPage = ['product', 'destination'].includes(view);
+
+  // 详情页标题
+  const detailTitle = view === 'product' ? '产品详情' : view === 'destination' ? '目的地' : '';
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] pb-32 overflow-x-hidden selection:bg-[#D75437] selection:text-white">
+    <div className="min-h-screen min-h-[100dvh] bg-[#F5F5F5] overflow-x-hidden selection:bg-[#D75437] selection:text-white" style={{ paddingBottom: hideBottomNav ? '2rem' : '8rem' }}>
       {/* 揭幕动画 */}
       {showSplash && (
         <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-1000 ${isExiting ? 'opacity-0 scale-95' : ''}`}>
@@ -187,11 +215,22 @@ const SiteApp: React.FC = () => {
 
       <main className="relative z-10 min-h-screen max-w-[2560px] mx-auto">{renderView()}</main>
 
-      {/* 底部导航栏 */}
+      {/* 回到顶部按钮 */}
+      {showBackTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-24 sm:bottom-28 right-4 sm:right-8 z-[998] w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 backdrop-blur-xl border border-black/10 shadow-lg flex items-center justify-center text-black/40 hover:text-black hover:bg-white transition-all duration-300 hover:scale-110 active:scale-95"
+          aria-label="回到顶部"
+        >
+          <ChevronUp size={20} className="sm:w-6 sm:h-6" />
+        </button>
+      )}
+
+      {/* 底部导航栏 - 适配移动端 safe area */}
       {!hideBottomNav && (
-        <div className="fixed bottom-4 sm:bottom-10 left-0 w-full flex flex-col items-center z-[999] pointer-events-none px-2 sm:px-4">
-          <div className="pointer-events-auto w-full max-w-[680px]">
-            <div className="flex items-center justify-around px-1 sm:px-4 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.25)] backdrop-blur-3xl bg-white/85">
+        <div className="fixed bottom-0 sm:bottom-10 left-0 w-full flex flex-col items-center z-[999] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="pointer-events-auto w-full max-w-[680px] px-2 sm:px-4 pb-2 sm:pb-0">
+            <div className="flex items-center justify-around px-1 sm:px-4 py-2 sm:py-4 rounded-t-none sm:rounded-full border border-white/60 border-b-0 sm:border-b shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15),0_30px_70px_-15px_rgba(0,0,0,0.25)] backdrop-blur-3xl bg-white/90 sm:bg-white/85 sm:rounded-full">
               {[
                 { id: 'home', icon: Home, label: '首页' },
                 { id: 'story', icon: BookOpen, label: '叙事' },
