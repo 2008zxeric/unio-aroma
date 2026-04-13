@@ -123,9 +123,8 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
     priceOptions = [{ price: product.price, size: sizeLabel, popular: true }];
   }
 
-  // 小红书链接：有就用产品链接，没有就用固定店铺链接
-  const XIAOHONGSHU_SHOP_URL = 'https://www.xiaohongshu.com/search_result?keyword=UNIO%20AROMA%20%E5%85%83%E9%A6%99';
-  const xhsUrl = product.xiaohongshu_url || XIAOHONGSHU_SHOP_URL;
+  // 小红书链接：统一指向固定店铺链接
+  const xhsUrl = 'https://xhslink.com/m/30mxOpIhpYU';
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {

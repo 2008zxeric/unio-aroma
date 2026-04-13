@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { dictService, userService, seriesService } from '../../lib/dataService';
+import { useAuth, getUserPassword, updateUserPassword } from '../../lib/auth';
 import type { DictItem, AdminUser, Series } from '../../lib/database.types';
 
 // ============================================
@@ -681,11 +682,19 @@ const ROLE_LABELS: Record<string, { label: string; color: string; desc: string }
 };
 
 export function AdminUsers() {
+  const { user: currentUser, hasPermission } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pwdVisible, setPwdVisible] = useState<Record<string, boolean>>({});
+
+  // 密码修改弹窗状态
+  const [pwdModal, setPwdModal] = useState<{ userId: string; username: string; displayName: string } | null>(null);
+  const [newPwd, setNewPwd] = useState('');
+  const [savingPwd, setSavingPwd] = useState(false);
 
   const [form, setForm] = useState({
     username: '', display_name: '', role: 'viewer' as 'super_admin' | 'admin' | 'editor' | 'viewer',
@@ -750,6 +759,29 @@ export function AdminUsers() {
     setShowForm(true);
   };
 
+  // 修改密码
+  const handlePasswordSave = async () => {
+    if (!pwdModal || !currentUser) return;
+    if (newPwd.length < 4) {
+      alert('密码至少4个字符'); return;
+    }
+    setSavingPwd(true);
+    try {
+      const result = await updateUserPassword(currentUser.id, pwdModal.username, newPwd);
+      if (result.success) {
+        alert(`${pwdModal.displayName} 的密码已修改成功`);
+        setPwdModal(null);
+        setNewPwd('');
+      } else {
+        alert(result.error || '修改失败');
+      }
+    } catch (err: any) {
+      alert('修改失败：' + err.message);
+    } finally {
+      setSavingPwd(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -764,6 +796,42 @@ export function AdminUsers() {
           <Plus size={14} /> 添加用户
         </button>
       </div>
+
+      {/* 密码修改弹窗 */}
+      {pwdModal && (
+        <div className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center px-4" onClick={() => setPwdModal(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#D5E2D5] p-6 w-full max-w-sm space-y-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-[#1A2E1A] flex items-center gap-2">
+                <KeyRound size={16} className="text-[#4A7C59]" />
+                修改密码
+              </h4>
+              <button onClick={() => { setPwdModal(null); setNewPwd(''); }} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-[#1A2E1A] font-medium">{pwdModal.displayName}</p>
+              <p className="text-xs text-[#8AA08A]">@{pwdModal.username}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs text-[#6B856B] mb-1.5">新密码（至少4位）</label>
+              <input
+                type="text"
+                value={newPwd}
+                onChange={e => setNewPwd(e.target.value)}
+                placeholder="输入新密码"
+                autoFocus
+                className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59]"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => { setPwdModal(null); setNewPwd(''); }} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
+              <button onClick={handlePasswordSave} disabled={savingPwd || newPwd.length < 4} className="px-5 py-2 bg-[#4A7C59] text-white rounded-xl text-sm disabled:opacity-50">
+                {savingPwd ? '保存中...' : '确认修改'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 新增/编辑表单 */}
       {showForm && (
@@ -829,12 +897,15 @@ export function AdminUsers() {
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">用户</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">角色</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">状态</th>
+              {isSuperAdmin && <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">登录密码</th>}
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">最后登录</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">操作</th>
             </tr></thead>
             <tbody>
               {users.map(u => {
                 const roleInfo = ROLE_LABELS[u.role];
+                const currentPwd = isSuperAdmin ? getUserPassword(u.username) : undefined;
+                const showPwd = pwdVisible[u.id];
                 return (
                   <tr key={u.id} className="border-b border-[#E0ECE0]/30 hover:bg-[#EEF4EF]">
                     <td className="px-4 py-3">
@@ -860,6 +931,22 @@ export function AdminUsers() {
                         {u.is_active ? '激活' : '禁用'}
                       </span>
                     </td>
+                    {isSuperAdmin && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-[#5C725C] font-mono tracking-wide">
+                            {showPwd ? (currentPwd || '未设置') : '••••••••'}
+                          </span>
+                          <button
+                            onClick={() => setPwdVisible(prev => ({ ...prev, [u.id]: !prev[u.id] }))}
+                            className="p-1 hover:bg-[#EEF4EF] rounded text-[#8AA08A] hover:text-[#5C725C] transition-colors"
+                            title={showPwd ? '隐藏密码' : '显示密码'}
+                          >
+                            {showPwd ? <EyeOff size={12} /> : <Eye size={12} />}
+                          </button>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-[#7A967A] text-xs">
                       {u.last_login_at ? new Date(u.last_login_at).toLocaleString('zh-CN') : '-'}
                     </td>
@@ -872,6 +959,15 @@ export function AdminUsers() {
                         >
                           <Edit2 size={14} />
                         </button>
+                        {isSuperAdmin && (
+                          <button
+                            onClick={() => setPwdModal({ userId: u.id, username: u.username, displayName: u.display_name || u.username })}
+                            className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#4A7C59]"
+                            title="修改密码"
+                          >
+                            <KeyRound size={14} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(u.id)}
                           className="p-1.5 hover:bg-red-50 rounded-lg text-red-400/50"
