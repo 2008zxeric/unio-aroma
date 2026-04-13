@@ -416,7 +416,8 @@ export default function AdminCountries() {
                                 {/* 国旗/图标 */}
                                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#F2F7F3] flex-shrink-0">
                                   {country.image_url ? (
-                                    <img src={country.image_url} alt="" className="w-full h-full object-cover" />
+                                    <img src={country.image_url} alt="" className="w-full h-full object-cover"
+                                      onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-[#A8BAA8]">
                                       <Globe size={18} />

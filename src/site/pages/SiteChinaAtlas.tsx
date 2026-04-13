@@ -10,7 +10,8 @@ import { Country } from '../types';
 import { getChinaProvinces } from '../siteDataService';
 
 const CHINA_REGIONS = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
-const CHINA_VISUAL = 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560';
+const CHINA_PLACEHOLDER = 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560';
+const PROVINCE_PLACEHOLDER = 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
 
 const PROVINCE_COORDS: Record<string, { x: number; y: number }> = {
   '云南': { x: 38, y: 65 }, '新疆': { x: 15, y: 25 }, '浙江': { x: 72, y: 52 },
@@ -114,7 +115,7 @@ const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
               </div>
             </div>
             <div className="hidden lg:block w-[450px] group relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/40">
-              <img src={CHINA_VISUAL} className="w-full h-48 object-cover brightness-75 group-hover:scale-110 transition-transform duration-[10s]" alt="Shenzhou Peak" />
+              <img src={CHINA_PLACEHOLDER} className="w-full h-48 object-cover brightness-75 group-hover:scale-110 transition-transform duration-[10s]" alt="Shenzhou Peak" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-6 left-8">
                 <span className="text-[10px] text-white/60 font-bold tracking-widest uppercase block mb-1">Featured Landscape</span>
@@ -314,10 +315,11 @@ const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
             >
               <div className="aspect-[16/10] overflow-hidden relative">
                 <img
-                  src={p.scenery_url || p.image_url || ''}
+                  src={p.scenery_url || p.image_url || PROVINCE_PLACEHOLDER}
                   className="w-full h-full object-cover transition-transform duration-[5s] group-hover:scale-110"
                   alt={p.name_cn}
                   loading="lazy"
+                  onError={(e) => { e.currentTarget.src = PROVINCE_PLACEHOLDER; }}
                 />
                 <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-white/20 shadow-lg">
                   <CheckCircle2 size={10} className="text-[#2C3E28]" />
