@@ -86,11 +86,66 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
 
 // ---- 内置账号密码映射 ----
 // ⚠️ 密码直接存前端，适合小型团队。安全级别足够防止随意访问。
-const BUILTIN_CREDENTIALS: Record<string, string> = {
+// 密码同时持久化到 localStorage，支持超管在后台修改
+const DEFAULT_CREDENTIALS: Record<string, string> = {
   'yuan': 'unio2001',
   'he': 'he2026',
   'sheng': 'sheng2026',
 };
+
+// 从 localStorage 加载密码（如果有的话），否则用默认值
+function loadCredentials(): Record<string, string> {
+  try {
+    const saved = localStorage.getItem('unio_admin_credentials');
+    if (saved) {
+      const parsed = JSON.parse(saved) as Record<string, string>;
+      return { ...DEFAULT_CREDENTIALS, ...parsed };
+    }
+  } catch {}
+  return { ...DEFAULT_CREDENTIALS };
+}
+
+const BUILTIN_CREDENTIALS: Record<string, string> = loadCredentials();
+
+/** 获取指定用户的当前密码 */
+export function getUserPassword(username: string): string | undefined {
+  return BUILTIN_CREDENTIALS[username];
+}
+
+/** 修改指定用户的密码（仅限超管调用） */
+export async function updateUserPassword(
+  operatorId: string,
+  targetUsername: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!targetUsername || !newPassword || newPassword.length < 4) {
+    return { success: false, error: '密码至少4个字符' };
+  }
+  if (!BUILTIN_CREDENTIALS.hasOwnProperty(targetUsername)) {
+    return { success: false, error: '该用户不在内置账号列表中' };
+  }
+
+  // 更新内存中的密码
+  BUILTIN_CREDENTIALS[targetUsername] = newPassword;
+
+  // 持久化到 localStorage
+  try {
+    const overrides: Record<string, string> = {};
+    for (const [k, v] of Object.entries(BUILTIN_CREDENTIALS)) {
+      if (v !== DEFAULT_CREDENTIALS[k]) {
+        overrides[k] = v;
+      }
+    }
+    localStorage.setItem('unio_admin_credentials', JSON.stringify(overrides));
+  } catch {}
+
+  // 写审计日志
+  await writeAuditLog(operatorId, 'update', 'user_password', null, {
+    target_username: targetUsername,
+  });
+
+  return { success: true };
+}
 
 // ---- Context ----
 const AuthContext = createContext<AuthContextType | null>(null);
