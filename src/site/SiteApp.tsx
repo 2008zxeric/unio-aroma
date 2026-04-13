@@ -3,8 +3,9 @@
  * 完整前台路由：首页/馆藏/产品详情/寻香地图/中华神州/目的地详情/品牌叙事/祭司
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import SiteHome from './pages/SiteHome';
 import SiteCollections from './pages/SiteCollections';
 import SiteProductDetail from './pages/SiteProductDetail';
@@ -25,11 +26,42 @@ interface NavParams {
 }
 
 const SiteApp: React.FC = () => {
+  const navigate = useNavigate();
   const [view, setView] = useState<ViewType>('home');
   const [navParams, setNavParams] = useState<NavParams>({});
   const [prevView, setPrevView] = useState<ViewType>('home');
   const [showSplash, setShowSplash] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
+
+  // 长按 Logo 3 秒进入后台
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [longPressProgress, setLongPressProgress] = useState(0);
+  const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startLongPress = useCallback(() => {
+    setLongPressProgress(0);
+    // 每 30ms 更新一次进度条（3000ms / 100 = 30ms/step）
+    progressTimer.current = setInterval(() => {
+      setLongPressProgress(prev => Math.min(prev + (100 / (3000 / 30)), 100));
+    }, 30);
+    longPressTimer.current = setTimeout(() => {
+      clearInterval(progressTimer.current!);
+      setLongPressProgress(0);
+      navigate('/admin/login');
+    }, 3000);
+  }, [navigate]);
+
+  const cancelLongPress = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    if (progressTimer.current) {
+      clearInterval(progressTimer.current);
+      progressTimer.current = null;
+    }
+    setLongPressProgress(0);
+  }, []);
 
   useEffect(() => {
     const savedView = localStorage.getItem('site_view') as ViewType;
@@ -107,10 +139,37 @@ const SiteApp: React.FC = () => {
       <nav className="fixed top-0 left-0 w-full px-6 sm:px-16 py-6 sm:py-10 flex justify-between items-start z-[500] pointer-events-none">
         <div
           className="pointer-events-auto cursor-pointer flex flex-col items-center group gap-4 select-none"
-          onClick={handleLogoClick}
+          onClick={longPressProgress > 0 ? undefined : handleLogoClick}
+          onMouseDown={startLongPress}
+          onMouseUp={cancelLongPress}
+          onMouseLeave={cancelLongPress}
+          onTouchStart={startLongPress}
+          onTouchEnd={cancelLongPress}
+          onTouchCancel={cancelLongPress}
         >
-          <div className="w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all duration-1000 group-hover:scale-110 group-hover:rotate-[360deg]">
-            <img src={LOGO_IMG} className="w-full object-contain" alt="Logo" />
+          {/* Logo 圆形 + 长按进度环 */}
+          <div className="relative">
+            {/* 进度环 SVG */}
+            {longPressProgress > 0 && (
+              <svg
+                className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none"
+                viewBox="0 0 100 100"
+              >
+                <circle
+                  cx="50" cy="50" r="46"
+                  fill="none"
+                  stroke="#D75437"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 46}`}
+                  strokeDashoffset={`${2 * Math.PI * 46 * (1 - longPressProgress / 100)}`}
+                  className="transition-none"
+                />
+              </svg>
+            )}
+            <div className={`w-14 h-14 sm:w-24 sm:h-24 bg-white/60 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-3 shadow-2xl transition-all duration-1000 group-hover:scale-110 group-hover:rotate-[360deg] ${longPressProgress > 0 ? 'scale-95 !duration-100' : ''}`}>
+              <img src={LOGO_IMG} className="w-full object-contain" alt="Logo" />
+            </div>
           </div>
           <div className="flex flex-col items-center space-y-1">
             <span className="text-lg sm:text-3xl font-bold tracking-[0.3em] leading-none text-[#2C3E28] group-hover:text-[#D75437] transition-colors">元香 UNIO</span>

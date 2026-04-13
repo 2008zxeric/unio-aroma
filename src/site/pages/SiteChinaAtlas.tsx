@@ -8,7 +8,7 @@ import { ArrowLeft, Home, ChevronRight, CheckCircle2, Sparkles } from 'lucide-re
 import { Country } from '../types';
 import { getChinaProvinces } from '../siteDataService';
 
-const CHINA_REGIONS = ['西南', '西北', '华东', '华南', '华北', '华中'];
+const CHINA_REGIONS = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
 const CHINA_VISUAL = 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560';
 
 interface SiteChinaAtlasProps {
@@ -18,7 +18,7 @@ interface SiteChinaAtlasProps {
 const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
   const [provinces, setProvinces] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeRegion, setActiveRegion] = useState('西南');
+  const [activeRegion, setActiveRegion] = useState('华东');
 
   useEffect(() => {
     async function loadData() {

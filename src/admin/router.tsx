@@ -1,8 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// 页面组件
 import AdminLayout from './AdminLayout';
+import AdminGuard from './AdminGuard';
+import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import AdminProducts from './pages/ProductList';
 import AdminCountries from './pages/CountryList';
@@ -14,7 +15,17 @@ import { AdminDicts, AdminUsers, AdminSettings } from './pages/DictManage';
 export default function AdminRouter() {
   return (
     <Routes>
-      <Route element={<AdminLayout />}>
+      {/* 登录页 — 不需要权限 */}
+      <Route path="login" element={<AdminLogin />} />
+
+      {/* 后台主区 — 需要登录 */}
+      <Route
+        element={
+          <AdminGuard>
+            <AdminLayout />
+          </AdminGuard>
+        }
+      >
         <Route index element={<Dashboard />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="countries" element={<AdminCountries />} />
@@ -26,6 +37,9 @@ export default function AdminRouter() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
+
+      {/* 未匹配 → 首页 */}
+      <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>
   );
 }
