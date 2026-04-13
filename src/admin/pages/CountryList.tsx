@@ -860,6 +860,34 @@ function CountryEditForm({
         </div>
       </div>
 
+      {/* ====== 底部固定保存栏 ====== */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-[#E0ECE0] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-3 text-sm text-[#8AA08A]">
+            <Globe size={16} />
+            <span>{isNew ? '添加新国家' : `编辑：${form.name_cn || ''}`}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onCancel}
+              className="px-5 py-2.5 rounded-xl border border-[#E0ECE0] text-sm text-[#5C725C] hover:bg-[#F4F7F4] transition-colors"
+            >
+              取消
+            </button>
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-[#4A7C59]/20 disabled:opacity-50"
+            >
+              {saving ? <SpinIcon /> : <Save size={16} />}
+              {saving ? '保存中...' : (isNew ? '创建国家' : '保存修改')}
+            </button>
+          </div>
+        </div>
+      </div>
+      {/* 底部留白，防止内容被固定栏遮挡 */}
+      <div className="h-20" />
+
       {/* 前台预览弹窗 */}
       {showPreview && (
         <CountryPreviewModal form={form} onClose={onPreviewClose} />
