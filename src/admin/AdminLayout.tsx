@@ -192,7 +192,7 @@ export default function AdminLayout() {
         <div className="p-3 border-t border-[#E0ECE0] space-y-1">
           {/* 预览前台 */}
           <a
-            href="/"
+            href={window.location.origin}
             target="_blank"
             rel="noopener noreferrer"
             title="预览前台"
@@ -256,7 +256,7 @@ export default function AdminLayout() {
 
             {/* 前台预览 */}
             <a
-              href="/"
+              href={window.location.origin}
               target="_blank"
               rel="noopener noreferrer"
               title="预览前台"
