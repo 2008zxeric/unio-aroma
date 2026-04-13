@@ -122,8 +122,8 @@ export default function AdminLayout() {
         {/* Logo 区域 */}
         <div className="h-16 flex items-center gap-3 px-4 border-b border-[#E0ECE0]">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4A7C59] to-[#7BA689] flex items-center justify-center flex-shrink-0 shadow-md shadow-[#4A7C59]/20">
-              <span className="text-white font-bold text-sm">U</span>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4A7C59]/10 to-[#7BA689]/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img src="/logo.svg" alt="UNIO" className="w-full h-full object-contain" />
             </div>
             {!collapsed && (
               <div className="min-w-0">
