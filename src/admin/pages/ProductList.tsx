@@ -140,7 +140,7 @@ interface ProductForm {
 
 const emptyForm = (): ProductForm => ({
   display_name: '', name_cn: '', name_en: '', scientific_name: '',
-  category: '', image_url: '',
+  category: '', image_url: '', code: '',
   element: '', origin: '', extraction_method: '', short_desc: '', description: '',
 
   // 定价

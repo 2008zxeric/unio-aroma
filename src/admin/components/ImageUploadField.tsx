@@ -51,7 +51,9 @@ export default function ImageUploadField({
   const uploadFile = async (file: File): Promise<string> => {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const ts = Date.now();
-    const path = `${uploadPrefix}/${ts}.${ext}`;
+    // 强制路径只含安全字符（英文/数字/横线/下划线），防止中文 key 导致 Supabase Storage 报错
+    const safePrefix = uploadPrefix.replace(/[^a-zA-Z0-9_\-\/]/g, '') || 'uploads';
+    const path = `${safePrefix}/${ts}.${ext}`;
     const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
       cacheControl: '3600',
       upsert: true,
