@@ -45,6 +45,7 @@ const SiteApp: React.FC = () => {
   const [showBackTop, setShowBackTop] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showWechatQR, setShowWechatQR] = useState(false);
 
   // 长按 Logo 1.5 秒进入后台 — 圆圈合拢动画
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -359,17 +360,15 @@ const SiteApp: React.FC = () => {
         {/* 微信客服悬浮按钮（桌面端） */}
         <div className="relative group">
           <button
+            onClick={() => setShowWechatQR(!showWechatQR)}
             className="w-11 h-11 rounded-full bg-[#07C160] shadow-lg flex items-center justify-center text-white hover:scale-110 transition-all duration-300"
             title="微信客服"
           >
             <MessageCircle size={20} />
           </button>
           <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            <div className="bg-white rounded-xl shadow-2xl p-3 text-center">
-              <div className="text-xs text-black/50 mb-2">微信客服二维码待配置</div>
-              <div className="w-32 h-32 bg-stone-100 rounded-lg flex items-center justify-center text-black/20 text-xs">
-                二维码占位
-              </div>
+            <div className="bg-white rounded-xl shadow-2xl px-3 py-2 text-xs text-black/60 whitespace-nowrap">
+              微信客服
             </div>
           </div>
         </div>
@@ -380,15 +379,15 @@ const SiteApp: React.FC = () => {
         {/* 微信客服悬浮按钮 */}
         <div className="relative group">
           <button
+            onClick={() => setShowWechatQR(!showWechatQR)}
             className="w-10 h-10 rounded-full bg-[#07C160] shadow-lg flex items-center justify-center text-white hover:scale-110 transition-all"
             title="微信客服"
           >
             <MessageCircle size={18} />
           </button>
-          {/* 悬停提示：待二维码 */}
           <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             <div className="bg-white rounded-lg shadow-xl px-3 py-2 text-xs text-black/60 whitespace-nowrap">
-              微信客服二维码待配置
+              微信客服
             </div>
           </div>
         </div>
@@ -475,10 +474,31 @@ const SiteApp: React.FC = () => {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes adminPulse {
           0% { r: 48; opacity: 0.8; stroke-width: 3; }
           100% { r: 60; opacity: 0; stroke-width: 0.5; }
         }
+      {/* ===== 微信客服二维码弹窗 ===== */}
+      {showWechatQR && (
+        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center" onClick={() => setShowWechatQR(false)}>
+          <div className="bg-white rounded-3xl p-8 max-w-xs w-full mx-4 text-center animate-[scaleIn_0.2s_ease]" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowWechatQR(false)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 flex items-center justify-center text-black/40 hover:text-black hover:bg-black/10 transition-colors">
+              <X size={16} />
+            </button>
+            <div className="w-10 h-10 rounded-full bg-[#07C160] flex items-center justify-center mx-auto mb-4">
+              <MessageCircle size={20} className="text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-black mb-1">微信客服</h3>
+            <p className="text-xs text-black/40 mb-5 tracking-wider">扫码添加客服咨询</p>
+            <div className="bg-stone-50 rounded-2xl p-3 inline-block">
+              <img src="/wechat-qr.png" alt="微信客服二维码" className="w-48 h-48 object-contain" />
+            </div>
+            <p className="text-[10px] text-black/25 mt-4 tracking-wider">UNIO AROMA · 元香</p>
+          </div>
+        </div>
+      )}
+
       `}</style>
     </div>
   );
