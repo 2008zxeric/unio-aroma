@@ -479,15 +479,26 @@ const SiteApp: React.FC = () => {
           0% { r: 48; opacity: 0.8; stroke-width: 3; }
           100% { r: 60; opacity: 0; stroke-width: 0.5; }
         }
+      `}</style>
+
       {/* ===== 微信客服二维码弹窗 ===== */}
       {showWechatQR && (
-        <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center" onClick={() => setShowWechatQR(false)}>
-          <div className="bg-white rounded-3xl p-8 max-w-xs w-full mx-4 text-center animate-[scaleIn_0.2s_ease]" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowWechatQR(false)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 flex items-center justify-center text-black/40 hover:text-black hover:bg-black/10 transition-colors">
+        <div
+          className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => setShowWechatQR(false)}
+        >
+          <div
+            className="relative bg-white rounded-3xl p-8 max-w-xs w-full mx-4 text-center animate-[scaleIn_0.2s_ease]"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowWechatQR(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 flex items-center justify-center text-black/40 hover:text-black hover:bg-black/10 transition-colors"
+            >
               <X size={16} />
             </button>
-            <div className="w-10 h-10 rounded-full bg-[#07C160] flex items-center justify-center mx-auto mb-4">
-              <MessageCircle size={20} className="text-white" />
+            <div className="w-12 h-12 rounded-full bg-[#07C160] flex items-center justify-center mx-auto mb-4">
+              <MessageCircle size={22} className="text-white" />
             </div>
             <h3 className="text-lg font-bold text-black mb-1">微信客服</h3>
             <p className="text-xs text-black/40 mb-5 tracking-wider">扫码添加客服咨询</p>
@@ -498,8 +509,6 @@ const SiteApp: React.FC = () => {
           </div>
         </div>
       )}
-
-      `}</style>
     </div>
   );
 };
