@@ -153,8 +153,7 @@ const emptyForm = (): ProductForm => ({
   // 累计
   total_inbound_ml: '0', total_sales_ml: '0', remaining_ml: '0',
   total_cost: '0', total_revenue: '0', total_profit: '0',
-
-  code: '', benefits: '', usage: '', narrative: '', alice_lab: '',
+  benefits: '', usage: '', narrative: '', alice_lab: '',
   specification: '', xiaohongshu_url: '', similar_ids: '', gallery_urls: '',
   sort_order: '0', is_active: true,
 });
