@@ -253,7 +253,12 @@ export default function AdminLayout() {
 
             {/* 面包屑 */}
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-[#9AAA9A] hidden sm:inline">管理系统</span>
+              <Link
+                to="/admin"
+                className="text-[#9AAA9A] hover:text-[#4A7C59] transition-colors hidden sm:inline"
+              >
+                管理系统
+              </Link>
               <ChevronRight size={14} className="text-[#C0CCC0] hidden sm:inline" />
               <span className="font-medium text-[#1A2E1A]">{currentTitle}</span>
             </div>
