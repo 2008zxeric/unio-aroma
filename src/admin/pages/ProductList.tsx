@@ -1348,6 +1348,8 @@ function ProductEditFormV4({
               showGallery={true}
               onGalleryChange={v => updateField('gallery_urls', v)}
               galleryValue={form.gallery_urls}
+              uploadPrefix={`products/${form.display_name || form.name_cn || 'product'}`}
+              previewSize="w-20 h-20"
             />
 
             {/* 折叠：更多 */}
