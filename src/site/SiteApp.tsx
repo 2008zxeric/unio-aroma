@@ -3,17 +3,19 @@
  * 完整前台路由 + 全局浮动导航
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import SiteHome from './pages/SiteHome';
-import SiteCollections from './pages/SiteCollections';
-import SiteProductDetail from './pages/SiteProductDetail';
-import SiteAtlas from './pages/SiteAtlas';
-import SiteChinaAtlas from './pages/SiteChinaAtlas';
-import SiteDestination from './pages/SiteDestination';
-import SiteStory from './pages/SiteStory';
-import SiteOracle from './pages/SiteOracle';
+
+// 懒加载页面组件 — 首屏只加载 SiteHome，其余按需
+const SiteHome = lazy(() => import('./pages/SiteHome'));
+const SiteCollections = lazy(() => import('./pages/SiteCollections'));
+const SiteProductDetail = lazy(() => import('./pages/SiteProductDetail'));
+const SiteAtlas = lazy(() => import('./pages/SiteAtlas'));
+const SiteChinaAtlas = lazy(() => import('./pages/SiteChinaAtlas'));
+const SiteDestination = lazy(() => import('./pages/SiteDestination'));
+const SiteStory = lazy(() => import('./pages/SiteStory'));
+const SiteOracle = lazy(() => import('./pages/SiteOracle'));
 
 const LOGO_IMG = '/logo.svg';
 
@@ -292,7 +294,15 @@ const SiteApp: React.FC = () => {
         </div>
       )}
 
-      <main className="relative z-10 min-h-screen max-w-[2560px] mx-auto">{renderView()}</main>
+      <main className="relative z-10 min-h-screen max-w-[2560px] mx-auto">
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="w-10 h-10 border-4 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+          </div>
+        }>
+          {renderView()}
+        </Suspense>
+      </main>
 
       {/* ===== 右侧浮动按钮组（桌面端） ===== */}
       <div className="hidden sm:flex fixed right-8 top-1/2 -translate-y-1/2 z-[998] flex-col items-center gap-3">

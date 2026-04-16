@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* CSS Variables */
+:root {
+  --moss-green: #2C3E28;
+  --terracotta: #D75437;
+  --stone-grey: #F5F5F5;
+  --azure-blue: #1C39BB;
+  --warm-amber: #D4AF37;
+}
+
+body {
+  font-family: "Inter", "Noto Serif SC", sans-serif;
+  background-color: var(--stone-grey);
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+.font-cinzel { font-family: "Cinzel", serif; }
+.font-serif-zh { font-family: "Noto Serif SC", serif; }
+
+/* Animations */
+@keyframes luxuryReveal {
+  0% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; transform: scale(1.1); }
+  100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
+}
+@keyframes luxuryMaskExit {
+  0% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+  100% { clip-path: inset(50% 0 50% 0); filter: blur(15px); opacity: 0; }
+}
+@keyframes textShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-luxury-reveal { animation: luxuryReveal 1.6s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-luxury-mask-exit { animation: luxuryMaskExit 1.0s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-slide-up { animation: slideUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+
+.shimmer-text {
+  background: linear-gradient(90deg, #2C3E28 0%, #D4AF37 45%, #D75437 55%, #2C3E28 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+.animate-breath { animation: logoPulse 4s ease-in-out infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
