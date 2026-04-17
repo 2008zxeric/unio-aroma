@@ -16,6 +16,7 @@ import { MapPin, ArrowUpRight, Sparkles, Globe, ChevronRight } from 'lucide-reac
 import * as topojson from 'topojson-client';
 import { Country } from '../types';
 import { getGlobalCountries } from '../siteDataService';
+import { optimizeImage, optimizeHeroImage } from '../imageUtils';
 
 // TopoJSON 世界地图数据 (Natural Earth 1:110m)
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -113,9 +114,9 @@ interface SiteAtlasProps {
 }
 
 const CHINA_HERO =
-  'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560';
+  optimizeHeroImage('https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560');
 const PLACEHOLDER =
-  'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
+  optimizeHeroImage('https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800');
 
 export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
   const [countries, setCountries] = useState<Country[]>([]);
@@ -420,7 +421,7 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
               onClick={() => onNavigate('china-atlas')}
               className="group relative h-64 md:h-[500px] rounded-[2.5rem] md:rounded-[5rem] overflow-hidden cursor-pointer shadow-xl transition-all duration-1000 hover:shadow-2xl border border-black/5"
             >
-              <img
+              <img decoding="async" decoding="async"
                 src={CHINA_HERO}
                 className="absolute inset-0 w-full h-full object-cover brightness-[0.55] grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[4s]"
                 alt="中华神州"
@@ -463,8 +464,8 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
               >
                 {/* 图片 */}
                 <div className="relative aspect-[3/4] rounded-2xl md:rounded-[3rem] overflow-hidden bg-stone-50 border border-black/5 shadow-sm transition-all duration-700 group-hover:shadow-2xl group-hover:scale-[1.02] group-hover:-translate-y-1">
-                  <img
-                    src={dest.scenery_url || dest.image_url || PLACEHOLDER}
+                  <img decoding="async" decoding="async"
+                    src={optimizeImage(dest.scenery_url || dest.image_url, { width: 600, quality: 75 }) || PLACEHOLDER}
                     className="w-full h-full object-cover transition-all duration-[2s] grayscale-[0.5] group-hover:grayscale-0"
                     alt={dest.name_cn}
                     loading="lazy"

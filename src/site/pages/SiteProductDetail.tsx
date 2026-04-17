@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProducts } from '../siteDataService';
+import { optimizeProductFull, optimizeProductThumb, optimizeImage } from '../imageUtils';
 
 interface SiteProductDetailProps {
   productId: string;
@@ -93,7 +94,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   }
 
   const seriesConfig = SERIES_CONFIG[product.series_code as keyof typeof SERIES_CONFIG];
-  const images = product.gallery_urls?.length ? product.gallery_urls : (product.image_url ? [product.image_url] : []);
+  const images = product.gallery_urls?.length
+    ? product.gallery_urls.map(url => optimizeProductFull(url) || url)
+    : (product.image_url ? [optimizeProductFull(product.image_url) || product.image_url] : []);
   const categoryLabel = ELEMENT_LABELS[product.category || ''] || '';
 
   // 从 specification 解析容量（如 "规格：100ml" → "100ml"）
@@ -181,7 +184,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           {images.length > 0 ? (
             <>
               <img src={images[activeImage]} alt={product.name_cn} className="w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} />
+                onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
               {images.length > 1 && (
                 <>
                   <button onClick={handlePrevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg"><ChevronLeft size={20} /></button>
@@ -332,7 +335,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               <div className="h-screen relative">
                 {images.length > 0 ? (
                   <img src={images[activeImage]} alt={product.name_cn} className="w-full h-full object-cover"
-                    onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} />
+                    onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center"><img src={LOGO_PLACEHOLDER} alt="" className="w-48 h-48 opacity-20" /></div>
                 )}
@@ -343,7 +346,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                     {images.map((img, idx) => (
                       <button key={idx} onClick={() => setActiveImage(idx)}
                         className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-[#D75437] scale-110' : 'border-white/50 opacity-60 hover:opacity-100'}`}>
-                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <img src={img} alt="" className="w-full h-full object-cover" decoding="async" />
                       </button>
                     ))}
                   </div>
@@ -505,9 +508,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                     {group.items.map(p => (
                       <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="group cursor-pointer">
                         <div className="aspect-square rounded-2xl overflow-hidden bg-[#FAF9F6] mb-3 border border-black/[0.03] group-hover:shadow-lg transition-all duration-500">
-                          <img src={p.image_url || LOGO_PLACEHOLDER} alt={p.name_cn}
+                          <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                            onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} />
+                            onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                         </div>
                         <h3 className="text-sm lg:text-base font-bold text-black/80 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
                         {p.price_10ml && <p className="text-xs lg:text-sm text-[#D4AF37] mt-1">¥{p.price_10ml} <span className="text-black/20">/ 10ml</span></p>}

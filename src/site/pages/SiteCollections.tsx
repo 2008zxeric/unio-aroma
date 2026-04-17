@@ -7,6 +7,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getSeries, getProducts } from '../siteDataService';
+import { optimizeProductThumb, optimizeImage } from '../imageUtils';
 
 interface SiteCollectionsProps {
   initialSeries?: string;
@@ -31,7 +32,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }) => {
-  const displayImage = item.image_url || item.gallery_urls?.[0] || LOGO_PLACEHOLDER;
+  const displayImage = optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || LOGO_PLACEHOLDER;
 
   return (
     <div
@@ -47,11 +48,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
           className="w-full h-full object-cover transition-transform duration-[8s] group-hover:scale-105"
           alt={item.name_cn}
           loading="lazy"
+          decoding="async"
           onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }}
         />
         <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button
-            onClick={(e) => { e.stopPropagation(); onZoom(displayImage); }}
+            onClick={(e) => { e.stopPropagation(); onZoom(optimizeImage(item.image_url || item.gallery_urls?.[0], { width: 800, quality: 80 }) || displayImage); }}
             className="p-3 bg-white/90 backdrop-blur rounded-full shadow-xl hover:scale-110 transition-all active:scale-95"
           >
             <ZoomIn size={16} className="text-[#D75437]" />
@@ -185,6 +187,7 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
             src={activePhoto}
             className="max-w-full max-h-[85vh] object-contain rounded-xl sm:rounded-2xl shadow-2xl"
             alt="Preview"
+            decoding="async"
           />
         </div>
       )}

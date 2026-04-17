@@ -11,8 +11,9 @@ import {
 } from 'lucide-react';
 import { Country, Product } from '../types';
 import { getCountryById, getProducts } from '../siteDataService';
+import { optimizeImage, optimizeHeroImage, optimizeProductThumb } from '../imageUtils';
 
-const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800';
+const PLACEHOLDER_IMG = optimizeHeroImage('https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800');
 
 if (typeof document !== 'undefined' && !document.getElementById('hide-scrollbar-style')) {
   const s = document.createElement('style');
@@ -115,7 +116,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     const gallery = country?.gallery_urls || [];
     if (gallery.length >= 3) return gallery;
     const result = [...gallery];
-    while (result.length < 3) result.push(country?.scenery_url || country?.image_url || PLACEHOLDER_IMG);
+    while (result.length < 3) result.push(optimizeImage(country?.scenery_url || country?.image_url, { width: 600, quality: 75 }) || PLACEHOLDER_IMG);
     return result;
   }, [country]);
 
@@ -223,7 +224,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
 
       {/* ===== HERO ===== */}
       <div id="destination-hero" className="relative h-screen w-full overflow-hidden bg-stone-900">
-        <img src={country.scenery_url || country.image_url || PLACEHOLDER_IMG}
+        <img decoding="async" src={optimizeImage(country.scenery_url || country.image_url, { width: 1200, quality: 80 }) || PLACEHOLDER_IMG}
           onLoad={() => setImgLoaded(true)}
           className={`w-full h-full object-cover transition-all duration-[2s] ease-out ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           alt={country.name_cn} />
@@ -307,7 +308,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
             {/* 左侧大图 - 60% 宽 */}
             <div className="sm:col-span-3 aspect-[3/4] sm:aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl cursor-zoom-in group border border-black/5 bg-stone-50 relative"
               onClick={() => setActivePhotoIndex(galleryPage * 3 + 0)}>
-              <img src={currentPagePhotos[0]} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Memory 1" loading="lazy" />
+              <img decoding="async" src={currentPagePhotos[0]} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Memory 1" loading="lazy" />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 flex items-end p-5 sm:p-8">
                 <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                   <span className="text-white/80 text-[10px] sm:text-xs tracking-[0.3em] uppercase font-medium">01 / {photos.length.toString().padStart(2, '0')}</span>
@@ -328,7 +329,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
                     onClick={() => setActivePhotoIndex(globalIdx)}
                     className="aspect-[4/3] sm:aspect-auto rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg cursor-zoom-in group border border-black/5 bg-stone-50 relative"
                   >
-                    <img src={photo} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={`Memory ${globalIdx + 1}`} loading="lazy" />
+                    <img decoding="async" src={photo} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={`Memory ${globalIdx + 1}`} loading="lazy" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500 flex items-end p-4 sm:p-6">
                       <span className="text-white/0 group-hover:text-white/80 transition-all duration-500 text-[10px] sm:text-xs tracking-[0.2em] uppercase font-medium">
                         {String(globalIdx + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}
@@ -351,7 +352,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
                 return (
                   <button key={idx} onClick={() => { setGalleryPage(pageIdx); setActivePhotoIndex(idx); }}
                     className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${idx === activePhotoIndex ? 'border-[#D4AF37] scale-110' : idx >= galleryPage * 3 && idx < galleryPage * 3 + 3 ? 'border-black/10' : 'border-transparent opacity-40 hover:opacity-70'}`}>
-                    <img src={photo} className="w-full h-full object-cover" alt="" loading="lazy" />
+                    <img decoding="async" src={photo} className="w-full h-full object-cover" alt="" loading="lazy" />
                   </button>
                 );
               })}
@@ -428,7 +429,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
                       <div key={item.id} onClick={() => onNavigate('product', { productId: item.id })}
                         className="flex-shrink-0 w-[45vw] sm:w-[28vw] md:w-[20vw] lg:w-[18vw] snap-start group cursor-pointer">
                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-50 border border-black/5 group-hover:shadow-xl group-hover:border-black/10 transition-all duration-500">
-                          <img src={item.image_url || item.gallery_urls?.[0] || PLACEHOLDER_IMG} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name_cn} loading="lazy" />
+                          <img src={optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || PLACEHOLDER_IMG} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name_cn} loading="lazy" decoding="async" />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3 sm:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <span className="text-white text-[10px] sm:text-xs tracking-widest uppercase">查看详情 →</span>
                           </div>
