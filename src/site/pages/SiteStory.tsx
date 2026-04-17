@@ -5,12 +5,13 @@
 
 import React from 'react';
 import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe } from 'lucide-react';
+import { optimizeHeroImage } from '../imageUtils';
 
 const ASSETS = {
-  hero_eric: 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920',
-  hero_alice: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920',
-  map: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920',
-  banner: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=2560',
+  hero_eric: optimizeHeroImage('https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920'),
+  hero_alice: optimizeHeroImage('https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920'),
+  map: optimizeHeroImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920'),
+  banner: optimizeHeroImage('https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=2560'),
   logo: '/logo.svg',
 };
 
@@ -24,7 +25,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
       {/* 1. 序幕 - 极境愿景 */}
       <section className="h-screen relative flex flex-col items-center justify-center text-center px-6">
         <div className="absolute inset-0 overflow-hidden">
-          <img
+          <img decoding="async" decoding="async"
             src={ASSETS.hero_eric}
             className="w-full h-full object-cover scale-105 animate-slow-zoom grayscale opacity-30"
             alt="Hero Background"
@@ -79,7 +80,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           </div>
           <div className="lg:col-span-5 relative group">
             <div className="aspect-[3/4] rounded-[5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] relative z-10 border-[12px] border-white transition-all duration-[2s]">
-              <img
+              <img decoding="async" decoding="async"
                 src={ASSETS.map}
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] scale-100 group-hover:scale-110"
                 alt="Brand Heritage Map"
@@ -102,7 +103,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 md:gap-48 items-center">
             <div className="order-2 lg:order-1 relative group">
               <div className="aspect-[4/5] rounded-[6rem] overflow-hidden shadow-2xl p-4 bg-white">
-                <img
+                <img decoding="async" decoding="async"
                   src={ASSETS.hero_eric}
                   className="w-full h-full object-cover rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
                   alt="Eric - The Explorer"
@@ -140,7 +141,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
             </div>
             <div className="relative group">
               <div className="aspect-[4/5] rounded-[5rem] overflow-hidden shadow-2xl p-4 bg-white">
-                <img
+                <img decoding="async" decoding="async"
                   src={ASSETS.hero_alice}
                   className="w-full h-full object-cover rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
                   alt="Alice - The Expert"
@@ -159,7 +160,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
       {/* 4. 终章 */}
       <section className="pb-80 px-6">
         <div className="max-w-[1400px] mx-auto p-20 md:p-40 rounded-[6rem] bg-[#1a1a1a] text-white text-center space-y-20 shadow-[0_80px_150px_-30px_rgba(0,0,0,0.5)] overflow-hidden relative group">
-          <img
+          <img decoding="async" decoding="async"
             src={ASSETS.banner}
             className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-110 transition-transform duration-[5s] grayscale group-hover:grayscale-0"
             alt="Final CTA"
