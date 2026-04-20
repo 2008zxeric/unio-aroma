@@ -1597,10 +1597,11 @@ function ProductEditFormV4({
       </div>
 
       {/* ====== 前台预览弹窗 ====== */}
-      {showPreview && (
+      {showPreview && editingId && (
         <ProductPreviewModal
           form={form}
           isJing={isJing}
+          productId={editingId}
           onClose={() => setShowPreview(false)}
         />
       )}
@@ -1911,8 +1912,8 @@ function OtherCostEditorV2({ costs, onChange }: {
 // 产品前台预览弹窗
 // ============================================
 
-function ProductPreviewModal({ form, isJing, onClose }: {
-  form: ProductForm; isJing: boolean; onClose: () => void;
+function ProductPreviewModal({ form, isJing, productId, onClose }: {
+  form: ProductForm; isJing: boolean; productId: string; onClose: () => void;
 }) {
   const catInfo = form.category ? CATEGORY_SERIES_MAP[form.category] : null;
   const benefits = form.benefits ? form.benefits.split(/[,，]/).filter(Boolean) : [];
@@ -2012,11 +2013,19 @@ function ProductPreviewModal({ form, isJing, onClose }: {
           </div>
         </div>
 
-        {/* 底部提示 */}
-        <div className="px-6 py-3 bg-[#F2F7F3] border-t border-[#E0ECE0] rounded-b-3xl">
-          <p className="text-xs text-center text-[#9AAA9A]">
-            👆 前台展示效果预览 · 实际样式请访问 unioaroma.com
-          </p>
+        {/* 跳转到前台 */}
+        <div className="px-6 py-3 bg-[#F2F7F3] border-t border-[#E0ECE0] rounded-b-3xl flex items-center justify-between">
+          <p className="text-xs text-[#9AAA9A]">👆 前台展示效果预览</p>
+          <a
+            href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'product', p: { productId } }))}`}
+            target="_new"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#4A7C59] text-white text-xs font-medium hover:bg-[#3D6B4D] transition-colors"
+          >
+            <ExternalLink size={12} />
+            打开前台产品
+          </a>
         </div>
       </div>
     </div>

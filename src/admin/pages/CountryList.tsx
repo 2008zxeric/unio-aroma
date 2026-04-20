@@ -884,8 +884,8 @@ function CountryEditForm({
       <div className="h-20" />
 
       {/* 前台预览弹窗 */}
-      {showPreview && (
-        <CountryPreviewModal form={form} onClose={onPreviewClose} />
+      {showPreview && editingId && (
+        <CountryPreviewModal form={form} countryId={editingId} onClose={onPreviewClose} />
       )}
     </div>
   );
@@ -894,7 +894,7 @@ function CountryEditForm({
 // ============================================
 // 前台预览弹窗
 // ============================================
-function CountryPreviewModal({ form, onClose }: { form: CountryForm; onClose: () => void }) {
+function CountryPreviewModal({ form, countryId, onClose }: { form: CountryForm; countryId: string; onClose: () => void }) {
   const galleryUrls = form.gallery_urls ? form.gallery_urls.split('\n').filter(Boolean) : [];
 
   return (
@@ -1016,11 +1016,19 @@ function CountryPreviewModal({ form, onClose }: { form: CountryForm; onClose: ()
           </div>
         </div>
 
-        {/* 底部提示 */}
-        <div className="px-6 py-3 bg-[#F2F7F3] border-t border-[#E0ECE0] rounded-b-3xl">
-          <p className="text-xs text-center text-[#9AAA9A]">
-            👆 前台展示效果预览 · 实际样式请访问 unioaroma.com
-          </p>
+        {/* 跳转到前台 */}
+        <div className="px-6 py-3 bg-[#F2F7F3] border-t border-[#E0ECE0] rounded-b-3xl flex items-center justify-between">
+          <p className="text-xs text-[#9AAA9A]">👆 前台展示效果预览</p>
+          <a
+            href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'destination', p: { countryId } }))}`}
+            target="_new"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#4A7C59] text-white text-xs font-medium hover:bg-[#3D6B4D] transition-colors"
+          >
+            <ExternalLink size={12} />
+            打开前台国家
+          </a>
         </div>
       </div>
     </div>
