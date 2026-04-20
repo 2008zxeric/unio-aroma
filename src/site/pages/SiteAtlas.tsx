@@ -1,7 +1,6 @@
 /**
- * UNIO AROMA 前台 - 全球寻香地图页 v2
- * 基于 react-simple-maps + TopoJSON 真实地理投影
- * 数据来源: Supabase
+ * UNIO AROMA 前台 - 全球寻香地图页 v3
+ * 地图主导交互：点击大洲筛选，地图与列表联动
  */
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -12,78 +11,95 @@ import {
   Marker,
   ZoomableGroup,
 } from 'react-simple-maps';
-import { MapPin, ArrowUpRight, Sparkles, Globe, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, Globe, Search, SlidersHorizontal } from 'lucide-react';
 import * as topojson from 'topojson-client';
 import { Country } from '../types';
 import { getGlobalCountries } from '../siteDataService';
-import { optimizeImage, optimizeHeroImage } from '../imageUtils';
+import { optimizeImage } from '../imageUtils';
 
-// TopoJSON 世界地图数据 (Natural Earth 1:110m)
+// TopoJSON 世界地图数据
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-// 地区定义 (id = region 值)
-const REGIONS = [
-  { id: 'europe',   name: '欧洲',      en: 'EUROPE',    flag: '🌍' },
-  { id: 'asia',     name: '亚洲',      en: 'ASIA',      flag: '🌏' },
-  { id: 'africa',   name: '非洲',      en: 'AFRICA',    flag: '🌍' },
-  { id: 'america',  name: '美洲',      en: 'AMERICAS',  flag: '🌎' },
-  { id: 'oceania',  name: '大洋洲',    en: 'OCEANIA',   flag: '🌊' },
+// 大洲配置（id = Supabase region 实际值）
+const CONTINENTS = [
+  { id: '亚洲',     name: '亚洲',     en: 'ASIA',     color: '#D75437', bg: 'rgba(215,84,55,0.12)',  dot: '#D75437' },
+  { id: '欧洲',     name: '欧洲',     en: 'EUROPE',   color: '#C9A84C', bg: 'rgba(201,168,76,0.12)', dot: '#C9A84C' },
+  { id: '非洲',     name: '非洲',     en: 'AFRICA',   color: '#2C7A4B', bg: 'rgba(44,122,75,0.12)',  dot: '#2C7A4B' },
+  { id: '美洲',     name: '美洲',     en: 'AMERICAS', color: '#1E4D8C', bg: 'rgba(30,77,140,0.12)',  dot: '#1E4D8C' },
+  { id: '大洋洲',   name: '大洋洲',   en: 'OCEANIA',  color: '#4A90A4', bg: 'rgba(74,144,164,0.12)', dot: '#4A90A4' },
 ];
 
-// 国家经纬度映射表 (name_cn → [lng, lat])
+// TopoJSON ISO → 大洲映射（手动标注 TopoJSON 2-digit ISO）
+const ISO_CONTINENT: Record<string, string> = {
+  // 欧洲
+  'ALB':'europe','AND':'europe','AUT':'europe','BEL':'europe','BGR':'europe',
+  'BIH':'europe','BLR':'europe','CHE':'europe','CYP':'europe','CZE':'europe',
+  'DEU':'europe','DNK':'europe','ESP':'europe','EST':'europe','FIN':'europe',
+  'FRA':'europe','GBR':'europe','GRC':'europe','HRV':'europe','HUN':'europe',
+  'IRL':'europe','ISL':'europe','ITA':'europe','KSV':'europe','LIE':'europe',
+  'LTU':'europe','LUX':'europe','LVA':'europe','MCO':'europe','MKD':'europe',
+  'MLT':'europe','MNE':'europe','NLD':'europe','NOR':'europe','POL':'europe',
+  'PRT':'europe','ROU':'europe','RUS':'europe','SMR':'europe','SRB':'europe',
+  'SVK':'europe','SVN':'europe','SWE':'europe','UKR':'europe','VAT':'europe',
+  // 亚洲
+  'AFG':'asia','ARE':'asia','ARM':'asia','AZE':'asia','BGD':'asia','BHR':'asia',
+  'BRN':'asia','BTN':'asia','CHN':'asia','GEO':'asia','HKG':'asia','IDN':'asia',
+  'IND':'asia','IRN':'asia','IRQ':'asia','ISR':'asia','JPN':'asia','JOR':'asia',
+  'KAZ':'asia','KGZ':'asia','KHM':'asia','KOR':'asia','KWT':'asia','LAO':'asia',
+  'LBN':'asia','LKA':'asia','MAC':'asia','MMR':'asia','MNG':'asia','MYS':'asia',
+  'NPL':'asia','OMN':'asia','PAK':'asia','PHL':'asia','PRK':'asia','PSE':'asia',
+  'QAT':'asia','SAU':'asia','SGP':'asia','SYR':'asia','TJK':'asia','TKM':'asia',
+  'THA':'asia','TLS':'asia','TWN':'asia','UZB':'asia','VNM':'asia','YEM':'asia',
+  // 非洲
+  'DZA':'africa','AGO':'africa','BEN':'africa','BWA':'africa','BFA':'africa',
+  'BDI':'africa','CMR':'africa','CAF':'africa','TCD':'africa','COD':'africa',
+  'COG':'africa','CIV':'africa','DJI':'africa','EGY':'africa','GNQ':'africa',
+  'ERI':'africa','SWZ':'africa','ETH':'africa','GAB':'africa','GMB':'africa',
+  'GHA':'africa','GIN':'africa','GNB':'africa','KEN':'africa','LBR':'africa',
+  'LBY':'africa','MDG':'africa','MWI':'africa','MLI':'africa','MAR':'africa',
+  'MRT':'africa','MUS':'africa','MOZ':'africa','NAM':'africa','NER':'africa',
+  'NGA':'africa','RWA':'africa','SDN':'africa','SSD':'africa','SEN':'africa',
+  'SLE':'africa','SOM':'africa','ZAF':'africa','TZA':'africa',
+  'TGO':'africa','TUN':'africa','UGA':'africa','ZMB':'africa','ZWE':'africa',
+  // 美洲
+  'ARG':'america','BOL':'america','BRA':'america','CAN':'america','CHL':'america',
+  'COL':'america','CRI':'america','CUB':'america','DOM':'america','ECU':'america',
+  'SLV':'america','GTM':'america','GUY':'america','HTI':'america','HND':'america',
+  'JAM':'america','MEX':'america','NIC':'america','PAN':'america','PRY':'america',
+  'PER':'america','SUR':'america','TTO':'america','URY':'america','USA':'america',
+  'VEN':'america','BRB':'america','BHS':'america','ATG':'america','DMA':'america',
+  'GRD':'america','KNA':'america','LCA':'america','VCT':'america',
+  // 大洋洲
+  'AUS':'oceania','NZL':'oceania','PNG':'oceania','FJI':'oceania','SLB':'oceania',
+  'VUT':'oceania','WSM':'oceania','TON':'oceania','FSM':'oceania','KIR':'oceania',
+  'MHL':'oceania','PLW':'oceania','NRU':'oceania','TUV':'oceania',
+};
+
+// ISO英文ID → Supabase region中文值
+const ISO_TO_REGION: Record<string, string> = {
+  'asia':'亚洲','europe':'欧洲','africa':'非洲','america':'美洲','oceania':'大洋洲',
+} as const;
 const COUNTRY_COORDS: Record<string, [number, number]> = {
-  '匈牙利': [19.5, 47.2],
-  '阿联酋': [53.8, 23.4],
-  '韩国': [127.8, 35.9],
-  '中国': [104.2, 35.9],
-  '伊朗': [53.7, 32.4],
-  '斯里兰卡': [80.8, 7.9],
-  '哈萨克斯坦': [66.9, 40.4],
-  '中国澳门': [113.5, 22.2],
-  '朝鲜': [125.8, 39.0],
-  '法国': [2.2, 46.2],
-  '摩洛哥': [-5.8, 31.8],
-  '奥地利': [14.6, 47.5],
-  '波兰': [19.1, 51.9],
-  '加拿大': [-106.4, 56.1],
-  '卢森堡': [6.1, 49.8],
-  '南非': [22.9, -30.6],
-  '肯尼亚': [38.0, -0.0],
-  '希腊': [21.8, 39.1],
-  '秘鲁': [-75.0, -9.2],
-  '阿根廷': [-63.6, -38.4],
-  '古巴': [-77.8, 21.5],
-  '英国': [-3.4, 55.4],
-  '冰岛': [-19.0, 64.9],
-  '葡萄牙': [-8.2, 39.4],
-  '津巴布韦': [29.1, -19.0],
-  '墨西哥': [-102.6, 23.6],
-  '海地': [-72.3, 19.0],
-  '天津': [117.2, 39.1],
-  '山西': [112.5, 37.9],
-  '中国香港': [114.1, 22.4],
-  '新加坡': [103.8, 1.4],
-  '柬埔寨': [105.0, 12.6],
-  '马来西亚': [101.9, 4.2],
-  '北京': [116.4, 39.9],
-  '上海': [121.5, 31.2],
-  '安徽': [117.3, 31.9],
-  '山东': [118.0, 36.4],
-  '台湾': [121.0, 23.5],
-  '湖北': [112.3, 30.6],
-  '湖南': [111.7, 26.9],
-  '广西': [108.3, 23.7],
-  '海南': [109.5, 19.2],
-  '四川': [104.1, 30.6],
-  '贵州': [106.7, 26.6],
-  '西藏': [87.5, 34.1],
-  '辽宁': [123.4, 41.8],
-  '吉林': [126.5, 43.8],
-  '青海': [96.4, 35.7],
+  '匈牙利': [19.5, 47.2], '阿联酋': [53.8, 23.4], '韩国': [127.8, 35.9],
+  '中国': [104.2, 35.9], '伊朗': [53.7, 32.4], '斯里兰卡': [80.8, 7.9],
+  '哈萨克斯坦': [66.9, 40.4], '中国澳门': [113.5, 22.2], '朝鲜': [125.8, 39.0],
+  '法国': [2.2, 46.2], '摩洛哥': [-5.8, 31.8], '奥地利': [14.6, 47.5],
+  '波兰': [19.1, 51.9], '加拿大': [-106.4, 56.1], '卢森堡': [6.1, 49.8],
+  '南非': [22.9, -30.6], '肯尼亚': [38.0, -0.0], '希腊': [21.8, 39.1],
+  '秘鲁': [-75.0, -9.2], '阿根廷': [-63.6, -38.4], '古巴': [-77.8, 21.5],
+  '英国': [-3.4, 55.4], '冰岛': [-19.0, 64.9], '葡萄牙': [-8.2, 39.4],
+  '津巴布韦': [29.1, -19.0], '墨西哥': [-102.6, 23.6], '海地': [-72.3, 19.0],
+  '天津': [117.2, 39.1], '山西': [112.5, 37.9], '中国香港': [114.1, 22.4],
+  '新加坡': [103.8, 1.4], '柬埔寨': [105.0, 12.6], '马来西亚': [101.9, 4.2],
+  '北京': [116.4, 39.9], '上海': [121.5, 31.2], '安徽': [117.3, 31.9],
+  '山东': [118.0, 36.4], '台湾': [121.0, 23.5], '湖北': [112.3, 30.6],
+  '湖南': [111.7, 26.9], '广西': [108.3, 23.7], '海南': [109.5, 19.2],
+  '四川': [104.1, 30.6], '贵州': [106.7, 26.6], '西藏': [87.5, 34.1],
+  '辽宁': [123.4, 41.8], '吉林': [126.5, 43.8], '青海': [96.4, 35.7],
   '菲律宾': [121.8, 12.9],
 };
 
-// 地名 → ISO 3166-1 alpha-3 (用于匹配 TopoJSON 的世界地图)
+// 国家名 → ISO 3166-1 alpha-3
 const NAME_TO_ISO: Record<string, string> = {
   '匈牙利': 'HUN', '阿联酋': 'ARE', '韩国': 'KOR', '中国': 'CHN',
   '伊朗': 'IRN', '斯里兰卡': 'LKA', '哈萨克斯坦': 'KAZ', '中国澳门': 'MAC',
@@ -100,44 +116,25 @@ const NAME_TO_ISO: Record<string, string> = {
   '菲律宾': 'PHL',
 };
 
-// 大陆填充色
-const REGION_COLORS: Record<string, string> = {
-  'europe': 'rgba(212,175,55,0.06)',
-  'asia': 'rgba(212,175,55,0.06)',
-  'africa': 'rgba(212,175,55,0.06)',
-  'america': 'rgba(212,175,55,0.06)',
-  'oceania': 'rgba(212,175,55,0.06)',
-};
-
 interface SiteAtlasProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
-const CHINA_HERO =
-  optimizeHeroImage('https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560');
-const PLACEHOLDER =
-  optimizeHeroImage('https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800');
-
 export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [activeContinent, setActiveContinent] = useState<string | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<Country | null>(null);
   const [geoData, setGeoData] = useState<any>(null);
-  const [tooltip, setTooltip] = useState<{
-    x: number; y: number; name: string; en?: string;
-  } | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; name: string; en?: string } | null>(null);
+  const [search, setSearch] = useState('');
   const mapRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // 加载世界地图拓扑数据
   useEffect(() => {
-    fetch(GEO_URL)
-      .then((r) => r.json())
-      .then(setGeoData)
-      .catch(console.error);
+    fetch(GEO_URL).then((r) => r.json()).then(setGeoData).catch(console.error);
   }, []);
 
-  // 加载国家数据
   useEffect(() => {
     getGlobalCountries()
       .then(setCountries)
@@ -145,11 +142,27 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
       .finally(() => setLoading(false));
   }, []);
 
+  // 大洲统计
+  const continentStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    countries.forEach((c) => {
+      if (c.region) stats[c.region] = (stats[c.region] || 0) + 1;
+    });
+    return stats;
+  }, [countries]);
+
   // 过滤列表
   const filtered = useMemo(() => {
-    if (!selectedRegion) return countries;
-    return countries.filter((c) => c.region === selectedRegion);
-  }, [countries, selectedRegion]);
+    let result = countries;
+    if (activeContinent) result = result.filter((c) => c.region === activeContinent);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (c) => c.name_cn.includes(q) || (c.name_en || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [countries, activeContinent, search]);
 
   // 有地图坐标的国家
   const mapped = useMemo(
@@ -157,97 +170,90 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
     [countries]
   );
 
-  // hover 时显示 tooltip
-  const handleMarkerHover = useCallback(
+  // 大洲高亮时，哪些国家应高亮
+  const highlightedIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!activeContinent) return ids;
+    countries.filter((c) => c.region === activeContinent).forEach((c) => ids.add(c.id));
+    return ids;
+  }, [countries, activeContinent]);
+
+  const handleMapHover = useCallback(
     (country: Country | null, e?: React.MouseEvent) => {
-      if (!country || !e) {
-        setTooltip(null);
-        return;
-      }
+      if (!country || !e) { setTooltip(null); return; }
       const rect = mapRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setTooltip({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-        name: country.name_cn,
-        en: country.name_en,
-      });
+      setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, name: country.name_cn, en: country.name_en });
     },
     []
   );
 
+  const handleContinentClick = (region: string) => {
+    const next = activeContinent === region ? null : region;
+    setActiveContinent(next);
+    if (listRef.current) {
+      listRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FDFDFD]">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto border-4 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
-          <p className="text-[#2C3E28]/50 text-sm tracking-widest">
-            正在加载寻香坐标...
-          </p>
+          <div className="w-14 h-14 mx-auto border-4 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+          <p className="text-[#2C3E28]/40 text-xs tracking-widest">正在加载寻香坐标...</p>
         </div>
       </div>
     );
   }
 
+  const activeCont = CONTINENTS.find((c) => c.id === activeContinent);
+  const totalMapped = mapped.length;
+
   return (
     <div
       ref={mapRef}
-      className="min-h-screen bg-[#FDFDFD] pt-28 md:pt-48 pb-64 selection:bg-[#D75437] selection:text-white"
+      className="min-h-screen bg-[#FAF9F6] selection:bg-[#D75437] selection:text-white"
     >
-      {/* 网格背景 */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.025]">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'radial-gradient(#000 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-      </div>
+      <div className="max-w-[1600px] mx-auto">
 
-      <div className="max-w-[1600px] mx-auto px-6 md:px-20 relative z-10">
-
-        {/* ====== Header ====== */}
-        <header className="mb-12 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 text-[#D75437]">
-              <Globe
-                size={16}
-                className="animate-spin"
-                style={{ animationDuration: '20s' }}
-              />
-              <span className="text-[10px] tracking-[0.6em] font-extrabold uppercase opacity-40">
-                The Global Archive
-              </span>
+        {/* ===== Header ===== */}
+        <header className="pt-28 md:pt-44 px-6 md:px-16 pb-8 md:pb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-[#D75437]">
+              <Globe size={14} />
+              <span className="text-[9px] tracking-[0.6em] font-extrabold uppercase opacity-40">The Global Archive</span>
             </div>
-            <h2 className="text-5xl md:text-[8rem] font-bold tracking-tight text-black/90 leading-none">
-              寻香<span className="text-black/10">坐标</span>
+            <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-black/90 leading-none">
+              寻香<span className="text-black/8">坐标</span>
             </h2>
           </div>
-          <div className="md:text-right space-y-2">
-            <div
-              className="text-3xl md:text-6xl font-bold text-[#D75437]"
-              style={{ fontVariantNumeric: 'tabular-nums' }}
-            >
-              {countries.length}
+          <div className="flex items-end gap-8">
+            <div className="text-right">
+              <div className="text-3xl md:text-5xl font-bold text-[#D75437]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {countries.length}
+              </div>
+              <p className="text-[8px] tracking-[0.4em] font-bold text-black/20 uppercase">Locations</p>
             </div>
-            <p className="text-[9px] tracking-[0.4em] font-bold text-black/20 uppercase">
-              Locations Cataloged
-            </p>
+            <div className="text-right">
+              <div className="text-3xl md:text-5xl font-bold text-black/20" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {totalMapped}
+              </div>
+              <p className="text-[8px] tracking-[0.4em] font-bold text-black/10 uppercase">Mapped</p>
+            </div>
           </div>
         </header>
 
-        {/* ====== 世界地图 ====== */}
-        <section className="mb-16 md:mb-28 relative">
-          {/* 外框 */}
-          <div className="relative w-full h-[40vh] md:h-[60vh] rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-[#090909] border border-white/5 shadow-2xl">
+        {/* ===== 地图主体 ===== */}
+        <section className="px-4 md:px-10 mb-6">
+          {/* 外框：浅色地图 */}
+          <div className="relative w-full h-[42vh] md:h-[55vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-black/5 shadow-lg"
+            style={{ background: '#F5F3EF' }}>
 
-            {/* 世界地图 SVG */}
             {geoData ? (
               <ComposableMap
                 projection="geoNaturalEarth1"
-                projectionConfig={{ scale: 145 }}
+                projectionConfig={{ scale: 150 }}
                 style={{ width: '100%', height: '100%' }}
               >
                 <ZoomableGroup zoom={1} center={[15, 20]}>
@@ -255,23 +261,30 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                     {({ geographies }: { geographies: any[] }) =>
                       geographies.map((geo) => {
                         const iso = geo.id?.toString().toUpperCase();
-                        const inData = mapped.some(
-                          (c) => NAME_TO_ISO[c.name_cn] === iso
-                        );
+                        const contEn = ISO_CONTINENT[iso];
+                        const cont = contEn ? ISO_TO_REGION[contEn] : null;
+                        const contConfig = CONTINENTS.find((c) => c.id === cont);
+                        const isActive = !activeContinent || activeContinent === cont;
+                        const isSelected = activeContinent && activeContinent === cont;
                         return (
                           <Geography
                             key={geo.rsmKey}
                             geography={geo}
                             fill={
-                              inData
-                                ? 'rgba(212,175,55,0.15)'
-                                : 'rgba(255,255,255,0.03)'
+                              isSelected
+                                ? contConfig?.bg || 'rgba(212,175,55,0.15)'
+                                : isActive
+                                  ? 'rgba(200,195,185,0.25)'
+                                  : 'rgba(230,228,222,0.4)'
                             }
-                            stroke="rgba(212,175,55,0.07)"
-                            strokeWidth={0.5}
+                            stroke={isSelected ? `${contConfig?.color}44` : 'rgba(200,195,185,0.4)'}
+                            strokeWidth={isSelected ? 0.8 : 0.3}
                             style={{
                               default: { outline: 'none' },
-                              hover: { outline: 'none', fill: inData ? 'rgba(212,175,55,0.28)' : 'rgba(255,255,255,0.06)' },
+                              hover: {
+                                outline: 'none',
+                                fill: contConfig?.bg || 'rgba(212,175,55,0.2)',
+                              },
                               pressed: { outline: 'none' },
                             }}
                           />
@@ -283,49 +296,41 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                   {/* 国家点位 */}
                   {mapped.map((country) => {
                     const [lng, lat] = COUNTRY_COORDS[country.name_cn] ?? [0, 0];
-                    const isHov = hoveredId === country.id;
-                    const iso = NAME_TO_ISO[country.name_cn] ?? '';
-                    const inData = !!iso;
+                    const isHighlighted = highlightedIds.has(country.id);
+                    const isHov = hoveredCountry?.id === country.id;
+                    const cont = CONTINENTS.find((c) => c.id === country.region);
+                    const dotColor = cont?.dot || '#C9A84C';
 
                     return (
                       <Marker
                         key={country.id}
                         coordinates={[lng, lat]}
-                        onMouseEnter={(e: any) => {
-                          setHoveredId(country.id);
-                          handleMarkerHover(country, e);
-                        }}
-                        onMouseLeave={() => {
-                          setHoveredId(null);
-                          handleMarkerHover(null);
-                        }}
-                        onClick={() =>
-                          onNavigate('destination', { countryId: country.id })
-                        }
+                        onMouseEnter={(e: any) => { setHoveredCountry(country); handleMapHover(country, e); }}
+                        onMouseLeave={() => { setHoveredCountry(null); handleMapHover(null); }}
+                        onClick={() => onNavigate('destination', { countryId: country.id })}
                         style={{ cursor: 'pointer' }}
                       >
-                        {/* 外圈脉冲 */}
+                        {/* 外圈 */}
                         <circle
-                          r={isHov ? 10 : 7}
+                          r={isHov ? 11 : isHighlighted ? 9 : 6}
                           fill="none"
-                          stroke="rgba(212,175,55,0.5)"
-                          strokeWidth={1}
+                          stroke={dotColor}
+                          strokeWidth={isHighlighted ? 1.5 : 1}
+                          opacity={isHighlighted ? 0.7 : isHov ? 0.6 : 0.25}
                           style={{
-                            animation: `atlasPulse 2.5s ease-out infinite`,
-                            animationDelay: `${Math.abs(lng * 0.05 + lat * 0.03) % 2}s`,
+                            animation: isHighlighted ? `atlasPulse 2s ease-out infinite` : undefined,
+                            animationDelay: `${(Math.abs(lng) + Math.abs(lat)) % 20 / 10}s`,
+                            transition: 'r 0.2s, opacity 0.3s',
                           }}
                         />
-                        {/* 内核 */}
+                        {/* 核 */}
                         <circle
-                          r={isHov ? 5 : 3.5}
-                          fill={isHov ? '#D4AF37' : 'rgba(212,175,55,0.85)'}
-                          stroke={isHov ? '#D4AF37' : 'rgba(212,175,55,0.4)'}
-                          strokeWidth={1}
+                          r={isHov ? 5 : isHighlighted ? 4 : 3}
+                          fill={dotColor}
+                          opacity={isHighlighted || isHov ? 1 : 0.4}
                           style={{
-                            filter: isHov
-                              ? 'drop-shadow(0 0 8px rgba(212,175,55,0.9))'
-                              : 'drop-shadow(0 0 4px rgba(212,175,55,0.4))',
-                            transition: 'r 0.25s, fill 0.25s',
+                            filter: (isHighlighted || isHov) ? `drop-shadow(0 0 6px ${dotColor}80)` : 'none',
+                            transition: 'r 0.2s, opacity 0.3s',
                           }}
                         />
                       </Marker>
@@ -334,253 +339,265 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                 </ZoomableGroup>
               </ComposableMap>
             ) : (
-              /* 加载骨架 */
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin" />
+                <div className="w-7 h-7 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin" />
               </div>
             )}
 
             {/* Tooltip */}
             {tooltip && (
               <div
-                className="absolute pointer-events-none z-50"
-                style={{ left: tooltip.x + 12, top: tooltip.y - 16 }}
+                className="absolute pointer-events-none z-50 transition-opacity duration-100"
+                style={{ left: tooltip.x + 14, top: tooltip.y - 14, transform: 'translateY(-100%)' }}
               >
-                <div className="bg-black/95 backdrop-blur-md text-white text-xs font-bold tracking-wider px-4 py-2.5 rounded-2xl border border-[#D4AF37]/30 shadow-2xl shadow-black/50 whitespace-nowrap">
-                  <span className="text-[#D4AF37] mr-2">◆</span>
+                <div className="bg-white/95 backdrop-blur-md text-black/80 text-xs font-bold tracking-wider px-4 py-2.5 rounded-2xl border border-black/10 shadow-xl whitespace-nowrap">
+                  <span className="text-[#D75437] mr-2">◆</span>
                   {tooltip.name}
-                  {tooltip.en && (
-                    <span className="text-white/40 ml-2 text-[10px]">
-                      {tooltip.en}
-                    </span>
-                  )}
+                  {tooltip.en && <span className="text-black/30 ml-2 text-[10px]">{tooltip.en}</span>}
                 </div>
               </div>
             )}
 
             {/* 左下角装饰 */}
-            <div className="absolute bottom-5 left-7 hidden md:flex flex-col gap-1">
-              <div className="text-[7px] tracking-[0.5em] font-bold text-[#D4AF37]/40 uppercase">
-                Global Sourcing Map
+            <div className="absolute bottom-4 left-5 hidden md:flex flex-col gap-1">
+              <div className="text-[6px] tracking-[0.5em] font-bold text-black/20 uppercase">
+                {activeCont ? `${activeCont.name} / ${activeCont.en}` : 'All Regions'}
               </div>
-              <div className="text-[6px] tracking-[0.3em] text-white/15">
-                {mapped.length} / {countries.length} locations
+              <div className="text-[5px] tracking-[0.3em] text-black/10">
+                {highlightedIds.size || countries.length} locations
               </div>
             </div>
 
             {/* 右上角图例 */}
-            <div className="absolute top-5 right-7 hidden md:flex items-center gap-2">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{
-                  background: '#D4AF37',
-                  boxShadow: '0 0 6px rgba(212,175,55,0.7)',
-                  animation: 'atlasPulse 2.5s ease-out infinite',
-                }}
-              />
-              <span className="text-[7px] tracking-[0.4em] font-bold text-white/25 uppercase">
-                Origin Point
-              </span>
+            <div className="absolute top-4 right-5 hidden md:flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#C9A84C] opacity-50" />
+              <span className="text-[6px] tracking-[0.4em] font-bold text-black/20 uppercase">Origin Point</span>
             </div>
           </div>
         </section>
 
-        {/* ====== 地区筛选 ====== */}
-        <nav className="sticky top-24 z-50 bg-white/70 backdrop-blur-xl -mx-6 px-6 mb-12 md:mb-20 rounded-b-2xl border-b border-black/5">
-          <div className="flex items-center gap-8 md:gap-16 overflow-x-auto py-5">
+        {/* ===== 大洲筛选标签 ===== */}
+        <nav className="sticky top-20 z-40 bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-black/5 mx-4 md:mx-10 rounded-b-2xl">
+          <div className="flex items-center gap-1 overflow-x-auto py-4 px-2">
+            {/* 全部 */}
             <button
-              onClick={() => setSelectedRegion(null)}
-              className={`group flex flex-col gap-2 transition-all whitespace-nowrap pb-0.5 border-b-2 ${
-                selectedRegion === null
-                  ? 'border-[#D75437]'
-                  : 'border-transparent opacity-30 hover:opacity-60'
+              onClick={() => setActiveContinent(null)}
+              className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-2xl transition-all whitespace-nowrap ${
+                activeContinent === null
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
               }`}
             >
-              <span className="text-sm md:text-xl font-bold tracking-widest">全部档案</span>
+              <span className="text-xs font-bold tracking-wider">全部档案</span>
+              <span className="text-[9px] opacity-50 tracking-widest uppercase">All</span>
             </button>
-            {REGIONS.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setSelectedRegion(r.name)}
-                className={`group flex flex-col gap-2 transition-all whitespace-nowrap pb-0.5 border-b-2 ${
-                  selectedRegion === r.name
-                    ? 'border-[#D75437]'
-                    : 'border-transparent opacity-30 hover:opacity-60'
-                }`}
-              >
-                <span className="text-sm md:text-xl font-bold tracking-widest">{r.name}</span>
-              </button>
-            ))}
+
+            {CONTINENTS.map((c) => {
+              const count = continentStats[c.id] || 0;
+              const isActive = activeContinent === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => handleContinentClick(c.id)}
+                  className={`flex flex-col items-center gap-0.5 px-5 py-2 rounded-2xl transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'shadow-sm'
+                      : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
+                  }`}
+                  style={isActive ? { background: c.color, color: '#fff' } : {}}
+                >
+                  <span className="text-xs font-bold tracking-wider">{c.name}</span>
+                  <span className="text-[9px] opacity-70 tracking-widest uppercase">{c.en}</span>
+                  {count > 0 && (
+                    <span
+                      className="text-[8px] font-bold mt-0.5 px-1.5 py-0.5 rounded-full"
+                      style={isActive ? { background: 'rgba(255,255,255,0.25)', color: '#fff' } : { background: `${c.color}22`, color: c.color }}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {/* 中华神州 */}
+            <button
+              onClick={() => onNavigate('china-atlas')}
+              className="ml-auto flex items-center gap-2 px-5 py-2 bg-[#D75437]/8 text-[#D75437] hover:bg-[#D75437]/15 rounded-2xl transition-all whitespace-nowrap border border-[#D75437]/15"
+            >
+              <span className="text-xs font-bold tracking-wider">中华神州</span>
+              <ArrowUpRight size={12} />
+            </button>
           </div>
         </nav>
 
-        {/* ====== 中华神州入口 ====== */}
-        {!selectedRegion && (
-          <section className="mb-12 md:mb-24">
-            <div
-              onClick={() => onNavigate('china-atlas')}
-              className="group relative h-64 md:h-[500px] rounded-[2.5rem] md:rounded-[5rem] overflow-hidden cursor-pointer shadow-xl transition-all duration-1000 hover:shadow-2xl border border-black/5"
-            >
-              <img decoding="async" decoding="async"
-                src={CHINA_HERO}
-                className="absolute inset-0 w-full h-full object-cover brightness-[0.55] grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[4s]"
-                alt="中华神州"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-              <div className="absolute inset-0 p-8 md:p-24 flex flex-col justify-center">
-                <div className="flex items-center gap-4 text-[#D4AF37] mb-4">
-                  <div className="w-10 h-px bg-[#D4AF37]/40" />
-                  <span className="text-[9px] md:text-xs tracking-[0.6em] font-bold uppercase">
-                    Axis Origin / 核心原点
-                  </span>
-                </div>
-                <h3 className="text-4xl md:text-[9rem] font-bold text-white tracking-tighter leading-none mb-6">
-                  中华神州
-                </h3>
-                <div className="flex items-center gap-3 text-white/40 group-hover:text-white transition-colors duration-500">
-                  <span className="text-[10px] md:text-sm tracking-[0.4em] font-bold uppercase">
-                    进入档案库 Entry Archive
-                  </span>
-                  <ArrowUpRight
-                    size={18}
-                    className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
+        {/* ===== 主内容区：地图 + 列表 ===== */}
+        <section className="px-4 md:px-10 pt-8 pb-32">
 
-        {/* ====== 目的地网格 ====== */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-10 lg:gap-14">
-          {filtered.map((dest, idx) => {
-            const hasCoords = !!COUNTRY_COORDS[dest.name_cn];
-            return (
-              <div
-                key={dest.id}
-                onClick={() => onNavigate('destination', { countryId: dest.id })}
-                className="group cursor-pointer space-y-3 md:space-y-6"
-                style={{ animation: `fadeInUp 0.5s ease ${idx * 35}ms both` }}
+          {/* 当前筛选信息 */}
+          {(activeContinent || search) && (
+            <div className="flex items-center gap-3 mb-6">
+              {activeContinent && (
+                <span className="text-sm font-bold text-black/40 tracking-widest">
+                  <span style={{ color: activeCont?.color }}>{activeCont?.name}</span>
+                  <span className="mx-2">·</span>
+                  <span className="text-black/20">{filtered.length} 个坐标</span>
+                </span>
+              )}
+              {search && (
+                <span className="text-sm font-bold text-black/40">
+                  搜索 "<span className="text-black/70">{search}</span>"
+                </span>
+              )}
+              <button
+                onClick={() => { setActiveContinent(null); setSearch(''); }}
+                className="ml-auto text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
               >
-                {/* 图片 */}
-                <div className="relative aspect-[3/4] rounded-2xl md:rounded-[3rem] overflow-hidden bg-stone-50 border border-black/5 shadow-sm transition-all duration-700 group-hover:shadow-2xl group-hover:scale-[1.02] group-hover:-translate-y-1">
-                  <img decoding="async" decoding="async"
-                    src={optimizeImage(dest.scenery_url || dest.image_url, { width: 600, quality: 75 }) || PLACEHOLDER}
-                    className="w-full h-full object-cover transition-all duration-[2s] grayscale-[0.5] group-hover:grayscale-0"
-                    alt={dest.name_cn}
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.src = PLACEHOLDER;
-                    }}
-                  />
-                  {/* 状态标签 */}
-                  <div className="absolute top-4 left-4 md:top-7 md:left-7">
-                    <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full border border-black/5 flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                      <span className="text-[7px] md:text-[9px] font-bold text-black/40 tracking-widest uppercase">
-                        Arrived
-                      </span>
-                    </div>
-                  </div>
-                  {/* 地图坐标角标 */}
-                  {hasCoords && (
-                    <div className="absolute top-4 right-4 md:top-7 md:right-7">
-                      <div className="bg-black/60 backdrop-blur px-2 py-1 rounded-full flex items-center gap-1">
-                        <div
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{
-                            background: '#D4AF37',
-                            boxShadow: '0 0 4px rgba(212,175,55,0.8)',
-                          }}
-                        />
-                        <span className="text-[6px] md:text-[8px] text-white/60 font-bold tracking-widest uppercase">
-                          Mapped
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {/* 悬浮层 */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 p-6 md:p-8 flex flex-col justify-end">
-                    <div className="flex justify-between items-end text-white">
-                      <div className="space-y-1">
-                        <span className="text-[7px] tracking-widest opacity-60 uppercase font-bold">
-                          Coordinate
-                        </span>
-                        <div className="text-lg md:text-2xl font-bold tracking-widest">
-                          {(idx + 1).toString().padStart(3, '0')}
-                        </div>
-                      </div>
-                      <ArrowUpRight size={22} className="opacity-60" />
-                    </div>
-                  </div>
-                </div>
+                清除筛选
+              </button>
+            </div>
+          )}
 
-                {/* 文字 */}
-                <div className="px-1 space-y-1.5 md:space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg md:text-3xl font-bold tracking-tight text-black/80 group-hover:text-[#D75437] transition-colors duration-300">
-                      {dest.name_cn}
-                    </h4>
-                    <div className="flex items-center gap-1 opacity-20 group-hover:opacity-60 transition-opacity">
-                      <MapPin size={11} className="text-[#D75437]" />
-                      <span className="text-[9px] font-bold">
-                        {dest.visit_count ?? 0}
-                      </span>
-                    </div>
-                  </div>
-                  {dest.name_en && (
-                    <p className="text-[8px] md:text-[10px] tracking-[0.4em] opacity-25 font-extrabold uppercase truncate">
-                      {dest.name_en}
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 空状态 */}
-        {filtered.length === 0 && (
-          <div className="py-32 text-center">
-            <Sparkles
-              className="mx-auto mb-6 opacity-5"
-              size={80}
+          {/* 搜索栏 */}
+          <div className="mb-8 relative max-w-xs">
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/25" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜索国家 / Search"
+              className="w-full pl-10 pr-4 py-3 bg-white rounded-2xl border border-black/5 text-sm font-bold tracking-wide placeholder:text-black/15 focus:outline-none focus:border-[#D4AF37]/30 focus:ring-2 focus:ring-[#D4AF37]/10 transition-all"
             />
-            <p className="text-black/30 italic text-xl">
-              该区域寻香足迹整理中...
-            </p>
           </div>
-        )}
+
+          {/* 国家网格 */}
+          {filtered.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5">
+              {filtered.map((dest, idx) => {
+                const hasCoords = !!COUNTRY_COORDS[dest.name_cn];
+                const cont = CONTINENTS.find((c) => c.id === dest.region);
+                const isHighlighted = highlightedIds.has(dest.id);
+                const isHov = hoveredCountry?.id === dest.id;
+
+                return (
+                  <div
+                    key={dest.id}
+                    onClick={() => onNavigate('destination', { countryId: dest.id })}
+                    onMouseEnter={() => setHoveredCountry(dest)}
+                    onMouseLeave={() => setHoveredCountry(null)}
+                    className={`group cursor-pointer rounded-2xl md:rounded-[1.5rem] overflow-hidden border transition-all duration-500 ${
+                      isHighlighted
+                        ? 'border-[#D4AF37]/40 -translate-y-1 shadow-lg shadow-[#D4AF37]/10'
+                        : 'border-black/5 hover:border-black/10 hover:-translate-y-1 hover:shadow-md'
+                    }`}
+                    style={{
+                      animation: `fadeInUp 0.4s ease ${Math.min(idx, 20) * 30}ms both`,
+                    }}
+                  >
+                    {/* 图片 */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
+                      <img
+                        src={optimizeImage(dest.scenery_url || dest.image_url, { width: 400, quality: 70 }) || `https://picsum.photos/seed/${dest.id}/400/300`}
+                        className={`w-full h-full object-cover transition-all duration-[1.5s] ${
+                          isHighlighted ? 'grayscale-0 scale-105' : 'grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-105'
+                        }`}
+                        alt={dest.name_cn}
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => { e.currentTarget.src = `https://picsum.photos/seed/${dest.id}/400/300`; }}
+                      />
+                      {/* 大洲色条 */}
+                      {cont && (
+                        <div
+                          className="absolute top-3 left-3 w-1 h-8 rounded-full opacity-70"
+                          style={{ background: cont.color }}
+                        />
+                      )}
+                      {/* 坐标状态 */}
+                      <div className="absolute top-3 right-3">
+                        {hasCoords ? (
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ background: `${cont?.dot || '#C9A84C'}33`, border: `1px solid ${cont?.dot || '#C9A84C'}55` }}
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: cont?.dot || '#C9A84C' }} />
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-black/20 flex items-center justify-center">
+                            <SlidersHorizontal size={8} className="text-white/50" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 文字 */}
+                    <div className="p-3 bg-white">
+                      <div className="flex items-center justify-between">
+                        <h4 className={`text-sm md:text-base font-bold tracking-tight transition-colors ${
+                          isHighlighted ? 'text-[#D4AF37]' : 'text-black/80 group-hover:text-[#D75437]'
+                        }`}>
+                          {dest.name_cn}
+                        </h4>
+                        {isHighlighted && (
+                          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: cont?.dot }} />
+                        )}
+                      </div>
+                      {dest.name_en && (
+                        <p className="text-[7px] md:text-[8px] tracking-[0.3em] opacity-30 font-extrabold uppercase truncate mt-0.5">
+                          {dest.name_en}
+                        </p>
+                      )}
+                      {cont && (
+                        <p className="text-[7px] md:text-[8px] tracking-widest mt-1 font-bold uppercase" style={{ color: cont.color, opacity: 0.7 }}>
+                          {cont.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* 空状态 */
+            <div className="py-32 text-center space-y-4">
+              <Globe className="mx-auto opacity-[0.06]" size={64} />
+              <p className="text-black/25 italic text-base">
+                {activeContinent ? `${activeCont?.name} 区域暂无坐标` : '未找到匹配结果'}
+              </p>
+              <button
+                onClick={() => { setActiveContinent(null); setSearch(''); }}
+                className="text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
+              >
+                清除筛选
+              </button>
+            </div>
+          )}
+        </section>
 
         {/* Footer */}
-        <footer className="py-48 text-center space-y-12">
-          <div className="w-px h-32 bg-gradient-to-b from-black/20 to-transparent mx-auto" />
-          <div className="space-y-4">
-            <h5 className="text-3xl md:text-6xl font-bold text-black/10">
-              元于一息
-            </h5>
-            <p className="text-[10px] md:text-xl text-black/30 tracking-[0.4em] uppercase font-bold">
-              Origin · Sanctuary · Breath
-            </p>
+        <footer className="py-32 text-center space-y-8 border-t border-black/5 mx-4 md:mx-10">
+          <div className="space-y-3">
+            <h5 className="text-3xl md:text-5xl font-bold text-black/8">元于一息</h5>
+            <p className="text-[9px] md:text-xs text-black/25 tracking-[0.4em] uppercase font-bold">Origin · Sanctuary · Breath</p>
           </div>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-[10px] tracking-[0.6em] font-extrabold text-[#D75437] uppercase border-b border-transparent hover:border-[#D75437] transition-all pb-1"
+            className="text-[9px] tracking-[0.6em] font-extrabold text-[#D75437] uppercase border-b border-transparent hover:border-[#D75437] transition-all pb-0.5"
           >
-            回到原点 / BACK TO TOP
+            回到原点
           </button>
         </footer>
       </div>
 
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(18px); }
+          from { opacity: 0; transform: translateY(14px); }
           to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes atlasPulse {
-          0%   { opacity: 0.8; r: 7; }
-          70%  { opacity: 0;   r: 14; }
-          100% { opacity: 0;   r: 14; }
+          0%   { opacity: 0.7; }
+          70%  { opacity: 0; }
+          100% { opacity: 0; }
         }
       `}</style>
     </div>
