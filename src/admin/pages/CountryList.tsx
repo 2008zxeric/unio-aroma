@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Plus, Search, Edit2, Trash2, Globe,
   ToggleLeft, ToggleRight, X, ChevronDown, ChevronRight,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { countryService, productService, seriesService } from '../../lib/dataService';
 import type { Country, Product, Series } from '../../lib/database.types';
+import { Perm } from '../components/PermissionGuard';
 import ImageUploadField from '../components/ImageUploadField';
 
 // ============================================
@@ -320,12 +321,12 @@ export default function AdminCountries() {
             <span className="text-[#7BA689]/70">关联产品</span>、Eric 相册等
           </p>
         </div>
-        <button
+        <Perm action="edit_countries"><button
           onClick={startCreate}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl font-medium text-sm transition-colors"
         >
           <Plus size={16} /> 添加国家
-        </button>
+        </button></Perm>
       </div>
 
       {/* 加载状态 */}
@@ -451,18 +452,18 @@ export default function AdminCountries() {
 
                                 {/* 操作按钮 */}
                                 <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => handleToggleActive(country)}>
+                                  <Perm action="edit_countries"><button onClick={() => handleToggleActive(country)}>
                                     {country.is_active
                                       ? <ToggleRight size={22} className="text-green-400" />
                                       : <ToggleLeft size={22} className="text-[#9AAA9A]" />
                                     }
-                                  </button>
-                                  <button onClick={() => startEdit(country)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg" title="编辑">
+                                  </button></Perm>
+                                  <Perm action="edit_countries"><button onClick={() => startEdit(country)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg" title="编辑">
                                     <Edit2 size={14} className="text-[#5C725C]" />
-                                  </button>
-                                  <button onClick={() => handleDelete(country.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg" title="删除">
+                                  </button></Perm>
+                                  <Perm action="edit_countries"><button onClick={() => handleDelete(country.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg" title="删除">
                                     <Trash2 size={14} className="text-red-400/50" />
-                                  </button>
+                                  </button></Perm>
                                 </div>
                               </div>
                             );

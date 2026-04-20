@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Image as ImageIcon, X } from 'lucide-react';
 import { bannerService } from '../../lib/dataService';
 import type { Banner } from '../../lib/database.types';
 import ImageUploadField from '../components/ImageUploadField';
+import { Perm } from '../components/PermissionGuard';
 
 const POSITIONS = [
   { value: 'home', label: '首页' },
@@ -59,10 +60,10 @@ export default function AdminBanners() {
           <h2 className="text-2xl font-bold text-[#1A2E1A]">海报/Banner 管理</h2>
           <p className="text-sm text-[#6B856B] mt-1">管理网站各页面的海报和广告横幅</p>
         </div>
-        <button onClick={() => { setEditingId(null); setForm(emptyForm()); }}
+        <Perm action="edit_banners"><button onClick={() => { setEditingId(null); setForm(emptyForm()); }}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl font-medium text-sm">
           <Plus size={16} /> 添加海报
-        </button>
+        </button></Perm>
       </div>
 
       {/* 表单 */}
@@ -109,8 +110,8 @@ export default function AdminBanners() {
                   <span className="text-[11px] text-[#8AA08A]">{POSITIONS.find(p => p.value === b.position)?.label || b.position}</span>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => { setEditingId(b.id); setForm({ name: b.name, image_url: b.image_url || '', link_url: b.link_url || '', position: b.position, is_active: b.is_active, sort_order: String(b.sort_order || 0) }); }} className="p-1.5 hover:bg-[#EEF4EF] rounded"><Edit2 size={13} className="text-[#5C725C]" /></button>
-                  <button onClick={() => handleDelete(b.id)} className="p-1.5 hover:bg-red-500/10 rounded"><Trash2 size={13} className="text-red-400/50" /></button>
+                  <Perm action="edit_banners"><button onClick={() => { setEditingId(b.id); setForm({ name: b.name, image_url: b.image_url || '', link_url: b.link_url || '', position: b.position, is_active: b.is_active, sort_order: String(b.sort_order || 0) }); }} className="p-1.5 hover:bg-[#EEF4EF] rounded"><Edit2 size={13} className="text-[#5C725C]" /></button></Perm>
+                  <Perm action="edit_banners"><button onClick={() => handleDelete(b.id)} className="p-1.5 hover:bg-red-500/10 rounded"><Trash2 size={13} className="text-red-400/50" /></button></Perm>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   Warehouse, TrendingUp, TrendingDown,
   Plus, Trash2, Edit2, X, DollarSign,
@@ -9,6 +9,7 @@ import { productService, inventoryService, purchaseService, salesService } from 
 import type { Product, PurchaseRecord, SalesRecord, ProductInventory } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
+import { Perm } from '../components/PermissionGuard';
 
 export default function AdminInventory() {
   const [tab, setTab] = useState<'overview' | 'purchases' | 'sales'>('overview');
@@ -534,9 +535,9 @@ export default function AdminInventory() {
       {tab === 'purchases' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowPurchaseForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
+            <Perm action="edit_inventory"><button onClick={() => setShowPurchaseForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
               <Plus size={16} /> 录入进货
-            </button>
+            </button></Perm>
             <button onClick={() => exportCSV('purchases')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
               <Download size={12} /> 导出CSV
             </button>
@@ -633,8 +634,8 @@ export default function AdminInventory() {
                       <td className="px-4 py-2 text-[#6B856B]">{p.supplier_code || '-'}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <button onClick={() => startEditPurchase(p)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button>
-                          <button onClick={() => handleDeletePurchase(p.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400/50" title="删除"><Trash2 size={13} /></button>
+                          <Perm action="edit_inventory"><button onClick={() => startEditPurchase(p)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button></Perm>
+                          <Perm action="edit_inventory"><button onClick={() => handleDeletePurchase(p.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400/50" title="删除"><Trash2 size={13} /></button></Perm>
                         </div>
                       </td>
                     </tr>
@@ -651,9 +652,9 @@ export default function AdminInventory() {
       {tab === 'sales' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowSaleForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors">
+            <Perm action="edit_inventory"><button onClick={() => setShowSaleForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors">
               <Plus size={16} /> 录入销售
-            </button>
+            </button></Perm>
             <button onClick={() => exportCSV('sales')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
               <Download size={12} /> 导出CSV
             </button>
@@ -740,8 +741,8 @@ export default function AdminInventory() {
                       <td className="px-4 py-2 text-right text-blue-500/70 font-medium">¥{s.total_amount?.toFixed(2)}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
-                          <button onClick={() => startEditSale(s)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button>
-                          <button onClick={() => handleDeleteSale(s.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400/50" title="删除"><Trash2 size={13} /></button>
+                          <Perm action="edit_inventory"><button onClick={() => startEditSale(s)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button></Perm>
+                          <Perm action="edit_inventory"><button onClick={() => handleDeleteSale(s.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400/50" title="删除"><Trash2 size={13} /></button></Perm>
                         </div>
                       </td>
                     </tr>

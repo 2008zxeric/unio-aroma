@@ -84,68 +84,82 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
   ]),
 };
 
-// ---- 内置账号密码映射 ----
-// ⚠️ 密码直接存前端，适合小型团队。安全级别足够防止随意访问。
-// 密码同时持久化到 localStorage，支持超管在后台修改
-const DEFAULT_CREDENTIALS: Record<string, string> = {
+// ---- 密码 Hash 工具 ----
+// 使用 SHA-256 + salt，和 Node.js crypto.createHash('sha256') 输出一致
+
+// 同步 SHA-256（用纯 JS 实现，兼容性好）
+function hashPasswordSync(password: string): string {
+  const salted = 'unio_aroma_' + password;
+  // 简单但足够安全的 hash — 生产环境应使用 Web Crypto API
+  // 这里用 64 字符 hex 输出，和 Node.js crypto.createHash('sha256') 一致
+  const bytes = new TextEncoder().encode(salted);
+  
+  // SHA-256 纯 JS 实现
+  const K = new Uint32Array([
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ]);
+
+  function rotr(x: number, n: number) { return ((x >>> n) | (x << (32 - n))); }
+  function ch(x: number, y: number, z: number) { return (x & y) ^ (~x & z); }
+  function maj(x: number, y: number, z: number) { return (x & y) ^ (x & z) ^ (y & z); }
+  function sigma0(x: number) { return rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22); }
+  function sigma1(x: number) { return rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25); }
+  function gamma0(x: number) { return rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3); }
+  function gamma1(x: number) { return rotr(x, 17) ^ rotr(x, 19) ^ (x >>> 10); }
+
+  // Padding
+  const msgLen = bytes.length;
+  const bitLen = msgLen * 8;
+  const padLen = ((56 - (msgLen + 1) % 64) + 64) % 64;
+  const totalLen = msgLen + 1 + padLen + 8;
+  const padded = new Uint8Array(totalLen);
+  padded.set(bytes);
+  padded[msgLen] = 0x80;
+  const view = new DataView(padded.buffer);
+  view.setUint32(totalLen - 4, bitLen, false);
+
+  // Init
+  let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+  let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+
+  for (let offset = 0; offset < totalLen; offset += 64) {
+    const w = new Uint32Array(64);
+    for (let i = 0; i < 16; i++) {
+      w[i] = view.getUint32(offset + i * 4, false);
+    }
+    for (let i = 16; i < 64; i++) {
+      w[i] = (gamma1(w[i - 2]) + w[i - 7] + gamma0(w[i - 15]) + w[i - 16]) | 0;
+    }
+
+    let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + sigma1(e) + ch(e, f, g) + K[i] + w[i]) | 0;
+      const t2 = (sigma0(a) + maj(a, b, c)) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0;
+      d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    h0 = (h0 + a) | 0; h1 = (h1 + b) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0;
+    h4 = (h4 + e) | 0; h5 = (h5 + f) | 0; h6 = (h6 + g) | 0; h7 = (h7 + h) | 0;
+  }
+
+  const result = new Uint32Array([h0, h1, h2, h3, h4, h5, h6, h7]);
+  return Array.from(result).map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+}
+
+// ---- 旧版内置凭据（仅作迁移后备） ----
+// 新用户密码验证走 Supabase password_hash 字段
+const LEGACY_CREDENTIALS: Record<string, string> = {
   'yuan': 'unio2001',
   'he': 'he2026',
   'sheng': 'sheng2026',
 };
-
-// 从 localStorage 加载密码（如果有的话），否则用默认值
-function loadCredentials(): Record<string, string> {
-  try {
-    const saved = localStorage.getItem('unio_admin_credentials');
-    if (saved) {
-      const parsed = JSON.parse(saved) as Record<string, string>;
-      return { ...DEFAULT_CREDENTIALS, ...parsed };
-    }
-  } catch {}
-  return { ...DEFAULT_CREDENTIALS };
-}
-
-const BUILTIN_CREDENTIALS: Record<string, string> = loadCredentials();
-
-/** 获取指定用户的当前密码 */
-export function getUserPassword(username: string): string | undefined {
-  return BUILTIN_CREDENTIALS[username];
-}
-
-/** 修改指定用户的密码（仅限超管调用） */
-export async function updateUserPassword(
-  operatorId: string,
-  targetUsername: string,
-  newPassword: string
-): Promise<{ success: boolean; error?: string }> {
-  if (!targetUsername || !newPassword || newPassword.length < 4) {
-    return { success: false, error: '密码至少4个字符' };
-  }
-  if (!BUILTIN_CREDENTIALS.hasOwnProperty(targetUsername)) {
-    return { success: false, error: '该用户不在内置账号列表中' };
-  }
-
-  // 更新内存中的密码
-  BUILTIN_CREDENTIALS[targetUsername] = newPassword;
-
-  // 持久化到 localStorage
-  try {
-    const overrides: Record<string, string> = {};
-    for (const [k, v] of Object.entries(BUILTIN_CREDENTIALS)) {
-      if (v !== DEFAULT_CREDENTIALS[k]) {
-        overrides[k] = v;
-      }
-    }
-    localStorage.setItem('unio_admin_credentials', JSON.stringify(overrides));
-  } catch {}
-
-  // 写审计日志
-  await writeAuditLog(operatorId, 'update', 'user_password', null, {
-    target_username: targetUsername,
-  });
-
-  return { success: true };
-}
 
 // ---- Context ----
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -173,16 +187,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    // 1. 验证密码（内置）
-    const expectedPwd = BUILTIN_CREDENTIALS[username];
-    if (!expectedPwd) {
-      return { success: false, error: '用户不存在' };
-    }
-    if (password !== expectedPwd) {
-      return { success: false, error: '密码错误，请重试' };
-    }
+    // 1. 计算输入密码的 hash
+    const inputHash = hashPasswordSync(password);
 
-    // 2. 从数据库查询用户信息（获取角色等）
+    // 2. 从 Supabase 查询用户
     const { data: user, error } = await supabase
       .from('admin_users')
       .select('*')
@@ -191,7 +199,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (error || !user) {
-      return { success: false, error: '用户账号异常，请联系管理员' };
+      return { success: false, error: '用户不存在或已禁用' };
+    }
+
+    // 3. 验证密码
+    let passwordValid = false;
+    if (user.password_hash) {
+      // 新版：Supabase password_hash 字段
+      passwordValid = inputHash === user.password_hash;
+    } else {
+      // 后备：旧版明文密码（兼容过渡期）
+      const legacyPwd = LEGACY_CREDENTIALS[username];
+      passwordValid = legacyPwd !== undefined && password === legacyPwd;
+    }
+
+    if (!passwordValid) {
+      return { success: false, error: '密码错误，请重试' };
     }
 
     // 3. 更新最后登录时间
@@ -239,6 +262,41 @@ export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
+}
+
+// ---- 密码管理（Supabase-based） ----
+
+/** 修改用户密码 — 写入 Supabase password_hash */
+export async function updateUserPassword(
+  operatorId: string,
+  targetUsername: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!targetUsername || !newPassword || newPassword.length < 4) {
+    return { success: false, error: '密码至少4个字符' };
+  }
+
+  const newHash = hashPasswordSync(newPassword);
+
+  const { error } = await supabase
+    .from('admin_users')
+    .update({ password_hash: newHash })
+    .eq('username', targetUsername);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  await writeAuditLog(operatorId, 'update', 'user_password', null, {
+    target_username: targetUsername,
+  });
+
+  return { success: true };
+}
+
+/** 获取用户密码明文 — 仅返回旧版内置凭据，新用户返回 undefined */
+export function getUserPassword(username: string): string | undefined {
+  return LEGACY_CREDENTIALS[username];
 }
 
 // ---- 角色显示信息 ----

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Type, X, Save, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Star } from 'lucide-react';
 import { siteTextService, bannerService, recommendService } from '../../lib/dataService';
+import { Perm } from '../components/PermissionGuard';
 
 // 网站文字管理 — 管理各页面上的文字内容
 export function AdminTexts() {
@@ -177,9 +178,9 @@ export function AdminTexts() {
                 )}
 
                 {editingKey !== item.key && (
-                  <button onClick={() => { setEditingKey(item.key); setEditValue(item.value || ''); }} className="p-2 flex-shrink-0 hover:bg-[#EEF4EF] rounded-lg opacity-40 hover:opacity-100 transition-opacity">
+                  <Perm action="edit_texts"><button onClick={() => { setEditingKey(item.key); setEditValue(item.value || ''); }} className="p-2 flex-shrink-0 hover:bg-[#EEF4EF] rounded-lg opacity-40 hover:opacity-100 transition-opacity">
                     <Type size={14} />
-                  </button>
+                  </button></Perm>
                 )}
               </div>
             </div>
@@ -289,12 +290,12 @@ export function AdminRecommends() {
           <h2 className="text-2xl font-bold text-[#1A2E1A]">首页推荐管理</h2>
           <p className="text-sm text-[#6B856B] mt-1">管理首页展示的精选产品、国家推荐</p>
         </div>
-        <button
+        <Perm action="edit_recommends"><button
           onClick={() => { resetForm(); setShowForm(true); }}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl font-medium text-sm transition-colors"
         >
           <Plus size={16} /> 添加推荐
-        </button>
+        </button></Perm>
       </div>
 
       {/* 新增/编辑表单 */}
@@ -383,12 +384,12 @@ export function AdminRecommends() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
-                        <button onClick={() => startEdit(r)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg" title="编辑">
+                        <Perm action="edit_recommends"><button onClick={() => startEdit(r)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg" title="编辑">
                           <Edit2 size={14} className="text-[#5C725C]" />
-                        </button>
-                        <button onClick={() => handleDelete(r.id)} className="p-1.5 hover:bg-red-50 rounded-lg" title="删除">
+                        </button></Perm>
+                        <Perm action="edit_recommends"><button onClick={() => handleDelete(r.id)} className="p-1.5 hover:bg-red-50 rounded-lg" title="删除">
                           <Trash2 size={14} className="text-red-400/50" />
-                        </button>
+                        </button></Perm>
                       </div>
                     </td>
                   </tr>

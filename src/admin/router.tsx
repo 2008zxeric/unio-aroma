@@ -12,6 +12,7 @@ import AdminInventory from './pages/InventoryManage';
 import { AdminDicts, AdminUsers, AdminSettings } from './pages/DictManage';
 import { AuthProvider } from '../lib/auth';
 import AuditLogPage from './pages/AuditLogPage';
+import { PermissionGuard } from './components/PermissionGuard';
 
 export default function AdminRouter() {
   return (
@@ -29,16 +30,16 @@ export default function AdminRouter() {
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="countries" element={<AdminCountries />} />
-          <Route path="banners" element={<AdminBanners />} />
-          <Route path="texts" element={<AdminTexts />} />
-          <Route path="recommends" element={<AdminRecommends />} />
-          <Route path="inventory" element={<AdminInventory />} />
-          <Route path="dicts" element={<AdminDicts />} />
-          <Route path="audit-logs" element={<AuditLogPage />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path="products" element={<PermissionGuard action="view_products"><AdminProducts /></PermissionGuard>} />
+          <Route path="countries" element={<PermissionGuard action="view_countries"><AdminCountries /></PermissionGuard>} />
+          <Route path="banners" element={<PermissionGuard action="view_banners"><AdminBanners /></PermissionGuard>} />
+          <Route path="texts" element={<PermissionGuard action="view_texts"><AdminTexts /></PermissionGuard>} />
+          <Route path="recommends" element={<PermissionGuard action="view_recommends"><AdminRecommends /></PermissionGuard>} />
+          <Route path="inventory" element={<PermissionGuard action="view_inventory"><AdminInventory /></PermissionGuard>} />
+          <Route path="dicts" element={<PermissionGuard action="view_dicts"><AdminDicts /></PermissionGuard>} />
+          <Route path="audit-logs" element={<PermissionGuard action="view_dashboard"><AuditLogPage /></PermissionGuard>} />
+          <Route path="users" element={<PermissionGuard action="view_users"><AdminUsers /></PermissionGuard>} />
+          <Route path="settings" element={<PermissionGuard action="view_settings"><AdminSettings /></PermissionGuard>} />
         </Route>
 
         {/* 未匹配 → 首页 */}
