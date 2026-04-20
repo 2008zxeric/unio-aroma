@@ -315,6 +315,7 @@ const SiteApp: React.FC = () => {
       </main>
 
       {/* ===== 右侧浮动按钮组（桌面端） ===== */}
+      {!hideBottomNav && (
       <div className="hidden sm:flex fixed right-8 top-1/2 -translate-y-1/2 z-[998] flex-col items-center gap-3">
         {/* 回到顶部 */}
         <button
@@ -393,8 +394,10 @@ const SiteApp: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* ===== 移动端浮动按钮（回到顶部 + 回首页 + 微信客服） ===== */}
+      {!hideBottomNav && (
       <div className="sm:hidden fixed bottom-24 right-4 z-[998] flex flex-col gap-2">
         {/* 微信客服悬浮按钮 */}
         <div className="relative group">
@@ -428,6 +431,7 @@ const SiteApp: React.FC = () => {
           </button>
         )}
       </div>
+      )}
 
       {/* ===== 底部导航栏（桌面端） ===== */}
       {!hideBottomNav && (
