@@ -1,368 +1,643 @@
 /**
- * UNIO AROMA 前台 - 中华神州页
- * 复刻原站 ChinaAtlasView，数据从 Supabase 获取
- * 含简化中国地图 SVG 背景 + 省份点位脉冲动画
+ * UNIO AROMA 前台 - 中华神州页 v4
+ * 地图渲染：Marker 投影法（与 SiteAtlas 全球地图一致）
+ * 省级行政区全部展示（港澳台作独立大区按钮）
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ArrowLeft, Home, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from 'react-simple-maps';
+import { ArrowLeft, Home, Search, ArrowUpRight, MapPin } from 'lucide-react';
 import { Country } from '../types';
 import { getChinaProvinces } from '../siteDataService';
-import { optimizeImage, optimizeHeroImage } from '../imageUtils';
+import { optimizeImage } from '../imageUtils';
 
-const CHINA_REGIONS = ['华东', '华南', '华北', '华中', '西南', '西北', '东北'];
-const CHINA_PLACEHOLDER = optimizeHeroImage('https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2560');
-const PROVINCE_PLACEHOLDER = optimizeHeroImage('https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=800');
+// ============ 大区配置 ============
+const GEO_REGIONS = [
+  { id: '华东', name: '华东', color: '#D75437' },
+  { id: '华南', name: '华南', color: '#C9A84C' },
+  { id: '华北', name: '华北', color: '#2C7A4B' },
+  { id: '华中', name: '华中', color: '#1E4D8C' },
+  { id: '西南', name: '西南', color: '#4A90A4' },
+  { id: '西北', name: '西北', color: '#8B5E3C' },
+  { id: '东北', name: '东北', color: '#6B7FA3' },
+  { id: '港澳', name: '港澳', color: '#7B3F9E' },
+  { id: '台湾', name: '台湾', color: '#C0483A' },
+];
 
-const PROVINCE_COORDS: Record<string, { x: number; y: number }> = {
-  '云南': { x: 38, y: 65 }, '新疆': { x: 15, y: 25 }, '浙江': { x: 72, y: 52 },
-  '江苏': { x: 70, y: 48 }, '广东': { x: 60, y: 72 }, '福建': { x: 68, y: 65 },
-  '四川': { x: 42, y: 55 }, '西藏': { x: 22, y: 45 }, '广西': { x: 52, y: 72 },
-  '贵州': { x: 48, y: 62 }, '甘肃': { x: 35, y: 35 }, '内蒙古': { x: 50, y: 18 },
-  '辽宁': { x: 72, y: 22 }, '吉林': { x: 75, y: 18 }, '黑龙江': { x: 78, y: 12 },
-  '陕西': { x: 48, y: 42 }, '山东': { x: 68, y: 40 }, '河南': { x: 60, y: 45 },
-  '湖南': { x: 58, y: 60 }, '湖北': { x: 58, y: 55 }, '江西': { x: 65, y: 60 },
-  '安徽': { x: 68, y: 50 }, '上海': { x: 75, y: 50 }, '北京': { x: 65, y: 30 },
-  '重庆': { x: 48, y: 58 },
+// 特殊行政区（港澳台）- sub_region 映射
+const SAR_MAP: Record<string, string> = {
+  '香港': '港澳', '澳门': '港澳', '台湾': '台湾',
+};
+
+// 省份经纬度坐标（经度 lon, 纬度 lat）
+const PROVINCE_COORDS: Record<string, [number, number]> = {
+  '北京': [116.4, 39.9],
+  '上海': [121.5, 31.2],
+  '天津': [117.2, 39.1],
+  '重庆': [106.5, 29.5],
+  '河北': [114.5, 38.0],
+  '山西': [112.5, 37.9],
+  '内蒙古': [111.7, 40.8],
+  '辽宁': [123.4, 41.8],
+  '吉林': [125.3, 43.9],
+  '黑龙江': [126.5, 45.8],
+  '江苏': [118.8, 33.0],
+  '浙江': [120.2, 30.3],
+  '安徽': [117.3, 31.9],
+  '福建': [119.3, 26.1],
+  '江西': [115.9, 28.7],
+  '山东': [118.0, 36.7],
+  '河南': [113.7, 34.8],
+  '湖北': [114.3, 30.6],
+  '湖南': [112.9, 28.2],
+  '广东': [113.3, 23.1],
+  '广西': [108.3, 23.3],
+  '海南': [110.3, 20.0],
+  '四川': [104.0, 30.7],
+  '贵州': [106.7, 26.6],
+  '云南': [102.7, 25.0],
+  '西藏': [91.1, 29.6],
+  '陕西': [108.9, 34.3],
+  '甘肃': [103.8, 36.1],
+  '青海': [97.3, 35.9],
+  '宁夏': [106.3, 36.0],
+  '新疆': [87.6, 43.8],
+  '香港': [114.1, 22.4],
+  '澳门': [113.5, 22.2],
+  '台湾': [121.0, 23.5],
+};
+
+// 中国 GeoJSON（阿里云 DataV，仅用于底图描边）
+const GEO_URL = 'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json';
+
+// 省份全称映射（用于匹配 GeoJSON）
+const NAME_FULL: Record<string, string> = {
+  '北京': '北京市', '天津': '天津市', '上海': '上海市', '重庆': '重庆市',
+  '河北': '河北省', '山西': '山西省', '内蒙古': '内蒙古自治区',
+  '辽宁': '辽宁省', '吉林': '吉林省', '黑龙江': '黑龙江省',
+  '江苏': '江苏省', '浙江': '浙江省', '安徽': '安徽省', '福建': '福建省',
+  '江西': '江西省', '山东': '山东省', '河南': '河南省', '湖北': '湖北省',
+  '湖南': '湖南省', '广东': '广东省', '广西': '广西壮族自治区',
+  '海南': '海南省', '四川': '四川省', '贵州': '贵州省', '云南': '云南省',
+  '西藏': '西藏自治区', '陕西': '陕西省', '甘肃': '甘肃省', '青海': '青海省',
+  '宁夏': '宁夏回族自治区', '新疆': '新疆维吾尔自治区',
+};
+
+// 图片兜底：省份名 → Unsplash 关键词
+const PROVINCE_IMAGE_SEEDS: Record<string, string> = {
+  '北京': 'beijing-china', '上海': 'shanghai-skyline', '天津': 'tianjin-china',
+  '重庆': 'chongqing-china', '河北': 'hebei-china', '山西': 'shanxi-china',
+  '内蒙古': 'inner-mongolia-grassland', '辽宁': 'liaoning-china', '吉林': 'jilin-china',
+  '黑龙江': 'heilongjiang-china', '江苏': 'jiangsu-china', '浙江': 'zhejiang-hangzhou',
+  '安徽': 'anhui-huangshan', '福建': 'fujian-wuyi', '江西': 'jiangxi-china',
+  '山东': 'shandong-qingdao', '河南': 'henan-china', '湖北': 'hubei-wuhan',
+  '湖南': 'hunan-china', '广东': 'guangzhou-china', '广西': 'guilin-guangxi',
+  '海南': 'hainan-tropical', '四川': 'sichuan-chengdu', '贵州': 'guizhou-china',
+  '云南': 'yunnan-dali', '西藏': 'tibet-lhasa', '陕西': 'xian-shaanxi',
+  '甘肃': 'gansu-zhangye', '青海': 'qinghai-china', '宁夏': 'ningxia-china',
+  '新疆': 'xinjiang-urumqi', '香港': 'hong-kong-night', '澳门': 'macau-night',
+  '台湾': 'taiwan-kaohsiung',
 };
 
 interface SiteChinaAtlasProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
-const SiteChinaAtlas: React.FC<SiteChinaAtlasProps> = ({ onNavigate }) => {
+export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
   const [provinces, setProvinces] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeRegion, setActiveRegion] = useState('华东');
-  const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
+  const [activeRegion, setActiveRegion] = useState<string | null>(null);
+  const [hoveredProvince, setHoveredProvince] = useState<Country | null>(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const data = await getChinaProvinces();
-        setProvinces(data);
-      } catch (error) {
-        console.error('Failed to load china provinces:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
+    getChinaProvinces()
+      .then(setProvinces)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  const filteredProvinces = useMemo(() =>
-    provinces.filter(p => p.sub_region === activeRegion),
-    [provinces, activeRegion]
-  );
+  // 获取省份归属大区（兼容港澳台）
+  const getRegion = (p: Country): string => {
+    if (SAR_MAP[p.name_cn]) return SAR_MAP[p.name_cn]!;
+    return p.sub_region || '';
+  };
 
-  const mapProvinces = useMemo(() => {
-    return provinces.filter(p => PROVINCE_COORDS[p.name_cn]);
+  // 大区统计
+  const regionStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    provinces.forEach((p) => {
+      const r = getRegion(p);
+      if (r) stats[r] = (stats[r] || 0) + 1;
+    });
+    return stats;
   }, [provinces]);
 
-  const handleDotClick = useCallback((province: Country) => {
-    onNavigate('destination', { countryId: province.id });
-  }, [onNavigate]);
+  // 过滤结果
+  const filtered = useMemo(() => {
+    let result = provinces;
+    if (activeRegion) {
+      result = result.filter((p) => {
+        const r = getRegion(p);
+        return r === activeRegion;
+      });
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) => p.name_cn.includes(q) || (p.name_en || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [provinces, activeRegion, search]);
+
+  // 高亮集合
+  const highlightedIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!activeRegion) return ids;
+    provinces.filter((p) => getRegion(p) === activeRegion).forEach((p) => ids.add(p.id));
+    return ids;
+  }, [provinces, activeRegion]);
+
+  // GeoJSON 高亮名集合
+  const highlightedGeoNames = useMemo(() => {
+    if (!activeRegion) return new Set<string>();
+    return new Set(
+      provinces
+        .filter((p) => getRegion(p) === activeRegion && PROVINCE_COORDS[p.name_cn])
+        .map((p) => NAME_FULL[p.name_cn] || p.name_cn)
+    );
+  }, [provinces, activeRegion]);
+
+  // 有经纬度的省份
+  const mappedProvinces = useMemo(
+    () => provinces.filter((p) => PROVINCE_COORDS[p.name_cn]),
+    [provinces]
+  );
+
+  // 省份图片兜底
+  const getProvinceImage = (p: Country): string => {
+    const seed = PROVINCE_IMAGE_SEEDS[p.name_cn] || p.name_cn;
+    if (p.scenery_url || p.image_url) return optimizeImage(p.scenery_url || p.image_url, { width: 400, quality: 70 });
+    return `https://source.unsplash.com/400x300/?${encodeURIComponent(seed)}`;
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FDFDFD]">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto border-4 border-[#2C3E28]/20 border-t-[#2C3E28] rounded-full animate-spin" />
-          <p className="text-[#2C3E28]/50 text-sm tracking-widest">正在加载中华神州...</p>
+          <div className="w-14 h-14 mx-auto border-4 border-[#D75437]/20 border-t-[#D75437] rounded-full animate-spin" />
+          <p className="text-[#2C3E28]/40 text-xs tracking-widest">正在加载中华神州...</p>
         </div>
       </div>
     );
   }
 
+  const activeGeo = GEO_REGIONS.find((r) => r.id === activeRegion);
+  const totalCount = provinces.length;
+
   return (
-    <div className="min-h-screen bg-[#FDFDFD] pt-32 md:pt-56 pb-48 px-4 md:px-20 relative overflow-hidden selection:bg-[#D75437] selection:text-white">
-      {/* 氛围背景 */}
-      <div className="fixed inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#D75437]/10 blur-[150px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#2C3E28]/10 blur-[150px] rounded-full animate-pulse" style={{ animationDelay: '3s' }} />
-      </div>
+    <div className="min-h-screen bg-[#FAF9F6] selection:bg-[#D75437] selection:text-white">
+      <div className="max-w-[1600px] mx-auto">
 
-      {/* 侧边悬浮导航 */}
-      <div className="fixed top-1/2 -translate-y-1/2 right-4 md:right-10 z-[600] flex flex-col items-center gap-4">
-        <div className="bg-white/10 backdrop-blur-2xl flex flex-col p-2 rounded-full border border-white/20 shadow-lg gap-4">
-          <button
-            onClick={() => onNavigate('atlas')}
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/40 transition-all active:scale-90"
-          >
-            <ArrowLeft size={22} />
-          </button>
-          <div className="h-px w-6 bg-black/5 mx-auto" />
-          <button
-            onClick={() => onNavigate('home')}
-            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-black/40 hover:text-[#D75437] hover:bg-white/40 transition-all active:scale-90"
-          >
-            <Home size={22} />
-          </button>
-        </div>
-        <span className="text-[7px] tracking-[0.5em] font-bold text-black/10 uppercase mt-4 select-none" style={{ writingMode: 'vertical-rl' }}>Compass</span>
-      </div>
+        {/* ===== Header ===== */}
+        <header className="pt-28 md:pt-44 px-6 md:px-16 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-[#D75437]">
+              <span className="text-[9px] tracking-[0.6em] font-extrabold uppercase opacity-40">Core Origin · 神州</span>
+            </div>
+            <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-black/90 leading-none">
+              中华<span className="text-black/8">神州</span>
+            </h2>
+            <div className="h-px w-20 bg-[#D4AF37]/30 mt-2" />
+          </div>
+          <div className="flex items-end gap-8">
+            <div className="text-right">
+              <div className="text-3xl md:text-5xl font-bold text-[#D75437]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {totalCount}
+              </div>
+              <p className="text-[8px] tracking-[0.4em] font-bold text-black/20 uppercase">省域坐标</p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl md:text-5xl font-bold text-black/20" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {mappedProvinces.length}
+              </div>
+              <p className="text-[8px] tracking-[0.4em] font-bold text-black/10 uppercase">Mapped</p>
+            </div>
+          </div>
+        </header>
 
-      <div className="max-w-7xl mx-auto space-y-12 md:space-y-24 relative z-10">
-        {/* Header */}
-        <div className="space-y-8 border-b border-black/5 pb-16">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="space-y-4">
-              <h2 className="text-5xl md:text-[10rem] font-bold tracking-[0.1em] text-[#2C3E28] leading-tight">
-                中华神州
-              </h2>
-              <div className="flex items-center gap-6">
-                <div className="h-[1px] w-20 bg-[#D4AF37]/40" />
-                <p className="text-xs md:text-2xl opacity-30 tracking-[0.8em] uppercase">Core Origin Sanctuary</p>
-              </div>
-            </div>
-            <div className="hidden lg:block w-[450px] group relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/40">
-              <img decoding="async" src={CHINA_PLACEHOLDER} className="w-full h-48 object-cover brightness-75 group-hover:scale-110 transition-transform duration-[10s]" alt="Shenzhou Peak" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-6 left-8">
-                <span className="text-[10px] text-white/60 font-bold tracking-widest uppercase block mb-1">Featured Landscape</span>
-                <span className="text-white font-bold text-2xl tracking-widest">长城 · 极境源点</span>
-              </div>
-            </div>
+        {/* ===== 导航 ===== */}
+        <div className="px-6 md:px-16 mb-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('atlas')}
+              className="flex items-center gap-2 text-black/30 hover:text-[#D75437] transition-colors group"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+              <span className="text-xs font-bold tracking-widest">全球坐标</span>
+            </button>
+            <span className="text-black/10">/</span>
+            <span className="text-xs font-bold tracking-widest text-[#D75437]">中华神州</span>
           </div>
         </div>
 
-        {/* ====== 中国地图区域 ====== */}
-        <section>
-          <div className="relative w-full h-[40vh] md:h-[60vh] rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-[#0a0a0a] border border-white/5">
-            {/* 简化中国地图 SVG 轮廓 */}
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 1000 1000"
-              preserveAspectRatio="xMidYMid meet"
-              xmlns="http://www.w3.org/2000/svg"
+        {/* ===== 中国地图（Marker 投影法，与 SiteAtlas 一致） ===== */}
+        <section className="px-4 md:px-10 mb-6">
+          <div
+            className="relative w-full h-[42vh] md:h-[55vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-black/5 shadow-lg"
+            style={{ background: '#F5F3EF' }}
+          >
+            <ComposableMap
+              projection="geoAlbers"
+              projectionConfig={{ center: [105, 36], scale: 900 }}
+              style={{ width: '100%', height: '100%' }}
             >
-              {/* 中国大陆轮廓 - 简化鸡形 */}
-              <path d="
-                M 620 100
-                L 680 90 L 740 100 L 780 130 L 800 180
-                L 790 220 L 760 240 L 730 260
-                L 700 300 L 720 340 L 740 360
-                L 720 400 L 700 420 L 680 440
-                L 650 460 L 620 480 L 600 520
-                L 580 540 L 560 580 L 540 620
-                L 500 660 L 480 700 L 460 720
-                L 420 700 L 380 680 L 340 660
-                L 300 640 L 260 600 L 240 560
-                L 220 520 L 200 480 L 180 440
-                L 160 400 L 140 360 L 120 320
-                L 100 280 L 80 240 L 60 200
-                L 80 160 L 120 140 L 160 120
-                L 200 100 L 240 80 L 280 60
-                L 320 80 L 360 100 L 400 120
-                L 440 140 L 480 160 L 520 180
-                L 560 200 L 580 220 L 600 240
-                L 620 260 L 640 280 L 660 300
-                L 680 320 L 700 340 L 720 320
-                L 740 300 L 760 320 L 740 340
-                L 720 360 L 700 380 L 680 400
-                L 660 420 L 640 440 L 620 460
-                L 600 480 L 580 500 L 560 520
-                L 540 540 L 520 560 L 500 580
-                L 480 560 L 460 540 L 440 520
-                L 420 500 L 400 480 L 380 460
-                L 360 440 L 340 420 L 320 400
-                L 300 380 L 280 360 L 260 340
-                L 240 320 L 220 300 L 200 280
-                L 180 260 L 200 240 L 220 220
-                L 240 200 L 260 180 L 280 160
-                L 300 180 L 320 200 L 340 220
-                L 360 200 L 380 180 L 400 160
-                L 420 140 L 440 160 L 460 180
-                L 480 200 L 500 220 L 520 200
-                L 540 180 L 560 160 L 580 140
-                L 600 120 Z
-              "
-                fill="none"
-                stroke="rgba(212,175,55,0.15)"
-                strokeWidth="1.5"
-              />
-              {/* 海南岛 */}
-              <ellipse cx="540" cy="740" rx="20" ry="18"
-                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1" />
-              {/* 台湾 */}
-              <ellipse cx="740" cy="540" rx="12" ry="25"
-                fill="none" stroke="rgba(212,175,55,0.12)" strokeWidth="1"
-                transform="rotate(-20 740 540)" />
-            </svg>
+              <ZoomableGroup zoom={1} center={[105, 36]}>
+                {/* 省份底图 */}
+                <Geographies geography={GEO_URL}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      const adcode = String(geo.properties?.adcode || '');
+                      const name = geo.properties?.name || '';
+                      const isHighlighted = highlightedGeoNames.has(name);
+                      const isSar = ['台湾', '香港', '澳门'].includes(name);
 
-            {/* 经纬网格装饰 */}
-            <div className="absolute inset-0 opacity-[0.04]"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(212,175,55,0.3) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(212,175,55,0.3) 1px, transparent 1px)
-                `,
-                backgroundSize: '10% 10%'
-              }}
-            />
+                      // 港澳台用独立颜色，不在高亮时也显示底色
+                      if (isSar) {
+                        return (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            fill={isHighlighted ? '#C0483A22' : '#DDD8CC'}
+                            stroke="#BBB7AC"
+                            strokeWidth={0.5}
+                            style={{ default: { outline: 'none' }, hover: { outline: 'none' }, pressed: { outline: 'none' } }}
+                            onClick={() => {
+                              const match = provinces.find(
+                                (p) => NAME_FULL[p.name_cn] === name || p.name_cn === name
+                              );
+                              if (match) onNavigate('destination', { countryId: match.id });
+                            }}
+                          />
+                        );
+                      }
 
-            {/* 省份点位 */}
-            {mapProvinces.map((province) => {
-              const coord = PROVINCE_COORDS[province.name_cn];
-              if (!coord) return null;
-              const isHovered = hoveredProvince === province.name_cn;
-              const isFiltered = filteredProvinces.some(p => p.id === province.id);
-              return (
-                <div
-                  key={province.id}
-                  className="absolute cursor-pointer group"
-                  style={{
-                    left: `${coord.x}%`,
-                    top: `${coord.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  onClick={() => handleDotClick(province)}
-                  onMouseEnter={() => setHoveredProvince(province.name_cn)}
-                  onMouseLeave={() => setHoveredProvince(null)}
-                >
-                  {/* 脉冲动画外圈 */}
-                  <div className={`absolute rounded-full ${
-                    isHovered
-                      ? 'bg-[#D4AF37]/30'
-                      : isFiltered
-                        ? 'bg-[#D4AF37]/15'
-                        : 'bg-[#D4AF37]/5'
-                  }`}
-                    style={{
-                      width: isHovered ? 32 : 24,
-                      height: isHovered ? 32 : 24,
-                      left: '50%',
-                      top: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      animation: 'mapPulse 3s ease-in-out infinite',
-                      animationDelay: `${(coord.x * 0.03 + coord.y * 0.02) % 2}s`,
-                    }}
-                  />
-                  {/* 核心圆点 */}
-                  <div className={`relative rounded-full transition-all duration-300 ${
-                    isHovered
-                      ? 'w-3.5 h-3.5 bg-[#D4AF37] shadow-[0_0_16px_rgba(212,175,55,0.6)]'
-                      : isFiltered
-                        ? 'w-2.5 h-2.5 bg-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.3)]'
-                        : 'w-2 h-2 bg-[#D4AF37]/30'
-                  }`} />
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          fill={isHighlighted && activeRegion ? `${activeGeo?.color}22` : '#E8E4DC'}
+                          stroke={isHighlighted && activeRegion ? activeGeo?.color : '#CCC9BF'}
+                          strokeWidth={isHighlighted && activeRegion ? 1.0 : 0.5}
+                          style={{
+                            default: { outline: 'none' },
+                            hover: {
+                              outline: 'none',
+                              fill: isHighlighted ? `${activeGeo?.color}33` : '#D5D0C4',
+                              cursor: 'pointer',
+                            },
+                            pressed: { outline: 'none' },
+                          }}
+                          onClick={() => {
+                            const match = provinces.find(
+                              (p) => NAME_FULL[p.name_cn] === name || p.name_cn === name
+                            );
+                            if (match) onNavigate('destination', { countryId: match.id });
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
 
-                  {/* Tooltip */}
-                  {isHovered && (
-                    <div className="absolute z-50 pointer-events-none whitespace-nowrap"
-                      style={{
-                        left: coord.x > 75 ? 'auto' : '50%',
-                        right: coord.x > 75 ? '0' : 'auto',
-                        bottom: '100%',
-                        transform: coord.x > 75 ? 'translateX(0) translateY(-12px)' : 'translateX(-50%) translateY(-12px)',
-                      }}
+                {/* 省份经纬度点位（Marker 投影法） */}
+                {mappedProvinces.map((province) => {
+                  const [lon, lat] = PROVINCE_COORDS[province.name_cn] ?? [0, 0];
+                  const isHighlighted = highlightedIds.has(province.id);
+                  const isHov = hoveredProvince?.id === province.id;
+                  const reg = getRegion(province);
+                  const geo = GEO_REGIONS.find((r) => r.id === reg);
+                  const dotColor = geo?.color || '#C9A84C';
+                  const isSar = SAR_MAP[province.name_cn] != null;
+
+                  return (
+                    <Marker
+                      key={province.id}
+                      coordinates={[lon, lat]}
+                      onClick={() => onNavigate('destination', { countryId: province.id })}
+                      onMouseEnter={(e: any) => setHoveredProvince(province)}
+                      onMouseLeave={() => setHoveredProvince(null)}
+                      style={{ cursor: 'pointer' }}
                     >
-                      <div className="bg-black/90 backdrop-blur-md text-white text-xs font-bold tracking-wider px-4 py-2 rounded-full border border-[#D4AF37]/30 shadow-lg">
-                        <span className="text-[#D4AF37] mr-2">◆</span>
-                        {province.name_cn}
-                        {province.name_en && (
-                          <span className="text-white/40 ml-2 text-[10px]">{province.name_en}</span>
-                        )}
-                      </div>
-                    </div>
+                      {/* 外圈脉冲 */}
+                      <circle
+                        r={isHov ? 14 : isHighlighted ? 11 : 7}
+                        fill={dotColor}
+                        fillOpacity={isHighlighted ? 0.18 : isHov ? 0.15 : 0.08}
+                        style={{
+                          animation: isHighlighted ? `chinaPulse 2.5s ease-out infinite` : undefined,
+                          transition: 'r 0.25s, fill-opacity 0.3s',
+                        }}
+                      />
+                      {/* 中圈 */}
+                      <circle
+                        r={isHov ? 7 : isHighlighted ? 5 : 3}
+                        fill={dotColor}
+                        fillOpacity={isHighlighted || isHov ? 0.5 : 0.25}
+                        style={{ transition: 'r 0.25s, fill-opacity 0.3s' }}
+                      />
+                      {/* 核心点 */}
+                      <circle
+                        r={isHov ? 4 : isHighlighted ? 3 : 2}
+                        fill={dotColor}
+                        style={{
+                          filter: (isHighlighted || isHov) ? `drop-shadow(0 0 5px ${dotColor}90)` : 'none',
+                          transition: 'r 0.25s',
+                        }}
+                      />
+                      {/* 省份名标签（hover/高亮时显示） */}
+                      {(isHov || isHighlighted) && (
+                        <text
+                          textAnchor="middle"
+                          y={-14}
+                          style={{
+                            fontSize: isHov ? '9px' : '7px',
+                            fontWeight: 'bold',
+                            fontFamily: 'system-ui, sans-serif',
+                            fill: dotColor,
+                            pointerEvents: 'none',
+                            letterSpacing: '0.05em',
+                          }}
+                        >
+                          {province.name_cn}
+                        </text>
+                      )}
+                    </Marker>
+                  );
+                })}
+              </ZoomableGroup>
+            </ComposableMap>
+
+            {/* Tooltip（跟随鼠标） */}
+            {hoveredProvince && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                <div className="bg-white/95 backdrop-blur-md text-black/80 text-xs font-bold tracking-wider px-5 py-3 rounded-2xl border border-black/10 shadow-xl whitespace-nowrap">
+                  <span className="mr-2" style={{ color: GEO_REGIONS.find((r) => r.id === getRegion(hoveredProvince))?.color }}>
+                    ◆
+                  </span>
+                  {hoveredProvince.name_cn}
+                  {hoveredProvince.name_en && (
+                    <span className="text-black/30 ml-2 text-[10px]">{hoveredProvince.name_en}</span>
                   )}
                 </div>
-              );
-            })}
-
-            {/* 地图左下角装饰文字 */}
-            <div className="absolute bottom-6 left-8 hidden md:block">
-              <div className="text-[8px] tracking-[0.6em] font-bold text-[#D4AF37]/30 uppercase">
-                Shenzhou Sourcing Map
               </div>
-              <div className="text-[7px] tracking-[0.3em] text-white/10 mt-1">
-                {mapProvinces.length} / {provinces.length} Provinces Plotted
+            )}
+
+            {/* 左下角标注 */}
+            <div className="absolute bottom-4 left-5 hidden md:flex flex-col gap-1">
+              <div className="text-[6px] tracking-[0.5em] font-bold text-black/20 uppercase">
+                {activeRegion ? `${activeGeo?.name}` : '中华神州'}
+              </div>
+              <div className="text-[5px] tracking-[0.3em] text-black/10">
+                {highlightedIds.size || mappedProvinces.length} / {totalCount} provinces
               </div>
             </div>
 
-            {/* 地图右上角图例 */}
-            <div className="absolute top-6 right-8 hidden md:flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-              <span className="text-[8px] tracking-[0.4em] font-bold text-white/30 uppercase">Origin Point</span>
+            {/* 右上角图例 */}
+            <div className="absolute top-4 right-5 hidden md:flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#C9A84C] opacity-50" />
+              <span className="text-[6px] tracking-[0.4em] font-bold text-black/20 uppercase">Origin Point</span>
             </div>
           </div>
         </section>
 
-        {/* 地区选择器 */}
-        <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-          {CHINA_REGIONS.map(r => (
+        {/* ===== 大区筛选（港澳台独立大区按钮） ===== */}
+        <nav className="sticky top-20 z-40 bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-black/5 mx-4 md:mx-10 rounded-b-2xl">
+          <div className="flex items-center gap-1 overflow-x-auto py-4 px-2">
             <button
-              key={r}
-              onClick={() => setActiveRegion(r)}
-              className={`px-10 py-4 md:px-14 md:py-6 rounded-full text-[10px] md:text-sm font-bold tracking-[0.3em] transition-all border ${
-                activeRegion === r
-                  ? 'bg-black text-white border-black shadow-xl scale-105'
-                  : 'bg-white text-black/40 border-black/5 hover:border-black/20 hover:text-black'
+              onClick={() => setActiveRegion(null)}
+              className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl transition-all whitespace-nowrap ${
+                activeRegion === null
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
               }`}
             >
-              {r}
+              <span className="text-xs font-bold tracking-wider">全部省域</span>
+              <span className="text-[9px] opacity-50 tracking-widest uppercase">All</span>
             </button>
-          ))}
-        </div>
 
-        {/* 省份网格 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
-          {filteredProvinces.map((p, idx) => (
-            <div
-              key={p.id}
-              onClick={() => onNavigate('destination', { countryId: p.id })}
-              className="group cursor-pointer bg-white rounded-3xl overflow-hidden border border-black/5 hover:shadow-2xl transition-all duration-700 relative"
-              style={{ animation: `fadeInUp 0.6s ease ${idx * 100}ms both` }}
+            {GEO_REGIONS.map((r) => {
+              const count = regionStats[r.id] || 0;
+              const isActive = activeRegion === r.id;
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => setActiveRegion(isActive ? null : r.id)}
+                  className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl transition-all whitespace-nowrap ${
+                    isActive ? 'shadow-sm' : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
+                  }`}
+                  style={isActive ? { background: r.color, color: '#fff' } : {}}
+                >
+                  <span className="text-xs font-bold tracking-wider">{r.name}</span>
+                  {count > 0 && (
+                    <span
+                      className="text-[8px] font-bold mt-0.5 px-1.5 py-0.5 rounded-full"
+                      style={
+                        isActive
+                          ? { background: 'rgba(255,255,255,0.25)', color: '#fff' }
+                          : { background: `${r.color}22`, color: r.color }
+                      }
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => onNavigate('atlas')}
+              className="ml-auto flex items-center gap-2 px-4 py-2 bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70 rounded-2xl transition-all whitespace-nowrap"
             >
-              <div className="aspect-[16/10] overflow-hidden relative">
-                <img decoding="async" decoding="async"
-                  src={optimizeImage(p.scenery_url || p.image_url, { width: 600, quality: 75 }) || PROVINCE_PLACEHOLDER}
-                  className="w-full h-full object-cover transition-transform duration-[5s] group-hover:scale-110"
-                  alt={p.name_cn}
-                  loading="lazy"
-                  onError={(e) => { e.currentTarget.src = PROVINCE_PLACEHOLDER; }}
-                />
-                <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-white/20 shadow-lg">
-                  <CheckCircle2 size={10} className="text-[#2C3E28]" />
-                  <span className="text-[8px] font-bold tracking-widest uppercase text-black">已寻得 Arrived</span>
-                </div>
-              </div>
-              <div className="p-8 md:p-12 space-y-4">
-                <div className="flex justify-between items-end">
-                  <h3 className="text-2xl md:text-4xl font-bold tracking-widest text-black/80 group-hover:text-[#D75437] transition-colors">
-                    {p.name_cn}
-                  </h3>
-                  <span className="text-[10px] font-bold opacity-10 tracking-[0.2em] uppercase">{p.name_en || ''}</span>
-                </div>
-                <div className="pt-6 flex justify-between items-center border-t border-black/5">
-                  <span className="text-[8px] md:text-[10px] tracking-[0.2em] font-bold text-black/20 group-hover:text-[#D75437] uppercase transition-colors">查看极境档案 Archive</span>
-                  <ChevronRight size={14} className="opacity-20 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredProvinces.length === 0 && (
-          <div className="py-32 text-center">
-            <Sparkles className="mx-auto mb-6 opacity-5" size={80} />
-            <p className="text-black/30 italic text-xl">该区域寻香足迹整理中...</p>
+              <ArrowUpRight size={12} />
+              <span className="text-xs font-bold tracking-wider">全球坐标</span>
+            </button>
           </div>
-        )}
+        </nav>
+
+        {/* ===== 主体内容 ===== */}
+        <section className="px-4 md:px-10 pt-8 pb-32">
+
+          {(activeRegion || search) && (
+            <div className="flex items-center gap-3 mb-6">
+              {activeRegion && (
+                <span className="text-sm font-bold text-black/40 tracking-widest">
+                  <span style={{ color: activeGeo?.color }}>{activeGeo?.name}</span>
+                  <span className="mx-2">·</span>
+                  <span className="text-black/20">{filtered.length} 个省域</span>
+                </span>
+              )}
+              {search && (
+                <span className="text-sm font-bold text-black/40">
+                  搜索 "<span className="text-black/70">{search}</span>"
+                </span>
+              )}
+              <button
+                onClick={() => { setActiveRegion(null); setSearch(''); }}
+                className="ml-auto text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
+              >
+                清除筛选
+              </button>
+            </div>
+          )}
+
+          {/* 搜索栏 */}
+          <div className="mb-8 relative max-w-xs">
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/25" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜索省域 / Search"
+              className="w-full pl-10 pr-4 py-3 bg-white rounded-2xl border border-black/5 text-sm font-bold tracking-wide placeholder:text-black/15 focus:outline-none focus:border-[#D4AF37]/30 focus:ring-2 focus:ring-[#D4AF37]/10 transition-all"
+            />
+          </div>
+
+          {/* 省份卡片 */}
+          {filtered.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5">
+              {filtered.map((p, idx) => {
+                const reg = getRegion(p);
+                const geo = GEO_REGIONS.find((r) => r.id === reg);
+                const isOnMap = !!PROVINCE_COORDS[p.name_cn];
+                const isHighlighted = highlightedIds.has(p.id);
+                const isHov = hoveredProvince?.id === p.id;
+                const dotColor = geo?.color || '#C9A84C';
+
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => onNavigate('destination', { countryId: p.id })}
+                    onMouseEnter={() => setHoveredProvince(p)}
+                    onMouseLeave={() => setHoveredProvince(null)}
+                    className={`group cursor-pointer rounded-2xl overflow-hidden border transition-all duration-500 ${
+                      isHighlighted
+                        ? 'border-[#D4AF37]/40 -translate-y-1 shadow-lg shadow-[#D4AF37]/10'
+                        : 'border-black/5 hover:border-black/10 hover:-translate-y-1 hover:shadow-md'
+                    }`}
+                    style={{ animation: `fadeInUp 0.4s ease ${Math.min(idx, 20) * 30}ms both` }}
+                  >
+                    {/* 图片 */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
+                      <img
+                        src={getProvinceImage(p)}
+                        className={`w-full h-full object-cover transition-all duration-[1.5s] ${
+                          isHighlighted ? 'grayscale-0 scale-105' : 'grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-105'
+                        }`}
+                        alt={p.name_cn}
+                        loading="lazy"
+                        onError={(e) => {
+                          const seed = PROVINCE_IMAGE_SEEDS[p.name_cn] || p.name_cn;
+                          e.currentTarget.src = `https://picsum.photos/seed/${encodeURIComponent(seed)}/400/300`;
+                        }}
+                      />
+                      {/* 大区色条 */}
+                      {geo && (
+                        <div className="absolute top-3 left-3 w-1 h-8 rounded-full opacity-70" style={{ background: geo.color }} />
+                      )}
+                      {/* 地图坐标状态 */}
+                      <div className="absolute top-3 right-3">
+                        {isOnMap ? (
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ background: `${dotColor}33`, border: `1px solid ${dotColor}55` }}
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: dotColor }} />
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center" title="见目的地列表">
+                            <Home size={8} className="text-black/30" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 文字 */}
+                    <div className="p-3 bg-white">
+                      <div className="flex items-center justify-between">
+                        <h4 className={`text-sm md:text-base font-bold tracking-tight transition-colors ${
+                          isHighlighted ? 'text-[#D4AF37]' : 'text-black/80 group-hover:text-[#D75437]'
+                        }`}>
+                          {p.name_cn}
+                        </h4>
+                        {isHighlighted && (
+                          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: dotColor }} />
+                        )}
+                      </div>
+                      {p.name_en && (
+                        <p className="text-[7px] md:text-[8px] tracking-[0.3em] opacity-30 font-extrabold uppercase truncate mt-0.5">
+                          {p.name_en}
+                        </p>
+                      )}
+                      {geo && (
+                        <p className="text-[7px] md:text-[8px] tracking-widest mt-1 font-bold uppercase" style={{ color: geo.color, opacity: 0.7 }}>
+                          {geo.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-32 text-center space-y-4">
+              <Home className="mx-auto opacity-[0.06]" size={64} />
+              <p className="text-black/25 italic text-base">
+                {activeRegion ? `${activeGeo?.name} 暂无坐标` : '未找到匹配结果'}
+              </p>
+              <button
+                onClick={() => { setActiveRegion(null); setSearch(''); }}
+                className="text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
+              >
+                清除筛选
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Footer */}
+        <footer className="py-32 text-center space-y-8 border-t border-black/5 mx-4 md:mx-10">
+          <div className="space-y-3">
+            <h5 className="text-3xl md:text-5xl font-bold text-black/8">元于一息</h5>
+            <p className="text-[9px] md:text-xs text-black/25 tracking-[0.4em] uppercase font-bold">Origin · Sanctuary · Breath</p>
+          </div>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="text-[9px] tracking-[0.6em] font-extrabold text-[#D75437] uppercase border-b border-transparent hover:border-[#D75437] transition-all pb-0.5"
+          >
+            回到原点
+          </button>
+        </footer>
       </div>
 
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes mapPulse {
-          0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-          50% { opacity: 0; transform: translate(-50%, -50%) scale(2.5); }
+        @keyframes chinaPulse {
+          0%   { opacity: 0.18; }
+          70%  { opacity: 0; }
+          100% { opacity: 0; }
         }
       `}</style>
     </div>
   );
-};
-
-export default SiteChinaAtlas;
+}
