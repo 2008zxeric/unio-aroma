@@ -36,6 +36,8 @@ interface ImageUploadFieldProps {
   galleryValue?: string;
   /** 相册 URL 变更回调，仅 showGallery=true 时生效 */
   onGalleryChange?: (v: string) => void;
+  /** 相册最大张数（默认 4） */
+  galleryMax?: number;
   /** 自定义预览尺寸 className，默认 "w-20 h-20" */
   previewSize?: string;
   /** 上传路径前缀，如 "products/YUAN-y1" */
@@ -53,6 +55,7 @@ export default function ImageUploadField({
   showGallery = false,
   galleryValue = '',
   onGalleryChange,
+  galleryMax = 4,
   previewSize = 'w-20 h-20',
   uploadPrefix = 'uploads',
   compressOptions,
@@ -199,7 +202,7 @@ export default function ImageUploadField({
         urls.push(url);
       }
       const existing = galleryUrls;
-      const merged = [...existing, ...urls].slice(0, 6);
+      const merged = [...existing, ...urls].slice(0, galleryMax);
       onGalleryChange?.(merged.join('\n'));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -421,9 +424,9 @@ export default function ImageUploadField({
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-[#2D3B2D] flex items-center gap-2">
               <ImageIcon size={14} /> 图片相册
-              <span className="text-[11px] text-[#8AA08A] font-normal">（最多 6 张，已 {galleryUrls.length} 张）</span>
+              <span className="text-[11px] text-[#8AA08A] font-normal">（最多 {galleryMax} 张，已 {galleryUrls.length} 张）</span>
             </label>
-            {galleryUrls.length < 6 && (
+            {galleryUrls.length < galleryMax && (
               <button
                 type="button"
                 onClick={() => galleryFileInputRef.current?.click()}
