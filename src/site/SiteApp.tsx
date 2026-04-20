@@ -116,19 +116,25 @@ const SiteApp: React.FC = () => {
     setIsLongPressComplete(false);
   }, []);
 
+  // 从 URL hash 读取初始状态（优先级最高，刷新不丢失）
   useEffect(() => {
-    const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
-    if (isPreview) {
-      localStorage.removeItem('site_view');
-      localStorage.removeItem('site_params');
-    } else {
-      const savedView = localStorage.getItem('site_view') as ViewType;
-      const savedParams = localStorage.getItem('site_params');
-      if (savedView) setView(savedView);
-      if (savedParams) {
-        try { setNavParams(JSON.parse(savedParams)); } catch {}
+    const parseHash = (): { v: ViewType; p: NavParams } => {
+      const raw = window.location.hash.replace("#", "");
+      if (!raw) return { v: "home", p: {} };
+      try {
+        const decoded = JSON.parse(atob(raw));
+        if (decoded.v && typeof decoded.v === "string") return { v: decoded.v as ViewType, p: decoded.p || {} };
+        return { v: "home", p: {} };
+      } catch {
+        return { v: "home", p: {} };
       }
-    }
+    };
+
+    const { v, p } = parseHash();
+    setView(v);
+    setNavParams(p);
+    if (v !== "home") setPrevView("home");
+
     const timer = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => setShowSplash(false), 1000);
@@ -136,9 +142,13 @@ const SiteApp: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // 状态变更时同步写入 URL hash（不刷新页面）+ localStorage
   useEffect(() => {
-    localStorage.setItem('site_view', view);
-    localStorage.setItem('site_params', JSON.stringify(navParams));
+    if (!view) return;
+    const hash = btoa(JSON.stringify({ v: view, p: navParams }));
+    window.history.replaceState(null, "", `#${hash}`);
+    localStorage.setItem("site_view", view);
+    localStorage.setItem("site_params", JSON.stringify(navParams));
   }, [view, navParams]);
 
   const handleNavigate = (newView: string, params?: NavParams) => {
