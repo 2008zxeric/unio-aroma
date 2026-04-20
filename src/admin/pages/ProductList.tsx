@@ -1339,13 +1339,25 @@ function ProductEditFormV4({
               </div>
             )}
 
-            {/* 图片上传 */}
+            {/* 图片相册（第1张自动作为主图） */}
             <ImageUploadField
-              label="产品主图"
-              value={form.image_url}
-              onChange={v => updateField('image_url', v)}
+              label="产品相册（第1张为主图，最多4张）"
+              value={form.gallery_urls?.split('\n').filter(Boolean)[0] || ''}
+              onChange={v => {
+                // 主图变更（仅更新第1张）
+                const urls = form.gallery_urls?.split('\n').filter(Boolean) || [];
+                urls[0] = v;
+                const newGallery = urls.filter(Boolean).join('\n');
+                updateField('gallery_urls', newGallery);
+                updateField('image_url', urls[0] || ''); // 同步到 image_url
+              }}
               showGallery={true}
-              onGalleryChange={v => updateField('gallery_urls', v)}
+              onGalleryChange={v => {
+                updateField('gallery_urls', v);
+                // 相册变更时同步 image_url 为第1张
+                const urls = v.split('\n').filter(Boolean);
+                updateField('image_url', urls[0] || '');
+              }}
               galleryValue={form.gallery_urls}
               uploadPrefix={`products/${form.code || 'product'}`}
               previewSize="w-20 h-20"
