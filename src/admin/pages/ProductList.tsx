@@ -16,6 +16,7 @@ import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import { useAuth, writeAuditLog } from '../../lib/auth';
 import ProfitReportView from '../components/ProfitReportView';
 import ImageUploadField from '../components/ImageUploadField';
+import { Perm } from '../components/PermissionGuard';
 
 // ============================================
 // 常量定义
@@ -682,10 +683,10 @@ export default function AdminProducts() {
             <FileSpreadsheet size={16} /><span className="hidden sm:inline">批量导入</span>
           </button>
           {canEdit && (
-            <button onClick={startCreate}
+            <Perm action="edit_products"><button onClick={startCreate}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#E8F3EC] hover:bg-[#D4EDDA] text-[#4A7C59] rounded-xl font-medium text-sm transition-colors border border-[#4A7C59]/20">
               <Plus size={16} /> 添加新产品
-            </button>
+            </button></Perm>
           )}
         </div>
       </div>

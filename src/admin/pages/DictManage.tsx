@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle, KeyRound } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { dictService, userService, seriesService } from '../../lib/dataService';
-import { useAuth, getUserPassword, updateUserPassword } from '../../lib/auth';
+import { useAuth, updateUserPassword } from '../../lib/auth';
 import type { DictItem, AdminUser, Series } from '../../lib/database.types';
 
 // ============================================
@@ -686,7 +686,7 @@ export function AdminUsers() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [pwdVisible, setPwdVisible] = useState<Record<string, boolean>>({});
+
 
   // 密码修改弹窗状态
   const [pwdModal, setPwdModal] = useState<{ userId: string; username: string; displayName: string } | null>(null);
@@ -894,15 +894,14 @@ export function AdminUsers() {
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">用户</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">角色</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">状态</th>
-              {isSuperAdmin && <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">登录密码</th>}
+              {isSuperAdmin && <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">密码管理</th>}
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">最后登录</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase">操作</th>
             </tr></thead>
             <tbody>
               {users.map(u => {
                 const roleInfo = ROLE_LABELS[u.role];
-                const currentPwd = isSuperAdmin ? getUserPassword(u.username) : undefined;
-                const showPwd = pwdVisible[u.id];
+
                 return (
                   <tr key={u.id} className="border-b border-[#E0ECE0]/30 hover:bg-[#EEF4EF]">
                     <td className="px-4 py-3">
@@ -930,18 +929,13 @@ export function AdminUsers() {
                     </td>
                     {isSuperAdmin && (
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-[#5C725C] font-mono tracking-wide">
-                            {showPwd ? (currentPwd || '未设置') : '••••••••'}
-                          </span>
-                          <button
-                            onClick={() => setPwdVisible(prev => ({ ...prev, [u.id]: !prev[u.id] }))}
-                            className="p-1 hover:bg-[#EEF4EF] rounded text-[#8AA08A] hover:text-[#5C725C] transition-colors"
-                            title={showPwd ? '隐藏密码' : '显示密码'}
-                          >
-                            {showPwd ? <EyeOff size={12} /> : <Eye size={12} />}
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => setPwdModal({ userId: u.id, username: u.username, displayName: u.display_name || u.username })}
+                          className="flex items-center gap-1.5 text-xs text-[#4A7C59] hover:text-[#3D6B4A] transition-colors"
+                        >
+                          <KeyRound size={12} />
+                          重置密码
+                        </button>
                       </td>
                     )}
                     <td className="px-4 py-3 text-[#7A967A] text-xs">
