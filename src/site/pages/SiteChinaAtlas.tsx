@@ -1,6 +1,6 @@
 /**
- * UNIO AROMA 前台 - 中华神州页 v6
- * 使用内联 SVG China Simplified Path + Marker 点位
+ * UNIO AROMA 前台 - 中华神州页 v7
+ * 使用 TopoJSON world-atlas 渲染中国轮廓（更精确）
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -9,11 +9,18 @@ import {
   Geographies,
   Geography,
   Marker,
+  ZoomableGroup,
 } from 'react-simple-maps';
 import { ArrowLeft, Home, Search, ArrowUpRight } from 'lucide-react';
 import { Country } from '../types';
 import { getChinaProvinces } from '../siteDataService';
 import { optimizeImage } from '../imageUtils';
+
+// TopoJSON world-atlas URL（包含所有国家精确轮廓）
+const WORLD_TOPO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+// 中国 ISO 代码（A3）
+const CHINA_ISO = '156';
 
 // ============ 大区配置 ============
 const GEO_REGIONS = [
@@ -58,66 +65,6 @@ const PROVINCE_IMAGE_SEEDS: Record<string, string> = {
   '澳门': 'macau', '台湾': 'taiwan',
 };
 
-// 中国简化 GeoJSON（精确边界轮廓，约150点）
-const CHINA_GEO: GeoJSON.FeatureCollection = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      properties: { name: 'China' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[
-          // 新疆西部边界
-          [73.5, 39.5], [74.5, 37.5], [76.0, 35.5], [77.0, 33.5], [76.5, 31.5],
-          // 西藏南部边界
-          [78.5, 31.0], [79.5, 30.5], [81.0, 29.5], [82.5, 28.5], [84.0, 28.0],
-          [86.0, 28.0], [88.0, 28.5], [89.5, 28.0], [91.0, 27.5], [92.0, 28.0],
-          // 藏南地区
-          [93.5, 28.5], [94.5, 29.0], [96.0, 29.5], [97.0, 28.5], [98.0, 27.5],
-          // 云南边界
-          [98.5, 26.5], [97.5, 25.5], [98.0, 24.5], [98.5, 23.5], [99.0, 22.5],
-          [99.5, 22.0], [100.5, 21.5], [101.5, 21.0], [102.0, 22.0], [102.5, 22.5],
-          // 广西边界
-          [103.0, 22.5], [103.5, 22.0], [104.5, 22.5], [105.5, 23.0], [106.0, 22.0],
-          [106.5, 22.0], [107.0, 21.5], [108.0, 21.5], [108.5, 21.0], [109.5, 21.5],
-          // 海南
-          [110.0, 20.0], [110.5, 19.0], [111.0, 19.5], [111.5, 20.5], [110.5, 20.5],
-          // 广东边界
-          [109.5, 21.0], [109.0, 21.5], [110.0, 22.0], [111.0, 23.0], [112.5, 23.5],
-          [113.5, 23.0], [114.0, 22.5], [114.5, 22.0], [114.0, 22.5], [113.5, 23.0],
-          // 福建边界
-          [116.5, 23.5], [117.0, 24.0], [118.0, 24.5], [119.0, 25.0], [119.5, 25.5],
-          [120.0, 26.0], [120.5, 26.5], [119.5, 27.0], [119.0, 28.0], [118.5, 28.5],
-          // 浙江/上海边界
-          [120.0, 29.5], [121.0, 30.5], [121.5, 31.0], [122.0, 31.5], [122.5, 31.0],
-          [122.0, 30.5], [121.5, 29.5], [121.0, 28.5], [120.0, 28.0],
-          // 江苏海岸
-          [119.5, 32.0], [120.0, 33.0], [121.0, 34.0], [121.5, 35.0], [122.0, 35.5],
-          // 山东半岛
-          [120.5, 36.0], [119.5, 36.5], [118.5, 37.0], [118.0, 37.5], [119.0, 38.0],
-          [120.0, 38.5], [121.0, 39.0], [122.0, 39.5], [122.5, 40.0], [123.0, 40.5],
-          // 辽宁海岸
-          [121.5, 39.0], [122.0, 39.5], [122.5, 40.0], [123.0, 40.5], [124.0, 41.0],
-          [124.5, 40.5], [125.0, 40.0], [125.5, 39.5], [126.0, 39.0],
-          // 吉林/黑龙江东部边界
-          [126.5, 39.5], [127.5, 40.0], [129.0, 41.0], [130.0, 42.0], [130.5, 42.5],
-          [131.0, 43.0], [130.5, 43.5], [130.0, 44.0], [129.5, 44.5], [129.0, 45.0],
-          [128.5, 45.5], [128.0, 46.0], [127.5, 46.5], [127.0, 47.0], [126.5, 47.5],
-          // 黑龙江北部边界
-          [125.0, 48.0], [123.0, 49.0], [121.0, 50.0], [119.0, 51.0], [117.0, 52.0],
-          [115.0, 53.0], [113.0, 53.5], [111.0, 53.0], [109.0, 52.5], [107.0, 52.0],
-          [105.0, 51.5], [103.0, 51.0], [101.0, 50.5],
-          // 新疆北部边界
-          [99.0, 50.0], [97.0, 49.5], [95.0, 49.0], [93.0, 48.5], [91.0, 48.0],
-          [89.0, 47.5], [87.0, 47.0], [85.0, 46.5], [83.0, 46.0], [81.0, 45.5],
-          [79.0, 45.0], [77.0, 44.0], [75.5, 42.5], [74.5, 41.0], [73.5, 39.5]
-        ]]
-      }
-    }
-  ]
-};
-
 interface SiteChinaAtlasProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
@@ -128,10 +75,18 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [hoveredProvince, setHoveredProvince] = useState<Country | null>(null);
   const [search, setSearch] = useState('');
+  const [topoData, setTopoData] = useState<any>(null);  // TopoJSON 数据
 
   useEffect(() => {
-    getChinaProvinces()
-      .then(setProvinces)
+    // 加载省份和 TopoJSON 数据
+    Promise.all([
+      getChinaProvinces(),
+      fetch(WORLD_TOPO_URL).then(r => r.json())
+    ])
+      .then(([provinceData, topo]) => {
+        setProvinces(provinceData);
+        setTopoData(topo);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -265,41 +220,45 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
           </div>
         </nav>
 
-        {/* 中国地图（内联 GeoJSON + Marker） */}
+        {/* 中国地图（TopoJSON + Marker） */}
         <section className="px-2 md:px-10 py-4 md:py-6">
           <div
             className="relative w-full h-[35vh] md:h-[50vh] rounded-xl md:rounded-[2rem] overflow-hidden border border-black/5 shadow-lg"
             style={{ background: 'linear-gradient(135deg, #F5F3EF 0%, #EBE8E0 100%)' }}
           >
-            <ComposableMap
-              projection="geoAlbers"
-              projectionConfig={{
-                center: [0, 35],
-                rotate: [-105, 0, 0],
-                parallels: [25, 47],
-                scale: 600,
-              }}
-              style={{ width: '100%', height: '100%' }}
-            >
-              {/* 中国轮廓底图 */}
-              <Geographies geography={CHINA_GEO}>
-                {({ geographies }) =>
-                  geographies.map((geo) => (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      fill="#E8E4DC"
-                      stroke="#CCC9BF"
-                      strokeWidth={1}
-                      style={{
-                        default: { outline: 'none' },
-                        hover: { outline: 'none' },
-                        pressed: { outline: 'none' },
-                      }}
-                    />
-                  ))
-                }
-              </Geographies>
+            {topoData ? (
+              <ComposableMap
+                projection="geoAlbers"
+                projectionConfig={{
+                  center: [0, 35],
+                  rotate: [-105, 0, 0],
+                  parallels: [25, 47],
+                  scale: 600,
+                }}
+                style={{ width: '100%', height: '100%' }}
+              >
+                {/* 世界地图背景（灰色），高亮中国 */}
+                <Geographies geography={topoData}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      const isChina = geo.id === CHINA_ISO;
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          fill={isChina ? '#D75437' : '#E8E4DC'}
+                          stroke={isChina ? '#B8432A' : '#CCC9BF'}
+                          strokeWidth={isChina ? 1.5 : 0.5}
+                          style={{
+                            default: { outline: 'none' },
+                            hover: { outline: 'none' },
+                            pressed: { outline: 'none' },
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
 
               {/* 省份点位 */}
               {mappedProvinces.map((province) => {
@@ -362,6 +321,11 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                 );
               })}
             </ComposableMap>
+            ) : (
+              <div className="flex items-center justify-center h-full text-black/30 text-xs">
+                加载地图中...
+              </div>
+            )}
 
             {/* Tooltip */}
             {hoveredProvince && (

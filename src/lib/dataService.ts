@@ -484,3 +484,11 @@ function transformProducts(rawData: any[]): Product[] {
     country: row.countries || row.country || undefined,   // ← 兼容两种返回格式
   }));
 }
+
+function transformCountries(rawData: any[]): Country[] {
+  return (rawData || []).map(row => ({
+    ...row,
+    // 确保 gallery_urls 是数组
+    gallery_urls: Array.isArray(row.gallery_urls) ? row.gallery_urls : (row.gallery_urls ? JSON.parse(row.gallery_urls) : []),
+  }));
+}

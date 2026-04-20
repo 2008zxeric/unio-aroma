@@ -19,7 +19,40 @@ async function fetchFromSupabase(table: string, params: string = '') {
   const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
   const response = await fetch(url, { headers });
   if (!response.ok) throw new Error(`Failed to fetch ${table}`);
-  return response.json();
+  const data = await response.json();
+  return transformArrays(data);
+}
+
+// 处理 PostgreSQL 数组字段（{a,b} → ["a","b"]）
+function transformArrays(data: any[]): any[] {
+  if (!Array.isArray(data)) return data;
+  return data.map(row => ({
+    ...row,
+    // gallery_urls 可能是 PostgreSQL 数组格式
+    gallery_urls: Array.isArray(row.gallery_urls) ? row.gallery_urls : 
+      (row.gallery_urls && typeof row.gallery_urls === 'string' ? parsePostgresArray(row.gallery_urls) : (row.gallery_urls || [])),
+    // products 表也有 gallery_urls 和 benefits
+    benefits: Array.isArray(row.benefits) ? row.benefits : 
+      (row.benefits && typeof row.benefits === 'string' ? parsePostgresArray(row.benefits) : (row.benefits || [])),
+    similar_ids: Array.isArray(row.similar_ids) ? row.similar_ids : 
+      (row.similar_ids && typeof row.similar_ids === 'string' ? parsePostgresArray(row.similar_ids) : (row.similar_ids || [])),
+  }));
+}
+
+// PostgreSQL 数组格式解析：{url1,url2} → ["url1", "url2"]
+function parsePostgresArray(str: string): string[] {
+  if (!str || str[0] !== '{' || str[str.length - 1] !== '}') {
+    // 尝试 JSON 解析
+    try {
+      return JSON.parse(str);
+    } catch {
+      return [];
+    }
+  }
+  // PostgreSQL 数组格式: {a,b,c}
+  const inner = str.slice(1, -1);
+  if (!inner) return [];
+  return inner.split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
 }
 
 // ============ 系列服务 ============
