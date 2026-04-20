@@ -592,14 +592,18 @@ function CountryEditForm({
         ))}
 
         <div className="border-t border-[#E0ECE0] mt-1 pt-1.5 flex flex-col gap-1.5">
-          {form.name_cn && (
-            <button
-              onClick={onPreviewOpen}
+          {/* 跳转到前台国家页 */}
+          {editingId && (
+            <a
+              href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'destination', p: { countryId: editingId } }))}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] text-[#1C39BB] hover:bg-blue-50 transition-colors"
+              title="在浏览器中打开前台国家页"
             >
               <ExternalLink size={11} />
-              <span>预览</span>
-            </button>
+              <span>打开前台国家</span>
+            </a>
           )}
           <button
             onClick={onSave}
