@@ -3,7 +3,7 @@
  * 致敬原站设计，Supabase 驱动
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
 import { getSeries, getProducts, getCountries } from '../siteDataService';

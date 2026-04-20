@@ -3,7 +3,7 @@
  * 地图主导交互：点击大洲筛选，地图与列表联动
  */
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   ComposableMap,
   Geographies,
