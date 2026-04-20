@@ -32,35 +32,35 @@ const SeriesIcon: React.FC<{ icon: string; className?: string }> = ({ icon, clas
   return icons[icon] || <Sparkles className={className} />;
 };
 
-// ===== 计数动画 Hook =====
-function useCountUp(target: number, duration: number = 2000, startOnView: boolean = true) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(!startOnView);
-  const ref = useRef<HTMLDivElement>(null);
+// ===== 计数动画 Hook（稳定版）=====
+function useCountUp(target: number, duration: number = 2000) {
+  const [count, setCount] = useState(target);
+  const animRef = useRef<number | null>(null);
+  const startRef = useRef(false);
 
   useEffect(() => {
-    if (!startOnView) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setStarted(true); },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [startOnView]);
+    if (startRef.current) return;
+    startRef.current = true;
 
-  useEffect(() => {
-    if (!started) return;
-    let startTime: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * target));
-      if (progress < 1) requestAnimationFrame(step);
+    const timer = setTimeout(() => {
+      const startTime = performance.now();
+      const step = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.floor(eased * target));
+        if (progress < 1) animRef.current = requestAnimationFrame(step);
+      };
+      animRef.current = requestAnimationFrame(step);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
     };
-    requestAnimationFrame(step);
-  }, [started, target, duration]);
+  }, [target, duration]);
 
-  return { count, ref };
+  return { count };
 }
 
 const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
@@ -183,11 +183,11 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       <section className="bg-[#1C1C1C] py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 gap-4 sm:gap-12">
           {[
-            { num: heroStats.count, suffix: '+', label: '极境坐标', sub: 'Global Origins', ref: heroStats.ref },
-            { num: productStats.count, suffix: '', label: '馆藏精品', sub: 'Curated Collection', ref: productStats.ref },
-            { num: countryStats.count, suffix: '', label: '寻香足迹', sub: 'Countries Explored', ref: countryStats.ref },
+            { num: heroStats.count, suffix: '+', label: '极境坐标', sub: 'Global Origins' },
+            { num: productStats.count, suffix: '', label: '馆藏精品', sub: 'Curated Collection' },
+            { num: countryStats.count, suffix: '', label: '寻香足迹', sub: 'Countries Explored' },
           ].map((item, i) => (
-            <div key={i} className="text-center" ref={item.ref}>
+            <div key={i} className="text-center">
               <div className="text-2xl sm:text-5xl font-bold text-white tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {item.num}{item.suffix}
               </div>
