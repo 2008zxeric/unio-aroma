@@ -1339,27 +1339,29 @@ function ProductEditFormV4({
               </div>
             )}
 
-            {/* 图片相册（第1张自动作为主图） */}
+            {/* 主图（产品缩略图/列表图）— 独立字段，不与相册同步 */}
             <ImageUploadField
-              label="产品相册（第1张为主图，最多4张）"
+              label="产品主图（列表缩略图）"
+              value={form.image_url || ''}
+              onChange={v => updateField('image_url', v)}
+              uploadPrefix={`products/${form.code || 'product'}/main`}
+              previewSize="w-20 h-20"
+            />
+
+            {/* 产品相册（独立于主图，最多4张） */}
+            <ImageUploadField
+              label="产品相册（详情页展示，最多4张）"
               value={form.gallery_urls?.split('\n').filter(Boolean)[0] || ''}
               onChange={v => {
-                // 主图变更（仅更新第1张）
                 const urls = form.gallery_urls?.split('\n').filter(Boolean) || [];
                 urls[0] = v;
-                const newGallery = urls.filter(Boolean).join('\n');
-                updateField('gallery_urls', newGallery);
-                updateField('image_url', urls[0] || ''); // 同步到 image_url
+                updateField('gallery_urls', urls.filter(Boolean).join('\n'));
               }}
               showGallery={true}
-              onGalleryChange={v => {
-                updateField('gallery_urls', v);
-                // 相册变更时同步 image_url 为第1张
-                const urls = v.split('\n').filter(Boolean);
-                updateField('image_url', urls[0] || '');
-              }}
+              onGalleryChange={v => updateField('gallery_urls', v)}
               galleryValue={form.gallery_urls}
-              uploadPrefix={`products/${form.code || 'product'}`}
+              galleryMax={4}
+              uploadPrefix={`products/${form.code || 'product'}/gallery`}
               previewSize="w-20 h-20"
             />
 
