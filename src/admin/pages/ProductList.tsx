@@ -1199,16 +1199,18 @@ function ProductEditFormV4({
         ))}
 
         <div className="border-t border-[#E0ECE0] mt-1 pt-1.5 flex flex-col gap-1.5">
-          {/* 前台预览 */}
-          {form.name_cn && (
-            <button
-              onClick={() => setShowPreview(true)}
+          {/* 跳转到前台产品页 */}
+          {editingId && (
+            <a
+              href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'product', p: { productId: editingId } }))}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] text-[#1C39BB] hover:bg-blue-50 transition-colors"
-              title="预览前台展示效果"
+              title="在浏览器中打开前台产品页"
             >
               <ExternalLink size={11} />
-              <span>预览</span>
-            </button>
+              <span>打开前台产品</span>
+            </a>
           )}
 
           {/* 保存主按钮 */}
