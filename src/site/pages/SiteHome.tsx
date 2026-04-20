@@ -33,26 +33,29 @@ const SeriesIcon: React.FC<{ icon: string; className?: string }> = ({ icon, clas
 };
 
 // ===== 计数动画 Hook（稳定版）=====
+// target 变化时自动重新动画，不依赖 IntersectionObserver
 function useCountUp(target: number, duration: number = 2000) {
   const [count, setCount] = useState(target);
   const animRef = useRef<number | null>(null);
-  const startRef = useRef(false);
 
   useEffect(() => {
-    if (startRef.current) return;
-    startRef.current = true;
+    // 每次 target 变化都重新动画：初始是 target，之后也是 target
+    if (animRef.current) cancelAnimationFrame(animRef.current);
 
     const timer = setTimeout(() => {
       const startTime = performance.now();
       const step = (now: number) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
+        // easeOutExpo：开头快结尾慢，有冲击力
+        const eased = 1 - Math.pow(2, -10 * progress);
         setCount(Math.floor(eased * target));
-        if (progress < 1) animRef.current = requestAnimationFrame(step);
+        if (progress < 1) {
+          animRef.current = requestAnimationFrame(step);
+        }
       };
       animRef.current = requestAnimationFrame(step);
-    }, 100);
+    }, 50); // 50ms 等待让组件稳定，避免首帧白屏
 
     return () => {
       clearTimeout(timer);
