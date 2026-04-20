@@ -3,7 +3,7 @@
  * 4大系列 Tab + 子分类分组 + 标题卡片
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getSeries, getProducts } from '../siteDataService';

@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { dictService, userService, seriesService } from '../../lib/dataService';
 import { useAuth, getUserPassword, updateUserPassword } from '../../lib/auth';
 import type { DictItem, AdminUser, Series } from '../../lib/database.types';
@@ -85,10 +86,8 @@ function TaxonomyView() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const { supabase } = await import('../../lib/supabase');
       const [sList, { data: subs }] = await Promise.all([
         seriesService.getAll(),
-        // 不过滤 is_active，确保能看到所有子分类数据
         supabase.from('dict_items').select('*').eq('dict_type', 'subcategory').order('sort_order'),
       ]);
       setSeriesList(sList);
@@ -154,8 +153,6 @@ function TaxonomyView() {
     if (initing) return;
     setIniting(true);
     try {
-      const { supabase } = await import('../../lib/supabase');
-
       // 1. 删除所有旧的 subcategory
       const { error: err1 } = await supabase
         .from('dict_items')

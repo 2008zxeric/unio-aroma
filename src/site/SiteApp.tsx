@@ -3,7 +3,7 @@
  * 完整前台路由 + 全局浮动导航
  */
 
-import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 

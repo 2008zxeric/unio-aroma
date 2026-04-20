@@ -3,7 +3,7 @@
  * 复刻原站 OracleView，目前为 UI 占位（未接入 Gemini API）
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Activity, Wind, Loader2, RefreshCw } from 'lucide-react';
 
 interface ChatMessage {

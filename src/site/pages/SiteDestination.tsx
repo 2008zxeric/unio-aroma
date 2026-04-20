@@ -3,7 +3,7 @@
  * 沉浸式全屏 Hero + 杂志排版日记 + 科技感实验室 + 杂志风1大2小相册
  */
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   ChevronLeft, ChevronRight, X, MapPin, Camera, BookOpen,
   Sparkles, Home, ArrowLeft, ChevronDown, Quote,

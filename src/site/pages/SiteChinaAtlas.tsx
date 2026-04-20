@@ -3,7 +3,7 @@
  * 使用 TopoJSON world-atlas 渲染中国轮廓（更精确）
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ComposableMap,
   Geographies,
