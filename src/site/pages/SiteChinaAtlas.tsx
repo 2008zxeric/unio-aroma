@@ -1,7 +1,6 @@
 /**
- * UNIO AROMA 前台 - 中华神州页 v4
- * 地图渲染：Marker 投影法（与 SiteAtlas 全球地图一致）
- * 省级行政区全部展示（港澳台作独立大区按钮）
+ * UNIO AROMA 前台 - 中华神州页 v5
+ * 手机优先 + 地图边界修复
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -73,7 +72,7 @@ const PROVINCE_COORDS: Record<string, [number, number]> = {
   '台湾': [121.0, 23.5],
 };
 
-// 中国 GeoJSON（阿里云 DataV，仅用于底图描边）
+// 中国 GeoJSON（阿里云 DataV）
 const GEO_URL = 'https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json';
 
 // 省份全称映射（用于匹配 GeoJSON）
@@ -87,6 +86,7 @@ const NAME_FULL: Record<string, string> = {
   '海南': '海南省', '四川': '四川省', '贵州': '贵州省', '云南': '云南省',
   '西藏': '西藏自治区', '陕西': '陕西省', '甘肃': '甘肃省', '青海': '青海省',
   '宁夏': '宁夏回族自治区', '新疆': '新疆维吾尔自治区',
+  '香港': '香港特别行政区', '澳门': '澳门特别行政区', '台湾': '台湾省',
 };
 
 // 图片兜底：省份名 → Unsplash 关键词
@@ -207,25 +207,25 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
       <div className="max-w-[1600px] mx-auto">
 
         {/* ===== Header ===== */}
-        <header className="pt-28 md:pt-44 px-6 md:px-16 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-3">
+        <header className="pt-20 md:pt-32 px-4 md:px-16 pb-4 md:pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-2 md:space-y-3">
             <div className="flex items-center gap-3 text-[#D75437]">
               <span className="text-[9px] tracking-[0.6em] font-extrabold uppercase opacity-40">Core Origin · 神州</span>
             </div>
-            <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-black/90 leading-none">
+            <h2 className="text-4xl md:text-[7rem] font-bold tracking-tight text-black/90 leading-none">
               中华<span className="text-black/8">神州</span>
             </h2>
-            <div className="h-px w-20 bg-[#D4AF37]/30 mt-2" />
+            <div className="h-px w-16 md:w-20 bg-[#D4AF37]/30 mt-1 md:mt-2" />
           </div>
-          <div className="flex items-end gap-8">
+          <div className="flex items-end gap-6 md:gap-8">
             <div className="text-right">
-              <div className="text-3xl md:text-5xl font-bold text-[#D75437]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="text-2xl md:text-5xl font-bold text-[#D75437]" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {totalCount}
               </div>
               <p className="text-[8px] tracking-[0.4em] font-bold text-black/20 uppercase">省域坐标</p>
             </div>
             <div className="text-right">
-              <div className="text-3xl md:text-5xl font-bold text-black/20" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="text-2xl md:text-5xl font-bold text-black/20" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {mappedProvinces.length}
               </div>
               <p className="text-[8px] tracking-[0.4em] font-bold text-black/10 uppercase">Mapped</p>
@@ -233,58 +233,108 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
           </div>
         </header>
 
-        {/* ===== 导航 ===== */}
-        <div className="px-6 md:px-16 mb-4">
-          <div className="flex items-center gap-3">
+        {/* ===== 返回导航 ===== */}
+        <div className="px-4 md:px-16 mb-3 md:mb-4">
+          <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => onNavigate('atlas')}
-              className="flex items-center gap-2 text-black/30 hover:text-[#D75437] transition-colors group"
+              className="flex items-center gap-1.5 md:gap-2 text-black/30 hover:text-[#D75437] transition-colors group"
             >
-              <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-              <span className="text-xs font-bold tracking-widest">全球坐标</span>
+              <ArrowLeft size={12} className="md:w-3.5 md:h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+              <span className="text-[10px] md:text-xs font-bold tracking-widest">全球坐标</span>
             </button>
             <span className="text-black/10">/</span>
-            <span className="text-xs font-bold tracking-widest text-[#D75437]">中华神州</span>
+            <span className="text-[10px] md:text-xs font-bold tracking-widest text-[#D75437]">中华神州</span>
           </div>
         </div>
 
-        {/* ===== 中国地图（Marker 投影法，与 SiteAtlas 一致） ===== */}
-        <section className="px-4 md:px-10 mb-6">
+        {/* ===== 大区筛选（移到地图前面，手机优先） ===== */}
+        <nav className="sticky top-16 md:top-20 z-40 bg-[#FAF9F6]/95 backdrop-blur-xl border-b border-black/5 mx-2 md:mx-10 rounded-b-xl md:rounded-b-2xl">
+          <div className="flex items-center gap-1 overflow-x-auto py-3 md:py-4 px-2 scrollbar-hide">
+            <button
+              onClick={() => setActiveRegion(null)}
+              className={`flex flex-col items-center gap-0.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl transition-all whitespace-nowrap flex-shrink-0 ${
+                activeRegion === null
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
+              }`}
+            >
+              <span className="text-[10px] md:text-xs font-bold tracking-wider">全部省域</span>
+              <span className="text-[8px] md:text-[9px] opacity-50 tracking-widest uppercase">All</span>
+            </button>
+
+            {GEO_REGIONS.map((r) => {
+              const count = regionStats[r.id] || 0;
+              const isActive = activeRegion === r.id;
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => setActiveRegion(isActive ? null : r.id)}
+                  className={`flex flex-col items-center gap-0.5 px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl transition-all whitespace-nowrap flex-shrink-0 ${
+                    isActive ? 'shadow-sm' : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
+                  }`}
+                  style={isActive ? { background: r.color, color: '#fff' } : {}}
+                >
+                  <span className="text-[10px] md:text-xs font-bold tracking-wider">{r.name}</span>
+                  {count > 0 && (
+                    <span
+                      className="text-[7px] md:text-[8px] font-bold mt-0.5 px-1.5 py-0.5 rounded-full"
+                      style={
+                        isActive
+                          ? { background: 'rgba(255,255,255,0.25)', color: '#fff' }
+                          : { background: `${r.color}22`, color: r.color }
+                      }
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => onNavigate('atlas')}
+              className="ml-auto flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70 rounded-xl md:rounded-2xl transition-all whitespace-nowrap flex-shrink-0"
+            >
+              <ArrowUpRight size={10} className="md:w-3 md:h-3" />
+              <span className="text-[10px] md:text-xs font-bold tracking-wider">全球</span>
+            </button>
+          </div>
+        </nav>
+
+        {/* ===== 中国地图（geoMercator 投影，更稳定） ===== */}
+        <section className="px-2 md:px-10 py-4 md:py-6">
           <div
-            className="relative w-full h-[42vh] md:h-[55vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-black/5 shadow-lg"
-            style={{ background: '#F5F3EF' }}
+            className="relative w-full h-[35vh] md:h-[55vh] rounded-xl md:rounded-[2rem] overflow-hidden border border-black/5 shadow-lg"
+            style={{ background: 'linear-gradient(135deg, #F5F3EF 0%, #EBE8E0 100%)' }}
           >
             <ComposableMap
-              projection="geoAlbers"
-              projectionConfig={{ center: [105, 36], scale: 900 }}
+              projection="geoMercator"
+              projectionConfig={{
+                center: [105, 35],
+                scale: 500,
+              }}
               style={{ width: '100%', height: '100%' }}
             >
-              <ZoomableGroup zoom={1} center={[105, 36]}>
+              <ZoomableGroup zoom={1} center={[105, 35]}>
                 {/* 省份底图 */}
                 <Geographies geography={GEO_URL}>
                   {({ geographies }) =>
                     geographies.map((geo) => {
-                      const adcode = String(geo.properties?.adcode || '');
                       const name = geo.properties?.name || '';
                       const isHighlighted = highlightedGeoNames.has(name);
-                      const isSar = ['台湾', '香港', '澳门'].includes(name);
+                      const isSar = ['台湾省', '香港特别行政区', '澳门特别行政区'].includes(name);
 
-                      // 港澳台用独立颜色，不在高亮时也显示底色
+                      // 港澳台用独立颜色
                       if (isSar) {
                         return (
                           <Geography
                             key={geo.rsmKey}
                             geography={geo}
-                            fill={isHighlighted ? '#C0483A22' : '#DDD8CC'}
+                            fill={isHighlighted ? '#C0483A22' : '#E8E4DC'}
                             stroke="#BBB7AC"
                             strokeWidth={0.5}
-                            style={{ default: { outline: 'none' }, hover: { outline: 'none' }, pressed: { outline: 'none' } }}
-                            onClick={() => {
-                              const match = provinces.find(
-                                (p) => NAME_FULL[p.name_cn] === name || p.name_cn === name
-                              );
-                              if (match) onNavigate('destination', { countryId: match.id });
-                            }}
+                            style={{ default: { outline: 'none' }, hover: { outline: 'none', fill: '#D5D0C4' }, pressed: { outline: 'none' } }}
                           />
                         );
                       }
@@ -293,23 +343,17 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                         <Geography
                           key={geo.rsmKey}
                           geography={geo}
-                          fill={isHighlighted && activeRegion ? `${activeGeo?.color}22` : '#E8E4DC'}
+                          fill={isHighlighted && activeRegion ? `${activeGeo?.color}18` : '#E8E4DC'}
                           stroke={isHighlighted && activeRegion ? activeGeo?.color : '#CCC9BF'}
                           strokeWidth={isHighlighted && activeRegion ? 1.0 : 0.5}
                           style={{
                             default: { outline: 'none' },
                             hover: {
                               outline: 'none',
-                              fill: isHighlighted ? `${activeGeo?.color}33` : '#D5D0C4',
+                              fill: isHighlighted ? `${activeGeo?.color}25` : '#D5D0C4',
                               cursor: 'pointer',
                             },
                             pressed: { outline: 'none' },
-                          }}
-                          onClick={() => {
-                            const match = provinces.find(
-                              (p) => NAME_FULL[p.name_cn] === name || p.name_cn === name
-                            );
-                            if (match) onNavigate('destination', { countryId: match.id });
                           }}
                         />
                       );
@@ -317,7 +361,7 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                   }
                 </Geographies>
 
-                {/* 省份经纬度点位（Marker 投影法） */}
+                {/* 省份经纬度点位 */}
                 {mappedProvinces.map((province) => {
                   const [lon, lat] = PROVINCE_COORDS[province.name_cn] ?? [0, 0];
                   const isHighlighted = highlightedIds.has(province.id);
@@ -325,22 +369,19 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                   const reg = getRegion(province);
                   const geo = GEO_REGIONS.find((r) => r.id === reg);
                   const dotColor = geo?.color || '#C9A84C';
-                  const isSar = SAR_MAP[province.name_cn] != null;
 
                   return (
                     <Marker
                       key={province.id}
                       coordinates={[lon, lat]}
-                      onClick={() => onNavigate('destination', { countryId: province.id })}
-                      onMouseEnter={(e: any) => setHoveredProvince(province)}
+                      onMouseEnter={() => setHoveredProvince(province)}
                       onMouseLeave={() => setHoveredProvince(null)}
-                      style={{ cursor: 'pointer' }}
                     >
                       {/* 外圈脉冲 */}
                       <circle
-                        r={isHov ? 14 : isHighlighted ? 11 : 7}
+                        r={isHov ? 12 : isHighlighted ? 9 : 5}
                         fill={dotColor}
-                        fillOpacity={isHighlighted ? 0.18 : isHov ? 0.15 : 0.08}
+                        fillOpacity={isHighlighted ? 0.15 : isHov ? 0.12 : 0.06}
                         style={{
                           animation: isHighlighted ? `chinaPulse 2.5s ease-out infinite` : undefined,
                           transition: 'r 0.25s, fill-opacity 0.3s',
@@ -348,17 +389,17 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                       />
                       {/* 中圈 */}
                       <circle
-                        r={isHov ? 7 : isHighlighted ? 5 : 3}
+                        r={isHov ? 5 : isHighlighted ? 4 : 2.5}
                         fill={dotColor}
-                        fillOpacity={isHighlighted || isHov ? 0.5 : 0.25}
+                        fillOpacity={isHighlighted || isHov ? 0.45 : 0.22}
                         style={{ transition: 'r 0.25s, fill-opacity 0.3s' }}
                       />
                       {/* 核心点 */}
                       <circle
-                        r={isHov ? 4 : isHighlighted ? 3 : 2}
+                        r={isHov ? 3 : isHighlighted ? 2.5 : 1.5}
                         fill={dotColor}
                         style={{
-                          filter: (isHighlighted || isHov) ? `drop-shadow(0 0 5px ${dotColor}90)` : 'none',
+                          filter: (isHighlighted || isHov) ? `drop-shadow(0 0 4px ${dotColor}90)` : 'none',
                           transition: 'r 0.25s',
                         }}
                       />
@@ -366,9 +407,9 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                       {(isHov || isHighlighted) && (
                         <text
                           textAnchor="middle"
-                          y={-14}
+                          y={-12}
                           style={{
-                            fontSize: isHov ? '9px' : '7px',
+                            fontSize: isHov ? '8px' : '6px',
                             fontWeight: 'bold',
                             fontFamily: 'system-ui, sans-serif',
                             fill: dotColor,
@@ -385,23 +426,23 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
               </ZoomableGroup>
             </ComposableMap>
 
-            {/* Tooltip（跟随鼠标） */}
+            {/* Tooltip（顶部居中） */}
             {hoveredProvince && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-                <div className="bg-white/95 backdrop-blur-md text-black/80 text-xs font-bold tracking-wider px-5 py-3 rounded-2xl border border-black/10 shadow-xl whitespace-nowrap">
-                  <span className="mr-2" style={{ color: GEO_REGIONS.find((r) => r.id === getRegion(hoveredProvince))?.color }}>
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                <div className="bg-white/95 backdrop-blur-md text-black/80 text-[10px] md:text-xs font-bold tracking-wider px-4 md:px-5 py-2 md:py-3 rounded-xl md:rounded-2xl border border-black/10 shadow-xl whitespace-nowrap">
+                  <span className="mr-1.5 md:mr-2" style={{ color: GEO_REGIONS.find((r) => r.id === getRegion(hoveredProvince))?.color }}>
                     ◆
                   </span>
                   {hoveredProvince.name_cn}
                   {hoveredProvince.name_en && (
-                    <span className="text-black/30 ml-2 text-[10px]">{hoveredProvince.name_en}</span>
+                    <span className="text-black/30 ml-1.5 md:ml-2 text-[8px] md:text-[10px]">{hoveredProvince.name_en}</span>
                   )}
                 </div>
               </div>
             )}
 
             {/* 左下角标注 */}
-            <div className="absolute bottom-4 left-5 hidden md:flex flex-col gap-1">
+            <div className="absolute bottom-3 left-3 md:left-5 hidden md:flex flex-col gap-1">
               <div className="text-[6px] tracking-[0.5em] font-bold text-black/20 uppercase">
                 {activeRegion ? `${activeGeo?.name}` : '中华神州'}
               </div>
@@ -411,108 +452,54 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
             </div>
 
             {/* 右上角图例 */}
-            <div className="absolute top-4 right-5 hidden md:flex items-center gap-2">
+            <div className="absolute top-3 right-3 md:right-5 hidden md:flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#C9A84C] opacity-50" />
               <span className="text-[6px] tracking-[0.4em] font-bold text-black/20 uppercase">Origin Point</span>
             </div>
           </div>
         </section>
 
-        {/* ===== 大区筛选（港澳台独立大区按钮） ===== */}
-        <nav className="sticky top-20 z-40 bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-black/5 mx-4 md:mx-10 rounded-b-2xl">
-          <div className="flex items-center gap-1 overflow-x-auto py-4 px-2">
-            <button
-              onClick={() => setActiveRegion(null)}
-              className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl transition-all whitespace-nowrap ${
-                activeRegion === null
-                  ? 'bg-black text-white shadow-sm'
-                  : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
-              }`}
-            >
-              <span className="text-xs font-bold tracking-wider">全部省域</span>
-              <span className="text-[9px] opacity-50 tracking-widest uppercase">All</span>
-            </button>
-
-            {GEO_REGIONS.map((r) => {
-              const count = regionStats[r.id] || 0;
-              const isActive = activeRegion === r.id;
-              return (
-                <button
-                  key={r.id}
-                  onClick={() => setActiveRegion(isActive ? null : r.id)}
-                  className={`flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl transition-all whitespace-nowrap ${
-                    isActive ? 'shadow-sm' : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
-                  }`}
-                  style={isActive ? { background: r.color, color: '#fff' } : {}}
-                >
-                  <span className="text-xs font-bold tracking-wider">{r.name}</span>
-                  {count > 0 && (
-                    <span
-                      className="text-[8px] font-bold mt-0.5 px-1.5 py-0.5 rounded-full"
-                      style={
-                        isActive
-                          ? { background: 'rgba(255,255,255,0.25)', color: '#fff' }
-                          : { background: `${r.color}22`, color: r.color }
-                      }
-                    >
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => onNavigate('atlas')}
-              className="ml-auto flex items-center gap-2 px-4 py-2 bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70 rounded-2xl transition-all whitespace-nowrap"
-            >
-              <ArrowUpRight size={12} />
-              <span className="text-xs font-bold tracking-wider">全球坐标</span>
-            </button>
-          </div>
-        </nav>
-
         {/* ===== 主体内容 ===== */}
-        <section className="px-4 md:px-10 pt-8 pb-32">
+        <section className="px-2 md:px-10 pt-4 md:pt-8 pb-24 md:pb-32">
+
+          {/* 搜索栏 */}
+          <div className="mb-6 md:mb-8 relative max-w-xs">
+            <Search size={12} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-black/25" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜索省域"
+              className="w-full pl-9 md:pl-10 pr-4 py-2.5 md:py-3 bg-white rounded-xl md:rounded-2xl border border-black/5 text-xs md:text-sm font-bold tracking-wide placeholder:text-black/15 focus:outline-none focus:border-[#D4AF37]/30 focus:ring-2 focus:ring-[#D4AF37]/10 transition-all"
+            />
+          </div>
 
           {(activeRegion || search) && (
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
               {activeRegion && (
-                <span className="text-sm font-bold text-black/40 tracking-widest">
+                <span className="text-xs md:text-sm font-bold text-black/40 tracking-widest">
                   <span style={{ color: activeGeo?.color }}>{activeGeo?.name}</span>
-                  <span className="mx-2">·</span>
+                  <span className="mx-1.5 md:mx-2">·</span>
                   <span className="text-black/20">{filtered.length} 个省域</span>
                 </span>
               )}
               {search && (
-                <span className="text-sm font-bold text-black/40">
+                <span className="text-xs md:text-sm font-bold text-black/40">
                   搜索 "<span className="text-black/70">{search}</span>"
                 </span>
               )}
               <button
                 onClick={() => { setActiveRegion(null); setSearch(''); }}
-                className="ml-auto text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
+                className="ml-auto text-[9px] md:text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
               >
-                清除筛选
+                清除
               </button>
             </div>
           )}
 
-          {/* 搜索栏 */}
-          <div className="mb-8 relative max-w-xs">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/25" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="搜索省域 / Search"
-              className="w-full pl-10 pr-4 py-3 bg-white rounded-2xl border border-black/5 text-sm font-bold tracking-wide placeholder:text-black/15 focus:outline-none focus:border-[#D4AF37]/30 focus:ring-2 focus:ring-[#D4AF37]/10 transition-all"
-            />
-          </div>
-
           {/* 省份卡片 */}
           {filtered.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-5">
               {filtered.map((p, idx) => {
                 const reg = getRegion(p);
                 const geo = GEO_REGIONS.find((r) => r.id === reg);
@@ -527,10 +514,10 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                     onClick={() => onNavigate('destination', { countryId: p.id })}
                     onMouseEnter={() => setHoveredProvince(p)}
                     onMouseLeave={() => setHoveredProvince(null)}
-                    className={`group cursor-pointer rounded-2xl overflow-hidden border transition-all duration-500 ${
+                    className={`group cursor-pointer rounded-xl md:rounded-2xl overflow-hidden border transition-all duration-500 ${
                       isHighlighted
-                        ? 'border-[#D4AF37]/40 -translate-y-1 shadow-lg shadow-[#D4AF37]/10'
-                        : 'border-black/5 hover:border-black/10 hover:-translate-y-1 hover:shadow-md'
+                        ? 'border-[#D4AF37]/40 -translate-y-0.5 md:-translate-y-1 shadow-lg shadow-[#D4AF37]/10'
+                        : 'border-black/5 hover:border-black/10 hover:-translate-y-0.5 md:hover:-translate-y-1 hover:shadow-md'
                     }`}
                     style={{ animation: `fadeInUp 0.4s ease ${Math.min(idx, 20) * 30}ms both` }}
                   >
@@ -550,19 +537,19 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                       />
                       {/* 大区色条 */}
                       {geo && (
-                        <div className="absolute top-3 left-3 w-1 h-8 rounded-full opacity-70" style={{ background: geo.color }} />
+                        <div className="absolute top-2 md:top-3 left-2 md:left-3 w-0.5 md:w-1 h-6 md:h-8 rounded-full opacity-70" style={{ background: geo.color }} />
                       )}
                       {/* 地图坐标状态 */}
-                      <div className="absolute top-3 right-3">
+                      <div className="absolute top-2 md:top-3 right-2 md:right-3">
                         {isOnMap ? (
                           <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center"
+                            className="w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center"
                             style={{ background: `${dotColor}33`, border: `1px solid ${dotColor}55` }}
                           >
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: dotColor }} />
+                            <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full" style={{ background: dotColor }} />
                           </div>
                         ) : (
-                          <div className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center" title="见目的地列表">
+                          <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-black/10 flex items-center justify-center" title="见目的地列表">
                             <Home size={8} className="text-black/30" />
                           </div>
                         )}
@@ -570,24 +557,24 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
                     </div>
 
                     {/* 文字 */}
-                    <div className="p-3 bg-white">
+                    <div className="p-2 md:p-3 bg-white">
                       <div className="flex items-center justify-between">
-                        <h4 className={`text-sm md:text-base font-bold tracking-tight transition-colors ${
+                        <h4 className={`text-xs md:text-base font-bold tracking-tight transition-colors ${
                           isHighlighted ? 'text-[#D4AF37]' : 'text-black/80 group-hover:text-[#D75437]'
                         }`}>
                           {p.name_cn}
                         </h4>
                         {isHighlighted && (
-                          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: dotColor }} />
+                          <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full animate-pulse" style={{ background: dotColor }} />
                         )}
                       </div>
                       {p.name_en && (
-                        <p className="text-[7px] md:text-[8px] tracking-[0.3em] opacity-30 font-extrabold uppercase truncate mt-0.5">
+                        <p className="text-[6px] md:text-[8px] tracking-[0.3em] opacity-30 font-extrabold uppercase truncate mt-0.5">
                           {p.name_en}
                         </p>
                       )}
                       {geo && (
-                        <p className="text-[7px] md:text-[8px] tracking-widest mt-1 font-bold uppercase" style={{ color: geo.color, opacity: 0.7 }}>
+                        <p className="text-[6px] md:text-[8px] tracking-widest mt-0.5 md:mt-1 font-bold uppercase" style={{ color: geo.color, opacity: 0.7 }}>
                           {geo.name}
                         </p>
                       )}
@@ -597,14 +584,14 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
               })}
             </div>
           ) : (
-            <div className="py-32 text-center space-y-4">
-              <Home className="mx-auto opacity-[0.06]" size={64} />
-              <p className="text-black/25 italic text-base">
+            <div className="py-20 md:py-32 text-center space-y-3 md:space-y-4">
+              <Home className="mx-auto opacity-[0.06]" size={48} />
+              <p className="text-black/25 italic text-sm md:text-base">
                 {activeRegion ? `${activeGeo?.name} 暂无坐标` : '未找到匹配结果'}
               </p>
               <button
                 onClick={() => { setActiveRegion(null); setSearch(''); }}
-                className="text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
+                className="text-[9px] md:text-[10px] font-bold tracking-widest text-[#D75437] uppercase hover:underline"
               >
                 清除筛选
               </button>
@@ -613,14 +600,14 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
         </section>
 
         {/* Footer */}
-        <footer className="py-32 text-center space-y-8 border-t border-black/5 mx-4 md:mx-10">
-          <div className="space-y-3">
-            <h5 className="text-3xl md:text-5xl font-bold text-black/8">元于一息</h5>
-            <p className="text-[9px] md:text-xs text-black/25 tracking-[0.4em] uppercase font-bold">Origin · Sanctuary · Breath</p>
+        <footer className="py-20 md:py-32 text-center space-y-6 md:space-y-8 border-t border-black/5 mx-2 md:mx-10">
+          <div className="space-y-2 md:space-y-3">
+            <h5 className="text-2xl md:text-5xl font-bold text-black/8">元于一息</h5>
+            <p className="text-[8px] md:text-xs text-black/25 tracking-[0.4em] uppercase font-bold">Origin · Sanctuary · Breath</p>
           </div>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-[9px] tracking-[0.6em] font-extrabold text-[#D75437] uppercase border-b border-transparent hover:border-[#D75437] transition-all pb-0.5"
+            className="text-[8px] md:text-[9px] tracking-[0.6em] font-extrabold text-[#D75437] uppercase border-b border-transparent hover:border-[#D75437] transition-all pb-0.5"
           >
             回到原点
           </button>
@@ -633,10 +620,12 @@ export default function SiteChinaAtlas({ onNavigate }: SiteChinaAtlasProps) {
           to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes chinaPulse {
-          0%   { opacity: 0.18; }
+          0%   { opacity: 0.15; }
           70%  { opacity: 0; }
           100% { opacity: 0; }
         }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
