@@ -94,9 +94,11 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   }
 
   const seriesConfig = SERIES_CONFIG[product.series_code as keyof typeof SERIES_CONFIG];
-  const images = product.gallery_urls?.length
-    ? product.gallery_urls.map(url => optimizeProductFull(url) || url)
-    : (product.image_url ? [optimizeProductFull(product.image_url) || product.image_url] : []);
+  // 第1张=主图（缩略图），第2张起=相册
+  const images = [
+    ...(product.image_url ? [optimizeProductFull(product.image_url) || product.image_url] : []),
+    ...(product.gallery_urls || []).map(url => optimizeProductFull(url) || url),
+  ].filter(Boolean);
   const categoryLabel = ELEMENT_LABELS[product.category || ''] || '';
 
   // 从 specification 解析容量（如 "规格：100ml" → "100ml"）
