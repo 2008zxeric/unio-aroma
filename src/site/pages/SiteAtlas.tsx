@@ -497,7 +497,7 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                     {/* 图片 */}
                     <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
                       <img
-                        src={optimizeImage(dest.scenery_url || dest.image_url, { width: 400, quality: 70 }) || `https://picsum.photos/seed/${dest.id}/400/300`}
+                        src={optimizeImage(dest.image_url || dest.scenery_url, { width: 400, quality: 70 }) || `https://picsum.photos/seed/${dest.id}/400/300`}
                         className={`w-full h-full object-cover transition-all duration-[1.5s] ${
                           isHighlighted ? 'grayscale-0 scale-105' : 'grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-105'
                         }`}

@@ -116,7 +116,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     const gallery = country?.gallery_urls || [];
     if (gallery.length >= 3) return gallery;
     const result = [...gallery];
-    while (result.length < 3) result.push(optimizeImage(country?.scenery_url || country?.image_url, { width: 600, quality: 75 }) || PLACEHOLDER_IMG);
+    while (result.length < 3) result.push(optimizeImage(country?.image_url || country?.scenery_url, { width: 600, quality: 75 }) || PLACEHOLDER_IMG);
     return result;
   }, [country]);
 
@@ -224,7 +224,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
 
       {/* ===== HERO ===== */}
       <div id="destination-hero" className="relative h-screen w-full overflow-hidden bg-stone-900">
-        <img decoding="async" src={optimizeImage(country.scenery_url || country.image_url, { width: 1200, quality: 80 }) || PLACEHOLDER_IMG}
+        <img decoding="async" src={optimizeImage(country.image_url || country.scenery_url, { width: 1200, quality: 80 }) || PLACEHOLDER_IMG}
           onLoad={() => setImgLoaded(true)}
           className={`w-full h-full object-cover transition-all duration-[2s] ease-out ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           alt={country.name_cn} />

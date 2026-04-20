@@ -666,26 +666,19 @@ function CountryEditForm({
         </CollapsibleSection>
 
         {/* 图片资源 */}
-        <CollapsibleSection title={`图片资源（首页大图 / 相册等${form.image_url ? ' · 已设置' : ''}`} defaultOpen={!!form.image_url} id="country-section-images">
+        <CollapsibleSection title={`图片资源（首页大图 / 风景相册等${form.image_url ? ' · 已设置' : ''}`} defaultOpen={!!form.image_url} id="country-section-images">
           <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ImageUploadField
-                label="首页大图"
-                value={form.image_url}
-                onChange={v => setForm(f => ({ ...f, image_url: v }))}
-                previewSize="w-full h-32 rounded-xl object-cover"
-              />
-              <ImageUploadField
-                label="风景图"
-                value={form.scenery_url}
-                onChange={v => setForm(f => ({ ...f, scenery_url: v }))}
-                previewSize="w-full h-32 rounded-xl object-cover"
-              />
-            </div>
-            {/* Eric 相册 — 固定3张 */}
+            {/* 首页大图 - 缩略图 + 目的地页顶部 */}
+            <ImageUploadField
+              label="首页大图（缩略图 + 目的地页顶部）"
+              value={form.image_url}
+              onChange={v => setForm(f => ({ ...f, image_url: v }))}
+              previewSize="w-full h-32 rounded-xl object-cover"
+            />
+            {/* 风景相册 — 国家页下方，建议3张 */}
             <div className="space-y-4 pt-2">
               <label className="text-xs font-medium text-[#5C725C] flex items-center gap-1">
-                <Camera size={11} /> Eric 相册（固定3张）
+                <Camera size={11} /> 风景相册（国家页下方，建议 3 张）
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[0, 1, 2].map(idx => {
