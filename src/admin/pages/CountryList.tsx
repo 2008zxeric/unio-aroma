@@ -595,7 +595,7 @@ function CountryEditForm({
           {/* 跳转到前台国家页 */}
           {editingId && (
             <a
-              href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'destination', p: { countryId: editingId } }))}`}
+              href={`https://unioaroma.com/#${btoa(JSON.stringify({ v: 'destination', p: { countryId: editingId } }))}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] text-[#1C39BB] hover:bg-blue-50 transition-colors"
@@ -1024,7 +1024,7 @@ function CountryPreviewModal({ form, countryId, onClose }: { form: CountryForm; 
         <div className="px-6 py-3 bg-[#F2F7F3] border-t border-[#E0ECE0] rounded-b-3xl flex items-center justify-between">
           <p className="text-xs text-[#9AAA9A]">👆 前台展示效果预览</p>
           <a
-            href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'destination', p: { countryId } }))}`}
+            href={`https://unioaroma.com/#${btoa(JSON.stringify({ v: 'destination', p: { countryId } }))}`}
             target="_new"
             rel="noopener noreferrer"
             onClick={onClose}

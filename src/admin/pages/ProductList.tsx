@@ -1099,7 +1099,7 @@ function ProductEditFormV4({
   productBoundCountries: Record<string, string[]>;
 }) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  
   const [activeSection, setActiveSection] = useState('sec-basic');
 
   // 入库/出库分页
@@ -1202,7 +1202,7 @@ function ProductEditFormV4({
           {/* 跳转到前台产品页 */}
           {editingId && (
             <a
-              href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'product', p: { productId: editingId } }))}`}
+              href={`https://unioaroma.com/#${btoa(JSON.stringify({ v: 'product', p: { productId: editingId } }))}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] text-[#1C39BB] hover:bg-blue-50 transition-colors"
@@ -1598,15 +1598,6 @@ function ProductEditFormV4({
         </div>
       </div>
 
-      {/* ====== 前台预览弹窗 ====== */}
-      {showPreview && editingId && (
-        <ProductPreviewModal
-          form={form}
-          isJing={isJing}
-          productId={editingId}
-          onClose={() => setShowPreview(false)}
-        />
-      )}
     </div>
   );
 }
@@ -2019,7 +2010,7 @@ function ProductPreviewModal({ form, isJing, productId, onClose }: {
         <div className="px-6 py-3 bg-[#F2F7F3] border-t border-[#E0ECE0] rounded-b-3xl flex items-center justify-between">
           <p className="text-xs text-[#9AAA9A]">👆 前台展示效果预览</p>
           <a
-            href={`${window.location.origin}/#${btoa(JSON.stringify({ v: 'product', p: { productId } }))}`}
+            href={`https://unioaroma.com/#${btoa(JSON.stringify({ v: 'product', p: { productId } }))}`}
             target="_new"
             rel="noopener noreferrer"
             onClick={onClose}
