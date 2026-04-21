@@ -36,6 +36,7 @@ export interface Product {
   price_10ml?: number;
   price_15ml?: number;
   price_30ml?: number;
+  price_100ml?: number;
   price_piece?: number;
   price?: number;
   xiaohongshu_url?: string;
@@ -44,6 +45,11 @@ export interface Product {
   narrative?: string;
   alice_lab?: string;
   specification?: string;
+  // 新增字段
+  scientific_name?: string;       // 学名（拉丁名）
+  short_desc?: string;           // 短描述/特点提炼
+  origin?: string;               // 产品产地
+  extraction_method?: string;    // 提炼方式
   is_active: boolean;
   sort_order: number;
   series_code?: SeriesCode;
