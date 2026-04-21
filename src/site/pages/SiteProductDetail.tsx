@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight,
-  Copy, Check, Sparkles, ShoppingBag, Star, Shield
+  Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle
 } from 'lucide-react';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProducts } from '../siteDataService';
@@ -476,6 +476,21 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                   <ExternalLink size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
                 </a>
                 <p className="text-center text-[9px] text-black/20 tracking-widest">点击跳转小红书查看详情及优惠</p>
+              </div>
+
+              {/* 特别提醒 */}
+              <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
+                  <span className="text-xs font-bold tracking-widest text-amber-700 uppercase">特别提醒</span>
+                  <span className="text-xs text-amber-700">/ IMPORTANT NOTICE</span>
+                </div>
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  本店所售单方精油、复方精华及纯露均为天然植物萃取产品，因每个人体质与健康状况不同，实际使用前建议咨询专业芳疗师。未经稀释直接涂抹皮肤或内服前，请务必获得芳疗师指导。请置于儿童接触不到处，部分精油亦请远离宠物存放。
+                </p>
+                <p className="text-[10px] text-amber-600 leading-relaxed">
+                  All products are natural botanical extracts. Due to individual constitution and health conditions, please consult a qualified aromatherapist before use. Do not apply undiluted to skin or ingest without professional guidance. Keep out of reach of children; some oils should also be kept away from pets.
+                </p>
               </div>
 
               {/* 收藏分享 */}
