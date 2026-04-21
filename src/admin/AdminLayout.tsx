@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, ROLE_LABELS, type PermissionAction } from '../lib/auth';
+import { useAdminPreview } from './AdminPreviewContext';
 import {
   LayoutDashboard,
   Package,
@@ -61,6 +62,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, hasPermission, logout } = useAuth();
+  const { previewUrl } = useAdminPreview();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
@@ -206,16 +208,16 @@ export default function AdminLayout() {
 
         {/* 底部操作区 */}
         <div className="p-3 border-t border-[#E0ECE0] space-y-1">
-          {/* 预览前台 */}
+          {/* 预览（当前编辑项前台页，无则首页） */}
           <a
-            href={`https://unioaroma.com/?preview=1`}
+            href={previewUrl || 'https://unioaroma.com/'}
             target="_blank"
             rel="noopener noreferrer"
-            title="预览前台"
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#9AAA9A] hover:text-[#5C725C] hover:bg-[#F4F7F4] transition-colors ${collapsed ? 'justify-center' : ''}`}
+            title={previewUrl ? '当前编辑项前台页' : '前台首页'}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#9AAA9A] hover:text-[#4A7C59] hover:bg-[#F4F7F4] transition-colors ${collapsed ? 'justify-center' : ''}`}
           >
             <ExternalLink size={15} className="flex-shrink-0" />
-            {!collapsed && <span>预览前台</span>}
+            {!collapsed && <span>{previewUrl ? '前台页' : '前台首页'}</span>}
           </a>
 
           {/* 退出登录 */}
@@ -275,16 +277,16 @@ export default function AdminLayout() {
               <RefreshCw size={16} />
             </button>
 
-            {/* 前台预览 */}
+            {/* 前台页（当前编辑项，无则首页） */}
             <a
-              href={`https://unioaroma.com/?preview=1`}
+              href={previewUrl || 'https://unioaroma.com/'}
               target="_blank"
               rel="noopener noreferrer"
-              title="预览前台"
+              title={previewUrl ? '当前编辑项前台页' : '前台首页'}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#5C725C] border border-[#E0ECE0] hover:border-[#4A7C59] hover:text-[#4A7C59] hover:bg-[#F4F7F4] transition-colors"
             >
               <Eye size={13} />
-              <span>预览前台</span>
+              <span>{previewUrl ? '前台页' : '前台首页'}</span>
             </a>
 
             {/* 管理员信息 + 退出 */}

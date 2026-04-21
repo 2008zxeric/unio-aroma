@@ -9,6 +9,7 @@ import { countryService, productService, seriesService } from '../../lib/dataSer
 import type { Country, Product, Series } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
 import ImageUploadField from '../components/ImageUploadField';
+import { useAdminPreview } from '../AdminPreviewContext';
 
 // ============================================
 // 国家表单接口（含产品绑定）
@@ -80,6 +81,7 @@ export default function AdminCountries() {
   const [form, setForm] = useState<CountryForm>(emptyCountryForm());
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const { setPreviewUrl } = useAdminPreview();
 
   // --- 列表筛选 ---
   const [searchQuery, setSearchQuery] = useState('');
@@ -177,12 +179,16 @@ export default function AdminCountries() {
     setForm(emptyCountryForm());
     setBindSearch('');
     setBindSeriesFilter('');
+    setPreviewUrl(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const startEdit = (country: Country) => {
     setViewMode('edit');
     setEditingId(country.id);
+    setPreviewUrl(
+      `https://unioaroma.com/#${btoa(JSON.stringify({ v: 'destination', p: { countryId: country.id } }))}`
+    );
     const existingBindings: string[] = Array.isArray((country as any).product_ids)
       ? (country as any).product_ids || []
       : [];
@@ -213,6 +219,7 @@ export default function AdminCountries() {
     setEditingId(null);
     setForm(emptyCountryForm());
     setShowPreview(false);
+    setPreviewUrl(null);
   };
 
   const handleSave = async () => {
