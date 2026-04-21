@@ -230,7 +230,16 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-black tracking-wide">{product.name_cn}</h1>
             {product.name_en && <p className="text-sm text-black/40 tracking-widest uppercase">{product.name_en}</p>}
+            {product.scientific_name && <p className="text-xs text-black/30 tracking-widest italic mt-1">{product.scientific_name}</p>}
           </div>
+
+          {/* 产地标签 */}
+          {product.origin && (
+            <div className="flex items-center gap-2 text-black/50">
+              <span className="text-[10px] font-bold tracking-widest text-black/30">产地</span>
+              <span className="text-sm font-medium">{product.origin}</span>
+            </div>
+          )}
 
           {/* 价格卡片 - 突出展示 */}
           {priceOptions.length > 0 && (
@@ -295,12 +304,27 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               <p className="text-sm text-black/60 leading-relaxed">{product.usage}</p>
             </div>
           )}
-          {product.specification && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-bold tracking-widest text-black/40 uppercase">规格</h3>
-              <p className="text-sm text-black/60">{product.specification}</p>
-            </div>
-          )}
+          {/* 规格信息 */}
+          <div className="space-y-3 py-4 border-y border-black/[0.05]">
+            {product.origin && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-black/40">产地</span>
+                <span className="text-xs text-black/70 font-medium">{product.origin}</span>
+              </div>
+            )}
+            {product.extraction_method && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-black/40">提炼方式</span>
+                <span className="text-xs text-black/70 font-medium">{product.extraction_method}</span>
+              </div>
+            )}
+            {product.specification && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-black/40">规格</span>
+                <span className="text-xs text-black/70 font-medium">{product.specification}</span>
+              </div>
+            )}
+          </div>
 
           {/* 产品编号 */}
           <div className="flex items-center justify-between py-3 border-t border-black/[0.05]">
@@ -382,6 +406,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               <div className="space-y-3">
                 <h1 className="text-4xl lg:text-5xl font-bold text-black tracking-wider">{product.name_cn}</h1>
                 {product.name_en && <p className="text-xl text-black/40 tracking-[0.3em] uppercase">{product.name_en}</p>}
+                {product.scientific_name && <p className="text-sm text-black/30 tracking-widest italic">{product.scientific_name}</p>}
               </div>
 
               {/* 产品编号 */}
@@ -423,6 +448,36 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 </div>
               )}
 
+              {/* 产品规格信息卡片 */}
+              <div className="bg-[#FAF9F6] rounded-2xl p-6 space-y-4 border border-black/[0.03]">
+                <div className="grid grid-cols-2 gap-4">
+                  {product.origin && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">产地 / Origin</span>
+                      <p className="text-sm text-black/70 font-medium">{product.origin}</p>
+                    </div>
+                  )}
+                  {product.extraction_method && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">提炼方式 / Extraction</span>
+                      <p className="text-sm text-black/70 font-medium">{product.extraction_method}</p>
+                    </div>
+                  )}
+                  {product.specification && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">规格 / Specification</span>
+                      <p className="text-sm text-black/70 font-medium">{product.specification}</p>
+                    </div>
+                  )}
+                  {product.scientific_name && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">学名 / Scientific Name</span>
+                      <p className="text-sm text-black/70 font-medium italic">{product.scientific_name}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* 简介 */}
               {product.description && (
                 <div className="py-6 border-y border-black/[0.05]">
@@ -460,13 +515,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 </div>
               )}
 
-              {/* 规格 */}
-              {product.specification && (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold tracking-widest text-black/40 uppercase">规格</h3>
-                  <p className="text-base text-black/60">{product.specification}</p>
-                </div>
-              )}
+
 
               {/* 小红书购买链接 */}
               <div className="pt-4 space-y-4">
