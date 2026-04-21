@@ -14,6 +14,7 @@ import { productService, seriesService, countryService } from '../../lib/dataSer
 import type { Product, Series, Country, SubCategory, SeriesCode } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import { useAuth, writeAuditLog } from '../../lib/auth';
+import { useAdminPreview } from '../AdminPreviewContext';
 import ProfitReportView from '../components/ProfitReportView';
 import ImageUploadField from '../components/ImageUploadField';
 import { Perm } from '../components/PermissionGuard';
@@ -235,6 +236,7 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 export default function AdminProducts() {
   const [searchParams] = useSearchParams();
   const { user, hasPermission } = useAuth();
+  const { setPreviewUrl } = useAdminPreview();
   const [products, setProducts] = useState<Product[]>([]);
   const [series, setSeries] = useState<Series[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
@@ -408,12 +410,17 @@ export default function AdminProducts() {
     setViewMode('create');
     setEditingId(null);
     setForm(emptyForm());
+    setPreviewUrl(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const startEdit = (product: Product) => {
     setViewMode('edit');
     setEditingId(product.id);
+    // 更新全局预览链接
+    setPreviewUrl(
+      `https://unioaroma.com/#${btoa(JSON.stringify({ v: 'product', p: { productId: product.id } }))}`
+    );
 
     // 从产品字段反推流水账（首次编辑时初始化空数组）
     setForm({
@@ -477,6 +484,8 @@ export default function AdminProducts() {
     setEditingId(null);
     setForm(emptyForm());
     setShowDetailId(null);
+    // 清除全局预览链接
+    setPreviewUrl(null);
   };
 
   // ---- 计算累计值（从流水账自动算）----

@@ -13,6 +13,7 @@ import { AdminDicts, AdminUsers, AdminSettings } from './pages/DictManage';
 import { AuthProvider } from '../lib/auth';
 import AuditLogPage from './pages/AuditLogPage';
 import { PermissionGuard } from './components/PermissionGuard';
+import { AdminPreviewProvider } from './AdminPreviewContext';
 
 export default function AdminRouter() {
   return (
@@ -25,7 +26,9 @@ export default function AdminRouter() {
         <Route
           element={
             <AdminGuard>
-              <AdminLayout />
+              <AdminPreviewProvider>
+                <AdminLayout />
+              </AdminPreviewProvider>
             </AdminGuard>
           }
         >
