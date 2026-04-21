@@ -117,6 +117,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
     product.price_5ml && { price: product.price_5ml, size: '5ml', popular: false },
     product.price_10ml && { price: product.price_10ml, size: '10ml', popular: true },
     product.price_30ml && { price: product.price_30ml, size: '30ml', popular: false },
+    product.price_100ml && { price: product.price_100ml, size: '100ml', popular: false },
     !isJing && product.price_piece && { price: product.price_piece, size: '瓶', popular: false },
   ].filter(Boolean) as { price: number; size: string; popular: boolean }[];
   
