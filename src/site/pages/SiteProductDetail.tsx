@@ -486,10 +486,10 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                   <span className="text-xs text-amber-700">/ IMPORTANT NOTICE</span>
                 </div>
                 <p className="text-xs text-amber-800 leading-relaxed">
-                  本店所售单方精油、复方精华及纯露均为天然植物萃取产品，因每个人体质与健康状况不同，实际使用前建议咨询专业芳疗师。未经稀释直接涂抹皮肤或内服前，请务必获得芳疗师指导。请置于儿童接触不到处，部分精油亦请远离宠物存放。
+                  本店所售产品涵盖四大系列——元（单方精油）、和（复方精华）、生（纯露）、香（香道器物）。精油及纯露均为天然植物萃取，因每个人体质与健康状况不同，使用前建议咨询专业芳疗师，未经稀释直接涂抹或内服请务必遵医嘱或咨询芳疗师。请置于儿童接触不到处，部分精油亦请远离宠物。
                 </p>
                 <p className="text-[10px] text-amber-600 leading-relaxed">
-                  All products are natural botanical extracts. Due to individual constitution and health conditions, please consult a qualified aromatherapist before use. Do not apply undiluted to skin or ingest without professional guidance. Keep out of reach of children; some oils should also be kept away from pets.
+                  Our four collections — Yuan (single essential oils), He (formulated blends), Sheng (hydrosols), Xiang (aromatherapy instruments) — are all natural botanicals. Due to individual constitution, please consult a qualified aromatherapist before topical or internal use. Keep out of reach of children; some oils should also be kept away from pets.
                 </p>
               </div>
 
