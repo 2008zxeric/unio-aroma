@@ -1,15 +1,16 @@
 /**
- * UNIO AROMA 产品详情页 — 沉浸式体验版 v4
- * 基于 v2 稳定版全面升级：
- * - 桌面端：大缩略图(104x128) + Lightbox全屏预览 + 序号角标 + skeleton加载
- * - 移动端：自适应图片 + 触摸滑动 + 底部缩略条 + 精致交互
+ * UNIO AROMA 产品详情页 — 沉浸式体验版 v5
+ * 基于 v4 全面升级：
+ * - 桌面端：左图下置内容区（首屏展示叙事/描述/规格），不再需要右侧长滚动
+ * - 配色升级：深色品牌调性 + 金色点缀 + 极简奢华风格
+ * - 保留 v4：大缩略图(104x128) + Lightbox + 触摸滑动 + 序号角标
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight,
   Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle,
-  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn
+  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn, Quote
 } from 'lucide-react';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProducts } from '../siteDataService';
@@ -60,7 +61,6 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
         setProduct(productData);
 
         if (productData?.series_code) {
-          // 按系列分组推荐，优先同子分类
           const sameSeries = allProducts.filter(p => p.series_code === productData.series_code && p.id !== productId);
           const sameCategory = sameSeries.filter(p => p.category === productData.category);
           const otherCategory = sameSeries.filter(p => p.category !== productData.category);
@@ -124,14 +124,12 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   }
 
   const seriesConfig = SERIES_CONFIG[product.series_code as keyof typeof SERIES_CONFIG];
-  // 第1张=主图（缩略图），第2张起=相册
   const images = [
     ...(product.image_url ? [optimizeProductFull(product.image_url) || product.image_url] : []),
     ...(product.gallery_urls || []).map(url => optimizeProductFull(url) || url),
   ].filter(Boolean);
   const categoryLabel = ELEMENT_LABELS[product.category || ''] || '';
 
-  // 从 specification 解析容量（如 "规格：100ml" → "100ml"）
   const parseVolume = (spec?: string): string | null => {
     if (!spec) return null;
     const m = spec.match(/(\d+)\s*(ml|L)/i);
@@ -139,7 +137,6 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
     return m[0].toLowerCase();
   };
 
-  // 价格选项：优先 price_Nml 拆分，fallback 到 price + specification
   const isJing = product.category === 'aesthetic' || product.category === 'meditation';
   let priceOptions: { price: number; size: string; popular: boolean }[] = [];
   
@@ -159,7 +156,6 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
     priceOptions = [{ price: product.price, size: sizeLabel, popular: true }];
   }
 
-  // 小红书链接：统一指向固定店铺链接
   const xhsUrl = 'https://xhslink.com/m/30mxOpIhpYU';
 
   const handleCopyLink = () => {
@@ -172,7 +168,6 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   const handlePrevImage = () => setActiveImage(prev => (prev === 0 ? images.length - 1 : prev - 1));
   const handleNextImage = () => setActiveImage(prev => (prev === images.length - 1 ? 0 : prev + 1));
 
-  // 序号角标字符
   const numberEmoji = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
 
   /* ===========================================================
@@ -182,20 +177,14 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
     if (!lightboxOpen) return null;
     return (
       <div className="fixed inset-0 z-[300] bg-black/95 flex flex-col" onClick={() => setLightboxOpen(false)}>
-        {/* 关闭按钮 */}
         <button onClick={() => setLightboxOpen(false)} className="absolute top-5 right-5 z-[310] w-11 h-11 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all">
           <X size={22} />
         </button>
-
-        {/* 主图区域 */}
         <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
           <div className="relative max-w-4xl w-full aspect-square">
-            <img src={images[activeImage]} alt={product.name_cn}
-              className="w-full h-full object-contain" decoding="async" />
+            <img src={images[activeImage]} alt={product.name_cn} className="w-full h-full object-contain" decoding="async" />
           </div>
         </div>
-
-        {/* 左右切换 */}
         {images.length > 1 && (
           <>
             <button onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
@@ -208,29 +197,34 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
             </button>
           </>
         )}
-
-        {/* 底部缩略条 + 计数 */}
         {images.length > 1 && (
           <div className="pb-8 px-4" onClick={e => e.stopPropagation()}>
             <div className="flex gap-3 justify-center max-w-2xl mx-auto mb-3">
               {images.map((_, idx) => (
                 <button key={idx} onClick={() => setActiveImage(idx)}
                   className={`w-16 h-20 rounded-lg overflow-hidden transition-all duration-200 ${
-                    activeImage === idx
-                      ? 'ring-2 ring-white shadow-lg scale-105'
-                      : 'opacity-40 hover:opacity-70 ring-1 ring-white/20'
+                    activeImage === idx ? 'ring-2 ring-white shadow-lg scale-105' : 'opacity-40 hover:opacity-70 ring-1 ring-white/20'
                   }`}>
                   <img src={images[idx]} alt="" className="w-full h-full object-cover" decoding="async" />
                 </button>
               ))}
             </div>
-            <p className="text-center text-sm text-white/50 font-medium">
-              {activeImage + 1} / {images.length}
-            </p>
+            <p className="text-center text-sm text-white/50 font-medium">{activeImage + 1} / {images.length}</p>
           </div>
         )}
       </div>
     );
+  };
+
+  /* ===========================================================
+   * 品牌色常量
+   * =========================================================== */
+  // 主品牌色：朱砂红 #D75437 / 金色 #D4AF37 / 深墨绿 #1A1A1A
+  const brand = {
+    red: '#D75437',
+    gold: '#D4AF37',
+    dark: '#1A1A1A',
+    cream: '#FAF9F6',
   };
 
   return (
@@ -275,7 +269,6 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
       {/* ===== 移动端布局 ===== */}
       <div className="sm:hidden">
         <div className="relative bg-[#FAF9F6] mt-14" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          {/* 自适应高度图片区 */}
           <div className="relative aspect-[4/5]">
             {images.length > 0 ? (
               <>
@@ -287,15 +280,11 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 <img src={images[activeImage]} alt={product.name_cn}
                   className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded[activeImage] ? 'opacity-100' : 'opacity-0'}`}
                   onLoad={() => handleImageLoad(activeImage)}
-                  onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }}
-                  decoding="async" />
-
-                {/* 放大按钮 */}
+                  onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
                 <button onClick={() => setLightboxOpen(true)}
                   className="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md text-black/60 hover:text-black transition-all">
                   <ZoomIn size={16} />
                 </button>
-
                 {images.length > 1 && (
                   <>
                     <button onClick={handlePrevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg"><ChevronLeft size={20} /></button>
@@ -308,28 +297,22 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
             )}
           </div>
 
-          {/* 底部缩略条（移动端） */}
           {images.length > 1 && (
             <div className="px-4 pb-3 pt-2 bg-[#FAF9F6]">
               <div ref={imagesRef} className="flex gap-2.5 overflow-x-auto scrollbar-hide">
                 {images.map((img, idx) => (
                   <button key={idx} onClick={() => setActiveImage(idx)}
                     className={`flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden transition-all duration-200 ${
-                      activeImage === idx
-                        ? 'ring-2 ring-[#D75437] shadow-md scale-105'
-                        : 'opacity-50 hover:opacity-80 ring-1 ring-black/10'
+                      activeImage === idx ? 'ring-2 ring-[#D75437] shadow-md scale-105' : 'opacity-50 hover:opacity-80 ring-1 ring-black/10'
                     }`}>
                     <img src={img} alt="" className="w-full h-full object-cover" decoding="async" />
                   </button>
                 ))}
               </div>
-              {/* 圆点指示器 */}
               <div className="flex justify-center gap-1.5 mt-2.5">
                 {images.map((_, idx) => (
                   <button key={idx} onClick={() => setActiveImage(idx)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      activeImage === idx ? 'bg-[#D75437] w-5' : 'bg-black/20 w-1.5'
-                    }`} />
+                    className={`h-1.5 rounded-full transition-all duration-300 ${activeImage === idx ? 'bg-[#D75437] w-5' : 'bg-black/20 w-1.5'}`} />
                 ))}
               </div>
             </div>
@@ -343,25 +326,23 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               {seriesConfig?.fullName_cn}
             </span>
             {categoryLabel && (
-              <span className="px-3 py-1.5 bg-[#2C3E28]/5 text-[#2C3E28]/60 text-[10px] font-bold tracking-widest rounded-full">
+              <span className="px-3 py-1.5 bg-[#1A1A1A]/5 text-[#1A1A1A]/60 text-[10px] font-bold tracking-widest rounded-full">
                 {categoryLabel}
               </span>
             )}
             {product.element && (
-              <span className="px-3 py-1.5 bg-black/5 text-black/50 text-[10px] font-medium tracking-widest rounded-full">
-                {product.element}
-              </span>
+              <span className="px-3 py-1.5 bg-black/5 text-black/50 text-[10px] font-medium tracking-widest rounded-full">{product.element}</span>
             )}
           </div>
 
           {/* 标题 */}
           <div className="space-y-1.5">
-            <h1 className="text-2xl font-bold text-black tracking-wide">{product.name_cn}</h1>
+            <h1 className="text-2xl font-bold text-[#1A1A1A] tracking-wide">{product.name_cn}</h1>
             {product.name_en && <p className="text-sm text-black/40 tracking-widest uppercase">{product.name_en}</p>}
             {product.scientific_name && <p className="text-xs text-black/25 tracking-widest italic mt-1">{product.scientific_name}</p>}
           </div>
 
-          {/* 产地标签 — 独立 pill 卡片 */}
+          {/* 产地标签 */}
           {product.origin && (
             <div className="inline-flex items-center gap-2.5 bg-stone-50 rounded-lg px-4 py-2.5">
               <MapPin size={13} className="text-[#D75437]" />
@@ -376,9 +357,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
             </div>
           )}
 
-          {/* 价格卡片 — 突出展示 */}
+          {/* 价格卡片 — 品牌配色 */}
           {priceOptions.length > 0 && (
-            <div className="bg-gradient-to-br from-[#FAF9F6] to-white rounded-2xl p-5 space-y-3 border border-black/[0.03]">
+            <div className="rounded-2xl p-5 space-y-3 border border-[#1A1A1A]/[0.06]" style={{ background: 'linear-gradient(135deg, #FAF9F6 0%, #FFF 100%)' }}>
               <div className="flex items-center gap-2 text-[#D75437]">
                 <Shield size={14} />
                 <span className="text-[9px] font-bold tracking-widest">参考售价</span>
@@ -386,9 +367,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               <div className="grid grid-cols-2 gap-3">
                 {priceOptions.map((option, idx) => (
                   <div key={idx} className={`p-3 rounded-xl border ${option.popular ? 'border-[#D75437]/20 bg-[#D75437]/[0.03]' : 'border-black/5 bg-white'}`}>
-                    <span className="block text-lg font-bold text-[#D75437]">¥{option.price}</span>
+                    <span className="block text-lg font-bold" style={{ color: brand.red }}>¥{option.price}</span>
                     <span className="text-[10px] text-black/30 font-medium">{option.size}</span>
-                    {option.popular && <span className="block text-[8px] text-[#D75437]/60 font-bold mt-0.5">推荐</span>}
+                    {option.popular && <span className="block text-[8px] font-bold mt-0.5" style={{ color: brand.red, opacity: 0.6 }}>推荐</span>}
                   </div>
                 ))}
               </div>
@@ -399,30 +380,34 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           {product.benefits && product.benefits.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {product.benefits.map((benefit, idx) => (
-                <span key={idx} className="px-3 py-1.5 bg-stone-100 rounded-full text-xs text-black/60">{benefit}</span>
+                <span key={idx} className="px-3 py-1.5 rounded-full text-xs text-black/60" style={{ backgroundColor: '#1A1A1A/0.04' }}>{benefit}</span>
               ))}
             </div>
           )}
 
-          {/* ERIC 叙事 */}
+          {/* ===== ERIC 叙事 — 移动端 ===== */}
           {product.narrative && (
-            <div className="bg-[#FAF9F6] rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2 text-[#D75437]">
-                <div className="w-6 h-px bg-[#D75437]" />
-                <span className="text-[10px] font-bold tracking-widest">ERIC 叙事</span>
+            <div className="rounded-2xl p-5 space-y-3 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%)' }}>
+              {/* 装饰引号 */}
+              <Quote size={32} className="absolute top-3 right-3 text-white/[0.06]" strokeWidth={1} />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3" style={{ color: brand.gold }}>
+                  <div className="w-6 h-px" style={{ backgroundColor: brand.gold }} />
+                  <span className="text-[10px] font-bold tracking-widest">ERIC 叙事</span>
+                </div>
+                <p className="text-sm text-white/80 italic leading-relaxed">{product.narrative}</p>
               </div>
-              <p className="text-sm text-black/70 italic leading-relaxed">{product.narrative}</p>
             </div>
           )}
 
-          {/* Alice Lab */}
+          {/* ===== ALICE LAB 日记 — 移动端 ===== */}
           {product.alice_lab && (
-            <div className="bg-[#1C39BB]/5 rounded-2xl p-5 space-y-3">
+            <div className="rounded-2xl p-5 space-y-3 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0D1B3E 0%, #1C39BB 15%, rgba(28,57,187,0.08) 100%)' }}>
               <div className="flex items-center gap-2 text-[#1C39BB]">
                 <div className="w-6 h-px bg-[#1C39BB]" />
                 <span className="text-[10px] font-bold tracking-widest">ALICE LAB</span>
               </div>
-              <p className="text-sm text-black/70 leading-relaxed">{product.alice_lab}</p>
+              <p className="text-sm text-[#1A1A1A]/70 leading-relaxed">{product.alice_lab}</p>
             </div>
           )}
 
@@ -439,73 +424,65 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               <p className="text-sm text-black/60 leading-relaxed">{product.usage}</p>
             </div>
           )}
-          {/* 规格信息 */}
+
+          {/* 规格信息表 */}
           <div className="rounded-2xl overflow-hidden border border-black/[0.05]">
-            {/* 产地 */}
             {product.origin && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <MapPin size={13} className="text-[#D75437] flex-shrink-0" />
+                <MapPin size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">产地</span>
                 <span className="text-xs text-black/70 font-medium">{product.origin}</span>
               </div>
             )}
-            {/* 提炼方式 */}
             {product.extraction_method && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Beaker size={13} className="text-[#D75437] flex-shrink-0" />
+                <Beaker size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">提炼方式</span>
                 <span className="text-xs text-black/70 font-medium">{product.extraction_method}</span>
               </div>
             )}
-            {/* 萃取部位 */}
             {product.extraction_site && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Leaf size={13} className="text-[#D75437] flex-shrink-0" />
+                <Leaf size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">萃取部位</span>
                 <span className="text-xs text-black/70 font-medium">{product.extraction_site}</span>
               </div>
             )}
-            {/* 香调 */}
             {product.fragrance_notes && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Wind size={13} className="text-[#D75437] flex-shrink-0" />
+                <Wind size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">香调</span>
                 <span className="text-xs text-black/70 font-medium">{product.fragrance_notes}</span>
               </div>
             )}
-            {/* 外观/色泽 */}
             {product.appearance && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Eye size={13} className="text-[#D75437] flex-shrink-0" />
+                <Eye size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">外观色泽</span>
                 <span className="text-xs text-black/70 font-medium">{product.appearance}</span>
               </div>
             )}
-            {/* 规格 */}
             {product.specification && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Shield size={13} className="text-[#D75437] flex-shrink-0" />
+                <Shield size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">规格</span>
                 <span className="text-xs text-black/70 font-medium">{product.specification}</span>
               </div>
             )}
-            {/* 保质期 */}
             {product.shelf_life && (
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Clock size={13} className="text-[#D75437] flex-shrink-0" />
+                <Clock size={13} style={{ color: brand.red }} className="flex-shrink-0" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">保质期</span>
                 <span className="text-xs text-black/70 font-medium">{product.shelf_life}</span>
               </div>
             )}
-            {/* 使用场景 */}
             {product.usage_scenarios && (
               <div className="flex items-start gap-3 px-4 py-3 border-b border-black/[0.04]">
-                <Sparkles size={13} className="text-[#D75437] flex-shrink-0 mt-0.5" />
+                <Sparkles size={13} style={{ color: brand.red }} className="flex-shrink-0 mt-0.5" />
                 <span className="text-xs text-black/40 w-16 flex-shrink-0">适用场景</span>
                 <span className="text-xs text-black/70 font-medium leading-relaxed">{product.usage_scenarios}</span>
               </div>
             )}
-            {/* 产品编号 */}
             <div className="flex items-center gap-3 px-4 py-3">
               <Star size={13} className="text-black/20 flex-shrink-0" />
               <span className="text-xs text-black/30 w-16 flex-shrink-0">编号</span>
@@ -521,26 +498,25 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               <div key={gIdx}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-[#D4AF37]" />
-                    <h2 className="text-sm font-bold text-black tracking-wider">{group.label}</h2>
+                    <Sparkles size={14} style={{ color: brand.gold }} />
+                    <h2 className="text-sm font-bold text-[#1A1A1A] tracking-wider">{group.label}</h2>
                   </div>
                   <button onClick={() => onNavigate('collections', { series: group.series !== 'other' ? group.series : undefined })}
                     className="flex items-center gap-1 text-xs text-black/40 hover:text-[#D75437] transition-colors">
-                    <span>更多</span>
-                    <ArrowLeft size={11} className="rotate-180" />
+                    <span>更多</span><ArrowLeft size={11} className="rotate-180" />
                   </button>
                 </div>
-                {/* 横向滚动卡片 */}
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
                   {group.items.map(p => (
                     <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="flex-shrink-0 w-36 group cursor-pointer">
-                      <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#FAF9F6] to-[#F5F2EE] mb-2 border border-black/[0.03] group-hover:shadow-lg transition-all duration-500">
+                      <div className="aspect-square rounded-2xl overflow-hidden mb-2 border border-black/[0.03] group-hover:shadow-lg transition-all duration-500"
+                        style={{ background: 'linear-gradient(145deg, #FAF9F6 0%, #F0EEE9 100%)' }}>
                         <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                       </div>
                       <h3 className="text-xs font-bold text-black/70 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
-                      {p.price_10ml && <p className="text-[10px] text-[#D4AF37] mt-0.5">¥{p.price_10ml}</p>}
+                      {p.price_10ml && <p className="text-[10px] mt-0.5" style={{ color: brand.gold }}>¥{p.price_10ml}</p>}
                     </div>
                   ))}
                 </div>
@@ -549,52 +525,63 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           </div>
         )}
 
-        {/* 固定底栏 — 更精致的按钮 */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-black/[0.05] p-4 z-[90] safe-area-bottom">
+        {/* 固定底栏 */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-black/[0.05] p-4 z-[90]">
           <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#D75437] to-[#E85A3F] text-white rounded-2xl font-bold text-sm tracking-wider shadow-lg shadow-[#D75437]/20 active:scale-[0.98] transition-all">
-            <ShoppingBag size={16} />
-            <span>前往小红书购买</span>
-            <ExternalLink size={14} />
+            className="flex items-center justify-center gap-2 w-full py-4 text-white rounded-2xl font-bold text-sm tracking-wider active:scale-[0.98] transition-all shadow-lg"
+            style={{ background: 'linear-gradient(135deg, #D75437 0%, #E85A3F 100%)', boxShadow: '0 8px 24px rgba(215,84,55,0.25)' }}>
+            <ShoppingBag size={16} /><span>前往小红书购买</span><ExternalLink size={14} />
           </a>
         </div>
       </div>
 
-      {/* ===== 桌面端布局 ===== */}
+      {/* ===========================================================
+       * 桌面端布局 — v5 重构
+       * 上半部：左图(3列) + 右信息(2列)
+       * 左图下方：叙事 + 描述 + 规格（首屏可见）
+       * =========================================================== */}
       <div className="hidden sm:block">
         {/* 返回导航 */}
         <div className="fixed top-8 left-8 z-[100]">
           <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })}
-            className="flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-xl rounded-full shadow-xl text-black/60 hover:text-black transition-colors">
-            <ArrowLeft size={20} />
-            <span className="text-sm tracking-wider">返回馆藏</span>
+            className="flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-xl rounded-full shadow-lg shadow-black/[0.06] text-black/60 hover:text-black transition-all hover:shadow-xl">
+            <ArrowLeft size={20} /><span className="text-sm tracking-wider">返回馆藏</span>
           </button>
         </div>
 
-        <div className="max-w-[1560px] mx-auto pt-20 pb-16 px-8 lg:px-16">
-          <div className="grid grid-cols-5 gap-8 xl:gap-12">
-            {/* 左侧图片区 — 占 3 列 */}
-            <div className="col-span-3 relative">
-              {/* 主图容器 — 可点击打开 Lightbox */}
+        <div className="max-w-[1440px] mx-auto pt-20 pb-20 px-8 lg:px-16">
+          {/* ===== 首屏主区域：图片 + 基本信息 ===== */}
+          <div className="grid grid-cols-5 gap-10 xl:gap-14">
+
+            {/* ===== 左侧：图片 + 缩略图 + 下方内容区 ===== */}
+            <div className="col-span-3 space-y-8">
+
+              {/* --- 主图 --- */}
               <div
                 onClick={() => images.length > 0 && setLightboxOpen(true)}
-                className="relative aspect-[3/4] bg-[#FAF9F6] rounded-3xl overflow-hidden border border-black/[0.04] cursor-zoom-in group">
+                className="relative aspect-[3/4] rounded-3xl overflow-hidden cursor-zoom-in group"
+                style={{ backgroundColor: brand.cream, border: '1px solid rgba(26,26,26,0.04)' }}>
                 {images.length > 0 ? (
                   <>
                     {!imageLoaded[activeImage] && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-[#FAF9F6]">
-                        <div className="w-12 h-12 border-3 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: brand.cream }}>
+                        <div className="w-12 h-12 border-3 rounded-full animate-spin" style={{ borderColor: `${brand.gold}20`, borderTopColor: brand.gold }} />
                       </div>
                     )}
                     <img src={images[activeImage]} alt={product.name_cn}
-                      className={`w-full h-full object-contain transition-all duration-500 group-hover:scale-[1.02] ${imageLoaded[activeImage] ? 'opacity-100' : 'opacity-0'}`}
+                      className={`w-full h-full object-contain transition-all duration-700 group-hover:scale-[1.02] ${imageLoaded[activeImage] ? 'opacity-100' : 'opacity-0'}`}
                       onLoad={() => handleImageLoad(activeImage)}
                       onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
-
                     {/* Hover 放大提示 */}
-                    <div className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-md">
-                      <ZoomIn size={18} className="text-black/60" />
+                    <div className="absolute top-4 right-4 w-11 h-11 bg-white/85 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400 shadow-md">
+                      <ZoomIn size={18} className="text-black/50" />
                     </div>
+                    {/* 图片计数角标 */}
+                    {images.length > 1 && (
+                      <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[11px] font-medium tracking-wide">
+                        {activeImage + 1} / {images.length}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -616,301 +603,313 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 )}
               </div>
 
-              {/* 缩略图条 — 大尺寸 + 序号角标 */}
+              {/* --- 缩略图条 --- */}
               {images.length > 1 && (
-                <div className="mt-5 flex gap-3 justify-center">
+                <div className="flex gap-3 justify-center">
                   {images.map((img, idx) => (
                     <button key={idx} onClick={(e) => { e.stopPropagation(); setActiveImage(idx); }}
                       className={`group relative w-[104px] h-[128px] rounded-2xl overflow-hidden transition-all duration-300 ${
                         activeImage === idx
-                          ? 'ring-2 ring-[#D75437] ring-offset-2 shadow-lg shadow-[#D75437]/15 scale-[1.05]'
-                          : 'opacity-50 hover:opacity-80 ring-1 ring-black/10 hover:scale-[1.03]'
-                      }`}>
+                          ? 'ring-2 scale-[1.05] shadow-xl'
+                          : 'opacity-45 hover:opacity-80 ring-1 ring-black/10 hover:scale-[1.03]'
+                      }`}
+                      style={activeImage === idx ? { ringColor: brand.red, boxShadow: `0 8px 24px ${brand.red}20` } : {}}>
                       <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" decoding="async" />
                       {/* 序号角标 */}
-                      <span className={`absolute top-1.5 left-1.5 w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center transition-all ${
-                        activeImage === idx
-                          ? 'bg-[#D75437] text-white shadow-sm'
-                          : 'bg-black/40 text-white/80'
-                      }`}>
+                      <span className={`absolute top-2 left-2 w-5.5 h-5.5 rounded-full text-[9px] font-bold flex items-center justify-center transition-all ${
+                        activeImage === idx ? 'text-white shadow-sm' : 'bg-black/40 text-white/80'
+                      }`}
+                      style={activeImage === idx ? { backgroundColor: brand.red } : {}}>
                         {numberEmoji[idx] || (idx + 1)}
                       </span>
-                      {/* 当前指示条 */}
                       {activeImage === idx && (
-                        <div className="absolute inset-x-0 bottom-0 h-1 bg-[#D75437]" />
+                        <div className="absolute inset-x-0 bottom-0 h-1" style={{ backgroundColor: brand.red }} />
                       )}
                     </button>
                   ))}
                 </div>
               )}
 
-              {/* 图片计数提示 */}
-              {images.length > 1 && (
-                <p className="text-center mt-3 text-[11px] text-black/25 tracking-wider font-medium">
-                  {activeImage + 1} / {images.length} · 点击主图可放大查看
-                </p>
-              )}
-            </div>
+              {/* ===== 左下方内容区 — 首屏可见 ===== */}
 
-            {/* 右侧信息区 — 占 2 列，sticky 跟随 */}
-            <div className="col-span-2">
-              <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2 space-y-8 max-w-lg">
-              {/* 系列标签 */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="px-4 py-2 bg-[#D75437]/10 text-[#D75437] text-xs font-bold tracking-widest rounded-full">
-                  {seriesConfig?.fullName_cn}
-                </span>
-                {categoryLabel && (
-                  <span className="px-4 py-2 bg-[#2C3E28]/5 text-[#2C3E28]/60 text-xs font-bold tracking-widest rounded-full">
-                    {categoryLabel}
-                  </span>
-                )}
-                {product.element && (
-                  <span className="px-4 py-2 bg-black/5 text-black/40 text-xs font-bold tracking-widest rounded-full">
-                    {product.element}
-                  </span>
-                )}
-              </div>
+              {/* --- ERIC 叙事（深色卡片）--- */}
+              {product.narrative && (
+                <div className="rounded-3xl p-8 lg:p-10 space-y-4 relative overflow-hidden"
+                  style={{ background: 'linear-gradient(145deg, #1A1A1A 0%, #2A2A2A 100%)' }}>
+                  {/* 装饰元素 */}
+                  <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-[0.03]"
+                    style={{ background: `radial-gradient(circle, ${brand.gold} 0%, transparent 70%)`, transform: 'translate(30%, -30%)' }} />
+                  <Quote size={56} className="absolute bottom-6 right-6 text-white/[0.04)]" strokeWidth={0.8} />
 
-              {/* 标题 */}
-              <div className="space-y-3">
-                <h1 className="text-4xl lg:text-5xl font-bold text-black tracking-wider">{product.name_cn}</h1>
-                {product.name_en && <p className="text-xl text-black/40 tracking-[0.3em] uppercase">{product.name_en}</p>}
-                {product.scientific_name && <p className="text-sm text-black/30 tracking-widest italic">{product.scientific_name}</p>}
-              </div>
-
-              {/* 产品编号 */}
-              <div className="flex items-center gap-3 text-black/30">
-                <span className="text-sm">Code:</span>
-                <span className="text-sm font-mono">{product.code}</span>
-                <button onClick={handleCopyLink} className="p-1 hover:text-[#D75437] transition-colors">
-                  {copied ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-              </div>
-
-              {/* 价格卡片 - 突出展示 */}
-              {priceOptions.length > 0 && (
-                <div className="bg-gradient-to-br from-[#FAF9F6] to-white rounded-3xl p-6 space-y-4 border border-black/[0.03]">
-                  <div className="flex items-center gap-2 text-[#D75437]">
-                    <Shield size={14} />
-                    <span className="text-[10px] font-bold tracking-widest">参考售价 / REFERENCE PRICE</span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {priceOptions.map((option, idx) => (
-                      <div key={idx} className={`p-4 rounded-2xl border text-center transition-all ${option.popular ? 'border-[#D75437]/20 bg-[#D75437]/[0.03] shadow-sm' : 'border-black/5 bg-white'}`}>
-                        <span className="block text-2xl font-bold text-[#D75437]">¥{option.price}</span>
-                        <span className="text-xs text-black/30 font-medium">{option.size}</span>
-                        {option.popular && (
-                          <span className="inline-block mt-1 px-2 py-0.5 bg-[#D75437]/10 text-[#D75437] text-[8px] font-bold rounded-full">推荐</span>
-                        )}
-                      </div>
-                    ))}
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4" style={{ color: brand.gold }}>
+                      <div className="w-8 h-px" style={{ backgroundColor: brand.gold }} />
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      <span className="text-[11px] font-bold tracking-[0.2em] uppercase">ERIC 寻香叙事</span>
+                    </div>
+                    <p className="text-base lg:text-lg text-white/85 italic leading-relaxed font-light">{product.narrative}</p>
                   </div>
                 </div>
               )}
 
-              {/* 功效标签 */}
-              {product.benefits && product.benefits.length > 0 && (
-                <div className="flex flex-wrap gap-3">
-                  {product.benefits.map((benefit, idx) => (
-                    <span key={idx} className="px-4 py-2 bg-stone-100 rounded-full text-sm text-black/60">{benefit}</span>
-                  ))}
+              {/* --- ALICE LAB 日记（蓝色卡片）--- */}
+              {product.alice_lab && (
+                <div className="rounded-3xl p-8 lg:p-10 space-y-4 relative overflow-hidden border border-[#1C39BB]/[0.08]"
+                  style={{ background: 'linear-gradient(145deg, #F8FAFE 0%, #EEF2FC 50%, rgba(28,57,187,0.04) 100%)' }}>
+                  <div className="flex items-center gap-3 mb-4 text-[#1C39BB]">
+                    <div className="w-8 h-px bg-[#1C39BB]" />
+                    <Beaker size={15} />
+                    <span className="text-[11px] font-bold tracking-[0.2em] uppercase">ALICE LAB 日记</span>
+                  </div>
+                  <p className="text-base text-[#1A1A1A]/75 leading-relaxed">{product.alice_lab}</p>
                 </div>
               )}
 
-              {/* 产品规格信息卡片 */}
-              <div className="bg-[#FAF9F6] rounded-2xl p-6 space-y-4 border border-black/[0.03]">
-                <h3 className="text-[10px] font-bold tracking-widest text-black/30 uppercase">产品档案 / PRODUCT PROFILE</h3>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-                  {product.origin && (
-                    <div className="flex items-start gap-2.5">
-                      <MapPin size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">产地 / Origin</span>
-                        <p className="text-sm text-black/70 font-medium">{product.origin}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.extraction_method && (
-                    <div className="flex items-start gap-2.5">
-                      <Beaker size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">提炼方式 / Extraction</span>
-                        <p className="text-sm text-black/70 font-medium">{product.extraction_method}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.extraction_site && (
-                    <div className="flex items-start gap-2.5">
-                      <Leaf size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">萃取部位 / Plant Part</span>
-                        <p className="text-sm text-black/70 font-medium">{product.extraction_site}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.specification && (
-                    <div className="flex items-start gap-2.5">
-                      <Shield size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">规格 / Specification</span>
-                        <p className="text-sm text-black/70 font-medium">{product.specification}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.fragrance_notes && (
-                    <div className="flex items-start gap-2.5">
-                      <Wind size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">香调 / Fragrance Notes</span>
-                        <p className="text-sm text-black/70 font-medium">{product.fragrance_notes}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.appearance && (
-                    <div className="flex items-start gap-2.5">
-                      <Eye size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">外观色泽 / Appearance</span>
-                        <p className="text-sm text-black/70 font-medium">{product.appearance}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.shelf_life && (
-                    <div className="flex items-start gap-2.5">
-                      <Clock size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">保质期 / Shelf Life</span>
-                        <p className="text-sm text-black/70 font-medium">{product.shelf_life}</p>
-                      </div>
-                    </div>
-                  )}
-                  {product.scientific_name && (
-                    <div className="flex items-start gap-2.5 col-span-2">
-                      <Leaf size={12} className="text-black/20 mt-0.5 flex-shrink-0" />
-                      <div className="space-y-0.5">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">学名 / Scientific Name</span>
-                        <p className="text-sm text-black/50 font-medium italic">{product.scientific_name}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {/* 使用场景 */}
-                {product.usage_scenarios && (
-                  <div className="pt-3 border-t border-black/[0.05]">
-                    <div className="flex items-start gap-2.5">
-                      <Sparkles size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
-                      <div className="space-y-1">
-                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">适用场景 / Usage Scenarios</span>
-                        <p className="text-sm text-black/60 leading-relaxed">{product.usage_scenarios}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 简介 */}
+              {/* --- 描述（如果存在且不在 narrative 中重复显示）--- */}
               {product.description && (
-                <div className="py-6 border-y border-black/[0.05]">
+                <div className="py-8 border-y border-black/[0.05]">
                   <p className="text-base text-black/60 leading-relaxed">{product.description}</p>
                 </div>
               )}
 
-              {/* ERIC 叙事 */}
-              {product.narrative && (
-                <div className="bg-[#FAF9F6] rounded-3xl p-8 space-y-4">
-                  <div className="flex items-center gap-3 text-[#D75437]">
-                    <div className="w-8 h-px bg-[#D75437]" />
-                    <span className="text-xs font-bold tracking-widest">ERIC 寻香叙事</span>
-                  </div>
-                  <p className="text-base text-black/70 italic leading-relaxed">{product.narrative}</p>
-                </div>
-              )}
-
-              {/* Alice Lab */}
-              {product.alice_lab && (
-                <div className="bg-[#1C39BB]/5 rounded-3xl p-8 space-y-4">
-                  <div className="flex items-center gap-3 text-[#1C39BB]">
-                    <div className="w-8 h-px bg-[#1C39BB]" />
-                    <span className="text-xs font-bold tracking-widest">ALICE LAB 日记</span>
-                  </div>
-                  <p className="text-base text-black/70 leading-relaxed">{product.alice_lab}</p>
-                </div>
-              )}
-
-              {/* 使用方法 */}
+              {/* --- 使用方法 --- */}
               {product.usage && (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold tracking-widest text-black/40 uppercase">使用方法</h3>
+                <div className="space-y-3 pb-4">
+                  <h3 className="text-[11px] font-bold tracking-[0.2em] text-black/35 uppercase">使用方法 / USAGE</h3>
                   <p className="text-base text-black/60 leading-relaxed">{product.usage}</p>
                 </div>
               )}
 
-              {/* 小红书购买链接 */}
-              <div className="pt-4 space-y-4">
-                <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 w-full py-5 bg-gradient-to-r from-[#D75437] to-[#E85A3F] text-white rounded-full font-bold text-lg tracking-wider hover:shadow-lg hover:shadow-[#D75437]/25 transition-all group">
-                  <ShoppingBag size={20} />
-                  <span>前往小红书购买</span>
-                  <ExternalLink size={18} className="opacity-60 group-hover:opacity-100 transition-opacity" />
-                </a>
-                <p className="text-center text-[9px] text-black/20 tracking-widest">点击跳转小红书查看详情及优惠</p>
-              </div>
-
-              {/* 特别提醒 */}
-              <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle size={14} className="text-amber-600 flex-shrink-0" />
-                  <span className="text-xs font-bold tracking-widest text-amber-700 uppercase">特别提醒</span>
-                  <span className="text-xs text-amber-700">/ IMPORTANT NOTICE</span>
+              {/* --- 产品档案（横向宽表格）--- */}
+              {(product.origin || product.extraction_method || product.specification || product.fragrance_notes) && (
+                <div className="rounded-3xl overflow-hidden border border-black/[0.04]" style={{ background: 'linear-gradient(180deg, #FAFAFA 0%, #FFFFFF 100%)' }}>
+                  <div className="px-7 py-4 border-b border-black/[0.04]">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-black/30 uppercase">产品档案 / Profile</span>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-black/[0.04]">
+                    {product.origin && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <MapPin size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">产地</span>
+                          <span className="text-sm text-black/70 font-medium">{product.origin}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.extraction_method && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <Beaker size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">提炼方式</span>
+                          <span className="text-sm text-black/70 font-medium">{product.extraction_method}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.extraction_site && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <Leaf size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">萃取部位</span>
+                          <span className="text-sm text-black/70 font-medium">{product.extraction_site}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.fragrance_notes && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <Wind size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">香调</span>
+                          <span className="text-sm text-black/70 font-medium">{product.fragrance_notes}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.appearance && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <Eye size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">外观色泽</span>
+                          <span className="text-sm text-black/70 font-medium">{product.appearance}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.specification && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <Shield size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">规格</span>
+                          <span className="text-sm text-black/70 font-medium">{product.specification}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.shelf_life && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white">
+                        <Clock size={13} style={{ color: brand.red }} className="flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">保质期</span>
+                          <span className="text-sm text-black/70 font-medium">{product.shelf_life}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.scientific_name && (
+                      <div className="flex items-center gap-3 px-6 py-4 bg-white col-span-2 lg:col-span-3">
+                        <Leaf size={13} className="text-black/20 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">学名 / Scientific Name</span>
+                          <span className="text-sm text-black/50 font-medium italic">{product.scientific_name}</span>
+                        </div>
+                      </div>
+                    )}
+                    {product.usage_scenarios && (
+                      <div className="flex items-start gap-3 px-6 py-4 bg-white col-span-2 lg:col-span-3">
+                        <Sparkles size={13} style={{ color: brand.red }} className="flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">适用场景</span>
+                          <span className="text-sm text-black/70 font-medium leading-relaxed">{product.usage_scenarios}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* 编号行 */}
+                  <div className="flex items-center gap-3 px-6 py-3 bg-stone-50/50 border-t border-black/[0.04]">
+                    <Star size={13} className="text-black/15 flex-shrink-0" />
+                    <span className="text-[9px] font-bold tracking-widest text-black/25 uppercase">编号</span>
+                    <span className="text-sm text-black/40 font-mono ml-auto">{product.code}</span>
+                  </div>
                 </div>
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  本店所售产品涵盖四大系列——元（单方精油）、和（复方精华）、生（纯露）、香（香道器物）。精油及纯露均为天然植物萃取，因每个人体质与健康状况不同，使用前建议咨询专业芳疗师，未经稀释直接涂抹或内服请务必遵医嘱或咨询芳疗师。请置于儿童接触不到处，部分精油亦请远离宠物。
-                </p>
-                <p className="text-[10px] text-amber-600 leading-relaxed">
-                  Our four collections — Yuan (single essential oils), He (formulated blends), Sheng (hydrosols), Xiang (aromatherapy instruments) — are all natural botanicals. Due to individual constitution, please consult a qualified aromatherapist before topical or internal use. Keep out of reach of children; some oils should also be kept away from pets.
-                </p>
-              </div>
+              )}
+            </div>{/* end 左侧 col-span-3 */}
 
-              {/* 收藏分享 */}
-              <div className="flex items-center justify-center gap-8 pt-4">
-                <button className="flex items-center gap-2 text-black/30 hover:text-[#D75437] transition-colors">
-                  <Heart size={18} /><span className="text-sm">收藏</span>
-                </button>
-                <button onClick={() => setShowShare(true)} className="flex items-center gap-2 text-black/30 hover:text-[#D75437] transition-colors">
-                  <Share2 size={18} /><span className="text-sm">分享</span>
-                </button>
-              </div>
-              </div>{/* end sticky container */}
-            </div>{/* end col-span-2 info area */}
+            {/* ===== 右侧：标题 + 价格 + 购买（精简 sticky）===== */}
+            <div className="col-span-2">
+              <div className="lg:sticky lg:top-20 space-y-7 pl-2">
 
-          {/* ===== 分类相似推荐 — 桌面端全宽 ===== */}
+                {/* 系列标签 */}
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="px-3.5 py-1.5 text-[#D75437] text-[10px] font-bold tracking-widest rounded-full" style={{ backgroundColor: `${brand.red}10` }}>
+                    {seriesConfig?.fullName_cn}
+                  </span>
+                  {categoryLabel && (
+                    <span className="px-3.5 py-1.5 text-[10px] font-bold tracking-widest rounded-full" style={{ color: '#1A1A1A/60', backgroundColor: '#1A1A1A/5' }}>
+                      {categoryLabel}
+                    </span>
+                  )}
+                </div>
+
+                {/* 标题 */}
+                <div className="space-y-2">
+                  <h1 className="text-3xl lg:text-4xl font-bold text-[#1A1A1A] tracking-wide leading-tight">{product.name_cn}</h1>
+                  {product.name_en && <p className="text-base tracking-[0.25em] uppercase" style={{ color: '#1A1A1A/40' }}>{product.name_en}</p>}
+                  {product.scientific_name && <p className="text-sm tracking-widest italic" style={{ color: '#1A1A1A/30' }}>{product.scientific_name}</p>}
+                </div>
+
+                {/* 产品编号 + 复制 */}
+                <div className="flex items-center gap-3 pb-1 border-b border-black/[0.05]">
+                  <span className="text-xs font-mono" style={{ color: '#1A1A1A/35' }}>{product.code}</span>
+                  <button onClick={handleCopyLink} className="p-1 hover:text-[#D75437] transition-colors" style={{ color: '#1A1A1A/25' }}>
+                    {copied ? <Check size={13} /> : <Copy size={13} />}
+                  </button>
+                  <span className="ml-auto text-[10px]" style={{ color: '#1A1A1A/20' }}>
+                    {copied ? '已复制链接' : '点击复制链接'}
+                  </span>
+                </div>
+
+                {/* 价格卡片 — 更紧凑精致 */}
+                {priceOptions.length > 0 && (
+                  <div className="rounded-2xl p-5 space-y-3.5 border border-[#1A1A1A]/[0.05]"
+                    style={{ background: 'linear-gradient(145deg, #FAFAFA 0%, #FFFFFF 100%)' }}>
+                    <div className="flex items-center gap-2" style={{ color: brand.red }}>
+                      <Shield size={13} />
+                      <span className="text-[9px] font-bold tracking-[0.2em]">参考售价</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {priceOptions.map((option, idx) => (
+                        <div key={idx} className={`p-3 rounded-xl border text-center transition-all ${option.popular ? 'border-current' : 'border-black/5 bg-white'}`}
+                          style={option.popular ? { borderColor: `${brand.red}25`, backgroundColor: `${brand.red}04` } : {}}>
+                          <span className="block text-xl font-bold" style={{ color: brand.red }}>¥{option.price}</span>
+                          <span className="text-[10px] text-black/30 font-medium">{option.size}</span>
+                          {option.popular && (
+                            <span className="inline-block mt-1 px-2 py-0.5 text-[8px] font-bold rounded-full" style={{ color: brand.red, backgroundColor: `${brand.red}10` }}>推荐</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 功效标签 */}
+                {product.benefits && product.benefits.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {product.benefits.map((benefit, idx) => (
+                      <span key={idx} className="px-3 py-1.5 text-xs rounded-full text-black/55" style={{ backgroundColor: '#1A1A1A/4' }}>{benefit}</span>
+                    ))}
+                  </div>
+                )}
+
+                {/* 购买按钮 — 固定在右侧底部区域 */}
+                <div className="pt-3 space-y-3.5">
+                  <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2.5 w-full py-4 text-white rounded-2xl font-bold tracking-wider transition-all hover:shadow-xl active:scale-[0.98]"
+                    style={{ background: `linear-gradient(135deg, ${brand.red} 0%, #E85A3F 100%)`, boxShadow: `0 6px 20px ${brand.red}30` }}>
+                    <ShoppingBag size={17} /><span>前往小红书购买</span><ExternalLink size={15} className="opacity-60" />
+                  </a>
+                  <p className="text-center text-[9px] tracking-widest" style={{ color: '#1A1A1A/18' }}>点击跳转小红书查看详情及优惠</p>
+                </div>
+
+                {/* 特别提醒 — 精致版 */}
+                <div className="rounded-2xl p-5 space-y-2.5 border border-amber-200/60" style={{ backgroundColor: '#FFFBF5' }}>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={13} className="text-amber-600 flex-shrink-0" />
+                    <span className="text-[10px] font-bold tracking-widest text-amber-700 uppercase">特别提醒</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800/80 leading-relaxed">
+                    本店所售产品涵盖四大系列——元（单方精油）、和（复方精华）、生（纯露）、香（香道器物）。精油及纯露均为天然植物萃取，使用前建议咨询专业芳疗师。请置于儿童接触不到处。
+                  </p>
+                </div>
+
+                {/* 收藏分享 */}
+                <div className="flex items-center justify-center gap-8 pt-2">
+                  <button className="flex items-center gap-2 transition-colors" style={{ color: '#1A1A1A/25' }} onMouseEnter={(e) => e.currentTarget.style.color = brand.red} onMouseLeave={(e) => e.currentTarget.style.color = '#1A1A1A/25'}>
+                    <Heart size={17} /><span className="text-sm">收藏</span>
+                  </button>
+                  <button onClick={() => setShowShare(true)} className="flex items-center gap-2 transition-colors" style={{ color: '#1A1A1A/25' }} onMouseEnter={(e) => e.currentTarget.style.color = brand.red} onMouseLeave={(e) => e.currentTarget.style.color = '#1A1A1A/25'}>
+                    <Share2 size={17} /><span className="text-sm">分享</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>{/* end 右侧 col-span-2 */}
+
+          </div>{/* end 首屏主 grid */}
+
+          {/* ===== 推荐区 — 全宽 ===== */}
           {relatedProducts.length > 0 && (
-            <div className="col-span-5 mt-16 pt-12 border-t border-black/[0.05]">
+            <div className="mt-20 pt-12" style={{ borderTop: '1px solid rgba(26,26,26,0.06)' }}>
               {relatedProducts.map((group, gIdx) => (
-                <div key={gIdx} className={gIdx > 0 ? 'mt-14' : ''}>
+                <div key={gIdx} className={gIdx > 0 ? 'mt-16' : ''}>
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                      <Sparkles size={16} className="text-[#D4AF37]" />
-                      <h2 className="text-xl lg:text-2xl font-bold text-black tracking-wider">{group.label}</h2>
+                      <Sparkles size={16} style={{ color: brand.gold }} />
+                      <h2 className="text-xl lg:text-2xl font-bold text-[#1A1A1A] tracking-wider">{group.label}</h2>
                     </div>
                     <button onClick={() => onNavigate('collections', { series: group.series !== 'other' ? group.series : undefined })}
-                      className="flex items-center gap-2 text-xs text-black/40 hover:text-black transition-colors group">
+                      className="flex items-center gap-2 text-xs transition-colors group" style={{ color: '#1A1A1A/35' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = brand.red}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#1A1A1A/35'}>
                       <span className="tracking-wider">查看更多</span>
                       <ArrowLeft size={13} className="rotate-180 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                  {/* 桌面端网格 */}
                   <div className="grid grid-cols-3 xl:grid-cols-5 gap-5">
                     {group.items.map(p => (
                       <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="group cursor-pointer">
-                        <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#FAF9F6] to-[#F5F2EE] mb-2.5 border border-black/[0.03] group-hover:shadow-lg transition-all duration-500">
+                        <div className="aspect-square rounded-2xl overflow-hidden mb-2.5 border border-black/[0.03] group-hover:shadow-xl transition-all duration-500"
+                          style={{ background: 'linear-gradient(145deg, #FAF9F6 0%, #F0EEE9 100%)' }}>
                           <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                         </div>
                         <h3 className="text-sm font-bold text-black/70 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
-                        {p.price_10ml && <p className="text-xs text-[#D4AF37] mt-0.5">¥{p.price_10ml}</p>}
+                        {p.price_10ml && <p className="text-xs mt-0.5" style={{ color: brand.gold }}>¥{p.price_10ml}</p>}
                       </div>
                     ))}
                   </div>
@@ -918,17 +917,18 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               ))}
             </div>
           )}
-          </div>{/* end grid */}
         </div>{/* end max-w container */}
 
         {/* 桌面端分享弹窗 */}
         {showShare && (
-          <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center" onClick={() => setShowShare(false)}>
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center" onClick={() => setShowShare(false)}>
+            <div className="rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl" style={{ background: '#FFFFFF' }} onClick={e => e.stopPropagation()}>
               <h3 className="text-xl font-bold text-center mb-6">分享产品</h3>
               <div className="flex justify-center gap-8">
-                <button onClick={handleCopyLink} className="flex flex-col items-center gap-3 text-black/60 hover:text-[#D75437] transition-colors">
-                  <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center">
+                <button onClick={handleCopyLink} className="flex flex-col items-center gap-3 transition-colors" style={{ color: '#1A1A1A/50' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = brand.red; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#1A1A1A/50'; }}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
                     {copied ? <Check size={28} /> : <Copy size={28} />}
                   </div>
                   <span className="text-sm">{copied ? '已复制' : '复制链接'}</span>
@@ -937,9 +937,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
             </div>
           </div>
         )}
-      </div>
+      </div>{/* end desktop layout */}
 
-      {/* Lightbox 全屏预览 */}
+      {/* Lightbox */}
       <Lightbox />
 
       <style>{`
