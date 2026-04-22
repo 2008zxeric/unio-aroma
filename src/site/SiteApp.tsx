@@ -467,6 +467,7 @@ const SiteApp: React.FC = () => {
             <div className="sm:hidden flex items-center justify-around py-3 bg-white/90 backdrop-blur-xl border-t border-black/[0.03] rounded-t-2xl">
               {[
                 { id: 'home', icon: Home, label: '首页' },
+                { id: 'story', icon: BookOpen, label: '叙事' },
                 { id: 'atlas', icon: MapIcon, label: '寻香' },
                 { id: 'collections', icon: Box, label: '馆藏' },
                 { id: 'xhs', icon: Share2, label: '灵感', isExternal: true },
