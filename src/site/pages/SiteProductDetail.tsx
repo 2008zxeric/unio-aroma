@@ -318,6 +318,12 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 <span className="text-xs text-black/70 font-medium">{product.extraction_method}</span>
               </div>
             )}
+            {product.extraction_site && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-black/40">萃取部位</span>
+                <span className="text-xs text-black/70 font-medium">{product.extraction_site}</span>
+              </div>
+            )}
             {product.specification && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-black/40">规格</span>
@@ -450,7 +456,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
 
               {/* 产品规格信息卡片 */}
               <div className="bg-[#FAF9F6] rounded-2xl p-6 space-y-4 border border-black/[0.03]">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-x-6 gap-y-4">
                   {product.origin && (
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">产地 / Origin</span>
@@ -463,6 +469,12 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                       <p className="text-sm text-black/70 font-medium">{product.extraction_method}</p>
                     </div>
                   )}
+                  {product.extraction_site && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">萃取部位 / Plant Part</span>
+                      <p className="text-sm text-black/70 font-medium">{product.extraction_site}</p>
+                    </div>
+                  )}
                   {product.specification && (
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">规格 / Specification</span>
@@ -470,7 +482,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                     </div>
                   )}
                   {product.scientific_name && (
-                    <div className="space-y-1">
+                    <div className="space-y-1 col-span-3">
                       <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">学名 / Scientific Name</span>
                       <p className="text-sm text-black/70 font-medium italic">{product.scientific_name}</p>
                     </div>
