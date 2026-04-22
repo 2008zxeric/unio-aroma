@@ -50,6 +50,7 @@ export interface Product {
   short_desc?: string;           // 短描述/特点提炼
   origin?: string;               // 产品产地
   extraction_method?: string;    // 提炼方式
+  extraction_site?: string;       // 萃取部位（植物使用部位，如"花与叶"、"全株"、"根"等）
   is_active: boolean;
   sort_order: number;
   series_code?: SeriesCode;
