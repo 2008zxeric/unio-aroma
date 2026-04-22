@@ -1,13 +1,13 @@
 /**
- * UNIO AROMA 产品详情页 — 沉浸式体验版 v2
- * 增强价格展示、小红书链接、分类相似推荐
+ * UNIO AROMA 产品详情页 — 沉浸式体验版 v3
+ * 手机优先 · 桌面端精致缩略图 · 统一视觉语言
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight,
   Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle,
-  MapPin, Leaf, Wind, Eye, Clock, Beaker
+  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn
 } from 'lucide-react';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProducts } from '../siteDataService';
@@ -28,6 +28,8 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   const [relatedProducts, setRelatedProducts] = useState<{ series: string; label: string; items: Product[] }[]>([]);
   const [copied, setCopied] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
   const imagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -143,6 +145,21 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   const handlePrevImage = () => setActiveImage(prev => (prev === 0 ? images.length - 1 : prev - 1));
   const handleNextImage = () => setActiveImage(prev => (prev === images.length - 1 ? 0 : prev + 1));
 
+  // 图片加载状态追踪
+  const handleImageLoad = useCallback((idx: number) => {
+    setImageLoaded(prev => ({ ...prev, [idx]: true }));
+  }, []);
+
+  // 触摸滑动支持
+  const touchStartX = useRef(0);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(delta) > 50) {
+      delta > 0 ? handleNextImage() : handlePrevImage();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* ===== 固定顶栏（移动端） ===== */}
@@ -182,36 +199,90 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
         </div>
       )}
 
-      {/* ===== 移动端布局 ===== */}
+      {/* ===== 移动端布局 v3 — 沉浸式体验 ===== */}
       <div className="sm:hidden">
-        <div className="relative h-[70vh] bg-[#FAF9F6] mt-14">
+        {/* 图片区 — 自适应高度 + 触摸滑动 */}
+        <div className="relative bg-[#FAF9F6] mt-14" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           {images.length > 0 ? (
             <>
-              <img src={images[activeImage]} alt={product.name_cn} className="w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
+              <div className="relative aspect-[4/5] sm:aspect-[3/4]">
+                {!imageLoaded[activeImage] && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#FAF9F6]">
+                    <div className="w-8 h-8 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+                  </div>
+                )}
+                <img
+                  src={images[activeImage]} alt={product.name_cn}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded[activeImage] ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => handleImageLoad(activeImage)}
+                  onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }}
+                  decoding="async"
+                />
+                {/* 左右切换按钮 */}
+                {images.length > 1 && (
+                  <>
+                    <button onClick={handlePrevImage}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button onClick={handleNextImage}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                      <ChevronRight size={20} />
+                    </button>
+                  </>
+                )}
+                {/* 放大按钮 */}
+                <button onClick={() => setLightboxOpen(true)}
+                  className="absolute top-3 right-3 w-9 h-9 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white/80 active:scale-95 transition-all">
+                  <ZoomIn size={16} />
+                </button>
+              </div>
+
+              {/* 缩略图条 — 底部横向精致排列 */}
               {images.length > 1 && (
-                <>
-                  <button onClick={handlePrevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg"><ChevronLeft size={20} /></button>
-                  <button onClick={handleNextImage} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg"><ChevronRight size={20} /></button>
-                </>
+                <div className="px-4 pt-3 pb-2">
+                  <div className="flex gap-2.5 justify-center overflow-x-auto scrollbar-hide py-1">
+                    {images.map((img, idx) => (
+                      <button key={idx} onClick={() => setActiveImage(idx)}
+                        className={`flex-shrink-0 relative w-14 h-14 rounded-lg overflow-hidden transition-all duration-200 ${
+                          activeImage === idx
+                            ? 'ring-2 ring-[#D75437] ring-offset-2 ring-offset-[#FAF9F6] shadow-md scale-105'
+                            : 'opacity-45 hover:opacity-75 ring-1 ring-black/8'
+                        }`}>
+                        <img src={img} alt="" className="w-full h-full object-cover" decoding="async" loading="lazy" />
+                        {activeImage === idx && (
+                          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#D75437] rounded-b-lg" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
+
+              {/* 圆点指示器 */}
               {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="flex justify-center gap-1.5 pb-3">
                   {images.map((_, idx) => (
                     <button key={idx} onClick={() => setActiveImage(idx)}
-                      className={`w-2 h-2 rounded-full transition-all ${activeImage === idx ? 'bg-[#D75437] w-4' : 'bg-black/30'}`} />
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        activeImage === idx
+                          ? 'w-5 bg-[#D75437]'
+                          : 'w-1.5 bg-black/20'
+                      }`} />
                   ))}
                 </div>
               )}
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center"><img src={LOGO_PLACEHOLDER} alt="" className="w-24 h-24 opacity-20" /></div>
+            <div className="aspect-square flex items-center justify-center">
+              <img src={LOGO_PLACEHOLDER} alt="" className="w-24 h-24 opacity-20" />
+            </div>
           )}
         </div>
 
-        <div className="px-4 pb-32 space-y-6">
+        <div className="px-5 pb-36 space-y-7">
           {/* 标签行 */}
-          <div className="flex items-center gap-2 pt-6 flex-wrap">
+          <div className="flex items-center gap-2 pt-5 flex-wrap">
             <span className="px-3 py-1.5 bg-[#D75437]/10 text-[#D75437] text-[10px] font-bold tracking-wider rounded-full">
               {seriesConfig?.fullName_cn}
             </span>
@@ -229,39 +300,40 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
 
           {/* 标题 */}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-black tracking-wide">{product.name_cn}</h1>
-            {product.name_en && <p className="text-sm text-black/40 tracking-widest uppercase">{product.name_en}</p>}
+            <h1 className="text-2xl font-bold text-black tracking-wide leading-tight">{product.name_cn}</h1>
+            {product.name_en && <p className="text-sm text-black/40 tracking-[0.15em] uppercase leading-tight">{product.name_en}</p>}
             {product.scientific_name && <p className="text-xs text-black/25 tracking-widest italic mt-1">{product.scientific_name}</p>}
           </div>
 
-          {/* 产地标签 */}
+          {/* 产地标签 — 紧凑横排 */}
           {product.origin && (
-            <div className="flex items-center gap-2">
-              <MapPin size={12} className="text-[#D75437]" />
-              <span className="text-xs text-black/50 font-medium">{product.origin}</span>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-1.5 px-3 py-2 bg-stone-50 rounded-lg">
+                <MapPin size={12} className="text-[#D75437]" />
+                <span className="text-xs text-black/60 font-medium">{product.origin}</span>
+              </div>
               {product.extraction_site && (
-                <>
-                  <span className="text-black/20">·</span>
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-stone-50 rounded-lg">
                   <Leaf size={11} className="text-black/30" />
-                  <span className="text-xs text-black/40">{product.extraction_site}</span>
-                </>
+                  <span className="text-xs text-black/45">{product.extraction_site}</span>
+                </div>
               )}
             </div>
           )}
 
-          {/* 价格卡片 - 突出展示 */}
+          {/* 价格卡片 — 精致渐变 */}
           {priceOptions.length > 0 && (
-            <div className="bg-gradient-to-br from-[#FAF9F6] to-white rounded-2xl p-5 space-y-3 border border-black/[0.03]">
+            <div className="bg-gradient-to-br from-[#FAF9F6] via-white to-[#FFFDF8] rounded-2xl p-5 space-y-3 border border-black/[0.04] shadow-sm">
               <div className="flex items-center gap-2 text-[#D75437]">
                 <Shield size={14} />
-                <span className="text-[9px] font-bold tracking-widest">参考售价</span>
+                <span className="text-[9px] font-bold tracking-widest uppercase">参考售价</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 {priceOptions.map((option, idx) => (
-                  <div key={idx} className={`p-3 rounded-xl border ${option.popular ? 'border-[#D75437]/20 bg-[#D75437]/[0.03]' : 'border-black/5 bg-white'}`}>
-                    <span className="block text-lg font-bold text-[#D75437]">¥{option.price}</span>
-                    <span className="text-[10px] text-black/30 font-medium">{option.size}</span>
-                    {option.popular && <span className="block text-[8px] text-[#D75437]/60 font-bold mt-0.5">推荐</span>}
+                  <div key={idx} className={`p-3.5 rounded-xl border transition-all ${option.popular ? 'border-[#D75437]/25 bg-[#D75437]/[0.04] shadow-sm' : 'border-black/5 bg-white'}`}>
+                    <span className="block text-xl font-bold text-[#D75437] tracking-tight">¥{option.price}</span>
+                    <span className="text-[10px] text-black/35 font-medium">{option.size}</span>
+                    {option.popular && <span className="inline-block mt-1 px-1.5 py-0.5 bg-[#D75437]/10 text-[#D75437] text-[8px] font-bold rounded-full">推荐</span>}
                   </div>
                 ))}
               </div>
@@ -387,9 +459,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           </div>
         </div>
 
-        {/* ===== 移动端推荐区 — 更多馆藏 ===== */}
+        {/* ===== 移动端推荐区 — 精致卡片 ===== */}
         {relatedProducts.length > 0 && (
-          <div className="px-4 pb-28 space-y-6">
+          <div className="px-5 pb-28 space-y-7">
             {relatedProducts.map((group, gIdx) => (
               <div key={gIdx}>
                 <div className="flex items-center justify-between mb-4">
@@ -398,22 +470,21 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                     <h2 className="text-sm font-bold text-black tracking-wider">{group.label}</h2>
                   </div>
                   <button onClick={() => onNavigate('collections', { series: group.series !== 'other' ? group.series : undefined })}
-                    className="flex items-center gap-1 text-xs text-black/40 hover:text-[#D75437] transition-colors">
-                    <span>更多</span>
-                    <ArrowLeft size={11} className="rotate-180" />
+                    className="flex items-center gap-1 text-xs text-black/35 hover:text-[#D75437] transition-colors">
+                    <span>更多</span><ArrowLeft size={11} className="rotate-180" />
                   </button>
                 </div>
-                {/* 横向滚动卡片 */}
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                {/* 横向滚动卡片 — 更精致 */}
+                <div className="flex gap-3 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-hide">
                   {group.items.map(p => (
-                    <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="flex-shrink-0 w-36 group cursor-pointer">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-[#FAF9F6] mb-1.5 border border-black/[0.03]">
+                    <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="flex-shrink-0 w-38 group cursor-pointer">
+                      <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#FAF9F6] to-white mb-2 border border-black/[0.04] shadow-sm group-hover:shadow-md transition-all duration-500">
                         <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                       </div>
-                      <h3 className="text-xs font-bold text-black/70 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
-                      {p.price_10ml && <p className="text-[10px] text-[#D4AF37]">¥{p.price_10ml}</p>}
+                      <h3 className="text-xs font-bold text-black/70 group-hover:text-[#D75437] transition-colors truncate px-0.5">{p.name_cn}</h3>
+                      {p.price_10ml && <p className="text-[10px] text-[#D4AF37] font-medium px-0.5">¥{p.price_10ml}</p>}
                     </div>
                   ))}
                 </div>
@@ -423,9 +494,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
         )}
 
         {/* 固定底栏 */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-black/[0.05] p-4 z-[90]">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-black/[0.05] p-4 z-[90] safe-area-inset-bottom">
           <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-4 bg-[#D75437] text-white rounded-full font-bold text-sm tracking-wider active:scale-[0.98] transition-all">
+            className="flex items-center justify-center gap-2 w-full py-4 bg-[#D75437] text-white rounded-2xl font-bold text-sm tracking-wider active:scale-[0.98] transition-all shadow-lg shadow-[#D75437]/20">
             <ShoppingBag size={16} />
             <span>前往小红书购买</span>
             <ExternalLink size={14} />
@@ -438,68 +509,92 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
         {/* 返回导航 */}
         <div className="fixed top-8 left-8 z-[100]">
           <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })}
-            className="flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-xl rounded-full shadow-xl text-black/60 hover:text-black transition-colors">
+            className="flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-xl rounded-full shadow-lg shadow-black/[0.05] text-black/50 hover:text-black hover:shadow-xl transition-all">
             <ArrowLeft size={20} />
             <span className="text-sm tracking-wider">返回馆藏</span>
           </button>
         </div>
 
-        <div className="max-w-[1680px] mx-auto pt-20 pb-16 px-8 lg:px-16">
-          <div className="grid grid-cols-5 gap-0 xl:gap-10">
-            {/* 左侧图片区 — 占 3 列，自适应高度不撑满屏幕 */}
+        <div className="max-w-[1560px] mx-auto pt-24 pb-20 px-8 lg:px-16">
+          <div className="grid grid-cols-5 gap-8 xl:gap-12">
+            {/* 左侧图片区 — 占 3 列 */}
             <div className="col-span-3 relative">
               {/* 主图容器 */}
-              <div className="relative aspect-[4/5] xl:aspect-[4/4.5] bg-[#FAF9F6] rounded-3xl overflow-hidden border border-black/[0.04]">
+              <div
+                onClick={() => setLightboxOpen(true)}
+                className="relative aspect-[4/5] xl:aspect-[3/4] bg-gradient-to-br from-[#FAF9F6] to-white rounded-2xl overflow-hidden border border-black/[0.04] shadow-sm cursor-zoom-in group">
                 {images.length > 0 ? (
-                  <img src={images[activeImage]} alt={product.name_cn}
-                    className="w-full h-full object-contain"
-                    onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
+                  <>
+                    {!imageLoaded[activeImage] && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-10 h-10 border-2 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
+                      </div>
+                    )}
+                    <img src={images[activeImage]} alt={product.name_cn}
+                      className={`w-full h-full object-contain transition-opacity duration-500 group-hover:scale-[1.02] transition-transform duration-700 ${imageLoaded[activeImage] ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => handleImageLoad(activeImage)}
+                      onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
+                    {/* 放大提示 */}
+                    <div className="absolute bottom-4 right-4 w-9 h-9 bg-black/5 backdrop-blur-sm rounded-full flex items-center justify-center text-black/30 group-hover:bg-black/10 group-hover:text-black/50 transition-all opacity-0 group-hover:opacity-100">
+                      <ZoomIn size={16} />
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <img src={LOGO_PLACEHOLDER} alt="" className="w-40 h-40 opacity-15" />
                   </div>
                 )}
+
                 {/* 左右切换按钮 */}
                 {images.length > 1 && (
                   <>
-                    <button onClick={handlePrevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-black/[0.06] text-black/60 hover:text-black hover:shadow-xl transition-all">
+                    <button onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-black/[0.06] text-black/50 hover:text-black hover:shadow-xl transition-all opacity-0 hover:opacity-100">
                       <ChevronLeft size={22} />
                     </button>
-                    <button onClick={handleNextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-black/[0.06] text-black/60 hover:text-black hover:shadow-xl transition-all">
+                    <button onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-black/[0.06] text-black/50 hover:text-black hover:shadow-xl transition-all opacity-0 hover:opacity-100">
                       <ChevronRight size={22} />
                     </button>
                   </>
                 )}
               </div>
 
-              {/* 缩略图条 — 精致横向排列在主图下方 */}
+              {/* 缩略图条 v3 — 放大到合适尺寸，精致交互 */}
               {images.length > 1 && (
-                <div className="mt-4 flex gap-3 justify-center">
-                  {images.map((img, idx) => (
-                    <button key={idx} onClick={() => setActiveImage(idx)}
-                      className={`group relative w-20 h-24 rounded-xl overflow-hidden transition-all duration-300 ${
-                        activeImage === idx
-                          ? 'ring-2 ring-[#D75437] ring-offset-2 shadow-md scale-105'
-                          : 'opacity-50 hover:opacity-80 ring-1 ring-black/8'
-                      }`}>
-                      <img src={img} alt="" className="w-full h-full object-cover"
-                        decoding="async" />
-                      {/* 当前指示条 */}
-                      {activeImage === idx && (
-                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#D75437]" />
-                      )}
-                    </button>
-                  ))}
+                <div className="mt-5 space-y-2.5">
+                  <div className="flex gap-3 justify-start overflow-x-auto pb-2 scrollbar-hide px-0.5">
+                    {images.map((img, idx) => (
+                      <button key={idx} onClick={() => setActiveImage(idx)}
+                        className={`group/thumb relative flex-shrink-0 w-[104px] h-[128px] rounded-xl overflow-hidden transition-all duration-300 ${
+                          activeImage === idx
+                            ? 'ring-2 ring-[#D75437] ring-offset-2 ring-offset-white shadow-lg scale-[1.03]'
+                            : 'opacity-45 hover:opacity-80 ring-1 ring-black/8 hover:ring-black/15 hover:scale-[1.02]'
+                        }`}>
+                        <img src={img} alt={`${product.name_cn} - 图${idx + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover/thumb:scale-110"
+                          decoding="async" loading="lazy" />
+                        {/* 当前选中指示 */}
+                        {activeImage === idx && (
+                          <>
+                            <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#D75437]" />
+                            <div className="absolute inset-0 ring-2 ring-[#D75437]/30 rounded-xl pointer-events-none" />
+                          </>
+                        )}
+                        {/* 序号角标 */}
+                        <div className={`absolute top-1.5 left-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-colors ${
+                          activeImage === idx ? 'bg-[#D75437] text-white' : 'bg-black/25 text-white/70'
+                        }`}>
+                          {idx + 1}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {/* 图片计数 */}
+                  <p className="text-center text-[11px] text-black/20 tracking-widest font-medium">
+                    {activeImage + 1} / {images.length} · 点击主图可放大查看
+                  </p>
                 </div>
-              )}
-
-              {/* 图片计数 */}
-              {images.length > 1 && (
-                <p className="text-center mt-3 text-[11px] text-black/25 tracking-wider font-medium">
-                  {activeImage + 1} / {images.length}
-                </p>
               )}
             </div>
 
@@ -539,20 +634,20 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 </button>
               </div>
 
-              {/* 价格卡片 - 突出展示 */}
+              {/* 价格卡片 — 精致渐变 */}
               {priceOptions.length > 0 && (
-                <div className="bg-gradient-to-br from-[#FAF9F6] to-white rounded-3xl p-6 space-y-4 border border-black/[0.03]">
+                <div className="bg-gradient-to-br from-[#FAF9F6] via-white to-[#FFFDF8] rounded-2xl p-6 space-y-4 border border-black/[0.04] shadow-sm">
                   <div className="flex items-center gap-2 text-[#D75437]">
                     <Shield size={14} />
-                    <span className="text-[10px] font-bold tracking-widest">参考售价 / REFERENCE PRICE</span>
+                    <span className="text-[10px] font-bold tracking-widest uppercase">参考售价 / Reference Price</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {priceOptions.map((option, idx) => (
-                      <div key={idx} className={`p-4 rounded-2xl border text-center transition-all ${option.popular ? 'border-[#D75437]/20 bg-[#D75437]/[0.03] shadow-sm' : 'border-black/5 bg-white'}`}>
-                        <span className="block text-2xl font-bold text-[#D75437]">¥{option.price}</span>
-                        <span className="text-xs text-black/30 font-medium">{option.size}</span>
+                      <div key={idx} className={`p-4 rounded-xl border text-center transition-all hover:shadow-sm ${option.popular ? 'border-[#D75437]/25 bg-[#D75437]/[0.04] shadow-sm' : 'border-black/5 bg-white'}`}>
+                        <span className="block text-2xl font-bold text-[#D75437] tracking-tight">¥{option.price}</span>
+                        <span className="text-xs text-black/35 font-medium">{option.size}</span>
                         {option.popular && (
-                          <span className="inline-block mt-1 px-2 py-0.5 bg-[#D75437]/10 text-[#D75437] text-[8px] font-bold rounded-full">推荐</span>
+                          <span className="inline-block mt-1.5 px-2 py-0.5 bg-[#D75437]/10 text-[#D75437] text-[8px] font-bold rounded-full">推荐</span>
                         )}
                       </div>
                     ))}
@@ -776,8 +871,8 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
 
         {/* 桌面端分享弹窗 */}
         {showShare && (
-          <div className="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center" onClick={() => setShowShare(false)}>
-            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center" onClick={() => setShowShare(false)}>
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
               <h3 className="text-xl font-bold text-center mb-6">分享产品</h3>
               <div className="flex justify-center gap-8">
                 <button onClick={handleCopyLink} className="flex flex-col items-center gap-3 text-black/60 hover:text-[#D75437] transition-colors">
@@ -790,10 +885,64 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
             </div>
           </div>
         )}
+
+        {/* ===== 全屏图片预览 Lightbox ===== */}
+        {lightboxOpen && (
+          <div className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center" onClick={() => setLightboxOpen(false)}>
+            {/* 关闭按钮 */}
+            <button onClick={() => setLightboxOpen(false)}
+              className="absolute top-6 right-6 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white/80 transition-all z-10">
+              <X size={24} />
+            </button>
+
+            {/* 左右切换 */}
+            {images.length > 1 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                  className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white/80 transition-all">
+                  <ChevronLeft size={28} />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white/80 transition-all">
+                  <ChevronRight size={28} />
+                </button>
+              </>
+            )}
+
+            {/* 大图 */}
+            <div className="max-w-[85vw] max-h-[85vh]" onClick={e => e.stopPropagation()}>
+              <img src={images[activeImage]} alt={product.name_cn}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg" />
+            </div>
+
+            {/* 缩略图条 */}
+            {images.length > 1 && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2.5">
+                {images.map((img, idx) => (
+                  <button key={idx} onClick={(e) => { e.stopPropagation(); setActiveImage(idx); }}
+                    className={`w-14 h-14 rounded-lg overflow-hidden transition-all duration-200 ${
+                      activeImage === idx
+                        ? 'ring-2 ring-white shadow-lg'
+                        : 'opacity-40 hover:opacity-70 ring-1 ring-white/30'
+                    }`}>
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 图片计数 */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 translate-y-12 text-white/50 text-sm tracking-widest">
+              {activeImage + 1} / {images.length}
+            </div>
+          </div>
+        )}
       </div>
 
       <style>{`
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
