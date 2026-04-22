@@ -387,6 +387,41 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           </div>
         </div>
 
+        {/* ===== 移动端推荐区 — 更多馆藏 ===== */}
+        {relatedProducts.length > 0 && (
+          <div className="px-4 pb-28 space-y-6">
+            {relatedProducts.map((group, gIdx) => (
+              <div key={gIdx}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-[#D4AF37]" />
+                    <h2 className="text-sm font-bold text-black tracking-wider">{group.label}</h2>
+                  </div>
+                  <button onClick={() => onNavigate('collections', { series: group.series !== 'other' ? group.series : undefined })}
+                    className="flex items-center gap-1 text-xs text-black/40 hover:text-[#D75437] transition-colors">
+                    <span>更多</span>
+                    <ArrowLeft size={11} className="rotate-180" />
+                  </button>
+                </div>
+                {/* 横向滚动卡片 */}
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                  {group.items.map(p => (
+                    <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="flex-shrink-0 w-36 group cursor-pointer">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-[#FAF9F6] mb-1.5 border border-black/[0.03]">
+                        <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
+                      </div>
+                      <h3 className="text-xs font-bold text-black/70 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
+                      {p.price_10ml && <p className="text-[10px] text-[#D4AF37]">¥{p.price_10ml}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* 固定底栏 */}
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-black/[0.05] p-4 z-[90]">
           <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
@@ -409,36 +444,68 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           </button>
         </div>
 
-        <div className="max-w-[1920px] mx-auto">
-          <div className="grid grid-cols-2 min-h-screen">
-            {/* 左侧图片 - Sticky */}
-            <div className="relative bg-[#FAF9F6] lg:sticky lg:top-0 lg:h-screen">
-              <div className="h-screen relative">
+        <div className="max-w-[1680px] mx-auto pt-20 pb-16 px-8 lg:px-16">
+          <div className="grid grid-cols-5 gap-0 xl:gap-10">
+            {/* 左侧图片区 — 占 3 列，自适应高度不撑满屏幕 */}
+            <div className="col-span-3 relative">
+              {/* 主图容器 */}
+              <div className="relative aspect-[4/5] xl:aspect-[4/4.5] bg-[#FAF9F6] rounded-3xl overflow-hidden border border-black/[0.04]">
                 {images.length > 0 ? (
-                  <img src={images[activeImage]} alt={product.name_cn} className="w-full h-full object-cover"
+                  <img src={images[activeImage]} alt={product.name_cn}
+                    className="w-full h-full object-contain"
                     onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} decoding="async" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center"><img src={LOGO_PLACEHOLDER} alt="" className="w-48 h-48 opacity-20" /></div>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img src={LOGO_PLACEHOLDER} alt="" className="w-40 h-40 opacity-15" />
+                  </div>
+                )}
+                {/* 左右切换按钮 */}
+                {images.length > 1 && (
+                  <>
+                    <button onClick={handlePrevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-black/[0.06] text-black/60 hover:text-black hover:shadow-xl transition-all">
+                      <ChevronLeft size={22} />
+                    </button>
+                    <button onClick={handleNextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/95 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-black/[0.06] text-black/60 hover:text-black hover:shadow-xl transition-all">
+                      <ChevronRight size={22} />
+                    </button>
+                  </>
                 )}
               </div>
+
+              {/* 缩略图条 — 精致横向排列在主图下方 */}
               {images.length > 1 && (
-                <>
-                  <div className="absolute bottom-8 left-8 flex gap-3">
-                    {images.map((img, idx) => (
-                      <button key={idx} onClick={() => setActiveImage(idx)}
-                        className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${activeImage === idx ? 'border-[#D75437] scale-110' : 'border-white/50 opacity-60 hover:opacity-100'}`}>
-                        <img src={img} alt="" className="w-full h-full object-cover" decoding="async" />
-                      </button>
-                    ))}
-                  </div>
-                  <button onClick={handlePrevImage} className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all"><ChevronLeft size={24} /></button>
-                  <button onClick={handleNextImage} className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all"><ChevronRight size={24} /></button>
-                </>
+                <div className="mt-4 flex gap-3 justify-center">
+                  {images.map((img, idx) => (
+                    <button key={idx} onClick={() => setActiveImage(idx)}
+                      className={`group relative w-20 h-24 rounded-xl overflow-hidden transition-all duration-300 ${
+                        activeImage === idx
+                          ? 'ring-2 ring-[#D75437] ring-offset-2 shadow-md scale-105'
+                          : 'opacity-50 hover:opacity-80 ring-1 ring-black/8'
+                      }`}>
+                      <img src={img} alt="" className="w-full h-full object-cover"
+                        decoding="async" />
+                      {/* 当前指示条 */}
+                      {activeImage === idx && (
+                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[#D75437]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* 图片计数 */}
+              {images.length > 1 && (
+                <p className="text-center mt-3 text-[11px] text-black/25 tracking-wider font-medium">
+                  {activeImage + 1} / {images.length}
+                </p>
               )}
             </div>
 
-            {/* 右侧信息区 */}
-            <div className="p-10 lg:p-16 xl:p-24 space-y-10 max-w-xl xl:max-w-2xl">
+            {/* 右侧信息区 — 占 2 列，sticky 跟随 */}
+            <div className="col-span-2 xl:pl-4">
+              <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2 space-y-8 max-w-lg">
               {/* 系列标签 */}
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="px-4 py-2 bg-[#D75437]/10 text-[#D75437] text-xs font-bold tracking-widest rounded-full">
@@ -667,35 +734,36 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                   <Share2 size={18} /><span className="text-sm">分享</span>
                 </button>
               </div>
-            </div>
-          </div>
+              </div>{/* end sticky container */}
+            </div>{/* end col-span-2 info area */}
 
-          {/* ===== 分类相似推荐 ===== */}
+          {/* ===== 分类相似推荐 — 桌面端全宽 ===== */}
           {relatedProducts.length > 0 && (
-            <div className="px-10 lg:px-16 xl:p-24 py-20 border-t border-black/[0.05]">
+            <div className="hidden sm:block mt-16 pt-12 border-t border-black/[0.05]">
               {relatedProducts.map((group, gIdx) => (
-                <div key={gIdx} className={gIdx > 0 ? 'mt-16' : ''}>
-                  <div className="flex items-center justify-between mb-10">
+                <div key={gIdx} className={gIdx > 0 ? 'mt-14' : ''}>
+                  <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                      <Sparkles size={18} className="text-[#D4AF37]" />
-                      <h2 className="text-2xl lg:text-3xl font-bold text-black tracking-wider">{group.label}</h2>
+                      <Sparkles size={16} className="text-[#D4AF37]" />
+                      <h2 className="text-xl lg:text-2xl font-bold text-black tracking-wider">{group.label}</h2>
                     </div>
                     <button onClick={() => onNavigate('collections', { series: group.series !== 'other' ? group.series : undefined })}
-                      className="flex items-center gap-2 text-sm text-black/40 hover:text-black transition-colors group">
+                      className="flex items-center gap-2 text-xs text-black/40 hover:text-black transition-colors group">
                       <span className="tracking-wider">查看更多</span>
-                      <ArrowLeft size={14} className="rotate-180 group-hover:translate-x-1 transition-transform" />
+                      <ArrowLeft size={13} className="rotate-180 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                  {/* 移动端横向滚动，桌面端网格 */}
+                  <div className="sm:grid sm:grid-cols-3 xl:grid-cols-5 gap-4 hidden">
                     {group.items.map(p => (
                       <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="group cursor-pointer">
-                        <div className="aspect-square rounded-2xl overflow-hidden bg-[#FAF9F6] mb-3 border border-black/[0.03] group-hover:shadow-lg transition-all duration-500">
+                        <div className="aspect-square rounded-xl overflow-hidden bg-[#FAF9F6] mb-2.5 border border-black/[0.03] group-hover:shadow-md transition-all duration-500">
                           <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                         </div>
-                        <h3 className="text-sm lg:text-base font-bold text-black/80 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
-                        {p.price_10ml && <p className="text-xs lg:text-sm text-[#D4AF37] mt-1">¥{p.price_10ml} <span className="text-black/20">/ 10ml</span></p>}
+                        <h3 className="text-sm font-bold text-black/70 group-hover:text-[#D75437] transition-colors truncate">{p.name_cn}</h3>
+                        {p.price_10ml && <p className="text-xs text-[#D4AF37] mt-0.5">¥{p.price_10ml}</p>}
                       </div>
                     ))}
                   </div>
@@ -703,7 +771,8 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
               ))}
             </div>
           )}
-        </div>
+          </div>{/* end max-w container */}
+        </div>{/* end max-w-[1680px] */}
 
         {/* 桌面端分享弹窗 */}
         {showShare && (
