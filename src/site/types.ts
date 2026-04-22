@@ -48,9 +48,14 @@ export interface Product {
   // 新增字段
   scientific_name?: string;       // 学名（拉丁名）
   short_desc?: string;           // 短描述/特点提炼
-  origin?: string;               // 产品产地
-  extraction_method?: string;    // 提炼方式
-  extraction_site?: string;       // 萃取部位（植物使用部位，如"花与叶"、"全株"、"根"等）
+  origin?: string;               // 产品产地（国家/地区）
+  extraction_method?: string;    // 提炼方式（蒸馏/冷压榨/溶剂等）
+  extraction_site?: string;       // 萃取部位（花、叶、木质、果皮等）
+  fragrance_notes?: string;       // 香调描述
+  appearance?: string;            // 外观/色泽
+  shelf_life?: string;            // 保质期
+  net_weight?: string;            // 净重
+  usage_scenarios?: string;       // 使用场景
   is_active: boolean;
   sort_order: number;
   series_code?: SeriesCode;

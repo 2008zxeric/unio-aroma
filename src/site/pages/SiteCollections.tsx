@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles } from 'lucide-react';
+import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, MapPin } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getSeries, getProducts } from '../siteDataService';
 import { optimizeProductThumb, optimizeImage } from '../imageUtils';
@@ -67,9 +67,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
         {item.name_en && (
           <span className="text-[6px] sm:text-[10px] tracking-widest opacity-20 font-bold uppercase block truncate">{item.name_en}</span>
         )}
-        {item.price_10ml && (
-          <span className="text-[10px] sm:text-xs text-[#D75437] font-medium">¥{item.price_10ml}</span>
-        )}
+        {/* 产地 + 价格行 */}
+        <div className="flex items-center gap-1.5 justify-center sm:justify-start flex-wrap">
+          {item.origin && (
+            <span className="flex items-center gap-0.5 text-[8px] sm:text-[10px] text-black/30 font-medium">
+              <MapPin size={8} className="text-[#D75437]/50 sm:w-3 sm:h-3" />
+              {item.origin.split('/')[0].trim()}
+            </span>
+          )}
+          {item.origin && item.price_10ml && <span className="text-black/15 text-[8px] sm:text-[10px]">·</span>}
+          {item.price_10ml && (
+            <span className="text-[10px] sm:text-xs text-[#D75437] font-medium">¥{item.price_10ml}</span>
+          )}
+          {!item.price_10ml && item.price_100ml && (
+            <span className="text-[10px] sm:text-xs text-[#D75437] font-medium">¥{item.price_100ml}</span>
+          )}
+        </div>
       </div>
     </div>
   );

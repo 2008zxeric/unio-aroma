@@ -6,7 +6,8 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight,
-  Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle
+  Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle,
+  MapPin, Leaf, Wind, Eye, Clock, Beaker
 } from 'lucide-react';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProducts } from '../siteDataService';
@@ -230,14 +231,21 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-black tracking-wide">{product.name_cn}</h1>
             {product.name_en && <p className="text-sm text-black/40 tracking-widest uppercase">{product.name_en}</p>}
-            {product.scientific_name && <p className="text-xs text-black/30 tracking-widest italic mt-1">{product.scientific_name}</p>}
+            {product.scientific_name && <p className="text-xs text-black/25 tracking-widest italic mt-1">{product.scientific_name}</p>}
           </div>
 
           {/* 产地标签 */}
           {product.origin && (
-            <div className="flex items-center gap-2 text-black/50">
-              <span className="text-[10px] font-bold tracking-widest text-black/30">产地</span>
-              <span className="text-sm font-medium">{product.origin}</span>
+            <div className="flex items-center gap-2">
+              <MapPin size={12} className="text-[#D75437]" />
+              <span className="text-xs text-black/50 font-medium">{product.origin}</span>
+              {product.extraction_site && (
+                <>
+                  <span className="text-black/20">·</span>
+                  <Leaf size={11} className="text-black/30" />
+                  <span className="text-xs text-black/40">{product.extraction_site}</span>
+                </>
+              )}
             </div>
           )}
 
@@ -305,37 +313,77 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
             </div>
           )}
           {/* 规格信息 */}
-          <div className="space-y-3 py-4 border-y border-black/[0.05]">
+          <div className="rounded-2xl overflow-hidden border border-black/[0.05]">
+            {/* 产地 */}
             {product.origin && (
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-black/40">产地</span>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <MapPin size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">产地</span>
                 <span className="text-xs text-black/70 font-medium">{product.origin}</span>
               </div>
             )}
+            {/* 提炼方式 */}
             {product.extraction_method && (
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-black/40">提炼方式</span>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Beaker size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">提炼方式</span>
                 <span className="text-xs text-black/70 font-medium">{product.extraction_method}</span>
               </div>
             )}
+            {/* 萃取部位 */}
             {product.extraction_site && (
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-black/40">萃取部位</span>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Leaf size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">萃取部位</span>
                 <span className="text-xs text-black/70 font-medium">{product.extraction_site}</span>
               </div>
             )}
+            {/* 香调 */}
+            {product.fragrance_notes && (
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Wind size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">香调</span>
+                <span className="text-xs text-black/70 font-medium">{product.fragrance_notes}</span>
+              </div>
+            )}
+            {/* 外观/色泽 */}
+            {product.appearance && (
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Eye size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">外观色泽</span>
+                <span className="text-xs text-black/70 font-medium">{product.appearance}</span>
+              </div>
+            )}
+            {/* 规格 */}
             {product.specification && (
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-black/40">规格</span>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Shield size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">规格</span>
                 <span className="text-xs text-black/70 font-medium">{product.specification}</span>
               </div>
             )}
-          </div>
-
-          {/* 产品编号 */}
-          <div className="flex items-center justify-between py-3 border-t border-black/[0.05]">
-            <span className="text-xs text-black/40">产品编号</span>
-            <span className="text-xs text-black/60 font-mono">{product.code}</span>
+            {/* 保质期 */}
+            {product.shelf_life && (
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Clock size={13} className="text-[#D75437] flex-shrink-0" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">保质期</span>
+                <span className="text-xs text-black/70 font-medium">{product.shelf_life}</span>
+              </div>
+            )}
+            {/* 使用场景 */}
+            {product.usage_scenarios && (
+              <div className="flex items-start gap-3 px-4 py-3 border-b border-black/[0.04]">
+                <Sparkles size={13} className="text-[#D75437] flex-shrink-0 mt-0.5" />
+                <span className="text-xs text-black/40 w-16 flex-shrink-0">适用场景</span>
+                <span className="text-xs text-black/70 font-medium leading-relaxed">{product.usage_scenarios}</span>
+              </div>
+            )}
+            {/* 产品编号 */}
+            <div className="flex items-center gap-3 px-4 py-3">
+              <Star size={13} className="text-black/20 flex-shrink-0" />
+              <span className="text-xs text-black/30 w-16 flex-shrink-0">编号</span>
+              <span className="text-xs text-black/40 font-mono">{product.code}</span>
+            </div>
           </div>
         </div>
 
@@ -456,38 +504,93 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
 
               {/* 产品规格信息卡片 */}
               <div className="bg-[#FAF9F6] rounded-2xl p-6 space-y-4 border border-black/[0.03]">
-                <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+                <h3 className="text-[10px] font-bold tracking-widest text-black/30 uppercase">产品档案 / PRODUCT PROFILE</h3>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   {product.origin && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">产地 / Origin</span>
-                      <p className="text-sm text-black/70 font-medium">{product.origin}</p>
+                    <div className="flex items-start gap-2.5">
+                      <MapPin size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">产地 / Origin</span>
+                        <p className="text-sm text-black/70 font-medium">{product.origin}</p>
+                      </div>
                     </div>
                   )}
                   {product.extraction_method && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">提炼方式 / Extraction</span>
-                      <p className="text-sm text-black/70 font-medium">{product.extraction_method}</p>
+                    <div className="flex items-start gap-2.5">
+                      <Beaker size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">提炼方式 / Extraction</span>
+                        <p className="text-sm text-black/70 font-medium">{product.extraction_method}</p>
+                      </div>
                     </div>
                   )}
                   {product.extraction_site && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">萃取部位 / Plant Part</span>
-                      <p className="text-sm text-black/70 font-medium">{product.extraction_site}</p>
+                    <div className="flex items-start gap-2.5">
+                      <Leaf size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">萃取部位 / Plant Part</span>
+                        <p className="text-sm text-black/70 font-medium">{product.extraction_site}</p>
+                      </div>
                     </div>
                   )}
                   {product.specification && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">规格 / Specification</span>
-                      <p className="text-sm text-black/70 font-medium">{product.specification}</p>
+                    <div className="flex items-start gap-2.5">
+                      <Shield size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">规格 / Specification</span>
+                        <p className="text-sm text-black/70 font-medium">{product.specification}</p>
+                      </div>
+                    </div>
+                  )}
+                  {product.fragrance_notes && (
+                    <div className="flex items-start gap-2.5">
+                      <Wind size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">香调 / Fragrance Notes</span>
+                        <p className="text-sm text-black/70 font-medium">{product.fragrance_notes}</p>
+                      </div>
+                    </div>
+                  )}
+                  {product.appearance && (
+                    <div className="flex items-start gap-2.5">
+                      <Eye size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">外观色泽 / Appearance</span>
+                        <p className="text-sm text-black/70 font-medium">{product.appearance}</p>
+                      </div>
+                    </div>
+                  )}
+                  {product.shelf_life && (
+                    <div className="flex items-start gap-2.5">
+                      <Clock size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">保质期 / Shelf Life</span>
+                        <p className="text-sm text-black/70 font-medium">{product.shelf_life}</p>
+                      </div>
                     </div>
                   )}
                   {product.scientific_name && (
-                    <div className="space-y-1 col-span-3">
-                      <span className="text-[10px] font-bold tracking-widest text-black/30 uppercase">学名 / Scientific Name</span>
-                      <p className="text-sm text-black/70 font-medium italic">{product.scientific_name}</p>
+                    <div className="flex items-start gap-2.5 col-span-2">
+                      <Leaf size={12} className="text-black/20 mt-0.5 flex-shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">学名 / Scientific Name</span>
+                        <p className="text-sm text-black/50 font-medium italic">{product.scientific_name}</p>
+                      </div>
                     </div>
                   )}
                 </div>
+                {/* 使用场景 */}
+                {product.usage_scenarios && (
+                  <div className="pt-3 border-t border-black/[0.05]">
+                    <div className="flex items-start gap-2.5">
+                      <Sparkles size={12} className="text-[#D75437] mt-0.5 flex-shrink-0" />
+                      <div className="space-y-1">
+                        <span className="block text-[9px] font-bold tracking-widest text-black/30 uppercase">适用场景 / Usage Scenarios</span>
+                        <p className="text-sm text-black/60 leading-relaxed">{product.usage_scenarios}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 简介 */}
