@@ -19,14 +19,15 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight,
   Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle,
-  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn, Quote
+  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn, Quote, Home, List
 } from 'lucide-react';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
-import { getProductById, getProducts } from '../siteDataService';
+import { getProductById, getProductByCode, getProducts } from '../siteDataService';
 import { optimizeProductFull, optimizeProductThumb, optimizeImage } from '../imageUtils';
 
 interface SiteProductDetailProps {
-  productId: string;
+  productCode?: string;   // 产品短码（新格式，优先使用）
+  productId?: string;     // 旧 UUID（兼容旧链接）
   onNavigate: (view: string, params?: Record<string, string>) => void;
   previousView?: string;
 }
@@ -43,7 +44,7 @@ const C = {
   line:   'rgba(26,26,26,0.06)',
 };
 
-const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavigate }) => {
+const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, productId, onNavigate }) => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
@@ -69,13 +70,17 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
   useEffect(() => {
     async function loadData() {
       try {
-        const [productData, allProducts] = await Promise.all([getProductById(productId), getProducts()]);
+        // 优先用 productCode 查询（新格式），旧 UUID 兜底
+        const [productData, allProducts] = await Promise.all([
+          productCode ? getProductByCode(productCode) : (productId ? getProductById(productId) : Promise.resolve(null)),
+          getProducts()
+        ]);
         setProduct(productData);
         if (productData?.series_code) {
-          const sameSeries = allProducts.filter(p => p.series_code === productData.series_code && p.id !== productId);
+          const sameSeries = allProducts.filter(p => p.series_code === productData.series_code && p.id !== productData.id);
           const sameCategory = sameSeries.filter(p => p.category === productData.category);
           const otherCategory = sameSeries.filter(p => p.category !== productData.category);
-          const differentSeries = allProducts.filter(p => p.series_code !== productData.series_code && p.id !== productId).slice(0, 4);
+          const differentSeries = allProducts.filter(p => p.series_code !== productData.series_code && p.id !== productData.id).slice(0, 4);
           const groups: { series: string; label: string; items: Product[] }[] = [];
           if (sameCategory.length > 0) {
             groups.push({ series: productData.series_code!, label: `${SERIES_CONFIG[productData.series_code as keyof typeof SERIES_CONFIG]?.name_cn || ''} · ${ELEMENT_LABELS[productData.category || ''] || ''}`, items: sameCategory.slice(0, 8) });
@@ -89,7 +94,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
       } catch (e) { console.error(e); } finally { setLoading(false); }
     }
     loadData();
-  }, [productId]);
+  }, [productCode, productId]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape' && lightboxOpen) setLightboxOpen(false); };
@@ -197,10 +202,29 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
       {/* ━━━ 移动端顶栏 ━━━ */}
       <div className="fixed top-0 inset-x-0 z-[100] bg-white/95 backdrop-blur-md border-b sm:hidden" style={{ borderColor: C.line }}>
         <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })} className="text-black/50"><ArrowLeft size={20} /></button>
+          <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })} 
+            className="flex items-center justify-center w-11 h-11 -ml-2 rounded-full text-black/50 active:bg-black/5 transition-colors">
+            <List size={20} strokeWidth={1.8} />
+          </button>
           <span className="text-xs font-medium truncate max-w-[160px]" style={{ color: `${C.dark}45` }}>{product.name_cn}</span>
-          <button onClick={() => setShowShare(!showShare)} className="text-black/40 hover:text-red-500 transition-colors"><Share2 size={18} /></button>
+          <button onClick={() => setShowShare(!showShare)} className="flex items-center justify-center w-9 h-9 text-black/40 hover:text-red-500 transition-colors"><Share2 size={18} /></button>
         </div>
+      </div>
+
+      {/* ━━━ 移动端右侧浮动操作栏 ━━━ */}
+      <div className="sm:hidden fixed right-3 top-1/2 -translate-y-1/2 z-[95] flex flex-col gap-2">
+        {/* 返回列表 — 用 List 图标区别于顶栏，也区别于全局 ArrowLeft */}
+        <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })} 
+          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/40 hover:text-[#D75437] active:scale-95 transition-all"
+          title="返回馆藏列表">
+          <ArrowLeft size={20} strokeWidth={1.8} />
+        </button>
+        {/* 回到首页 */}
+        <button onClick={() => onNavigate('home')} 
+          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/30 hover:text-[#D4AF37] active:scale-95 transition-all"
+          title="回到首页">
+          <Home size={19} strokeWidth={1.8} />
+        </button>
       </div>
 
       {/* ━━━ 分享弹窗 ━━━ */}
@@ -353,7 +377,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 </div>
                 <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-1">
                   {g.items.map(p => (
-                    <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="flex-shrink-0 w-34 group cursor-pointer">
+                    <div key={p.id} onClick={() => onNavigate('product', { productCode: p.code })} className="flex-shrink-0 w-34 group cursor-pointer">
                       <div className="aspect-square rounded-2xl overflow-hidden mb-1.5 group-hover:shadow-lg transition-all duration-500" style={{ background: `linear-gradient(145deg,${C.cram},${C.cream})`, border: `1px solid ${C.line}` }}>
                         <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" onError={e => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                       </div>
@@ -620,7 +644,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productId, onNavi
                 </div>
                 <div className="grid grid-cols-4 xl:grid-cols-5 gap-5">
                   {g.items.map(p => (
-                    <div key={p.id} onClick={() => onNavigate('product', { productId: p.id })} className="group cursor-pointer">
+                    <div key={p.id} onClick={() => onNavigate('product', { productCode: p.code })} className="group cursor-pointer">
                       <div className="aspect-square rounded-2xl overflow-hidden mb-2.5 transition-all duration-500 group-hover:shadow-xl"
                         style={{ background: `linear-gradient(145deg,${C.cream},${C.cream})`, border: `1px solid ${C.line}` }}>
                         <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn}
