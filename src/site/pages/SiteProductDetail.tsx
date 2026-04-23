@@ -53,6 +53,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
   const [showShare, setShowShare] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
+  const [scrollY, setScrollY] = useState(0);
   const imagesRef = useRef<HTMLDivElement>(null);
 
   const handleImageLoad = useCallback((idx: number) => {
@@ -100,6 +101,13 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape' && lightboxOpen) setLightboxOpen(false); };
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h);
   }, [lightboxOpen]);
+
+  // 移动端浮动按钮滚动跟随（视差微动效果）
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
@@ -212,7 +220,10 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
       </div>
 
       {/* ━━━ 移动端右侧浮动操作栏 ━━━ */}
-      <div className="sm:hidden fixed right-3 top-1/2 -translate-y-1/2 z-[95] flex flex-col gap-2">
+      <div 
+        className="sm:hidden fixed right-3 z-[95] flex flex-col gap-2 transition-transform ease-out duration-150"
+        style={{ top: '50%', transform: `translateY(calc(-50% + ${Math.min(Math.max(scrollY * 0.03, -20), 20)}px))` }}
+      >
         {/* 返回列表 — 用 List 图标区别于顶栏，也区别于全局 ArrowLeft */}
         <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })} 
           className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/40 hover:text-[#D75437] active:scale-95 transition-all"
