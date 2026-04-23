@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, MapPin } from 'lucide-react';
+import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, MapPin, Home } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getSeries, getProducts } from '../siteDataService';
 import { optimizeProductThumb, optimizeImage } from '../imageUtils';
@@ -186,6 +186,14 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>(initialSeries || 'yuan');
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  // 移动端浮动按钮滚动跟随（视差微动效果）
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -272,6 +280,25 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
           />
         </div>
       )}
+
+      {/* ━━━ 移动端右侧浮动操作栏 ━━━ */}
+      <div 
+        className="sm:hidden fixed right-3 z-[95] flex flex-col gap-2 transition-transform ease-out duration-150"
+        style={{ top: '50%', transform: `translateY(calc(-50% + ${Math.min(Math.max(scrollY * 0.03, -20), 20)}px))` }}
+      >
+        {/* 回到顶部 */}
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/40 hover:text-[#D75437] active:scale-95 transition-all"
+          title="回到顶部">
+          <ArrowLeft size={20} strokeWidth={1.8} className="rotate-90" />
+        </button>
+        {/* 回到首页 */}
+        <button onClick={() => onNavigate('home')} 
+          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/30 hover:text-[#D4AF37] active:scale-95 transition-all"
+          title="回到首页">
+          <Home size={19} strokeWidth={1.8} />
+        </button>
+      </div>
 
       {/* 顶部返回导航 */}
       <div className="sticky top-0 z-[100] bg-[#FAFAF8]/85 backdrop-blur-md">
