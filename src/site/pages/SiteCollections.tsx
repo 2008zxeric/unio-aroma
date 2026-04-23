@@ -12,8 +12,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, MapPin, Home } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
-import { getSeries, getProducts } from '../siteDataService';
 import { optimizeProductThumb, optimizeImage } from '../imageUtils';
+import { getSeries, getProducts } from '../siteDataService';
 
 interface SiteCollectionsProps {
   initialSeries?: string;
@@ -121,6 +121,16 @@ const getCategoryIcon = (category: string) => {
   if (category === 'nourish') return <Droplets size={14} smSize={16} className="text-[#D4AF37]" />;
   if (category === 'soothe') return <Sparkles size={14} smSize={16} className="text-[#D4AF37]" />;
   return <Sparkles size={14} smSize={16} className="text-[#D4AF37]" />;
+};
+
+// ===== 广告横幅配置 =====
+// 两张产品广告图：不同肤色背景 + 产品阵列
+// 按系列切换：暖色调系列(元/恒)用图1，冷色调系列(生/境)用图2
+const BANNER_ADS: Record<string, string> = {
+  yuan: '/assets/banner/banner-ad-1.webp',
+  he: '/assets/banner/banner-ad-2.webp',
+  sheng: '/assets/banner/banner-ad-2.webp',
+  jing: '/assets/banner/banner-ad-1.webp',
 };
 
 // 系列展示主题
@@ -286,17 +296,17 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
         className="sm:hidden fixed right-3 z-[95] flex flex-col gap-2 transition-transform ease-out duration-150"
         style={{ top: '50%', transform: `translateY(calc(-50% + ${Math.min(Math.max(scrollY * 0.03, -20), 20)}px))` }}
       >
-        {/* 回到顶部 */}
+        {/* 回到顶部 — 品牌红色，向上箭头 */}
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
-          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/40 hover:text-[#D75437] active:scale-95 transition-all"
+          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-[#D75437] active:scale-95 transition-all hover:shadow-[0_4px_16px_rgba(215,84,55,0.2)]"
           title="回到顶部">
-          <ArrowLeft size={20} strokeWidth={1.8} className="rotate-90" />
+          <ArrowLeft size={20} strokeWidth={2} className="rotate-90" />
         </button>
-        {/* 回到首页 */}
+        {/* 回到首页 — 金色，灰度低调 */}
         <button onClick={() => onNavigate('home')} 
-          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/30 hover:text-[#D4AF37] active:scale-95 transition-all"
+          className="w-12 h-12 bg-white/75 backdrop-blur-xl rounded-full shadow-md border border-black/[0.04] flex items-center justify-center text-black/25 hover:text-[#D4AF37] hover:bg-white/92 active:scale-95 transition-all"
           title="回到首页">
-          <Home size={19} strokeWidth={1.8} />
+          <Home size={18} strokeWidth={1.5} />
         </button>
       </div>
 
@@ -357,6 +367,44 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
                 </button>
               );
             })}
+          </div>
+        </div>
+      </div>
+
+      {/* ━━━ 产品广告横幅 ━━━ */}
+      <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 mb-8 sm:mb-20">
+        <div className="relative w-full aspect-[3/1] sm:aspect-[5/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
+          {/* 背景图 */}
+          <img
+            src={BANNER_ADS[filter]}
+            className="w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105"
+            alt={`UNIO AROMA 产品广告 - ${theme.fullLabel}`}
+            loading="lazy"
+          />
+          {/* 渐隐遮罩 - 左到右 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/10 to-transparent" />
+          {/* 底部渐变 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+          
+          {/* 文案叠加 */}
+          <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-16">
+            <span className="text-[7px] sm:text-xs tracking-[0.3em] sm:tracking-[0.5em] font-bold text-white/60 uppercase mb-1 sm:mb-4">
+              {theme.en}
+            </span>
+            <h3 className="text-lg sm:text-5xl font-bold text-white tracking-wide sm:tracking-widest leading-tight">
+              {theme.fullLabel}
+            </h3>
+            <p className="text-[8px] sm:text-sm text-white/45 mt-0.5 sm:mt-2 tracking-wider max-w-md">
+              {filter === 'yuan' && '极境单方 · 五行能量'}
+              {filter === 'he' && '身心复方 · 和谐共鸣'}
+              {filter === 'sheng' && '纯净活水 · 植物精华'}
+              {filter === 'jing' && '空间香道 · 凝思之境'}
+            </p>
+          </div>
+          
+          {/* 装饰标签 - 产品广告 */}
+          <div className="absolute top-3 right-3 sm:top-6 sm:right-6 px-2 sm:px-4 py-1 sm:py-2 bg-white/15 backdrop-blur-md rounded-full border border-white/10">
+            <span className="text-[6px] sm:text-[10px] tracking-[0.2em] font-bold text-white/80">PRODUCT</span>
           </div>
         </div>
       </div>
