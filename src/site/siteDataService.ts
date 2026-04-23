@@ -1,25 +1,76 @@
 /**
  * UNIO AROMA 前台数据服务
  * 基于 Supabase 的前台数据获取
+ * 
+ * v2 — 加入内存缓存层，避免重复请求导致的10秒等待
  */
 
 import { Product, Series, Country, Banner } from './types';
 
 // Supabase 配置
 const SUPABASE_URL = 'https://xuicjydgtoltdhkbqoju.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWNqeWRndG9sdGRoa2Jxb2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzI2NjgsImV4cCI6MjA5MTEwODY2OH0.7E-VPqi7m9WbCWw96jbEeVdVBVrwubIjAGEB-_MV5ng';
+const SUPABASE_KEY = 'eyJhbG...V5ng';
 
 const headers = {
   'apikey': SUPABASE_KEY,
   'Authorization': `Bearer ${SUPABASE_KEY}`,
 };
 
+// ============ 内存缓存（减少重复请求导致的10秒+等待） ============
+const cache = new Map<string, { data: any; ts: number }>();
+const CACHE_TTL = 60_000; // 1分钟缓存
+
+function getCacheKey(table: string, params: string): string {
+  return `${table}?${params}`;
+}
+
+function getCached<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data as T;
+  if (entry) cache.delete(key); // 过期
+  return null;
+}
+
+function setCache(key: string, data: any): void {
+  // 控制缓存大小（最多50条）
+  if (cache.size > 50) {
+    const oldest = Array.from(cache.entries())
+      .sort(([, a], [, b]) => a.ts - b.ts)[0]?.[0];
+    if (oldest) cache.delete(oldest);
+  }
+  cache.set(key, { data, ts: Date.now() });
+}
+
+// 并发请求去重：同一时间相同URL只发一个请求
+const inflight = new Map<string, Promise<any>>();
+
 // ============ 工具函数 ============
 async function fetchFromSupabase(table: string, params: string = '') {
+  const cacheKey = getCacheKey(table, params);
+  
+  // 1. 检查缓存
+  const cached = getCached(cacheKey);
+  if (cached) return transformArrays(cached);
+  
+  // 2. 检查是否已有相同请求在飞行中
+  if (inflight.has(cacheKey)) {
+    const data = await inflight.get(cacheKey)!;
+    return transformArrays(data);
+  }
+  
+  // 3. 发起请求
   const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
-  const response = await fetch(url, { headers });
-  if (!response.ok) throw new Error(`Failed to fetch ${table}`);
-  const data = await response.json();
+  const promise = fetch(url, { headers })
+    .then(async response => {
+      if (!response.ok) throw new Error(`Failed to fetch ${table}`);
+      const data = await response.json();
+      setCache(cacheKey, data);
+      return data;
+    })
+    .finally(() => inflight.delete(cacheKey));
+  
+  inflight.set(cacheKey, promise);
+  const data = await promise;
   return transformArrays(data);
 }
 
@@ -28,10 +79,8 @@ function transformArrays(data: any[]): any[] {
   if (!Array.isArray(data)) return data;
   return data.map(row => ({
     ...row,
-    // gallery_urls 可能是 PostgreSQL 数组格式
     gallery_urls: Array.isArray(row.gallery_urls) ? row.gallery_urls : 
       (row.gallery_urls && typeof row.gallery_urls === 'string' ? parsePostgresArray(row.gallery_urls) : (row.gallery_urls || [])),
-    // products 表也有 gallery_urls 和 benefits
     benefits: Array.isArray(row.benefits) ? row.benefits : 
       (row.benefits && typeof row.benefits === 'string' ? parsePostgresArray(row.benefits) : (row.benefits || [])),
     similar_ids: Array.isArray(row.similar_ids) ? row.similar_ids : 
@@ -42,17 +91,22 @@ function transformArrays(data: any[]): any[] {
 // PostgreSQL 数组格式解析：{url1,url2} → ["url1", "url2"]
 function parsePostgresArray(str: string): string[] {
   if (!str || str[0] !== '{' || str[str.length - 1] !== '}') {
-    // 尝试 JSON 解析
     try {
       return JSON.parse(str);
     } catch {
       return [];
     }
   }
-  // PostgreSQL 数组格式: {a,b,c}
   const inner = str.slice(1, -1);
   if (!inner) return [];
   return inner.split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+}
+
+// 清除缓存（路由切换时的产品详情页，确保不是陈旧的）
+export function clearProductCache(): void {
+  for (const key of cache.keys()) {
+    if (key.startsWith('products?')) cache.delete(key);
+  }
 }
 
 // ============ 系列服务 ============
@@ -97,12 +151,10 @@ export async function getCountriesBySubRegion(subRegion?: string): Promise<Count
 }
 
 export async function getGlobalCountries(): Promise<Country[]> {
-  // 全球国家 = region 不是"神州"（中国各省用 region="神州" 标记）
   return fetchFromSupabase('countries', 'is_active=eq.true&region=neq.%E7%A5%9E%E5%B7%9E&order=sort_order.asc');
 }
 
 export async function getChinaProvinces(): Promise<Country[]> {
-  // 神州各省 = region="神州"
   return fetchFromSupabase('countries', 'is_active=eq.true&region=eq.%E7%A5%9E%E5%B7%9E&order=sort_order.asc');
 }
 
@@ -121,7 +173,6 @@ export async function getBanners(position: string): Promise<Banner[]> {
 }
 
 // ============ 组合数据服务 ============
-// 获取首页数据
 export async function getHomeData() {
   const [series, products, countries, banners] = await Promise.all([
     getSeries(),
@@ -129,46 +180,35 @@ export async function getHomeData() {
     getCountries(),
     getBanners('home')
   ]);
-
   return { series, products, countries, banners };
 }
 
-// 获取馆藏页数据（按系列分组）
 export async function getCollectionsData(seriesCode?: string) {
   const [series, products] = await Promise.all([
     getSeries(),
     getProducts(seriesCode)
   ]);
-
-  // 按 group_name 分组
   const groupedProducts = products.reduce((acc, product) => {
     const group = product.group_name || '未分类';
     if (!acc[group]) acc[group] = [];
     acc[group].push(product);
     return acc;
   }, {} as Record<string, Product[]>);
-
   return { series, products, groupedProducts };
 }
 
-// 获取带关联数据的产品
 export async function getProductWithRelations(productId: string) {
   const product = await getProductById(productId);
   if (!product) return null;
-
-  // 获取关联国家
   let relatedCountry = null;
   if (product.country_id) {
     relatedCountry = await getCountryById(product.country_id);
   }
-
-  // 获取相似产品（如果有 similar_ids）
   let similarProducts: Product[] = [];
   if (product.similar_ids && product.similar_ids.length > 0) {
     const similarPromises = product.similar_ids.slice(0, 4).map(id => getProductById(id));
     similarProducts = (await Promise.all(similarPromises)).filter(p => p !== null) as Product[];
   }
-
   return { product, relatedCountry, similarProducts };
 }
 
