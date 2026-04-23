@@ -426,7 +426,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
                   {group.items.map((item) => {
                     const price = item.price_10ml || item.price_5ml || item.price_15ml || item.price_30ml;
                     return (
-                      <div key={item.id} onClick={() => onNavigate('product', { productId: item.id })}
+                      <div key={item.id} onClick={() => onNavigate('product', { productCode: item.code })}
                         className="flex-shrink-0 w-[45vw] sm:w-[28vw] md:w-[20vw] lg:w-[18vw] snap-start group cursor-pointer">
                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-50 border border-black/5 group-hover:shadow-xl group-hover:border-black/10 transition-all duration-500">
                           <img src={optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || PLACEHOLDER_IMG} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name_cn} loading="lazy" decoding="async" />
