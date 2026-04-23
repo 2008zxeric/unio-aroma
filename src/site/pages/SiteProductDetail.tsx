@@ -224,17 +224,17 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
         className="sm:hidden fixed right-3 z-[95] flex flex-col gap-2 transition-transform ease-out duration-150"
         style={{ top: '50%', transform: `translateY(calc(-50% + ${Math.min(Math.max(scrollY * 0.03, -20), 20)}px))` }}
       >
-        {/* 返回列表 — 用 List 图标区别于顶栏，也区别于全局 ArrowLeft */}
+        {/* 返回馆藏列表 — 红色品牌色 + 列表图标 */}
         <button onClick={() => onNavigate('collections', { series: product.series_code || 'yuan' })} 
-          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/40 hover:text-[#D75437] active:scale-95 transition-all"
+          className="group w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-[#D75437] active:scale-95 transition-all hover:shadow-[0_4px_16px_rgba(215,84,55,0.2)]"
           title="返回馆藏列表">
-          <ArrowLeft size={20} strokeWidth={1.8} />
+          <List size={20} strokeWidth={2} />
         </button>
-        {/* 回到首页 */}
+        {/* 回到首页 — 金色 + 半透明，灰度低调 */}  
         <button onClick={() => onNavigate('home')} 
-          className="w-12 h-12 bg-white/92 backdrop-blur-xl rounded-full shadow-lg border border-black/[0.06] flex items-center justify-center text-black/30 hover:text-[#D4AF37] active:scale-95 transition-all"
+          className="w-12 h-12 bg-white/75 backdrop-blur-xl rounded-full shadow-md border border-black/[0.04] flex items-center justify-center text-black/25 hover:text-[#D4AF37] hover:bg-white/92 active:scale-95 transition-all"
           title="回到首页">
-          <Home size={19} strokeWidth={1.8} />
+          <Home size={18} strokeWidth={1.5} />
         </button>
       </div>
 
