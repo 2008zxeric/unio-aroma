@@ -124,13 +124,12 @@ const getCategoryIcon = (category: string) => {
 };
 
 // ===== 广告横幅配置 =====
-// 两张产品广告图：不同肤色背景 + 产品阵列
-// 按系列切换：暖色调系列(元/恒)用图1，冷色调系列(生/境)用图2
+// 四张产品广告图：四个系列各配一张独立banner
 const BANNER_ADS: Record<string, string> = {
-  yuan: '/assets/banner/banner-ad-1.webp',
-  he: '/assets/banner/banner-ad-2.webp',
-  sheng: '/assets/banner/banner-ad-2.webp',
-  jing: '/assets/banner/banner-ad-1.webp',
+  yuan:  '/assets/banner/banner-ad-1.webp',
+  he:    '/assets/banner/banner-ad-2.webp',
+  sheng: '/assets/banner/banner-ad-3.webp',
+  jing:  '/assets/banner/banner-ad-4.webp',
 };
 
 // 系列展示主题
@@ -373,7 +372,7 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
 
       {/* ━━━ 产品广告横幅 ━━━ */}
       <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 mb-8 sm:mb-20">
-        <div className="relative w-full aspect-[3/1] sm:aspect-[5/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
+        <div className="relative w-full aspect-[2/1] sm:aspect-[3/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
           {/* 背景图 */}
           <img
             src={BANNER_ADS[filter]}
