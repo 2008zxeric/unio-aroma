@@ -198,14 +198,16 @@ const SiteApp: React.FC = () => {
     // 触发页面切换动画
     setIsTransitioning(true);
     
+    // 立即回到顶部（用 instant 而非 smooth，避免异步滚动干扰路由切换）
+    window.scrollTo(0, 0);
+    
     setTimeout(() => {
       setPrevView(view);
       setView(newView as ViewType);
       setNavParams(params || {});
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       setTimeout(() => setIsTransitioning(false), 50);
-    }, 200); // 200ms 后切换内容，匹配淡出时长
+    }, 200);
   };
 
   const handleLogoClick = () => {
