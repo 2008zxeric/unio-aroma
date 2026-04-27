@@ -21,6 +21,7 @@ import {
   Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle,
   MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn, Quote, Home, List
 } from 'lucide-react';
+import ProductReviews from '../components/ProductReviews';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProductByCode, getProducts } from '../siteDataService';
 import { optimizeProductFull, optimizeProductThumb, optimizeImage } from '../imageUtils';
@@ -410,6 +411,12 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
             <ShoppingBag size={16} /><span>前往小红书购买</span><ExternalLink size={14} className="opacity-60" />
           </a>
         </div>
+
+        {/* ━━ 用户评价板块（移动端）━━━━ */}
+        <div className="px-5 pt-10 pb-36">
+          <ProductReviews productCode={product.code} productName={product.name_cn} />
+        </div>
+
       </div>{/* end mobile */}
 
       {/* ══════════════════════════════════
@@ -691,6 +698,11 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
           </div>
         )}
       </div>{/* end desktop */}
+
+      {/* ━━ 用户评价板块 ━━ */}
+      <div className="mt-16 sm:mt-24">
+        <ProductReviews productCode={product.code} productName={product.name_cn} />
+      </div>
 
       <Lightbox />
 
