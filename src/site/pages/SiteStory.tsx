@@ -5,7 +5,7 @@
  * 修复：countryCount 未定义 / smSize 非法 prop
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store } from 'lucide-react';
 import { optimizeHeroImage } from '../imageUtils';
 
@@ -23,6 +23,24 @@ interface SiteStoryProps {
 }
 
 const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
+  const finaleRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = finaleRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add('story-finale-visible');
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white selection:bg-[#D75437] selection:text-white overflow-x-hidden">
 
@@ -271,13 +289,15 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
 
       {/* ===== 5. 终章 ===== */}
       <section className="pb-40 sm:pb-64 md:pb-80 px-6">
-        <div className="max-w-[1200px] sm:max-w-[1400px] mx-auto p-12 sm:p-28 md:p-40 rounded-2xl sm:rounded-[6rem] bg-[#1a1a1a] text-white text-center space-y-12 sm:space-y-16 md:space-y-20 shadow-lg sm:shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)] overflow-hidden relative group">
-          {/* 终章背景图 */}
-          <img decoding="async"
-            src={ASSETS.banner}
-            className="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:opacity-25 group-hover:scale-110 transition-all duration-[5s] grayscale"
-            alt="Final CTA Background"
-          />
+        <div ref={finaleRef} className="story-finale-box max-w-[1200px] sm:max-w-[1400px] mx-auto p-12 sm:p-28 md:p-40 rounded-2xl sm:rounded-[6rem] bg-[#1a1a1a] text-white text-center space-y-12 sm:space-y-16 md:space-y-20 shadow-lg sm:shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)] overflow-hidden relative group">
+          {/* 终章背景图 - 滚动渐现效果 */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img decoding="async"
+              src={ASSETS.banner}
+              className="story-finale-bg absolute inset-0 w-full h-full object-cover opacity-0 scale-110 grayscale blur-sm"
+              alt="Final CTA Background"
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-br from-[#D75437]/5 to-transparent" />
 
           <div className="relative z-10 space-y-10 sm:space-y-14 md:space-y-16">
