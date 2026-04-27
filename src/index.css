@@ -72,3 +72,15 @@ body {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+/* Story Finale - 背景滚动渐现 */
+.story-finale-bg {
+  transition: opacity 3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              filter 3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.story-finale-visible .story-finale-bg {
+  opacity: 0.6 !important;
+  filter: grayscale(0) blur(0) !important;
+  transform: scale(1) !important;
+}
