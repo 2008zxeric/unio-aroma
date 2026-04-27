@@ -155,6 +155,6 @@ export const ELEMENT_LABELS: Record<string, string> = {
   nourish: 'Nourish · 润养',
   soothe: 'Soothe · 舒缓',
   // 香·空间
-  aesthetic: 'Aesthetic · 芳香美学',
-  meditation: 'Meditation · 凝思之物'
+  aesthetic: 'Aroma · 芳香美学',
+  meditation: 'Zen · 凝思之物'
 };
