@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe } from 'lucide-react';
+import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store } from 'lucide-react';
 import { optimizeHeroImage } from '../imageUtils';
 
 // 恢复原始 Unsplash 图片 + 品牌 Logo
@@ -174,7 +174,102 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* ===== 4. 终章 ===== */}
+      {/* ===== 4. 寻香之所 - Our Sanctuaries ===== */}
+      <section className="py-20 sm:py-48 md:py-64 px-6 sm:px-16 md:px-24">
+        <div className="max-w-[1920px] mx-auto">
+
+          {/* 区块标题 */}
+          <div className="text-center space-y-6 sm:space-y-8 mb-16 sm:mb-28 md:mb-40">
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+              <div className="h-px w-8 sm:w-12 bg-[#D4AF37]/40" />
+              <Store size={18} className="sm:w-6 sm:h-6 text-[#D4AF37]" />
+              <div className="h-px w-8 sm:w-12 bg-[#D4AF37]/40" />
+            </div>
+            <h2 className="text-2xl sm:text-5xl md:text-7xl font-bold text-[#1A1A1A] leading-tight tracking-tight sm:tracking-tighter">
+              寻香之所
+            </h2>
+            <p className="text-[9px] sm:text-xs tracking-[0.3em] sm:tracking-[0.5em] text-black/28 sm:text-black/30 uppercase font-bold">Our Sanctuaries</p>
+          </div>
+
+          {/* 三家店铺 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+
+            {/* 成都 */}
+            <div className="group relative">
+              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
+                <img decoding="async"
+                  src="/storemain.webp"
+                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
+                  alt="UNIO AROMA Chengdu"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 lg:p-10 space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={12} className="text-[#D4AF37]" />
+                    <span className="text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-[#D4AF37] uppercase font-bold">Chengdu</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-wide">成都</h3>
+                  <p className="text-[10px] sm:text-xs text-white/50 tracking-widest uppercase">Sichuan, China</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 宁波 */}
+            <div className="group relative">
+              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
+                <img decoding="async"
+                  src="/storemain1.webp"
+                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
+                  alt="UNIO AROMA Ningbo"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 lg:p-10 space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={12} className="text-[#D4AF37]" />
+                    <span className="text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-[#D4AF37] uppercase font-bold">Ningbo</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-wide">宁波</h3>
+                  <p className="text-[10px] sm:text-xs text-white/50 tracking-widest uppercase">Zhejiang, China</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 芭提雅 */}
+            <div className="group relative">
+              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
+                <img decoding="async"
+                  src="/store1.webp"
+                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
+                  alt="UNIO AROMA Pattaya"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 lg:p-10 space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={12} className="text-[#D4AF37]" />
+                    <span className="text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-[#D4AF37] uppercase font-bold">Pattaya</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-wide">芭提雅</h3>
+                  <p className="text-[10px] sm:text-xs text-white/50 tracking-widest uppercase">Thailand</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* 底部装饰文字 */}
+          <div className="text-center mt-12 sm:mt-20 md:mt-28 space-y-3">
+            <p className="text-xs sm:text-sm text-black/25 sm:text-black/30 tracking-[0.2em] sm:tracking-[0.3em]">
+              四川 成都 &nbsp;·&nbsp; 浙江 宁波 &nbsp;·&nbsp; 泰国 芭提雅
+            </p>
+            <p className="text-[8px] sm:text-[10px] text-black/15 sm:text-black/18 tracking-[0.25em] sm:tracking-[0.35em] uppercase">
+              Sichuan Chengdu &nbsp;·&nbsp; Zhejiang Ningbo &nbsp;·&nbsp; Pattaya, Thailand
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ===== 5. 终章 ===== */}
       <section className="pb-40 sm:pb-64 md:pb-80 px-6">
         <div className="max-w-[1200px] sm:max-w-[1400px] mx-auto p-12 sm:p-28 md:p-40 rounded-2xl sm:rounded-[6rem] bg-[#1a1a1a] text-white text-center space-y-12 sm:space-y-16 md:space-y-20 shadow-lg sm:shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)] overflow-hidden relative group">
           {/* 终章背景图 */}
