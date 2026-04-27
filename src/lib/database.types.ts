@@ -28,7 +28,7 @@ export const SUB_CATEGORY_LABELS: Record<SubCategory, string> = {
   // 生·净润舒
   clear: 'Clear · 清净', nourish: 'Nourish · 润养', soothe: 'Soothe · 舒缓',
   // 香系列
-  aesthetic: 'Aesthetic · 芳香美学', meditation: 'Meditation · 凝思之物',
+  aesthetic: 'Aroma · 芳香美学', meditation: 'Zen · 凝思之物',
   // 默认
   none: '未分类',
 };
