@@ -18,7 +18,7 @@ const DEFAULT_COLOR = { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text
 
 // 系列子分类与 dict_items 的默认映射（初始化用）
 const SERIES_CATEGORIES: Record<string, { label: string; value: string }[]> = {
-  yuan:  [{ label: '金', value: 'jin' }, { label: '木', value: 'mu' }, { label: '水', value: 'shui' }, { label: '火', value: 'huo' }, { label: '土', value: 'tu' }],
+  yuan:  [{ label: 'Metal · 金（花）', value: 'fire' }, { label: 'Metal · 金（果实/种子）', value: 'metal' }, { label: 'Wood · 木', value: 'wood' }, { label: 'Water · 水', value: 'water' }, { label: 'Earth · 土', value: 'earth' }, { label: 'Base · 基础油', value: 'base' }],
   he:    [{ label: '身体', value: 'body' }, { label: '心智', value: 'mind' }, { label: '灵魂', value: 'soul' }],
   sheng: [{ label: '清净', value: 'clear' }, { label: '润养', value: 'nourish' }, { label: '舒缓', value: 'soothe' }],
   jing:  [{ label: '芳香美学', value: 'aesthetic' }, { label: '凝思之物', value: 'meditation' }],

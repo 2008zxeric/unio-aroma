@@ -187,11 +187,12 @@ const CATEGORY_SERIES_MAP: Record<string, { seriesCode: string; seriesName: stri
 // 各系列对应的子分类选项（用于产品录入页动态下拉）
 const SERIES_CATEGORIES_OPTIONS: Record<string, { value: string; label: string }[]> = {
   yuan: [
-    { value: 'jin', label: '金 Metal' },
-    { value: 'mu', label: '木 Wood' },
-    { value: 'shui', label: '水 Water' },
-    { value: 'huo', label: '火 Fire' },
-    { value: 'tu', label: '土 Earth' },
+    { value: 'fire', label: '🔥 Fire · 火（花）' },
+    { value: 'metal', label: '🛡️ Metal · 金（果实/种子）' },
+    { value: 'wood', label: '🌲 Wood · 木（木质/树皮）' },
+    { value: 'water', label: '💧 Water · 水（叶/草）' },
+    { value: 'earth', label: '⛰️ Earth · 土（根/树脂）' },
+    { value: 'base', label: '🧴 Base · 基础油' },
   ],
   he: [
     { value: 'body', label: '身体 Body' },
@@ -739,7 +740,7 @@ export default function AdminProducts() {
           <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
             className="px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-xl text-sm text-[#1A2E1A] focus:outline-none min-w-[150px]">
             <option value="">🏷️ 全部子分类</option>
-            <optgroup label="🔥 元·单方"><option value="jin">金</option><option value="mu">木</option><option value="shui">水</option><option value="huo">火</option><option value="tu">土</option></optgroup>
+            <optgroup label="🔥 元·单方"><option value="fire">Fire · 火（花）</option><option value="metal">Metal · 金（果实/种子）</option><option value="wood">Wood · 木（木质/树皮）</option><option value="water">Water · 水（叶/草）</option><option value="earth">Earth · 土（根/树脂）</option><option value="base">Base · 基础油</option></optgroup>
             <optgroup label="⚗️ 和·复方"><option value="body">身体</option><option value="mind">心智</option><option value="soul">灵魂</option></optgroup>
             <optgroup label="💧 生·纯露"><option value="clear">清净</option><option value="nourish">润养</option><option value="soothe">舒缓</option></optgroup>
             <optgroup label="✨ 香·空间"><option value="aesthetic">芳香美学</option><option value="meditation">凝思之物</option></optgroup>

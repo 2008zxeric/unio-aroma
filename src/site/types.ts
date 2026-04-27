@@ -139,21 +139,22 @@ export const SERIES_CONFIG: Record<SeriesCode, {
 
 // ---- 子分类标签 ----
 export const ELEMENT_LABELS: Record<string, string> = {
-  // 五行
-  jin: '金',
-  mu: '木',
-  shui: '水',
-  huo: '火',
-  tu: '土',
-  // 身心
-  body: '身体',
-  mind: '心智',
-  soul: '灵魂',
-  // 纯露
-  clear: '清净',
-  nourish: '润养',
-  soothe: '舒缓',
-  // 香
-  aesthetic: '芳香美学',
-  meditation: '凝思之物'
+  // 元·五行（按植物部位归类）
+  metal: 'Metal · 金（果实/种子）',
+  wood: 'Wood · 木（木质/树皮）',
+  water: 'Water · 水（叶/草）',
+  fire: 'Fire · 火（花）',
+  earth: 'Earth · 土（根/树脂）',
+  base: 'Base · 基础油',
+  // 和·身心
+  body: 'Body · 身体',
+  mind: 'Mind · 心智',
+  soul: 'Soul · 灵魂',
+  // 生·纯露
+  clear: 'Clear · 清净',
+  nourish: 'Nourish · 润养',
+  soothe: 'Soothe · 舒缓',
+  // 香·空间
+  aesthetic: 'Aesthetic · 芳香美学',
+  meditation: 'Meditation · 凝思之物'
 };
