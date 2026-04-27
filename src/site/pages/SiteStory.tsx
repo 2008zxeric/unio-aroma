@@ -14,7 +14,7 @@ const ASSETS = {
   hero_eric: optimizeHeroImage('https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920'),
   hero_alice: optimizeHeroImage('https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920'),
   map: optimizeHeroImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920'),
-  banner: optimizeHeroImage('https://images.unsplash.com/photo-1540555700478-4be289fbecee?q=80&w=2560'),
+  banner: '/story-finale-banner.webp',
   logo: '/logo.svg',
 };
 
