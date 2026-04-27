@@ -378,7 +378,9 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
           {/* 背景图 */}
           <img
             src={BANNER_ADS[filter]}
-            className="w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105"
+            className={`w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105 ${
+              filter === 'yuan' || filter === 'sheng' ? 'object-bottom' : 'object-center'
+            }`}
             alt={`UNIO AROMA 产品广告 - ${theme.fullLabel}`}
             loading="lazy"
           />
