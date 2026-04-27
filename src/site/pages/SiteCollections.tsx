@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, MapPin, Home } from 'lucide-react';
+import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, TreePine, FlaskConical, MapPin, Home } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { optimizeProductThumb, optimizeImage } from '../imageUtils';
 import { getSeries, getProducts } from '../siteDataService';
@@ -24,7 +24,7 @@ const LOGO_PLACEHOLDER = '/logo.svg';
 
 // 每个系列下的子分类排序
 const SERIES_CATEGORY_ORDER: Record<string, string[]> = {
-  yuan:  ['jin', 'mu', 'shui', 'huo', 'tu'],
+  yuan:  ['fire', 'metal', 'wood', 'water', 'earth', 'base'],
   he:    ['body', 'mind', 'soul'],
   sheng: ['clear', 'nourish', 'soothe'],
   jing:  ['aesthetic', 'meditation'],
@@ -112,11 +112,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
 
 // 子分类标题卡片图标
 const getCategoryIcon = (category: string) => {
-  if (category === 'jin') return <Shield size={14} smSize={16} className="text-[#D4AF37]" />;
-  if (category === 'mu') return <Wind size={14} smSize={16} className="text-[#D4AF37]" />;
-  if (category === 'shui') return <Droplets size={14} smSize={16} className="text-[#D4AF37]" />;
-  if (category === 'huo') return <Flame size={14} smSize={16} className="text-[#D4AF37]" />;
-  if (category === 'tu') return <Mountain size={14} smSize={16} className="text-[#D4AF37]" />;
+  if (category === 'fire') return <Flame size={14} smSize={16} className="text-[#D4AF37]" />;
+  if (category === 'metal') return <Shield size={14} smSize={16} className="text-[#D4AF37]" />;
+  if (category === 'wood') return <TreePine size={14} smSize={16} className="text-[#D4AF37]" />;
+  if (category === 'water') return <Droplets size={14} smSize={16} className="text-[#D4AF37]" />;
+  if (category === 'earth') return <Mountain size={14} smSize={16} className="text-[#D4AF37]" />;
+  if (category === 'base') return <FlaskConical size={14} smSize={16} className="text-[#D4AF37]" />;
   if (category === 'clear') return <Wind size={14} smSize={16} className="text-[#D4AF37]" />;
   if (category === 'nourish') return <Droplets size={14} smSize={16} className="text-[#D4AF37]" />;
   if (category === 'soothe') return <Sparkles size={14} smSize={16} className="text-[#D4AF37]" />;
@@ -144,11 +145,12 @@ const seriesThemes: Record<string, { label: string; fullLabel: string; en: strin
 const CategoryHeaderCard: React.FC<{ category: string; label: string; theme: typeof seriesThemes.yuan }> = ({ category, label, theme }) => {
   // 根据不同系列使用不同的渐变氛围
   const gradientMap: Record<string, string> = {
-    yuan_jin: 'from-[#D75437]/8 to-[#D4AF37]/5',
-    yuan_mu: 'from-[#1A2E1A]/8 to-[#D4AF37]/4',
-    yuan_shui: 'from-[#1C39BB]/8 to-[#D75437]/4',
-    yuan_huo: 'from-[#D75437]/10 to-[#D4AF37]/6',
-    yuan_tu: 'from-[#1A2E1A]/6 to-[#D4AF37]/4',
+    yuan_fire: 'from-[#D75437]/10 to-[#D4AF37]/6',
+    yuan_metal: 'from-[#D75437]/8 to-[#D4AF37]/5',
+    yuan_wood: 'from-[#1A2E1A]/8 to-[#D4AF37]/4',
+    yuan_water: 'from-[#1C39BB]/8 to-[#D75437]/4',
+    yuan_earth: 'from-[#1A2E1A]/6 to-[#D4AF37]/4',
+    yuan_base: 'from-[#D4AF37]/6 to-[#1A2E1A]/4',
     he_body: 'from-[#D75437]/6 to-[#1C39BB]/4',
     he_mind: 'from-[#1C39BB]/8 to-[#D75437]/4',
     he_soul: 'from-[#D4AF37]/6 to-[#D4AF37]/4',

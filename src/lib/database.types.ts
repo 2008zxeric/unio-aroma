@@ -5,9 +5,9 @@
 // ---- 系列枚举（4 大系列） ----
 export type SeriesCode = 'yuan' | 'he' | 'sheng' | 'jing';
 
-// ---- 子分类完整枚举（13 个子分类） ----
-// 元系列 - 五行分类：金木水火土
-export type YuanSubCategory = 'jin' | 'mu' | 'shui' | 'huo' | 'tu';
+// ---- 子分类完整枚举 ----
+// 元系列 - 按植物部位分类：金木水火土 + 基础油
+export type YuanSubCategory = 'fire' | 'metal' | 'wood' | 'water' | 'earth' | 'base';
 // 和系列 - 身心灵魂
 export type HeSubCategory = 'body' | 'mind' | 'soul';
 // 生系列 - 净润舒
@@ -20,21 +20,22 @@ export type SubCategory = YuanSubCategory | HeSubCategory | ShengSubCategory | J
 
 // ---- 子分类显示名称映射 ----
 export const SUB_CATEGORY_LABELS: Record<SubCategory, string> = {
-  // 元·五行
-  jin: '金', mu: '木', shui: '水', huo: '火', tu: '土',
+  // 元·按植物部位
+  fire: 'Fire · 火（花）', metal: 'Metal · 金（果实/种子）', wood: 'Wood · 木（木质/树皮）',
+  water: 'Water · 水（叶/草）', earth: 'Earth · 土（根/树脂）', base: 'Base · 基础油',
   // 和·身心魂
-  body: '身体', mind: '心智', soul: '灵魂',
+  body: 'Body · 身体', mind: 'Mind · 心智', soul: 'Soul · 灵魂',
   // 生·净润舒
-  clear: '清净', nourish: '润养', soothe: '舒缓',
+  clear: 'Clear · 清净', nourish: 'Nourish · 润养', soothe: 'Soothe · 舒缓',
   // 香系列
-  aesthetic: '芳香美学', meditation: '凝思之物',
+  aesthetic: 'Aesthetic · 芳香美学', meditation: 'Meditation · 凝思之物',
   // 默认
   none: '未分类',
 };
 
 // ---- 系列信息映射 ----
 export const SERIES_INFO: Record<SeriesCode, { name_cn: string; name_en: string; slogan: string; subCategories: SubCategory[] }> = {
-  yuan: { name_cn: '元', name_en: 'Yuan', slogan: '元 · 单方 / 极境生存原力', subCategories: ['jin', 'mu', 'shui', 'huo', 'tu'] },
+  yuan: { name_cn: '元', name_en: 'Yuan', slogan: '元 · 单方 / 极境生存原力', subCategories: ['fire', 'metal', 'wood', 'water', 'earth', 'base'] },
   he:   { name_cn: '和', name_en: 'He',   slogan: '和 · 复方 / 科学频率重构', subCategories: ['body', 'mind', 'soul'] },
   sheng:{ name_cn: '生', name_en: 'Sheng', slogan: '生 · 纯露 / 植物生命之水', subCategories: ['clear', 'nourish', 'soothe'] },
   jing: { name_cn: '香', name_en: 'Jing', slogan: '香 · 空间 / 极简芳香美学', subCategories: ['aesthetic', 'meditation'] },
