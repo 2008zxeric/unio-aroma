@@ -268,7 +268,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-8 lg:gap-10">
           {series.map((s, idx) => {
             const config = SERIES_CONFIG[s.code];
             const productCount = getSeriesStats(s.code);
@@ -277,34 +277,34 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
               <div
                 key={s.id}
                 onClick={() => onNavigate('collections', { series: s.code })}
-                className="group relative aspect-[3/5] sm:aspect-[4/5] rounded-xl sm:rounded-[5rem] overflow-hidden cursor-pointer shadow-lg sm:shadow-2xl transition-all duration-1000 hover:scale-[1.02] sm:hover:scale-[1.01]"
+                className="group relative aspect-[3/5] sm:aspect-[4/5] rounded-xl sm:rounded-[3rem] lg:rounded-[4rem] overflow-hidden cursor-pointer shadow-lg sm:shadow-2xl transition-all duration-1000 hover:scale-[1.02] sm:hover:scale-[1.01]"
               >
                 <img src={bgImage} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] group-hover:scale-110" alt={config.fullName_cn} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/95 via-black/30 to-transparent opacity-100 group-hover:opacity-60 transition-all" />
 
                 {/* 编号 */}
-                <div className="absolute top-4 right-4 sm:top-10 sm:right-10 text-white/15 sm:text-white/20 text-[8px] sm:text-xs font-bold tracking-widest font-mono">
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/15 sm:text-white/20 text-[8px] sm:text-xs font-bold tracking-widest font-mono">
                   {String(idx + 1).padStart(2, '0')}
                 </div>
 
-                <div className="absolute inset-0 p-2.5 sm:p-20 flex flex-col justify-end">
-                  <div className="flex items-center gap-1.5 sm:gap-4 mb-2.5 sm:mb-6 opacity-50 sm:opacity-60">
-                    <div className="p-1 sm:p-2.5 bg-white/18 rounded-full text-white scale-[0.85] sm:scale-100">
+                <div className="absolute inset-0 p-2.5 sm:p-10 lg:p-12 flex flex-col justify-end">
+                  <div className="flex items-center gap-1.5 sm:gap-3 mb-2.5 sm:mb-4 opacity-50 sm:opacity-60">
+                    <div className="p-1 sm:p-2 bg-white/18 rounded-full text-white scale-[0.85] sm:scale-100">
                       <SeriesIcon icon={config.icon} />
                     </div>
-                    <span className="text-[5px] sm:text-[11px] text-white font-bold tracking-[0.2em] sm:tracking-[0.5em] uppercase whitespace-nowrap">{config.fullName_en}</span>
+                    <span className="text-[5px] sm:text-[9px] lg:text-[10px] text-white font-bold tracking-[0.2em] sm:tracking-[0.3em] uppercase whitespace-nowrap truncate">{config.fullName_en}</span>
                   </div>
-                  <h3 className="text-xl sm:text-8xl text-white font-bold tracking-[0.03em] sm:tracking-[0.05em] sm:tracking-widest mb-1.5 sm:mb-8 leading-[1.15] sm:leading-none">
+                  <h3 className="text-xl sm:text-5xl lg:text-6xl text-white font-bold tracking-[0.03em] sm:tracking-[0.08em] mb-1.5 sm:mb-4 lg:mb-6 leading-[1.15] sm:leading-[1.1] lg:leading-none whitespace-nowrap">
                     <span className="block sm:inline">{config.name_cn} ·</span>
-                    <span className="block sm:inline sm:ml-4">{config.fullName_cn.split('·')[1]?.trim()}</span>
+                    <span className="block sm:inline sm:ml-2 lg:ml-3">{config.fullName_cn.split('·')[1]?.trim()}</span>
                   </h3>
-                  <p className="hidden lg:block text-white/45 text-lg leading-loose transform translate-y-6 sm:translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
+                  <p className="hidden lg:block text-white/45 text-sm leading-relaxed transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
                     {config.description}
                   </p>
-                  <div className="mt-2.5 sm:mt-4 flex items-center justify-between">
-                    <span className="text-white/25 text-[10px] sm:text-xs tracking-widest">{productCount} 款产品</span>
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/8 sm:bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-3 sm:translate-x-4 group-hover:translate-x-0">
-                      <ArrowRight size={11} smSize={14} className="text-white" />
+                  <div className="mt-2.5 sm:mt-3 flex items-center justify-between">
+                    <span className="text-white/25 text-[10px] sm:text-[10px] lg:text-xs tracking-widest">{productCount} 款产品</span>
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/8 sm:bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-3 sm:translate-x-4 group-hover:translate-x-0">
+                      <ArrowRight size={11} smSize={13} className="text-white" />
                     </div>
                   </div>
                 </div>
