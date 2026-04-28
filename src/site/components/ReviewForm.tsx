@@ -71,7 +71,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
           content: trimmed,
           ip_address: ip || null,
           ip_location: location || null,
-          status: 'pending',
+          // status 不传，由数据库 DEFAULT 'pending' 自动填充
         }),
       });
 
