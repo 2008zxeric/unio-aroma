@@ -339,6 +339,11 @@ const PresetReviewCard = ({ review }: { review: PresetReview }) => {
                   已验证
                 </span>
               )}
+              {review.location && (
+                <span className="text-[10px]" style={{ color: '#1A1A1A30' }}>
+                  · {review.location}
+                </span>
+              )}
             </div>
             <span className="text-[10px]" style={{ color: '#1A1A1A25' }}>{formatDate(review.date)}</span>
           </div>
