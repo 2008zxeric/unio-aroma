@@ -492,3 +492,95 @@ function transformCountries(rawData: any[]): Country[] {
     gallery_urls: Array.isArray(row.gallery_urls) ? row.gallery_urls : (row.gallery_urls ? JSON.parse(row.gallery_urls) : []),
   }));
 }
+
+// ============================================
+// 产品评价服务
+// ============================================
+
+import type { Review } from './database.types';
+
+interface ReviewQueryOptions {
+  page?: number;
+  pageSize?: number;
+  approved?: boolean;       // undefined = 全部, true = 仅已审核, false = 仅未审核
+  productCode?: string;
+}
+
+export const reviewService = {
+  /** 获取已审核评价（前台展示用） */
+  getApproved: async (productCode?: string): Promise<Review[]> => {
+    let query = supabase
+      .from('reviews')
+      .select('*')
+      .eq('is_approved', true)
+      .order('created_at', { ascending: false });
+    if (productCode) query = query.eq('product_code', productCode);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []) as Review[];
+  },
+
+  /** 分页获取全部评价（后台管理用） */
+  getAll: async (options: ReviewQueryOptions = {}): Promise<{ data: Review[]; total: number }> => {
+    const { page = 1, pageSize = 15, approved, productCode } = options;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
+      .from('reviews')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (approved !== undefined) query = query.eq('is_approved', approved);
+    if (productCode) query = query.eq('product_code', productCode);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+    return { data: (data || []) as Review[], total: count || 0 };
+  },
+
+  /** 提交新评价（待审核） */
+  submit: (record: Partial<Review>): Promise<Review> =>
+    create<Review>('reviews', { ...record, is_approved: false }),
+
+  /** 设置审核状态 */
+  setApproved: async (id: string, approved: boolean): Promise<void> => {
+    const { error } = await supabase
+      .from('reviews')
+      .update({ is_approved: approved })
+      .eq('id', id);
+    if (error) throw error;
+  },
+
+  /** 批量设置审核状态 */
+  bulkSetApproved: async (ids: string[], approved: boolean): Promise<void> => {
+    const { error } = await supabase
+      .from('reviews')
+      .update({ is_approved: approved })
+      .in('id', ids);
+    if (error) throw error;
+  },
+
+  /** 增加有帮助次数 */
+  incrementHelpful: async (id: string): Promise<void> => {
+    const { error } = await supabase.rpc('increment_helpful', { review_id: id });
+    if (error) {
+      // 如果 RPC 不存在，降级为直接更新
+      const { error: updateError } = await supabase
+        .from('reviews')
+        .update({ helpful: supabase.rpc('get_helpful', { review_id: id }) as any })
+        .eq('id', id);
+      if (updateError) console.warn('[reviewService] incrementHelpful failed', updateError);
+    }
+  },
+
+  /** 删除评价 */
+  delete: (id: string) => remove('reviews', id),
+
+  /** 批量删除 */
+  bulkDelete: async (ids: string[]): Promise<void> => {
+    const { error } = await supabase.from('reviews').delete().in('id', ids);
+    if (error) throw error;
+  },
+};
