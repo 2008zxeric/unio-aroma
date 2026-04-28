@@ -1,380 +1,329 @@
 /**
- * UNIO AROMA 产品评价板块
- * 分页展示用户评价，每页 5 条，支持按标签筛选
+ * UNIO AROMA 产品评价板块 v2
+ * - 数据从 Supabase reviews 表动态读取（status = 'approved'）
+ * - 无评价时显示空状态 + 写评价入口
+ * - 右上角"写评价"按钮打开 ReviewForm 弹窗
  */
 
-import { useState, useMemo } from 'react';
-import { Star, ThumbsUp, ChevronLeft, ChevronRight, Check, MessageCircle } from 'lucide-react';
-import { Review, REVIEWS } from '../data/reviews';
+import { useState, useEffect, useCallback } from 'react';
+import { MessageCircle, PenLine, Loader2, RefreshCw } from 'lucide-react';
+import ReviewForm from './ReviewForm';
 
-const ALL_TAGS = ['品质纯正', '货源可靠', '小众高端', '助眠', '护肤', '冥想', '情绪调节', '香薰', '办公', '居家', '家庭', '纯露', '专业', '复方精油', '户外', '旅行', '提神', '学习', '运动', '按摩', '养生', '抗老', '调香', '日常', '简约', '仪式', '艺术', '茶道', '香道', '宠物'];
+const SUPABASE_URL = 'https://xuicjydgtoltdhkbqoju.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWNqeWRndG9sdGRoa2Jxb2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzI2NjgsImV4cCI6MjA5MTEwODY2OH0.7E-VPqi7m9WbCWw96jbEeVdVBVrwubIjAGEB-_MV5ng';
 
-const TAG_COLORS: Record<string, string> = {
-  '品质纯正': 'bg-amber-50 text-amber-700',
-  '货源可靠': 'bg-blue-50 text-blue-700',
-  '小众高端': 'bg-purple-50 text-purple-700',
-  '助眠': 'bg-indigo-50 text-indigo-700',
-  '护肤': 'bg-pink-50 text-pink-700',
-  '冥想': 'bg-cyan-50 text-cyan-700',
-  '情绪调节': 'bg-teal-50 text-teal-700',
-  '香薰': 'bg-orange-50 text-orange-700',
-  '办公': 'bg-sky-50 text-sky-700',
-  '居家': 'bg-stone-50 text-stone-600',
-  '家庭': 'bg-green-50 text-green-700',
-  '纯露': 'bg-rose-50 text-rose-700',
-  '专业': 'bg-slate-100 text-slate-700',
-  '复方精油': 'bg-violet-50 text-violet-700',
-  '户外': 'bg-lime-50 text-lime-700',
-  '旅行': 'bg-emerald-50 text-emerald-700',
-  '提神': 'bg-yellow-50 text-yellow-700',
-  '学习': 'bg-sky-50 text-sky-600',
-  '运动': 'bg-orange-50 text-orange-600',
-  '按摩': 'bg-red-50 text-red-700',
-  '养生': 'bg-green-50 text-green-600',
-  '抗老': 'bg-pink-50 text-pink-600',
-  '调香': 'bg-amber-50 text-amber-600',
-  '日常': 'bg-gray-50 text-gray-600',
-  '简约': 'bg-neutral-50 text-neutral-600',
-  '仪式': 'bg-fuchsia-50 text-fuchsia-700',
-  '艺术': 'bg-rose-50 text-rose-600',
-  '茶道': 'bg-stone-100 text-stone-700',
-  '香道': 'bg-stone-100 text-stone-700',
-  '宠物': 'bg-amber-50 text-amber-700',
-};
+const PAGE_SIZE = 8;
 
-const PAGE_SIZE = 5;
+interface ReviewItem {
+  id: string;
+  product_code: string;
+  content: string;
+  ip_location: string | null;
+  created_at: string;
+  status: string;
+}
 
 interface ProductReviewsProps {
   productCode?: string;
   productName?: string;
 }
 
-const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode, productName }) => {
+// 格式化时间（距今多久）
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${Math.max(1, mins)} 分钟前`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} 天前`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} 个月前`;
+  return `${Math.floor(months / 12)} 年前`;
+}
+
+// 从 ip_location 生成简短地区显示（取最后一段或前两段）
+function formatLocation(loc: string | null): string {
+  if (!loc) return '匿名访客';
+  const parts = loc.split(' · ').filter(Boolean);
+  if (parts.length >= 3) return `${parts[1]} · ${parts[2]}`;
+  if (parts.length === 2) return parts.join(' · ');
+  return parts[0] || '匿名访客';
+}
+
+// 生成头像色
+const AVATAR_COLORS = [
+  'linear-gradient(135deg, #D75437, #D4AF37)',
+  'linear-gradient(135deg, #4A7C59, #7BA689)',
+  'linear-gradient(135deg, #5B5EA6, #9B2335)',
+  'linear-gradient(135deg, #00758F, #00A591)',
+  'linear-gradient(135deg, #D4AF37, #C0392B)',
+  'linear-gradient(135deg, #2C3E50, #4CA1AF)',
+];
+
+function getAvatarStyle(id: string): string {
+  const n = id.charCodeAt(0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[n];
+}
+
+// 匿名化显示（取 ip 末段或 location 首字）
+function getAvatarChar(review: ReviewItem): string {
+  if (review.ip_location) {
+    const loc = review.ip_location.split(' · ').filter(Boolean);
+    return (loc[loc.length - 1] || '访')[0];
+  }
+  return '匿';
+}
+
+const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode, productName = '产品' }) => {
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [helpfulSet, setHelpfulSet] = useState<Set<number>>(new Set());
+  const [showForm, setShowForm] = useState(false);
 
-  const filtered = useMemo(() => {
-    let list = REVIEWS;
-    if (selectedTag) {
-      list = list.filter(r => r.tags.includes(selectedTag));
+  const fetchReviews = useCallback(async () => {
+    if (!productCode) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        product_code: `eq.${productCode}`,
+        status: 'eq.approved',
+        order: 'created_at.desc',
+        select: 'id,product_code,content,ip_location,created_at,status',
+      });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?${params}`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: ReviewItem[] = await res.json();
+      setReviews(data);
+    } catch (e: any) {
+      setError('评价加载失败');
+    } finally {
+      setLoading(false);
     }
-    return list;
-  }, [selectedTag]);
+  }, [productCode]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  useEffect(() => {
+    fetchReviews();
+    setPage(1);
+  }, [fetchReviews]);
+
+  const totalPages = Math.max(1, Math.ceil(reviews.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const displayReviews = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const displayed = reviews.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  // 全局统计
-  const avgRating = (REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length).toFixed(1);
-  const distribution = [5, 4, 3, 2, 1].map(star => ({
-    star,
-    count: REVIEWS.filter(r => r.rating === star).length,
-    pct: Math.round((REVIEWS.filter(r => r.rating === star).length / REVIEWS.length) * 100),
-  }));
-
-  const handleHelpful = (reviewId: number) => {
-    setHelpfulSet(prev => {
-      const next = new Set(prev);
-      if (next.has(reviewId)) next.delete(reviewId);
-      else next.add(reviewId);
-      return next;
-    });
+  // 关闭弹窗后刷新评价列表
+  const handleFormClose = () => {
+    setShowForm(false);
+    // 稍等一下，让用户看到关闭动画
+    setTimeout(() => fetchReviews(), 300);
   };
 
   return (
-    <div className="mt-20 max-w-[1280px] mx-auto px-6 sm:px-8 lg:px-12">
-      {/* 标题 */}
-      <div className="flex items-center gap-3 mb-10">
-        <MessageCircle size={18} className="text-[#D75437]" />
-        <h2 className="text-xl sm:text-2xl font-bold tracking-wide" style={{ color: '#1A1A1A' }}>用户评价</h2>
-        <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: '#D4AF3720', color: '#D4AF37' }}>
-          {REVIEWS.length} 条
-        </span>
-      </div>
-
-      {/* ── 桌面端：评分概览 + 标签筛选 ━━ */}
-      <div className="hidden md:flex gap-10 mb-10">
-        {/* 左侧：评分总览 */}
-        <div className="flex-shrink-0 w-52">
-          <div className="text-center">
-            <div className="text-5xl font-bold" style={{ color: '#1A1A1A' }}>{avgRating}</div>
-            <div className="flex justify-center gap-0.5 my-2">
-              {[1,2,3,4,5].map(i => (
-                <Star key={i} size={14} className={i <= Math.round(Number(avgRating)) ? 'text-[#D4AF37]' : 'text-gray-200'} fill={i <= Math.round(Number(avgRating)) ? '#D4AF37' : 'none'} />
-              ))}
-            </div>
-            <p className="text-xs" style={{ color: '#1A1A1A30' }}>基于 {REVIEWS.length} 条评价</p>
+    <>
+      <div className="mt-20 max-w-[1280px] mx-auto px-6 sm:px-8 lg:px-12">
+        {/* ── 标题区 ── */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <MessageCircle size={18} className="text-[#D75437]" />
+            <h2 className="text-xl sm:text-2xl font-bold tracking-wide" style={{ color: '#1A1A1A' }}>
+              用户评价
+            </h2>
+            {!loading && (
+              <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: '#D4AF3720', color: '#D4AF37' }}>
+                {reviews.length} 条
+              </span>
+            )}
           </div>
-          <div className="mt-4 space-y-1.5">
-            {distribution.map(({ star, count, pct }) => (
-              <div key={star} className="flex items-center gap-2">
-                <span className="text-xs w-3 text-right" style={{ color: '#1A1A1A40' }}>{star}</span>
-                <Star size={9} className="text-[#D4AF37]" fill="#D4AF37" />
-                <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-[#D4AF37] transition-all duration-700" style={{ width: `${pct}%` }} />
-                </div>
-                <span className="text-xs w-6 text-left" style={{ color: '#1A1A1A30' }}>{pct}%</span>
-              </div>
-            ))}
-          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all hover:shadow-md active:scale-95"
+            style={{
+              background: 'linear-gradient(135deg, #D75437, #D4AF37)',
+              color: 'white',
+            }}
+          >
+            <PenLine size={14} />
+            <span className="hidden sm:inline">写评价</span>
+            <span className="sm:hidden">评价</span>
+          </button>
         </div>
 
-        {/* 右侧：标签筛选 */}
-        <div className="flex-1">
-          <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={{ color: '#1A1A1A28' }}>按标签筛选</p>
-          <div className="flex flex-wrap gap-2">
+        {/* ── 内容区 ── */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 size={24} className="animate-spin text-[#D4AF37]" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <p className="text-sm" style={{ color: '#1A1A1A40' }}>{error}</p>
             <button
-              onClick={() => { setSelectedTag(null); setPage(1); }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                !selectedTag
-                  ? 'border-[#D75437] text-[#D75437] bg-[#D75437]/4'
-                  : 'border-gray-200 text-gray-400 hover:border-gray-300'
-              }`}
+              onClick={fetchReviews}
+              className="flex items-center gap-1.5 text-xs text-[#D75437] hover:underline"
             >
-              全部
+              <RefreshCw size={12} />
+              重新加载
             </button>
-            {ALL_TAGS.slice(0, 12).map(tag => (
-              <button
-                key={tag}
-                onClick={() => { setSelectedTag(tag); setPage(1); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                  selectedTag === tag
-                    ? 'border-[#D75437] text-[#D75437] bg-[#D75437]/4'
-                    : `${TAG_COLORS[tag] || 'bg-gray-50 text-gray-500'} border-transparent hover:opacity-80`
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
           </div>
-          {selectedTag && (
-            <p className="text-xs mt-3" style={{ color: '#1A1A1A30' }}>
-              筛选「{selectedTag}」，共 {filtered.length} 条评价
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ── 移动端：评分概览 ━━ */}
-      <div className="md:hidden mb-6 flex items-center gap-4">
-        <div className="text-center">
-          <div className="text-3xl font-bold" style={{ color: '#1A1A1A' }}>{avgRating}</div>
-          <div className="flex justify-center gap-0.5 my-1">
-            {[1,2,3,4,5].map(i => (
-              <Star key={i} size={10} className={i <= Math.round(Number(avgRating)) ? 'text-[#D4AF37]' : 'text-gray-200'} fill={i <= Math.round(Number(avgRating)) ? '#D4AF37' : 'none'} />
-            ))}
-          </div>
-          <p className="text-[10px]" style={{ color: '#1A1A1A30' }}>{REVIEWS.length}条</p>
-        </div>
-        <div className="flex-1 space-y-1">
-          {distribution.slice(0, 3).map(({ star, pct }) => (
-            <div key={star} className="flex items-center gap-1.5">
-              <span className="text-[9px] w-3 text-right" style={{ color: '#1A1A1A40' }}>{star}</span>
-              <Star size={8} className="text-[#D4AF37]" fill="#D4AF37" />
-              <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full bg-[#D4AF37]" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* 移动端标签 */}
-        <div className="flex flex-wrap gap-1 max-w-[140px]">
-          {ALL_TAGS.slice(0, 4).map(tag => (
+        ) : reviews.length === 0 ? (
+          /* 空状态 */
+          <div
+            className="flex flex-col items-center justify-center py-20 rounded-3xl"
+            style={{ background: 'rgba(26,26,26,0.015)', border: '1.5px dashed rgba(26,26,26,0.08)' }}
+          >
+            <MessageCircle size={36} className="mb-4" style={{ color: '#1A1A1A15' }} />
+            <p className="text-sm font-medium mb-1" style={{ color: '#1A1A1A40' }}>还没有评价</p>
+            <p className="text-xs mb-6" style={{ color: '#1A1A1A25' }}>成为第一个分享体验的人</p>
             <button
-              key={tag}
-              onClick={() => { setSelectedTag(tag === selectedTag ? null : tag); setPage(1); }}
-              className={`px-2 py-0.5 rounded-full text-[9px] font-medium border transition-all ${
-                selectedTag === tag
-                  ? 'border-[#D75437] text-[#D75437] bg-[#D75437]/4'
-                  : 'border-gray-200 text-gray-400'
-              }`}
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-white transition-all hover:shadow-lg active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #D75437, #D4AF37)' }}
             >
-              {tag}
+              <PenLine size={14} />
+              写第一条评价
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── 评价卡片列表 ━━ */}
-      <div className="space-y-5">
-        {displayReviews.length === 0 ? (
-          <div className="text-center py-16">
-            <MessageCircle size={32} className="mx-auto mb-3 text-gray-200" />
-            <p className="text-sm" style={{ color: '#1A1A1A28' }}>暂无符合筛选条件的评价</p>
-            <button onClick={() => { setSelectedTag(null); setPage(1); }} className="mt-3 text-xs text-[#D75437] underline">清除筛选</button>
           </div>
         ) : (
-          displayReviews.map(review => (
-            <ReviewCard
-              key={review.id}
-              review={review}
-              voted={helpfulSet.has(review.id)}
-              onHelpful={() => handleHelpful(review.id)}
-            />
-          ))
+          <>
+            {/* 评价列表 */}
+            <div className="space-y-4">
+              {displayed.map(review => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+
+            {/* 分页 */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid rgba(26,26,26,0.06)' }}>
+                <p className="text-xs" style={{ color: '#1A1A1A30' }}>
+                  第 {currentPage} / {totalPages} 页，共 {reviews.length} 条
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-full text-xs border transition-all disabled:opacity-30"
+                    style={{ borderColor: 'rgba(26,26,26,0.1)', color: '#1A1A1A50' }}
+                  >
+                    上一页
+                  </button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const num = totalPages <= 5 ? i + 1
+                      : currentPage <= 3 ? i + 1
+                      : currentPage >= totalPages - 2 ? totalPages - 4 + i
+                      : currentPage - 2 + i;
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => setPage(num)}
+                        className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${num === currentPage ? 'text-white shadow-sm' : ''}`}
+                        style={num === currentPage
+                          ? { background: '#D75437', color: 'white' }
+                          : { color: '#1A1A1A40' }}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-full text-xs border transition-all disabled:opacity-30"
+                    style={{ borderColor: 'rgba(26,26,26,0.1)', color: '#1A1A1A50' }}
+                  >
+                    下一页
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 底部写评价 CTA */}
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 py-5 px-6 rounded-2xl" style={{ background: 'rgba(26,26,26,0.02)' }}>
+              <p className="text-xs" style={{ color: '#1A1A1A35' }}>
+                评价经人工审核后展示 · 分享您的真实体验帮助更多人
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition-all hover:shadow-sm"
+                style={{ borderColor: '#D75437', color: '#D75437' }}
+              >
+                <PenLine size={12} />
+                写评价
+              </button>
+            </div>
+          </>
         )}
       </div>
 
-      {/* ── 分页 ━━ */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid rgba(26,26,26,0.06)' }}>
-          <p className="text-xs" style={{ color: '#1A1A1A30' }}>
-            第 {currentPage} / {totalPages} 页，共 {filtered.length} 条
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="w-9 h-9 rounded-full flex items-center justify-center border transition-all disabled:opacity-25 hover:border-[#D75437] hover:text-[#D75437] disabled:hover:border-gray-200 disabled:hover:text-gray-300"
-              style={{ borderColor: 'rgba(26,26,26,0.08)', color: '#1A1A1A45' }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-              let num: number;
-              if (totalPages <= 7) {
-                num = i + 1;
-              } else if (currentPage <= 4) {
-                num = i + 1;
-              } else if (currentPage >= totalPages - 3) {
-                num = totalPages - 6 + i;
-              } else {
-                num = currentPage - 3 + i;
-              }
-              return (
-                <button
-                  key={num}
-                  onClick={() => setPage(num)}
-                  className={`w-9 h-9 rounded-full text-xs font-medium transition-all ${
-                    num === currentPage
-                      ? 'bg-[#D75437] text-white shadow-sm'
-                      : 'hover:bg-gray-50'
-                  }`}
-                  style={{ color: num === currentPage ? 'white' : '#1A1A1A45' }}
-                >
-                  {num}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="w-9 h-9 rounded-full flex items-center justify-center border transition-all disabled:opacity-25 hover:border-[#D75437] hover:text-[#D75437]"
-              style={{ borderColor: 'rgba(26,26,26,0.08)', color: '#1A1A1A45' }}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+      {/* 评价提交弹窗 */}
+      {showForm && (
+        <ReviewForm
+          productCode={productCode || ''}
+          productName={productName}
+          onClose={handleFormClose}
+        />
       )}
-
-      {/* ── 底部诚信承诺 ━━ */}
-      <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 py-6 rounded-2xl" style={{ background: 'rgba(26,26,26,0.02)' }}>
-        <div className="flex items-center gap-2">
-          <Check size={13} className="text-[#D4AF37]" />
-          <span className="text-xs font-medium" style={{ color: '#1A1A1A45' }}>真实购买用户评价</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Check size={13} className="text-[#D4AF37]" />
-          <span className="text-xs font-medium" style={{ color: '#1A1A1A45' }}>产地直采 · 品质纯正</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Check size={13} className="text-[#D4AF37]" />
-          <span className="text-xs font-medium" style={{ color: '#1A1A1A45' }}>货源可溯源 · 专业认证</span>
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 
 /* ── 单条评价卡片 ── */
-const ReviewCard = ({ review, voted, onHelpful }: { review: Review; voted: boolean; onHelpful: () => void }) => {
+const ReviewCard = ({ review }: { review: ReviewItem }) => {
   const [expanded, setExpanded] = useState(false);
-  const LONG_THRESHOLD = 100;
+  const LONG_THRESHOLD = 80;
   const isLong = review.content.length > LONG_THRESHOLD;
-  const displayContent = !expanded && isLong ? review.content.slice(0, LONG_THRESHOLD) + '…' : review.content;
+  const displayContent = !expanded && isLong
+    ? review.content.slice(0, LONG_THRESHOLD) + '…'
+    : review.content;
+
+  const avatarChar = getAvatarChar(review);
+  const avatarStyle = getAvatarStyle(review.id);
+  const location = formatLocation(review.ip_location);
+  const timeAgo = formatRelativeTime(review.created_at);
 
   return (
     <div
-      className="rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:shadow-sm"
+      className="rounded-2xl p-5 transition-all duration-300 hover:shadow-sm"
       style={{ background: 'white', border: '1px solid rgba(26,26,26,0.05)' }}
     >
-      {/* 顶部：头像 + 名字 + 日期 + 评分 */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          {/* 头像 */}
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #D75437, #D4AF37)' }}
-          >
-            {review.avatar}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold" style={{ color: '#1A1A1A' }}>{review.name}</span>
-              {review.verified && (
-                <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#D4AF3715', color: '#D4AF37' }}>
-                  <Check size={8} /> 已购买
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              {/* 星级 */}
-              <div className="flex gap-0.5">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} size={9}
-                    className={i <= review.rating ? 'text-[#D4AF37]' : 'text-gray-200'}
-                    fill={i <= review.rating ? '#D4AF37' : 'none'}
-                  />
-                ))}
-              </div>
-              <span className="text-[9px]" style={{ color: '#1A1A1A22' }}>{review.date}</span>
-            </div>
-          </div>
+      <div className="flex items-start gap-3">
+        {/* 头像 */}
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+          style={{ background: avatarStyle }}
+        >
+          {avatarChar}
         </div>
 
-        {/* 有帮助按钮 */}
-        <button
-          onClick={onHelpful}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all ${
-            voted
-              ? 'text-[#D75437] bg-[#D75437]/5 border border-[#D75437]/15'
-              : 'text-gray-300 hover:text-gray-500'
-          }`}
-        >
-          <ThumbsUp size={10} className={voted ? 'text-[#D75437]' : ''} />
-          <span>{review.helpful + (voted ? 1 : 0)}</span>
-        </button>
-      </div>
+        <div className="flex-1 min-w-0">
+          {/* 顶部：地区 + 时间 */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium" style={{ color: '#1A1A1A60' }}>
+              {location}
+            </span>
+            <span className="text-[10px]" style={{ color: '#1A1A1A25' }}>{timeAgo}</span>
+          </div>
 
-      {/* 内容 */}
-      <p className="text-sm leading-relaxed" style={{ color: '#1A1A1A80' }}>
-        {displayContent}
-        {isLong && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="ml-1 text-xs underline-offset-2 hover:underline"
-            style={{ color: '#D75437' }}
-          >
-            {expanded ? '收起' : '展开'}
-          </button>
-        )}
-      </p>
-
-      {/* 标签 */}
-      <div className="flex flex-wrap gap-1.5 mt-4">
-        {review.tags.map(tag => (
-          <span
-            key={tag}
-            className={`px-2 py-0.5 rounded-full text-[9px] font-medium ${TAG_COLORS[tag] || 'bg-gray-50 text-gray-500'}`}
-          >
-            {tag}
-          </span>
-        ))}
+          {/* 内容 */}
+          <p className="text-sm leading-relaxed" style={{ color: '#1A1A1A75' }}>
+            {displayContent}
+            {isLong && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="ml-1 text-xs underline-offset-2 hover:underline"
+                style={{ color: '#D75437' }}
+              >
+                {expanded ? '收起' : '展开'}
+              </button>
+            )}
+          </p>
+        </div>
       </div>
     </div>
   );

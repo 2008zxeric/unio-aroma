@@ -12,6 +12,7 @@ import AdminInventory from './pages/InventoryManage';
 import { AdminDicts, AdminUsers, AdminSettings } from './pages/DictManage';
 import { AuthProvider } from '../lib/auth';
 import AuditLogPage from './pages/AuditLogPage';
+import ReviewManage from './pages/ReviewManage';
 import { PermissionGuard } from './components/PermissionGuard';
 import { AdminPreviewProvider } from './AdminPreviewContext';
 
@@ -41,6 +42,7 @@ export default function AdminRouter() {
           <Route path="inventory" element={<PermissionGuard action="view_inventory"><AdminInventory /></PermissionGuard>} />
           <Route path="dicts" element={<PermissionGuard action="view_dicts"><AdminDicts /></PermissionGuard>} />
           <Route path="audit-logs" element={<PermissionGuard action="view_dashboard"><AuditLogPage /></PermissionGuard>} />
+          <Route path="reviews" element={<PermissionGuard action="view_dashboard"><ReviewManage /></PermissionGuard>} />
           <Route path="users" element={<PermissionGuard action="view_users"><AdminUsers /></PermissionGuard>} />
           <Route path="settings" element={<PermissionGuard action="view_settings"><AdminSettings /></PermissionGuard>} />
         </Route>

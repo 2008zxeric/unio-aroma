@@ -23,6 +23,7 @@ import {
   Eye,
   ScrollText,
   Shield,
+  MessageSquare,
 } from 'lucide-react';
 
 // 菜单项定义 — 每项绑定权限
@@ -36,6 +37,8 @@ const MENU_ITEMS = [
   { path: '/admin/recommends', icon: Star, label: '首页推荐', perm: 'view_recommends' as PermissionAction },
   { type: 'divider', label: '运营数据' },
   { path: '/admin/inventory', icon: Warehouse, label: '库存利润', perm: 'view_inventory' as PermissionAction },
+  { type: 'divider', label: '互动管理' },
+  { path: '/admin/reviews', icon: MessageSquare, label: '评价审核', perm: 'view_dashboard' as PermissionAction },
   { type: 'divider', label: '系统' },
   { path: '/admin/dicts', icon: BookText, label: '字典管理', perm: 'view_dicts' as PermissionAction },
   { path: '/admin/audit-logs', icon: ScrollText, label: '操作日志', perm: 'view_dashboard' as PermissionAction, adminOnly: true },
@@ -52,6 +55,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/texts': '文字管理',
   '/admin/recommends': '首页推荐',
   '/admin/inventory': '库存利润',
+  '/admin/reviews': '评价审核',
   '/admin/dicts': '字典管理',
   '/admin/users': '权限管理',
   '/admin/settings': '系统设置',
