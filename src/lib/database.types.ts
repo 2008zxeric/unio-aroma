@@ -245,3 +245,20 @@ export interface AuditLog {
   ip?: string;
   created_at: string;
 }
+
+// ---- 产品评价 ----
+export interface Review {
+  id: string;
+  product_id?: string;         // 关联产品 UUID（可选）
+  product_code?: string;        // 产品短码（如 "Y-F-001"）
+  name: string;                 // 评价者昵称
+  avatar: string;               // 头像（单字）
+  rating: number;               // 评分 1-5
+  date?: string;                // 评价日期 "YYYY-MM-DD"
+  tags?: string[];              // 标签数组
+  content: string;              // 评价正文
+  verified?: boolean;           // 已购买认证
+  helpful?: number;             // 有帮助次数
+  is_approved?: boolean;        // 审核状态（前台只展示已审核的）
+  created_at?: string;          // 创建时间
+}

@@ -1,469 +1,441 @@
 /**
- * UNIO AROMA 产品评价板块 v3
- * - 先展示预设精选评价（150条静态数据，按产品 hash 随机打乱）
- * - 再加载用户真实评价（Supabase reviews 表，status = 'approved'）
- * - 两种评价卡片样式区分：精选评价有昵称+标签+评分，用户评价有 IP 归属地
- * - 右上角"写评价"按钮打开 ReviewForm 弹窗
+ * UNIO AROMA 产品评价板块
+ * 从 Supabase reviews 表读取 is_approved=true 的评价
+ * Supabase 失败时 fallback 到静态数据
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { MessageCircle, PenLine, Loader2, RefreshCw, Star, ShieldCheck } from 'lucide-react';
-import ReviewForm from './ReviewForm';
-import { REVIEWS, type Review as PresetReview } from '../data/reviews';
+import { useState, useEffect, useMemo } from 'react';
+import { Star, ThumbsUp, ChevronLeft, ChevronRight, Check, MessageCircle } from 'lucide-react';
+import { reviewService } from '../../lib/dataService';
+import type { Review } from '../../lib/database.types';
+// 保留静态数据作 fallback
+import { REVIEWS } from '../data/reviews';
 
-const SUPABASE_URL = 'https://xuicjydgtoltdhkbqoju.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWNqeWRndG9sdGRoa2Jxb2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MzI2NjgsImV4cCI6MjA5MTEwODY2OH0.7E-VPqi7m9WbCWw96jbEeVdVBVrwubIjAGEB-_MV5ng';
+const ALL_TAGS = ['品质纯正', '货源可靠', '小众高端', '助眠', '护肤', '冥想', '情绪调节', '香薰', '办公', '居家', '家庭', '纯露', '专业', '复方精油', '户外', '旅行', '提神', '学习', '运动', '按摩', '养生', '抗老', '调香', '日常', '简约', '仪式', '艺术', '茶道', '香道', '宠物'];
 
-const PAGE_SIZE = 8;
+const TAG_COLORS: Record<string, string> = {
+  '品质纯正': 'bg-amber-50 text-amber-700',
+  '货源可靠': 'bg-blue-50 text-blue-700',
+  '小众高端': 'bg-purple-50 text-purple-700',
+  '助眠': 'bg-indigo-50 text-indigo-700',
+  '护肤': 'bg-pink-50 text-pink-700',
+  '冥想': 'bg-cyan-50 text-cyan-700',
+  '情绪调节': 'bg-teal-50 text-teal-700',
+  '香薰': 'bg-orange-50 text-orange-700',
+  '办公': 'bg-sky-50 text-sky-700',
+  '居家': 'bg-stone-50 text-stone-600',
+  '家庭': 'bg-green-50 text-green-700',
+  '纯露': 'bg-rose-50 text-rose-700',
+  '专业': 'bg-slate-100 text-slate-700',
+  '复方精油': 'bg-violet-50 text-violet-700',
+  '户外': 'bg-lime-50 text-lime-700',
+  '旅行': 'bg-emerald-50 text-emerald-700',
+  '提神': 'bg-yellow-50 text-yellow-700',
+  '学习': 'bg-sky-50 text-sky-600',
+  '运动': 'bg-orange-50 text-orange-600',
+  '按摩': 'bg-red-50 text-red-700',
+  '养生': 'bg-green-50 text-green-600',
+  '抗老': 'bg-pink-50 text-pink-600',
+  '调香': 'bg-amber-50 text-amber-600',
+  '日常': 'bg-gray-50 text-gray-600',
+  '简约': 'bg-neutral-50 text-neutral-600',
+  '仪式': 'bg-fuchsia-50 text-fuchsia-700',
+  '艺术': 'bg-rose-50 text-rose-600',
+  '茶道': 'bg-stone-100 text-stone-700',
+  '香道': 'bg-stone-100 text-stone-700',
+  '宠物': 'bg-amber-50 text-amber-700',
+};
 
-interface UserReview {
-  id: string;
-  product_code: string;
-  content: string;
-  ip_location: string | null;
-  created_at: string;
-  status: string;
-}
+const PAGE_SIZE = 5;
 
 interface ProductReviewsProps {
   productCode?: string;
   productName?: string;
 }
 
-// 简单字符串 hash，用于按产品码随机打乱预设评价
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const ch = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + ch;
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-// Fisher-Yates 洗牌（确定性种子）
-function seededShuffle<T>(arr: T[], seed: number): T[] {
-  const a = [...arr];
-  let s = seed;
-  for (let i = a.length - 1; i > 0; i--) {
-    s = (s * 16807 + 0) % 2147483647;
-    const j = s % (i + 1);
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// 格式化时间（距今多久）
-function formatRelativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${Math.max(1, mins)} 分钟前`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} 小时前`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} 天前`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months} 个月前`;
-  return `${Math.floor(months / 12)} 年前`;
-}
-
-// 格式化日期
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-// 从 ip_location 生成简短地区显示
-function formatLocation(loc: string | null): string {
-  if (!loc) return '匿名访客';
-  const parts = loc.split(' · ').filter(Boolean);
-  if (parts.length >= 3) return `${parts[1]} · ${parts[2]}`;
-  if (parts.length === 2) return parts.join(' · ');
-  return parts[0] || '匿名访客';
-}
-
-// 预设评价头像色
-const PRESET_COLORS = [
-  'linear-gradient(135deg, #D75437, #D4AF37)',
-  'linear-gradient(135deg, #4A7C59, #7BA689)',
-  'linear-gradient(135deg, #5B5EA6, #9B2335)',
-  'linear-gradient(135deg, #00758F, #00A591)',
-  'linear-gradient(135deg, #D4AF37, #C0392B)',
-  'linear-gradient(135deg, #2C3E50, #4CA1AF)',
-  'linear-gradient(135deg, #8E44AD, #3498DB)',
-  'linear-gradient(135deg, #E74C3C, #F39C12)',
-];
-
-// 用户评价头像色（冷色调，和预设评价区分）
-const USER_COLORS = [
-  'linear-gradient(135deg, #607D8B, #90A4AE)',
-  'linear-gradient(135deg, #546E7A, #78909C)',
-  'linear-gradient(135deg, #78909C, #B0BEC5)',
-];
-
-function getPresetAvatarStyle(name: string): string {
-  const n = name.charCodeAt(0) % PRESET_COLORS.length;
-  return PRESET_COLORS[n];
-}
-
-function getUserAvatarStyle(id: string): string {
-  const n = id.charCodeAt(0) % USER_COLORS.length;
-  return USER_COLORS[n];
-}
-
-const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode, productName = '产品' }) => {
-  const [userReviews, setUserReviews] = useState<UserReview[]>([]);
+const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode }) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [showForm, setShowForm] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [helpfulSet, setHelpfulSet] = useState<Set<string>>(new Set());
 
-  // 按 productCode hash 打乱预设评价（每个产品看到不同顺序）
-  const shuffledPresetReviews = useMemo(() => {
-    const seed = productCode ? hashString(productCode) : 42;
-    return seededShuffle(REVIEWS, seed);
-  }, [productCode]);
-
-  // 合并列表：预设评价在前，用户评价在后
-  const allReviews = useMemo(() => [
-    ...shuffledPresetReviews.map(r => ({ type: 'preset' as const, data: r })),
-    ...userReviews.map(r => ({ type: 'user' as const, data: r })),
-  ], [shuffledPresetReviews, userReviews]);
-
-  const totalPages = Math.max(1, Math.ceil(allReviews.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const displayed = allReviews.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const fetchReviews = useCallback(async () => {
-    if (!productCode) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({
-        product_code: `eq.${productCode}`,
-        status: 'eq.approved',
-        order: 'created_at.desc',
-        select: 'id,product_code,content,ip_location,created_at,status',
-      });
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?${params}`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: UserReview[] = await res.json();
-      setUserReviews(data);
-    } catch {
-      // 用户评价加载失败不影响预设评价展示
-      setUserReviews([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [productCode]);
-
+  // 从 Supabase 加载已审核评价
   useEffect(() => {
-    fetchReviews();
-    setPage(1);
-  }, [fetchReviews]);
+    async function loadReviews() {
+      try {
+        const data = await reviewService.getApproved(productCode);
+        setReviews(data);
+      } catch (e) {
+        console.error('[ProductReviews] 加载评价失败，使用静态数据 fallback', e);
+        setError('加载失败，显示示例评价');
+        // Supabase 失败时 fallback 到静态数据
+        const fallback: Review[] = REVIEWS.map((r, idx) => ({
+          id: String(idx + 1),
+          product_code: productCode,
+          name: r.name,
+          avatar: r.avatar,
+          rating: r.rating,
+          date: r.date,
+          tags: r.tags,
+          content: r.content,
+          verified: r.verified,
+          helpful: r.helpful,
+          is_approved: true,
+          created_at: r.date,
+        }));
+        setReviews(fallback);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadReviews();
+  }, [productCode]);
 
-  const handleFormClose = () => {
-    setShowForm(false);
-    setTimeout(() => fetchReviews(), 300);
+  const filtered = useMemo(() => {
+    if (!selectedTag) return reviews;
+    return reviews.filter(r => r.tags?.includes(selectedTag));
+  }, [reviews, selectedTag]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const displayReviews = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // 全局统计
+  const totalCount = reviews.length;
+  const avgRating = totalCount > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / totalCount).toFixed(1)
+    : '0.0';
+  const distribution = [5, 4, 3, 2, 1].map(star => ({
+    star,
+    count: reviews.filter(r => r.rating === star).length,
+    pct: totalCount > 0 ? Math.round((reviews.filter(r => r.rating === star).length / totalCount) * 100) : 0,
+  }));
+
+  const handleHelpful = async (reviewId: string) => {
+    setHelpfulSet(prev => {
+      const next = new Set(prev);
+      if (next.has(reviewId)) {
+        next.delete(reviewId);
+      } else {
+        next.add(reviewId);
+        reviewService.incrementHelpful(reviewId).catch(console.error);
+      }
+      return next;
+    });
   };
 
+  if (loading) return (
+    <div className="mt-20 max-w-[1280px] mx-auto px-6 sm:px-8 lg:px-12">
+      <div className="flex items-center gap-3 mb-10">
+        <MessageCircle size={18} className="text-[#D75437]" />
+        <h2 className="text-xl sm:text-2xl font-bold tracking-wide" style={{ color: '#1A1A1A' }}>用户评价</h2>
+      </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="w-10 h-10 border-3 rounded-full animate-spin" style={{ borderColor: 'rgba(212,175,55,0.2)', borderTopColor: '#D4AF37' }} />
+      </div>
+    </div>
+  );
+
   return (
-    <>
-      <div className="mt-20 max-w-[1280px] mx-auto px-6 sm:px-8 lg:px-12">
-        {/* ── 标题区 ── */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <MessageCircle size={18} className="text-[#D75437]" />
-            <h2 className="text-xl sm:text-2xl font-bold tracking-wide" style={{ color: '#1A1A1A' }}>
-              用户评价
-            </h2>
-            <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: '#D4AF3720', color: '#D4AF37' }}>
-              {allReviews.length} 条
-            </span>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all hover:shadow-md active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, #D75437, #D4AF37)',
-              color: 'white',
-            }}
-          >
-            <PenLine size={14} />
-            <span className="hidden sm:inline">写评价</span>
-            <span className="sm:hidden">评价</span>
-          </button>
-        </div>
-
-        {/* ── 评价列表（预设 + 动态，合并分页） ── */}
-        {!loading || shuffledPresetReviews.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {displayed.map(item => {
-                if (item.type === 'preset') {
-                  return <PresetReviewCard key={`preset-${item.data.id}`} review={item.data} />;
-                } else {
-                  return <UserReviewCard key={`user-${item.data.id}`} review={item.data} />;
-                }
-              })}
-            </div>
-
-            {/* 分页 */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid rgba(26,26,26,0.06)' }}>
-                <p className="text-xs" style={{ color: '#1A1A1A30' }}>
-                  第 {currentPage} / {totalPages} 页，共 {allReviews.length} 条
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-full text-xs border transition-all disabled:opacity-30"
-                    style={{ borderColor: 'rgba(26,26,26,0.1)', color: '#1A1A1A50' }}
-                  >
-                    上一页
-                  </button>
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                    const num = totalPages <= 5 ? i + 1
-                      : currentPage <= 3 ? i + 1
-                      : currentPage >= totalPages - 2 ? totalPages - 4 + i
-                      : currentPage - 2 + i;
-                    return (
-                      <button
-                        key={num}
-                        onClick={() => setPage(num)}
-                        className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${num === currentPage ? 'text-white shadow-sm' : ''}`}
-                        style={num === currentPage
-                          ? { background: '#D75437', color: 'white' }
-                          : { color: '#1A1A1A40' }}
-                      >
-                        {num}
-                      </button>
-                    );
-                  })}
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 rounded-full text-xs border transition-all disabled:opacity-30"
-                    style={{ borderColor: 'rgba(26,26,26,0.1)', color: '#1A1A1A50' }}
-                  >
-                    下一页
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 底部写评价 CTA */}
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 py-5 px-6 rounded-2xl" style={{ background: 'rgba(26,26,26,0.02)' }}>
-              <p className="text-xs" style={{ color: '#1A1A1A35' }}>
-                评价经人工审核后展示 · 分享您的真实体验帮助更多人
-              </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition-all hover:shadow-sm"
-                style={{ borderColor: '#D75437', color: '#D75437' }}
-              >
-                <PenLine size={12} />
-                写评价
-              </button>
-            </div>
-          </>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <p className="text-sm" style={{ color: '#1A1A1A40' }}>{error}</p>
-            <button
-              onClick={fetchReviews}
-              className="flex items-center gap-1.5 text-xs text-[#D75437] hover:underline"
-            >
-              <RefreshCw size={12} />
-              重新加载
-            </button>
-          </div>
-        ) : null}
+    <div className="mt-20 max-w-[1280px] mx-auto px-6 sm:px-8 lg:px-12">
+      {/* 标题 */}
+      <div className="flex items-center gap-3 mb-10">
+        <MessageCircle size={18} className="text-[#D75437]" />
+        <h2 className="text-xl sm:text-2xl font-bold tracking-wide" style={{ color: '#1A1A1A' }}>用户评价</h2>
+        {error ? (
+          <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: '#D7543710', color: '#D75437' }}>
+            {totalCount} 条（示例数据）
+          </span>
+        ) : (
+          <span className="text-xs px-3 py-1 rounded-full font-bold" style={{ background: '#D4AF3720', color: '#D4AF37' }}>
+            {totalCount} 条
+          </span>
+        )}
       </div>
 
-      {/* 评价提交弹窗 */}
-      {showForm && (
-        <ReviewForm
-          productCode={productCode || ''}
-          productName={productName}
-          onClose={handleFormClose}
-        />
-      )}
-    </>
-  );
-};
-
-/* ── 预设评价卡片（精选评价：昵称 + 评分 + 标签 + 认证标记） ── */
-const PresetReviewCard = ({ review }: { review: PresetReview }) => {
-  const [expanded, setExpanded] = useState(false);
-  const LONG_THRESHOLD = 80;
-  const isLong = review.content.length > LONG_THRESHOLD;
-  const displayContent = !expanded && isLong
-    ? review.content.slice(0, LONG_THRESHOLD) + '…'
-    : review.content;
-
-  const avatarStyle = getPresetAvatarStyle(review.name);
-
-  return (
-    <div
-      className="rounded-2xl p-5 transition-all duration-300 hover:shadow-sm"
-      style={{ background: 'white', border: '1px solid rgba(26,26,26,0.05)' }}
-    >
-      <div className="flex items-start gap-3">
-        {/* 头像 */}
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-          style={{ background: avatarStyle }}
-        >
-          {review.avatar}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* 顶部：昵称 + 星级 + 日期 */}
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold" style={{ color: '#1A1A1A' }}>
-                {review.name}
-              </span>
-              {review.verified && (
-                <span className="flex items-center gap-0.5 text-[10px] font-medium" style={{ color: '#4A7C59' }}>
-                  <ShieldCheck size={10} />
-                  已验证
-                </span>
-              )}
-              {review.location && (
-                <span className="text-[10px]" style={{ color: '#1A1A1A30' }}>
-                  · {review.location}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px]" style={{ color: '#1A1A1A25' }}>{formatDate(review.date)}</span>
-          </div>
-
-          {/* 星级 */}
-          <div className="flex items-center gap-0.5 mb-2">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star
-                key={i}
-                size={12}
-                fill={i < review.rating ? '#D4AF37' : 'none'}
-                style={{ color: i < review.rating ? '#D4AF37' : '#1A1A1A15' }}
-              />
-            ))}
-          </div>
-
-          {/* 标签 */}
-          {review.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {review.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="text-[10px] px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(212,175,55,0.08)', color: '#B8941F' }}
-                >
-                  {tag}
-                </span>
+      {/* 桌面端：评分概览 + 标签筛选 */}
+      <div className="hidden md:flex gap-10 mb-10">
+        {/* 左侧：评分总览 */}
+        <div className="flex-shrink-0 w-52">
+          <div className="text-center">
+            <div className="text-5xl font-bold" style={{ color: '#1A1A1A' }}>{avgRating}</div>
+            <div className="flex justify-center gap-0.5 my-2">
+              {[1,2,3,4,5].map(i => (
+                <Star key={i} size={14} className={i <= Math.round(Number(avgRating)) ? 'text-[#D4AF37]' : 'text-gray-200'} fill={i <= Math.round(Number(avgRating)) ? '#D4AF37' : 'none'} />
               ))}
             </div>
-          )}
+            <p className="text-xs" style={{ color: '#1A1A1A30' }}>基于 {totalCount} 条评价</p>
+          </div>
+          <div className="mt-4 space-y-1.5">
+            {distribution.map(({ star, pct }) => (
+              <div key={star} className="flex items-center gap-2">
+                <span className="text-xs w-3 text-right" style={{ color: '#1A1A1A40' }}>{star}</span>
+                <Star size={9} className="text-[#D4AF37]" fill="#D4AF37" />
+                <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-[#D4AF37] transition-all duration-700" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-xs w-6 text-left" style={{ color: '#1A1A1A30' }}>{pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {/* 内容 */}
-          <p className="text-sm leading-relaxed" style={{ color: '#1A1A1A75' }}>
-            {displayContent}
-            {isLong && (
+        {/* 右侧：标签筛选 */}
+        <div className="flex-1">
+          <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={{ color: '#1A1A1A28' }}>按标签筛选</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => { setSelectedTag(null); setPage(1); }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
+                !selectedTag
+                  ? 'border-[#D75437] text-[#D75437] bg-[#D75437]/4'
+                  : 'border-gray-200 text-gray-400 hover:border-gray-300'
+              }`}
+            >
+              全部
+            </button>
+            {ALL_TAGS.slice(0, 12).map(tag => (
               <button
-                onClick={() => setExpanded(!expanded)}
-                className="ml-1 text-xs underline-offset-2 hover:underline"
-                style={{ color: '#D75437' }}
+                key={tag}
+                onClick={() => { setSelectedTag(tag); setPage(1); }}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
+                  selectedTag === tag
+                    ? 'border-[#D75437] text-[#D75437] bg-[#D75437]/4'
+                    : `${TAG_COLORS[tag] || 'bg-gray-50 text-gray-500'} border-transparent hover:opacity-80`
+                }`}
               >
-                {expanded ? '收起' : '展开'}
+                {tag}
               </button>
-            )}
-          </p>
-
-          {/* 有帮助数 */}
-          {review.helpful > 20 && (
-            <p className="text-[10px] mt-2" style={{ color: '#1A1A1A20' }}>
-              {review.helpful} 人觉得有帮助
+            ))}
+          </div>
+          {selectedTag && (
+            <p className="text-xs mt-3" style={{ color: '#1A1A1A30' }}>
+              筛选「{selectedTag}」，共 {filtered.length} 条评价
             </p>
           )}
+        </div>
+      </div>
+
+      {/* 移动端：评分概览 */}
+      <div className="md:hidden mb-6 flex items-center gap-4">
+        <div className="text-center">
+          <div className="text-3xl font-bold" style={{ color: '#1A1A1A' }}>{avgRating}</div>
+          <div className="flex justify-center gap-0.5 my-1">
+            {[1,2,3,4,5].map(i => (
+              <Star key={i} size={10} className={i <= Math.round(Number(avgRating)) ? 'text-[#D4AF37]' : 'text-gray-200'} fill={i <= Math.round(Number(avgRating)) ? '#D4AF37' : 'none'} />
+            ))}
+          </div>
+          <p className="text-[10px]" style={{ color: '#1A1A1A30' }}>{totalCount}条</p>
+        </div>
+        <div className="flex-1 space-y-1">
+          {distribution.slice(0, 3).map(({ star, pct }) => (
+            <div key={star} className="flex items-center gap-1.5">
+              <span className="text-[9px] w-3 text-right" style={{ color: '#1A1A1A40' }}>{star}</span>
+              <Star size={8} className="text-[#D4AF37]" fill="#D4AF37" />
+              <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-full rounded-full bg-[#D4AF37]" style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1 max-w-[140px]">
+          {ALL_TAGS.slice(0, 4).map(tag => (
+            <button
+              key={tag}
+              onClick={() => { setSelectedTag(tag === selectedTag ? null : tag); setPage(1); }}
+              className={`px-2 py-0.5 rounded-full text-[9px] font-medium border transition-all ${
+                selectedTag === tag
+                  ? 'border-[#D75437] text-[#D75437] bg-[#D75437]/4'
+                  : 'border-gray-200 text-gray-400'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 评价卡片列表 */}
+      <div className="space-y-5">
+        {displayReviews.length === 0 ? (
+          <div className="text-center py-16">
+            <MessageCircle size={32} className="mx-auto mb-3 text-gray-200" />
+            <p className="text-sm" style={{ color: '#1A1A1A28' }}>暂无符合筛选条件的评价</p>
+            <button onClick={() => { setSelectedTag(null); setPage(1); }} className="mt-3 text-xs text-[#D75437] underline">清除筛选</button>
+          </div>
+        ) : (
+          displayReviews.map(review => (
+            <ReviewCard
+              key={review.id}
+              review={review}
+              voted={helpfulSet.has(review.id)}
+              onHelpful={() => handleHelpful(review.id)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* 分页 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid rgba(26,26,26,0.06)' }}>
+          <p className="text-xs" style={{ color: '#1A1A1A30' }}>
+            第 {currentPage} / {totalPages} 页，共 {filtered.length} 条
+          </p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="w-9 h-9 rounded-full flex items-center justify-center border transition-all disabled:opacity-25 hover:border-[#D75437] hover:text-[#D75437] disabled:hover:border-gray-200 disabled:hover:text-gray-300"
+              style={{ borderColor: 'rgba(26,26,26,0.08)', color: '#1A1A1A45' }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+              let num: number;
+              if (totalPages <= 7) {
+                num = i + 1;
+              } else if (currentPage <= 4) {
+                num = i + 1;
+              } else if (currentPage >= totalPages - 3) {
+                num = totalPages - 6 + i;
+              } else {
+                num = currentPage - 3 + i;
+              }
+              return (
+                <button
+                  key={num}
+                  onClick={() => setPage(num)}
+                  className={`w-9 h-9 rounded-full text-xs font-medium transition-all ${
+                    num === currentPage
+                      ? 'bg-[#D75437] text-white shadow-sm'
+                      : 'hover:bg-gray-50'
+                  }`}
+                  style={{ color: num === currentPage ? 'white' : '#1A1A1A45' }}
+                >
+                  {num}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="w-9 h-9 rounded-full flex items-center justify-center border transition-all disabled:opacity-25 hover:border-[#D75437] hover:text-[#D75437]"
+              style={{ borderColor: 'rgba(26,26,26,0.08)', color: '#1A1A1A45' }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 底部诚信承诺 */}
+      <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 py-6 rounded-2xl" style={{ background: 'rgba(26,26,26,0.02)' }}>
+        <div className="flex items-center gap-2">
+          <Check size={13} className="text-[#D4AF37]" />
+          <span className="text-xs font-medium" style={{ color: '#1A1A1A45' }}>真实购买用户评价</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Check size={13} className="text-[#D4AF37]" />
+          <span className="text-xs font-medium" style={{ color: '#1A1A1A45' }}>产地直采 · 品质纯正</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Check size={13} className="text-[#D4AF37]" />
+          <span className="text-xs font-medium" style={{ color: '#1A1A1A45' }}>货源可溯源 · 专业认证</span>
         </div>
       </div>
     </div>
   );
 };
 
-/* ── 用户评价卡片（IP 归属地 + 时间，简洁风格） ── */
-const UserReviewCard = ({ review }: { review: UserReview }) => {
+/* 单条评价卡片 */
+const ReviewCard = ({ review, voted, onHelpful }: { review: Review; voted: boolean; onHelpful: () => void }) => {
   const [expanded, setExpanded] = useState(false);
-  const LONG_THRESHOLD = 80;
-  const isLong = review.content.length > LONG_THRESHOLD;
-  const displayContent = !expanded && isLong
-    ? review.content.slice(0, LONG_THRESHOLD) + '…'
-    : review.content;
-
-  const avatarStyle = getUserAvatarStyle(review.id);
-  const location = formatLocation(review.ip_location);
-  const timeAgo = formatRelativeTime(review.created_at);
+  const LONG_THRESHOLD = 100;
+  const isLong = (review.content?.length || 0) > LONG_THRESHOLD;
+  const displayContent = !expanded && isLong ? review.content.slice(0, LONG_THRESHOLD) + '…' : review.content;
 
   return (
     <div
-      className="rounded-2xl p-5 transition-all duration-300 hover:shadow-sm"
-      style={{
-        background: 'white',
-        border: '1px solid rgba(26,26,26,0.05)',
-        borderLeft: '3px solid #D75437',
-      }}
+      className="rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:shadow-sm"
+      style={{ background: 'white', border: '1px solid rgba(26,26,26,0.05)' }}
     >
-      <div className="flex items-start gap-3">
-        {/* 头像 */}
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-          style={{ background: avatarStyle }}
-        >
-          {review.ip_location ? review.ip_location.split(' · ').filter(Boolean).pop()?.[0] || '匿' : '匿'}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* 顶部：地区 + 标签 + 时间 */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium" style={{ color: '#1A1A1A60' }}>
-                {location}
-              </span>
-              <span
-                className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-                style={{ background: '#D7543710', color: '#D75437' }}
-              >
-                真实用户
-              </span>
-            </div>
-            <span className="text-[10px]" style={{ color: '#1A1A1A25' }}>{timeAgo}</span>
+      {/* 顶部：头像 + 名字 + 日期 + 评分 */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #D75437, #D4AF37)' }}
+          >
+            {review.avatar?.slice(0, 1) || '友'}
           </div>
-
-          {/* 内容 */}
-          <p className="text-sm leading-relaxed" style={{ color: '#1A1A1A75' }}>
-            {displayContent}
-            {isLong && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="ml-1 text-xs underline-offset-2 hover:underline"
-                style={{ color: '#D75437' }}
-              >
-                {expanded ? '收起' : '展开'}
-              </button>
-            )}
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold" style={{ color: '#1A1A1A' }}>{review.name}</span>
+              {review.verified && (
+                <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#D4AF3715', color: '#D4AF37' }}>
+                  <Check size={8} /> 已购买
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex gap-0.5">
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} size={9}
+                    className={i <= review.rating ? 'text-[#D4AF37]' : 'text-gray-200'}
+                    fill={i <= review.rating ? '#D4AF37' : 'none'}
+                  />
+                ))}
+              </div>
+              <span className="text-[9px]" style={{ color: '#1A1A1A22' }}>{review.date}</span>
+            </div>
+          </div>
         </div>
+
+        {/* 有帮助按钮 */}
+        <button
+          onClick={onHelpful}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all ${
+            voted
+              ? 'text-[#D75437] bg-[#D75437]/5 border border-[#D75437]/15'
+              : 'text-gray-300 hover:text-gray-500'
+          }`}
+        >
+          <ThumbsUp size={10} className={voted ? 'text-[#D75437]' : ''} />
+          <span>{review.helpful + (voted ? 1 : 0)}</span>
+        </button>
       </div>
+
+      {/* 内容 */}
+      <p className="text-sm leading-relaxed" style={{ color: '#1A1A1A80' }}>
+        {displayContent}
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="ml-1 text-xs underline-offset-2 hover:underline"
+            style={{ color: '#D75437' }}
+          >
+            {expanded ? '收起' : '展开'}
+          </button>
+        )}
+      </p>
+
+      {/* 标签 */}
+      {review.tags?.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-4">
+          {review.tags.map(tag => (
+            <span
+              key={tag}
+              className={`px-2 py-0.5 rounded-full text-[9px] font-medium ${TAG_COLORS[tag] || 'bg-gray-50 text-gray-500'}`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
