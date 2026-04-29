@@ -1,0 +1,25 @@
+{
+  "id": "session-1776837932439-b5utmd",
+  "name": "微信通道修复",
+  "status": "active",
+  "createdAt": "2026-04-22T06:08:21.321Z",
+  "updatedAt": "2026-04-22T06:08:21.321Z",
+  "agents": [
+    {
+      "id": "agent_pg310uqd",
+      "name": "Main Agent",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-04-22T06:08:21.321Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_fwn80wmh",
+    "title": "微信通道修复",
+    "createdAt": "2026-04-22T06:08:21.321Z",
+    "file": "summary_fwn80wmh.md"
+  },
+  "lastMessageCount": 28
+}

@@ -1,0 +1,25 @@
+{
+  "id": "session-1776838377255-klpx1c",
+  "name": "跨通道记忆与微信问题排查",
+  "status": "active",
+  "createdAt": "2026-04-22T06:24:31.687Z",
+  "updatedAt": "2026-04-22T06:45:03.241Z",
+  "agents": [
+    {
+      "id": "agent_sbano92x",
+      "name": "Main Agent",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-04-22T06:24:31.687Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_yk8kun9f",
+    "title": "跨通道记忆与微信问题排查",
+    "createdAt": "2026-04-22T06:24:31.687Z",
+    "file": "summary_yk8kun9f.md"
+  },
+  "lastMessageCount": 44
+}

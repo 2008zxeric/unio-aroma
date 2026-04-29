@@ -1,0 +1,25 @@
+{
+  "id": "6805ed6b-df09-4da1-b107-77ea970c86e9",
+  "name": "UNIO产品数据更新",
+  "status": "active",
+  "createdAt": "2026-04-21T03:33:29.748Z",
+  "updatedAt": "2026-04-21T03:33:29.748Z",
+  "agents": [
+    {
+      "id": "agent_yov8hpbh",
+      "name": "agent-8751b7c3",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-04-21T03:33:29.748Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_lhri883q",
+    "title": "UNIO产品数据更新",
+    "createdAt": "2026-04-21T03:33:29.748Z",
+    "file": "summary_lhri883q.md"
+  },
+  "lastMessageCount": 10
+}

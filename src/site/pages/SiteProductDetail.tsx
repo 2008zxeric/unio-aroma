@@ -697,12 +697,12 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
             </div>
           </div>
         )}
-      </div>{/* end desktop */}
 
-      {/* ━━ 用户评价板块 ━━ */}
-      <div className="mt-16 sm:mt-24">
-        <ProductReviews productCode={product.code} productName={product.name_cn} />
-      </div>
+        {/* ━━ 用户评价板块（桌面端）━━━━ */}
+        <div className="mt-16 sm:mt-24">
+          <ProductReviews productCode={product.code} productName={product.name_cn} />
+        </div>
+      </div>{/* end desktop */}
 
       <Lightbox />
 
