@@ -21,12 +21,18 @@ export function optimizeSupabaseImage(
   if (!url) return undefined;
   if (!url.includes('supabase.co/storage/v1/object/public/')) return url;
 
+  // 修正：数据库里存的 bucket 名为 product_images（下划线），实际 bucket 叫 product-images（短横线）
+  const correctedUrl = url.replace(
+    '/storage/v1/object/public/product_images/',
+    '/storage/v1/object/public/product-images/'
+  );
+
   const params = new URLSearchParams();
   if (options?.width) params.set('width', String(options.width));
   if (options?.height) params.set('height', String(options.height));
   if (options?.quality) params.set('quality', String(options.quality));
 
-  const renderUrl = url.replace(
+  const renderUrl = correctedUrl.replace(
     '/storage/v1/object/public/',
     '/storage/v1/render/image/public/'
   );
@@ -85,7 +91,7 @@ export function optimizeImage(
  * - quality=75
  */
 export function optimizeProductThumb(url: string | undefined | null): string | undefined {
-  return optimizeImage(url, { width: 300, quality: 75 });
+  return optimizeImage(url, { width: 300, height: 400, quality: 75 });
 }
 
 /**
@@ -94,7 +100,7 @@ export function optimizeProductThumb(url: string | undefined | null): string | u
  * - quality=80
  */
 export function optimizeProductFull(url: string | undefined | null): string | undefined {
-  return optimizeImage(url, { width: 800, quality: 80 });
+  return optimizeImage(url, { width: 800, height: 1067, quality: 80 });
 }
 
 /**

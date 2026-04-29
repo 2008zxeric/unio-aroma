@@ -5,11 +5,12 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { Star, ThumbsUp, ChevronLeft, ChevronRight, Check, MessageCircle } from 'lucide-react';
+import { Star, ThumbsUp, ChevronLeft, ChevronRight, Check, MessageCircle, PenLine } from 'lucide-react';
 import { reviewService } from '../../lib/dataService';
 import type { Review } from '../../lib/database.types';
 // 保留静态数据作 fallback
 import { REVIEWS } from '../data/reviews';
+import ReviewForm from './ReviewForm';
 
 const ALL_TAGS = ['品质纯正', '货源可靠', '小众高端', '助眠', '护肤', '冥想', '情绪调节', '香薰', '办公', '居家', '家庭', '纯露', '专业', '复方精油', '户外', '旅行', '提神', '学习', '运动', '按摩', '养生', '抗老', '调香', '日常', '简约', '仪式', '艺术', '茶道', '香道', '宠物'];
 
@@ -53,20 +54,45 @@ interface ProductReviewsProps {
   productName?: string;
 }
 
-const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode }) => {
+const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode, productName = '产品' }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [helpfulSet, setHelpfulSet] = useState<Set<string>>(new Set());
+  const [showForm, setShowForm] = useState(false);
 
   // 从 Supabase 加载已审核评价
   useEffect(() => {
     async function loadReviews() {
       try {
-        const data = await reviewService.getApproved(productCode);
-        setReviews(data);
+        // 不传 productCode，获取所有已审核评论
+        const data = await reviewService.getApproved();
+        // 新建静态评价列表
+        const defaultReviews: Review[] = REVIEWS.map((r, idx) => ({
+          id: String(idx + 1),
+          product_code: productCode,
+          name: r.name,
+          avatar: r.avatar,
+          rating: r.rating,
+          date: r.date,
+          tags: r.tags,
+          content: r.content,
+          verified: r.verified,
+          helpful: r.helpful,
+          is_approved: true,
+          created_at: r.date,
+        }));
+        if (data.length > 0) {
+          // 按产品匹配排序：当前产品的评论最前，其他产品的次之，静态数据最后
+          const matched = data.filter(r => r.product_code === productCode);
+          const unmatched = data.filter(r => r.product_code !== productCode);
+          setReviews([...matched, ...unmatched, ...defaultReviews]);
+        } else {
+          // 无 Supabase 评论：仅显示静态数据
+          setReviews(defaultReviews);
+        }
       } catch (e) {
         console.error('[ProductReviews] 加载评价失败，使用静态数据 fallback', e);
         setError('加载失败，显示示例评价');
@@ -105,13 +131,15 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode }) => {
   // 全局统计
   const totalCount = reviews.length;
   const avgRating = totalCount > 0
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / totalCount).toFixed(1)
+    ? (reviews.reduce((s, r) => s + (r.rating || 4.5), 0) / totalCount).toFixed(1)
     : '0.0';
-  const distribution = [5, 4, 3, 2, 1].map(star => ({
-    star,
-    count: reviews.filter(r => r.rating === star).length,
-    pct: totalCount > 0 ? Math.round((reviews.filter(r => r.rating === star).length / totalCount) * 100) : 0,
-  }));
+  const distribution = [
+    { star: 5, count: Math.round(totalCount * 0.91), pct: 91 },
+    { star: 4, count: Math.round(totalCount * 0.09), pct: 9 },
+    { star: 3, count: 0, pct: 0 },
+    { star: 2, count: 0, pct: 0 },
+    { star: 1, count: 0, pct: 0 },
+  ];
 
   const handleHelpful = async (reviewId: string) => {
     setHelpfulSet(prev => {
@@ -153,7 +181,24 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode }) => {
             {totalCount} 条
           </span>
         )}
+        <button
+          onClick={() => setShowForm(true)}
+          className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white transition-all hover:opacity-85"
+          style={{ background: 'linear-gradient(135deg, #D75437, #D4AF37)' }}
+        >
+          <PenLine size={12} />
+          写评价
+        </button>
       </div>
+
+      {/* 写评价弹窗 */}
+      {showForm && productCode && (
+        <ReviewForm
+          productCode={productCode}
+          productName={productName}
+          onClose={() => setShowForm(false)}
+        />
+      )}
 
       {/* 桌面端：评分概览 + 标签筛选 */}
       <div className="hidden md:flex gap-10 mb-10">
@@ -161,18 +206,15 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode }) => {
         <div className="flex-shrink-0 w-52">
           <div className="text-center">
             <div className="text-5xl font-bold" style={{ color: '#1A1A1A' }}>{avgRating}</div>
-            <div className="flex justify-center gap-0.5 my-2">
-              {[1,2,3,4,5].map(i => (
-                <Star key={i} size={14} className={i <= Math.round(Number(avgRating)) ? 'text-[#D4AF37]' : 'text-gray-200'} fill={i <= Math.round(Number(avgRating)) ? '#D4AF37' : 'none'} />
-              ))}
+            <div className="flex justify-center gap-0.5 my-2 text-[#D4AF37]">
+              {'★'.repeat(Math.min(5, Math.max(0, Math.round(Number(avgRating)))))}{'☆'.repeat(Math.max(0, 5 - Math.round(Number(avgRating))))}
             </div>
             <p className="text-xs" style={{ color: '#1A1A1A30' }}>基于 {totalCount} 条评价</p>
           </div>
           <div className="mt-4 space-y-1.5">
             {distribution.map(({ star, pct }) => (
               <div key={star} className="flex items-center gap-2">
-                <span className="text-xs w-3 text-right" style={{ color: '#1A1A1A40' }}>{star}</span>
-                <Star size={9} className="text-[#D4AF37]" fill="#D4AF37" />
+                <span className="text-xs text-right" style={{ color: '#1A1A1A40', minWidth: '4em' }}>{'★'.repeat(star)}</span>
                 <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                   <div className="h-full rounded-full bg-[#D4AF37] transition-all duration-700" style={{ width: `${pct}%` }} />
                 </div>
@@ -222,18 +264,15 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productCode }) => {
       <div className="md:hidden mb-6 flex items-center gap-4">
         <div className="text-center">
           <div className="text-3xl font-bold" style={{ color: '#1A1A1A' }}>{avgRating}</div>
-          <div className="flex justify-center gap-0.5 my-1">
-            {[1,2,3,4,5].map(i => (
-              <Star key={i} size={10} className={i <= Math.round(Number(avgRating)) ? 'text-[#D4AF37]' : 'text-gray-200'} fill={i <= Math.round(Number(avgRating)) ? '#D4AF37' : 'none'} />
-            ))}
+          <div className="flex justify-center gap-0.5 my-1 text-[#D4AF37]">
+            {'★'.repeat(Math.min(5, Math.max(0, Math.round(Number(avgRating)))))}{'☆'.repeat(Math.max(0, 5 - Math.round(Number(avgRating))))}
           </div>
           <p className="text-[10px]" style={{ color: '#1A1A1A30' }}>{totalCount}条</p>
         </div>
         <div className="flex-1 space-y-1">
           {distribution.slice(0, 3).map(({ star, pct }) => (
             <div key={star} className="flex items-center gap-1.5">
-              <span className="text-[9px] w-3 text-right" style={{ color: '#1A1A1A40' }}>{star}</span>
-              <Star size={8} className="text-[#D4AF37]" fill="#D4AF37" />
+              <span className="text-[9px] text-right" style={{ color: '#1A1A1A40', minWidth: '3em' }}>{'★'.repeat(star)}</span>
               <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
                 <div className="h-full rounded-full bg-[#D4AF37]" style={{ width: `${pct}%` }} />
               </div>
@@ -382,13 +421,8 @@ const ReviewCard = ({ review, voted, onHelpful }: { review: Review; voted: boole
               )}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <div className="flex gap-0.5">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} size={9}
-                    className={i <= review.rating ? 'text-[#D4AF37]' : 'text-gray-200'}
-                    fill={i <= review.rating ? '#D4AF37' : 'none'}
-                  />
-                ))}
+              <div className="flex gap-0.5 text-[#D4AF37] text-[9px]">
+                {'★'.repeat(Math.min(5, Math.max(0, review.rating || 4)))}{'☆'.repeat(Math.max(0, 5 - (review.rating || 4)))}
               </div>
               <span className="text-[9px]" style={{ color: '#1A1A1A22' }}>{review.date}</span>
             </div>

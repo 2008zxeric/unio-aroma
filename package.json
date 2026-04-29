@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/cinzel": "^5.2.8",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/noto-serif-sc": "^5.2.8",
     "@google/genai": "^1.34.0",
     "@supabase/supabase-js": "^2.102.1",
     "browser-image-compression": "^2.0.2",

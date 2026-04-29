@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, TreePine, FlaskConical, MapPin, Home } from 'lucide-react';
+import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, TreePine, FlaskConical, MapPin, Home, Search } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { optimizeProductThumb, optimizeImage } from '../imageUtils';
 import { getSeries, getProducts } from '../siteDataService';
@@ -40,45 +40,48 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }) => {
   const displayImage = optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || LOGO_PLACEHOLDER;
 
+  // 取所有价格中的最小值（最便宜的规格）
+  const allPrices = [item.price_5ml, item.price_10ml, item.price_15ml, item.price_30ml, item.price_100ml, item.price_piece, item.price].filter((p): p is number => typeof p === 'number' && p > 0);
+  const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
+  const maxPrice = allPrices.length > 1 ? Math.max(...allPrices) : null;
+
   return (
     <div
       className="group flex flex-col transition-all duration-700 animate-in fade-in slide-in-from-bottom-4"
       style={{ animationDelay: `${idx * 50}ms` }}
     >
       <div
-        className="relative aspect-[3/4] rounded-2xl sm:rounded-[4rem] overflow-hidden bg-white border border-black/[0.03] shadow-sm group-hover:shadow-xl group-hover:border-[#D75437]/15 transition-all duration-700 cursor-pointer"
+        className="relative aspect-[4/5] rounded-2xl sm:rounded-[4rem] overflow-hidden bg-white border border-black/[0.03] shadow-sm group-hover:shadow-xl group-hover:border-[#D75437]/15 transition-all duration-700 cursor-pointer"
         onClick={() => onSelect(item.code)}
       >
         <img
           src={displayImage}
-          className="w-full h-full object-cover transition-transform duration-[8s] group-hover:scale-105"
+          className="w-full h-full object-contain transition-opacity duration-300"
           alt={item.name_cn}
           loading="lazy"
           decoding="async"
           onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }}
         />
         
+        {/* 放大按钮 — hover时显示 */}
+        <button
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onZoom(optimizeImage(item.image_url || item.gallery_urls?.[0], { width: 800, quality: 80 }) || displayImage); 
+          }}
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 p-1.5 sm:p-3 bg-white/95 backdrop-blur rounded-full shadow-lg hover:scale-110 transition-all active:scale-95 opacity-0 group-hover:opacity-100 z-10"
+        >
+          <ZoomIn size={12} smSize={16} className="text-[#D75437]" />
+        </button>
+        
         {/* 悬停遮罩层 */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-2 sm:p-4">
-          {/* 价格信息悬停显示 */}
-          {(item.price_10ml || item.price_30ml || item.price_100ml) && (
+          {/* 价格信息悬停显示 — 完整价格区间 */}
+          {minPrice && (
             <span className="text-white text-[9px] sm:text-xs font-bold tracking-wider">
-              ¥{item.price_10ml || item.price_30ml || item.price_100ml}
+              ¥{minPrice}{maxPrice && maxPrice !== minPrice ? ` — ¥${maxPrice}` : ''}
             </span>
           )}
-        </div>
-
-        {/* 放大按钮 */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              onZoom(optimizeImage(item.image_url || item.gallery_urls?.[0], { width: 800, quality: 80 }) || displayImage); 
-            }}
-            className="p-1.5 sm:p-3 bg-white/95 backdrop-blur rounded-full shadow-lg hover:scale-110 transition-all active:scale-95"
-          >
-            <ZoomIn size={12} smSize={16} className="text-[#D75437]" />
-          </button>
         </div>
       </div>
 
@@ -89,7 +92,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
         {item.name_en && (
           <span className="text-[5px] sm:text-[10px] tracking-wider opacity-18 font-bold uppercase block truncate">{item.name_en}</span>
         )}
-        {/* 产地 + 价格行 */}
+        {/* 产地 + 最低价格 */}
         <div className="flex items-center gap-1.5 justify-center sm:justify-start flex-wrap">
           {item.origin && (
             <span className="flex items-center gap-0.5 text-[7px] sm:text-[10px] text-black/28 font-medium">
@@ -97,12 +100,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
               {item.origin.split('/')[0].trim()}
             </span>
           )}
-          {item.origin && (item.price_10ml || item.price_30ml) && <span className="black/13 text-[7px] sm:text-[10px]">·</span>}
-          {(item.price_10ml || item.price_30ml) && (
-            <span className="text-[9px] sm:text-xs text-[#D75437] font-medium">¥{item.price_10ml || item.price_30ml}</span>
-          )}
-          {!item.price_10ml && !item.price_30ml && item.price_100ml && (
-            <span className="text-[9px] sm:text-xs text-[#D75437] font-medium">¥{item.price_100ml}</span>
+          {item.origin && minPrice && <span className="black/13 text-[7px] sm:text-[10px]">·</span>}
+          {minPrice && (
+            <span className="text-[9px] sm:text-xs text-[#D75437] font-medium">
+              ¥{minPrice}{maxPrice && maxPrice !== minPrice ? `起` : ''}
+            </span>
           )}
         </div>
       </div>
@@ -124,7 +126,105 @@ const getCategoryIcon = (category: string) => {
   return <Sparkles size={14} smSize={16} className="text-[#D4AF37]" />;
 };
 
-// ===== 广告横幅配置 =====
+// ===== 搜索模式专用结果卡片 =====
+// 大图 + 信息密度：展示更多产品内容，而非缩略方块
+
+const SearchResultCard: React.FC<{ item: Product; onSelect: (code: string) => void; onZoom: (url: string) => void; }> = ({ item, onSelect, onZoom }) => {
+  const img = optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || LOGO_PLACEHOLDER;
+  const allPrices = [item.price_5ml, item.price_10ml, item.price_15ml, item.price_30ml, item.price_100ml, item.price_piece, item.price].filter((p): p is number => typeof p === 'number' && p > 0);
+  const minPrice = allPrices.length > 0 ? Math.min(...allPrices) : null;
+  const maxPrice = allPrices.length > 1 ? Math.max(...allPrices) : null;
+
+  return (
+    <div
+      className="flex flex-col sm:flex-row gap-3 sm:gap-6 p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/70 hover:bg-white border border-black/[0.04] hover:border-[#D75437]/12 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+      onClick={() => onSelect(item.code)}
+    >
+      {/* 图片区 — 移动端小方图，PC端大方图 */}
+      <div className="relative w-28 sm:w-[200px] h-28 sm:h-[200px] rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 bg-white">
+
+        <img
+          src={img}
+          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+          alt={item.name_cn}
+          loading="lazy"
+          onError={(e) => { e.currentTarget.src = LOGO_PLACEHOLDER; }}
+        />
+        {/* 放大按钮 */}
+        <button
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onZoom(optimizeImage(item.image_url || item.gallery_urls?.[0], { width: 800, quality: 80 }) || img); 
+          }}
+          className="absolute top-2 right-2 p-1.5 bg-white/95 backdrop-blur rounded-full shadow-lg hover:scale-110 transition-all active:scale-95 opacity-0 group-hover:opacity-100 z-10"
+        >
+          <ZoomIn size={12} className="text-[#D75437]" />
+        </button>
+      </div>
+
+      {/* 信息区 */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5 sm:gap-2">
+        {/* 名称行 */}
+        <div>
+          <h4 className="text-sm sm:text-xl font-bold tracking-wide text-[#1A1A1A]/85 group-hover:text-[#D75437] transition-colors">
+            {item.name_cn}
+          </h4>
+          {item.name_en && (
+            <span className="text-[9px] sm:text-xs tracking-widest opacity-25 font-bold uppercase block truncate">{item.name_en}</span>
+          )}
+          {item.scientific_name && (
+            <span className="text-[8px] sm:text-[11px] italic opacity-20 block mt-0.5">{item.scientific_name}</span>
+          )}
+        </div>
+
+        {/* 描述摘要 — PC端展示更多内容 */}
+        {item.short_desc && (
+          <p className="text-[10px] sm:text-sm leading-relaxed opacity-45 line-clamp-2 sm:line-clamp-3">
+            {item.short_desc}
+          </p>
+        )}
+        {!item.short_desc && item.description && (
+          <p className="text-[10px] sm:text-sm leading-relaxed opacity-35 line-clamp-2 sm:line-clamp-3">
+            {item.description}
+          </p>
+        )}
+
+        {/* 规格信息行 */}
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[9px] sm:text-xs">
+          {item.origin && (
+            <span className="flex items-center gap-0.5 text-black/35 font-medium">
+              <MapPin size={8} smSize={10} className="text-[#D75437]/40" />
+              <span className="truncate max-w-[120px] sm:max-w-[200px]">{item.origin.split('/')[0].trim()}</span>
+            </span>
+          )}
+          {item.extraction_method && (
+            <span className="text-black/25">· {item.extraction_method}</span>
+          )}
+          {item.extraction_site && (
+            <span className="text-black/25">· {item.extraction_site}</span>
+          )}
+          {minPrice && (
+            <span className="ml-auto text-[11px] sm:text-base font-bold text-[#D75437]">
+              ¥{minPrice}{maxPrice && maxPrice !== minPrice ? ` — ¥${maxPrice}` : ''}
+            </span>
+          )}
+        </div>
+
+        {/* 产品编码 + 系列标签 */}
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[6px] sm:text-[8px] tracking-[0.2em] font-mono opacity-18 text-black/30">
+            {item.code}
+          </span>
+          {item.series_code && (
+            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-black/[0.03] text-[7px] sm:text-[9px] font-bold tracking-wider opacity-30">
+              {item.series_code.toUpperCase()}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 // 四张产品广告图：四个系列各配一张独立banner
 const BANNER_ADS: Record<string, string> = {
   yuan:  '/assets/banner/banner-ad-1.webp',
@@ -159,7 +259,7 @@ const CategoryHeaderCard: React.FC<{ category: string; label: string; theme: typ
   const gradient = gradientMap[`yuan_${category}`] || `from-[${theme.color}]/8 to-[${theme.color}]/4`;
 
   return (
-    <div className={`col-span-1 bg-gradient-to-br ${gradient} rounded-2xl sm:rounded-[4.5rem] p-3 sm:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-[3/4]`}>
+    <div className={`col-span-1 bg-gradient-to-br ${gradient} rounded-2xl sm:rounded-[3rem] p-3 sm:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-square`}>
       {/* 装饰性背景元素 */}
       <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.03]">
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -197,7 +297,10 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>(initialSeries || 'yuan');
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [photoAnimating, setPhotoAnimating] = useState(false);
+  const [photoExiting, setPhotoExiting] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // 移动端浮动按钮滚动跟随（视差微动效果）
   useEffect(() => {
@@ -224,10 +327,20 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
     loadData();
   }, []);
 
-  // 当前系列的产品
+  // 搜索过滤（跨系列模糊匹配名称/描述/产地/学名）
+  const searchedProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+    const q = searchQuery.trim().toLowerCase();
+    return products.filter(p => {
+      const fields = [p.name_cn, p.name_en, p.short_desc, p.description, p.origin, p.scientific_name, p.code];
+      return fields.some(f => f && f.toLowerCase().includes(q));
+    });
+  }, [products, searchQuery]);
+
+  // 当前系列的产品（搜索时显示所有匹配结果）
   const currentProducts = useMemo(
-    () => products.filter(p => p.series_code === filter),
-    [products, filter]
+    () => searchQuery.trim() ? searchedProducts : products.filter(p => p.series_code === filter),
+    [products, filter, searchQuery, searchedProducts]
   );
 
   // 按子分类分组，保持固定排序
@@ -280,14 +393,22 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
       {/* 图片放大查看 */}
       {activePhoto && (
         <div
-          className="fixed inset-0 z-[2000] bg-[#1A1A1A]/95 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-20 cursor-zoom-out"
-          onClick={() => setActivePhoto(null)}
+          className={`fixed top-0 left-0 w-screen h-screen z-[2000] bg-[#1A1A1A]/95 backdrop-blur-2xl grid place-items-center cursor-zoom-out transition-all duration-300 ${photoExiting ? 'opacity-0 scale-[0.97]' : 'opacity-100'}`}
+          onClick={() => {
+            setPhotoExiting(true);
+            setTimeout(() => { setActivePhoto(null); setPhotoExiting(false); }, 300);
+          }}
         >
           <img
             src={activePhoto}
-            className="max-w-full max-h-[85vh] object-contain rounded-xl sm:rounded-2xl shadow-2xl"
+            className={`max-w-[min(90vw,100%)] max-h-[min(90vh,100%)] object-contain rounded-xl sm:rounded-2xl shadow-2xl transition-all duration-300 cursor-pointer ${photoExiting ? 'scale-[0.95] opacity-0' : 'scale-100 opacity-100'}`}
             alt="Preview"
             decoding="async"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPhotoExiting(true);
+              setTimeout(() => { setActivePhoto(null); setPhotoExiting(false); }, 300);
+            }}
           />
         </div>
       )}
@@ -372,75 +493,115 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
         </div>
       </div>
 
-      {/* ━━━ 产品广告横幅 ━━━ */}
-      <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 mb-8 sm:mb-20">
-        <div className="relative w-full aspect-[2/1] sm:aspect-[3/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
-          {/* 背景图 */}
-          <img
-            src={BANNER_ADS[filter]}
-            className={`w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105 ${
-              filter === 'yuan' || filter === 'sheng' ? 'object-bottom' : 'object-center'
-            }`}
-            alt={`UNIO AROMA 产品广告 - ${theme.fullLabel}`}
-            loading="lazy"
+      {/* 搜索框 — 居中 + PC端更大 */}
+      <div className="max-w-3xl mx-auto px-3 sm:px-6 mb-4 sm:mb-6">
+        <div className="relative">
+          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/25 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); }}
+            placeholder="🔍 搜索全产品库… 如：玫瑰、柠檬、檀香、ORIGIN"
+            className="w-full pl-10 sm:pl-12 pr-10 py-2.5 sm:py-4 sm:rounded-[3rem] rounded-2xl text-xs sm:text-sm outline-none transition-all bg-white/85 border border-black/[0.06] focus:border-[#D4AF37]/40 focus:bg-white focus:shadow-[0_0_0_4px_rgba(212,175,55,0.08)] focus:ring-0"
+            style={{ color: '#1A1A1A' }}
           />
-          {/* 渐隐遮罩 - 左到右 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/10 to-transparent" />
-          {/* 底部渐变 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-          
-          {/* 文案叠加 */}
-          <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-16">
-            <span className="text-[7px] sm:text-xs tracking-[0.3em] sm:tracking-[0.5em] font-bold text-white/60 uppercase mb-1 sm:mb-4">
-              {theme.en}
-            </span>
-            <h3 className="text-lg sm:text-5xl font-bold text-white tracking-wide sm:tracking-widest leading-tight">
-              {theme.fullLabel}
-            </h3>
-            <p className="text-[8px] sm:text-sm text-white/45 mt-0.5 sm:mt-2 tracking-wider max-w-md">
-              {filter === 'yuan' && '极境单方 · 五行能量'}
-              {filter === 'he' && '身心复方 · 和谐共鸣'}
-              {filter === 'sheng' && '纯净活水 · 植物精华'}
-              {filter === 'jing' && '空间香道 · 凝思之境'}
-            </p>
-          </div>
-          
-          {/* 装饰标签 - 产品广告 */}
-          <div className="absolute top-3 right-3 sm:top-6 sm:right-6 px-2 sm:px-4 py-1 sm:py-2 bg-white/15 backdrop-blur-md rounded-full border border-white/10">
-            <span className="text-[6px] sm:text-[10px] tracking-[0.2em] font-bold text-white/80">PRODUCT</span>
-          </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-black/8 hover:bg-black/15 text-black/30 hover:text-black/60 transition-all text-xs"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 子分类分组展示 */}
-      <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 space-y-12 sm:space-y-52">
-        {groups.length === 0 ? (
-          <div className="text-center py-16 sm:py-28">
-            <p className="text-black/28 text-sm sm:text-base">暂无馆藏</p>
+      {/* 搜索模式：直接展示搜索结果 — 大图+摘要卡片 */}
+      {searchQuery.trim() ? (
+        <div className="max-w-4xl mx-auto px-3 sm:px-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <p className="text-[10px] sm:text-sm" style={{ color: '#1A1A1A45' }}>
+              搜索「<span className="font-medium text-black/60">{searchQuery.trim()}</span>」— 共 <span className="font-bold text-[#D75437]">{currentProducts.length}</span> 个结果
+            </p>
           </div>
-        ) : (
-          groups.map(({ category, label, items }) => (
-            <section key={category} className="space-y-4 sm:space-y-20">
-              {/* 产品网格 */}
-              <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-12 lg:gap-20">
-                {/* 品牌化子分类标题卡片 */}
-                <CategoryHeaderCard category={category} label={label} theme={theme} />
-
-                {/* 产品卡片 */}
-                {items.map((item, idx) => (
-                  <ProductCard
-                    key={item.id}
-                    item={item}
-                    idx={idx}
-                    onSelect={handleSelectProduct}
-                    onZoom={(url) => setActivePhoto(url)}
-                  />
-                ))}
+          <div className="space-y-2.5 sm:space-y-4">
+            {currentProducts.map((item, idx) => (
+              <SearchResultCard
+                key={item.id}
+                item={item}
+                onSelect={handleSelectProduct}
+                onZoom={(url) => setActivePhoto(url)}
+              />
+            ))}
+          </div>
+          {currentProducts.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-black/28 text-sm">未找到匹配产品</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* ━━━ 产品广告横幅 ━━━ */}
+          <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 mb-8 sm:mb-20">
+            <div className="relative w-full aspect-[2/1] sm:aspect-[3/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
+              <img
+                src={BANNER_ADS[filter]}
+                className={`w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105 ${
+                  filter === 'yuan' || filter === 'sheng' ? 'object-bottom' : 'object-center'
+                }`}
+                alt={`UNIO AROMA 产品广告 - ${theme.fullLabel}`}
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+              <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-16">
+                <span className="text-[7px] sm:text-xs tracking-[0.3em] sm:tracking-[0.5em] font-bold text-white/60 uppercase mb-1 sm:mb-4">
+                  {theme.en}
+                </span>
+                <h3 className="text-lg sm:text-5xl font-bold text-white tracking-wide sm:tracking-widest leading-tight">
+                  {theme.fullLabel}
+                </h3>
+                <p className="text-[8px] sm:text-sm text-white/45 mt-0.5 sm:mt-2 tracking-wider max-w-md">
+                  {filter === 'yuan' && '极境单方 · 五行能量'}
+                  {filter === 'he' && '身心复方 · 和谐共鸣'}
+                  {filter === 'sheng' && '纯净活水 · 植物精华'}
+                  {filter === 'jing' && '空间香道 · 凝思之境'}
+                </p>
               </div>
-            </section>
-          ))
-        )}
-      </div>
+              <div className="absolute top-3 right-3 sm:top-6 sm:right-6 px-2 sm:px-4 py-1 sm:py-2 bg-white/15 backdrop-blur-md rounded-full border border-white/10">
+                <span className="text-[6px] sm:text-[10px] tracking-[0.2em] font-bold text-white/80">PRODUCT</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 子分类分组展示 */}
+          <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 space-y-12 sm:space-y-52">
+            {groups.length === 0 ? (
+              <div className="text-center py-16 sm:py-28">
+                <p className="text-black/28 text-sm sm:text-base">暂无馆藏</p>
+              </div>
+            ) : (
+              groups.map(({ category, label, items }) => (
+                <section key={category} className="space-y-4 sm:space-y-20">
+                  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-12 lg:gap-20">
+                    <CategoryHeaderCard category={category} label={label} theme={theme} />
+                    {items.map((item, idx) => (
+                      <ProductCard
+                        key={item.id}
+                        item={item}
+                        idx={idx}
+                        onSelect={handleSelectProduct}
+                        onZoom={(url) => setActivePhoto(url)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };

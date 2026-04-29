@@ -54,13 +54,27 @@ const viewAccentColors: Record<string, string> = {
   oracle: '#D4AF37',
 };
 
+type NavEntry = {
+  view: ViewType;
+  params: NavParams;
+};
+
 const SiteApp: React.FC = () => {
   const navigate = useNavigate();
   const [view, setView] = useState<ViewType>('home');
   const [navParams, setNavParams] = useState<NavParams>({});
-  const [prevView, setPrevView] = useState<ViewType>('home');
-  const [showSplash, setShowSplash] = useState(true);
+  // 导航历史栈 — 栈底是 home，每次 navigate pushState 入新栈
+  const [navStack, setNavStack] = useState<NavEntry[]>([{ view: 'home' as ViewType, params: {} }]);
+  const [showSplash, setShowSplash] = useState(() => {
+    // 首次访问才显示Splash，同一次会话内刷新不再显示
+    const visited = sessionStorage.getItem('unio_splash_shown');
+    if (visited) return false;
+    sessionStorage.setItem('unio_splash_shown', 'true');
+    return true;
+  });
   const [isExiting, setIsExiting] = useState(false);
+  const [logoExpanding, setLogoExpanding] = useState(false);
+  const [logoExpandingExiting, setLogoExpandingExiting] = useState(false);
   const [showBackTop, setShowBackTop] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -95,11 +109,11 @@ const SiteApp: React.FC = () => {
   };
 
   const goBack = () => {
-    if (prevView && prevView !== view) {
-      setPrevView(view);
-      setNavParams({});
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 如果栈里有多于1个条目（最后一个是当前页，前一个是目标），用浏览器回退
+    if (navStack.length > 1) {
+      window.history.back();
     } else {
+      // 兜底：回首页
       handleNavigate('home');
     }
   };
@@ -172,7 +186,7 @@ const SiteApp: React.FC = () => {
     const { v, p } = parseHash();
     setView(v);
     setNavParams(p);
-    if (v !== "home") setPrevView("home");
+    setNavStack([{ view: 'home', params: {} }, { view: v, params: p }]);
 
     const timer = setTimeout(() => {
       setIsExiting(true);
@@ -182,6 +196,7 @@ const SiteApp: React.FC = () => {
   }, []);
 
   // 状态变更时同步写入 URL hash（新格式：#/view/param）
+  // 同时 pushState 入浏览器历史栈，让浏览器回退按钮正常工作
   useEffect(() => {
     if (!view) return;
     let hash = `/${view}`;
@@ -189,10 +204,29 @@ const SiteApp: React.FC = () => {
     else if (view === 'product' && navParams.productId) hash = `/product/${encodeURIComponent(navParams.productId)}`; // 旧UUID兼容
     else if (view === 'collections' && navParams.series) hash = `/collections/${navParams.series}`;
     else if (view === 'destination' && navParams.countryId) hash = `/destination/${navParams.countryId}`;
-    window.history.replaceState(null, '', `#${hash}`);
+    window.history.pushState({ view, params: navParams }, '', `#${hash}`);
     localStorage.setItem('site_view', view);
     localStorage.setItem('site_params', JSON.stringify(navParams));
   }, [view, navParams]);
+
+  // 监听浏览器回退/前进 — popstate 触发时从 state 恢复视图
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const state = e.state as { view?: ViewType; params?: NavParams } | null;
+      if (state?.view && state.view !== view) {
+        setView(state.view);
+        setNavParams(state.params || {});
+        window.scrollTo(0, 0);
+      } else if (!state) {
+        // 用户在初始页面回退到栈底 → 留在 home
+        setView('home');
+        setNavParams({});
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [view]);
 
   const handleNavigate = (newView: string, params?: NavParams) => {
     // 触发页面切换动画
@@ -202,7 +236,7 @@ const SiteApp: React.FC = () => {
     window.scrollTo(0, 0);
     
     setTimeout(() => {
-      setPrevView(view);
+      setNavStack(prev => [...prev, { view: newView as ViewType, params: params || {} }]);
       setView(newView as ViewType);
       setNavParams(params || {});
       
@@ -211,16 +245,16 @@ const SiteApp: React.FC = () => {
   };
 
   const handleLogoClick = () => {
-    setShowSplash(true);
-    setIsExiting(false);
+    setLogoExpanding(true);
+    setLogoExpandingExiting(false);
     setTimeout(() => {
-      setIsExiting(true);
+      setLogoExpandingExiting(true);
       setTimeout(() => {
-        setShowSplash(false);
-        setIsExiting(false);
+        setLogoExpanding(false);
+        setLogoExpandingExiting(false);
         handleNavigate('home');
-      }, 800);
-    }, 1500);
+      }, 500);
+    }, 1200);
   };
 
   const renderView = () => {
@@ -228,7 +262,7 @@ const SiteApp: React.FC = () => {
       case 'home': return <SiteHome onNavigate={handleNavigate} />;
       case 'collections': return <SiteCollections initialSeries={navParams.series} onNavigate={handleNavigate} />;
       case 'product': return (navParams.productCode || navParams.productId)
-        ? <SiteProductDetail productCode={navParams.productCode || ''} productId={navParams.productId} onNavigate={handleNavigate} previousView={prevView} />
+        ? <SiteProductDetail productCode={navParams.productCode || ''} productId={navParams.productId} onNavigate={handleNavigate} onGoBack={goBack} />
         : <SiteCollections onNavigate={handleNavigate} />;
       case 'atlas': return <SiteAtlas onNavigate={handleNavigate} />;
       case 'china-atlas': return <SiteChinaAtlas onNavigate={handleNavigate} />;
@@ -248,38 +282,106 @@ const SiteApp: React.FC = () => {
   return (
     <div className="min-h-screen min-h-[100dvh] bg-[#FAFAF8] overflow-x-hidden selection:bg-[#D75437] selection:text-white" style={{ paddingBottom: hideBottomNav ? '2rem' : '8rem' }}>
       
-      {/* ===== 揭幕动画 v2 — 分子环装饰 + 品牌渐显 ===== */}
+      {/* ===== 揭幕动画 — 四维圆环汇聚 + 品牌渐显 ===== */}
       {showSplash && (
-        <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-800 ${isExiting ? 'opacity-0 scale-[0.97]' : ''}`}>
-          {/* 装饰性分子环 */}
+        <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-700 ease-out ${isExiting ? 'opacity-0 scale-[0.96]' : 'opacity-100'}`}>
+          {/* 四系列圆环 — 优雅旋转汇聚 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-1/3 left-1/3 w-80 h-80 border border-[#D4AF37]/8 rounded-full animate-[spin-slow_60s_linear_infinite]" />
-            <div className="absolute bottom-1/4 right-1/4 w-64 h-64 border border-[#D75437]/6 rounded-full animate-[spin-slow_90s_linear_infinite_reverse]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border border-black/[0.03] rounded-full" />
+            {/* 元·红环 */}
+            <div className="absolute w-72 h-72 sm:w-96 sm:h-96" style={{
+              top: '50%', left: '50%',
+              transform: `translate(-50%, -50%) ${isExiting ? 'scale(1.8)' : 'scale(1)'}`,
+              transition: 'transform 2s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}>
+              <div className="w-full h-full border border-[#D75437]/10 rounded-full animate-[spin-slow_40s_linear_infinite]" 
+                style={{ clipPath: 'inset(0 50% 50% 0)' }} />
+            </div>
+            {/* 恒·绿环 */}
+            <div className="absolute w-80 h-80 sm:w-[28rem] sm:h-[28rem]" style={{
+              top: '50%', left: '50%',
+              transform: `translate(-50%, -50%) ${isExiting ? 'scale(1.6)' : 'scale(0.9)'}`,
+              transition: 'transform 2.2s cubic-bezier(0.16, 1, 0.3, 1) 0.1s'
+            }}>
+              <div className="w-full h-full border border-[#2C3E28]/8 rounded-full animate-[spin-slow_50s_linear_infinite_reverse]"
+                style={{ clipPath: 'inset(0 0 50% 50%)' }} />
+            </div>
+            {/* 生·金环 */}
+            <div className="absolute w-64 h-64 sm:w-80 sm:h-80" style={{
+              top: '50%', left: '50%',
+              transform: `translate(-50%, -50%) ${isExiting ? 'scale(1.4)' : 'scale(1.1)'}`,
+              transition: 'transform 2.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s'
+            }}>
+              <div className="w-full h-full border border-[#D4AF37]/10 rounded-full animate-[spin-slow_60s_linear_infinite]"
+                style={{ clipPath: 'inset(50% 50% 0 0)' }} />
+            </div>
+            {/* 境·蓝环 */}
+            <div className="absolute w-96 h-96 sm:w-[32rem] sm:h-[32rem]" style={{
+              top: '50%', left: '50%',
+              transform: `translate(-50%, -50%) ${isExiting ? 'scale(1.2)' : 'scale(0.8)'}`,
+              transition: 'transform 2.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s'
+            }}>
+              <div className="w-full h-full border border-[#1C39BB]/6 rounded-full animate-[spin-slow_70s_linear_infinite_reverse]"
+                style={{ clipPath: 'inset(50% 0 0 50%)' }} />
+            </div>
           </div>
 
-          <div className="text-center space-y-6 relative z-10">
-            {/* Logo 脉冲 */}
-            <img src={LOGO_IMG} className="w-24 sm:w-32 mx-auto drop-shadow-xl transition-transform duration-1000" style={{
-              animation: isExiting ? 'none' : 'breath 2.5s ease-in-out infinite'
-            }} alt="元香 UNIO" />
+          <div className="text-center space-y-6 sm:space-y-8 relative z-10">
+            {/* Logo — 淡入 + 呼吸 */}
+            <div className="transition-all duration-700" style={{
+              opacity: isExiting ? 0 : 1,
+              transform: isExiting ? 'translateY(-10px)' : 'translateY(0)',
+              transitionDelay: '0.4s'
+            }}>
+              <img src={LOGO_IMG} className="w-20 h-20 sm:w-28 sm:h-28 mx-auto drop-shadow-lg" style={{
+                animation: isExiting ? 'none' : 'breath 3s ease-in-out infinite'
+              }} alt="元香 UNIO" />
+            </div>
             
-            <div className="space-y-1.5 sm:space-y-2">
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-[0.25em] sm:tracking-[0.3em] text-[#1A1A1A]">元香 UNIO</h2>
-              <div className="h-px w-20 sm:w-24 bg-[#D4AF37]/25 mx-auto" />
-              <p className="text-[10px] sm:text-xs tracking-[0.35em] sm:tracking-[0.4em] text-black/28 uppercase font-bold">Original Harmony Sanctuary</p>
+            <div className="space-y-2 sm:space-y-3 transition-all duration-700" style={{
+              opacity: isExiting ? 0 : 1,
+              transform: isExiting ? 'translateY(10px)' : 'translateY(0)',
+              transitionDelay: '0.6s'
+            }}>
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-[0.25em] sm:tracking-[0.3em] text-[#1A1A1A]">
+                元香 UNIO
+              </h2>
+              <div className="h-px w-16 sm:w-20 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+              <p className="text-[9px] sm:text-xs tracking-[0.35em] sm:tracking-[0.4em] text-black/25 uppercase font-bold">
+                Original · Harmony · Sanctuary
+              </p>
             </div>
 
-            {/* 加载指示器 */}
+            {/* 加载指示器 — 渐变金点 */}
             {!isExiting && (
-              <div className="flex items-center gap-1.5 justify-center mt-4 pt-2">
+              <div className="flex items-center gap-2 justify-center mt-6 sm:mt-8 transition-all duration-500" style={{
+                opacity: isExiting ? 0 : 1,
+                transitionDelay: '0.8s'
+              }}>
                 {[0, 1, 2].map(i => (
-                  <div key={i} className="w-1 h-1 rounded-full bg-[#D4AF37]" style={{
-                    animation: `pulseDot 1.2s ease-in-out ${i * 0.2}s infinite`
+                  <div key={i} className="w-1.5 h-1.5 rounded-full" style={{
+                    background: `linear-gradient(135deg, #D4AF37, #D75437)`,
+                    animation: `pulseDot 1.4s ease-in-out ${i * 0.25}s infinite`
                   }} />
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+      
+      {/* ===== Logo全屏弹出（点击Logo时）===== */}
+      {logoExpanding && (
+        <div className={`fixed inset-0 z-[1000] bg-white flex flex-col items-center justify-center transition-all duration-500 ease-out ${logoExpandingExiting ? 'opacity-0 scale-95' : 'opacity-100'}`}>
+          <div className="text-center space-y-4">
+            <img src={LOGO_IMG} className="w-16 h-16 sm:w-24 sm:h-24 mx-auto drop-shadow-lg" 
+              style={{ animation: 'breath 2.5s ease-in-out infinite' }} alt="元香 UNIO" />
+            <div className="space-y-1.5">
+              <h2 className="text-2xl sm:text-4xl font-bold tracking-[0.25em] text-[#1A1A1A]">元香 UNIO</h2>
+              <div className="h-px w-12 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+              <p className="text-[8px] sm:text-[10px] tracking-[0.35em] text-black/20 uppercase font-bold">
+                Original · Harmony · Sanctuary
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -331,6 +433,7 @@ const SiteApp: React.FC = () => {
             <button
               onClick={goBack}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/85 backdrop-blur-xl rounded-full shadow-lg text-black/45 hover:text-[#D75437] transition-all text-[10px] sm:text-sm tracking-wide"
+              title="返回上一页"
             >
               <ArrowLeft size={14} smSize={16} />
               <span className="hidden sm:inline">返回</span>
@@ -485,8 +588,17 @@ const SiteApp: React.FC = () => {
       )}
 
       {/* ===== 移动端浮动按钮 ===== */}
-      {!hideBottomNav && (
       <div className="sm:hidden fixed bottom-20 right-3.5 z-[998] flex flex-col gap-1.5">
+        {/* 详情页：返回上一页（移动端专属） */}
+        {view === 'product' && (
+          <button
+            onClick={goBack}
+            className="w-10 h-10 rounded-full bg-[#D75437]/90 backdrop-blur-xl shadow-lg flex items-center justify-center text-white active:scale-95 transition-all"
+            title="返回上一页"
+          >
+            <ArrowLeft size={17} strokeWidth={2} />
+          </button>
+        )}
         {/* 微信客服 */}
         <div className="relative group">
           <button
@@ -519,7 +631,6 @@ const SiteApp: React.FC = () => {
           </button>
         )}
       </div>
-      )}
 
       {/* ===== 底部导航栏（桌面端）— 品牌高亮升级 ===== */}
       {!hideBottomNav && (

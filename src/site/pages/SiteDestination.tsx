@@ -429,7 +429,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
                       <div key={item.id} onClick={() => onNavigate('product', { productCode: item.code })}
                         className="flex-shrink-0 w-[45vw] sm:w-[28vw] md:w-[20vw] lg:w-[18vw] snap-start group cursor-pointer">
                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-50 border border-black/5 group-hover:shadow-xl group-hover:border-black/10 transition-all duration-500">
-                          <img src={optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || PLACEHOLDER_IMG} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name_cn} loading="lazy" decoding="async" />
+                          <img src={optimizeProductThumb(item.image_url || item.gallery_urls?.[0]) || PLACEHOLDER_IMG} className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" alt={item.name_cn} loading="lazy" decoding="async" />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3 sm:p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <span className="text-white text-[10px] sm:text-xs tracking-widest uppercase">查看详情 →</span>
                           </div>

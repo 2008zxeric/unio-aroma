@@ -1,12 +1,15 @@
 /**
  * UNIO AROMA 用户评价提交表单
+ * - 星级评分（1-5星）
  * - 最多 150 字，实时倒计时
  * - IP 自动识别位置（ipapi.co）
  * - 提交到 Supabase reviews 表，状态为 pending
  * - 无需注册，开放给所有访客
+ * - 弹窗自动滚动到视口中心
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Send, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 const SUPABASE_URL = 'https://xuicjydgtoltdhkbqoju.supabase.co';
@@ -39,8 +42,17 @@ async function getIpInfo(): Promise<{ ip: string; location: string }> {
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClose }) => {
   const [content, setContent] = useState('');
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // 打开弹窗时立即跳转到页面顶部，确保弹窗在视口内
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   const remaining = MAX_LENGTH - content.length;
   const isNearLimit = remaining <= 20;
@@ -48,14 +60,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
 
   const handleSubmit = async () => {
     const trimmed = content.trim();
-    if (!trimmed) return;
+    if (!trimmed || rating === 0) return;
     if (trimmed.length > MAX_LENGTH) return;
 
     setSubmitState('submitting');
     setErrorMsg('');
 
     try {
-      // 获取 IP 信息（不阻塞，失败不影响提交）
       const { ip, location } = await getIpInfo();
 
       const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews`, {
@@ -69,9 +80,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
         body: JSON.stringify({
           product_code: productCode,
           content: trimmed,
+          rating,
           ip_address: ip || null,
           ip_location: location || null,
-          // status 不传，由数据库 DEFAULT 'pending' 自动填充
         }),
       });
 
@@ -88,14 +99,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
     }
   };
 
-  // 提交成功状态
   if (submitState === 'success') {
-    return (
-      <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+    return createPortal(
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto"
         onClick={onClose}
       >
         <div
-          className="bg-white rounded-3xl p-8 w-full max-w-md text-center shadow-2xl"
+          className="bg-white rounded-3xl p-8 w-full max-w-md text-center shadow-2xl my-8"
           onClick={e => e.stopPropagation()}
         >
           <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
@@ -113,17 +123,20 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
             好的，知道了
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
+  const canSubmit = content.trim().length > 0 && rating > 0;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
+        className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl my-8"
         onClick={e => e.stopPropagation()}
       >
         {/* 标题栏 */}
@@ -141,12 +154,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
           </button>
         </div>
 
-        {/* 文本区域 */}
+        {/* 文本区域（放最前面，打开就能打字） */}
         <div className="relative">
           <textarea
             value={content}
             onChange={e => setContent(e.target.value.slice(0, MAX_LENGTH))}
-            placeholder="分享您对这款精油的真实感受…（最多 150 字）"
+            placeholder={`分享您对这款精油的真实感受…（最多 150 字）`}
             rows={5}
             className="w-full resize-none rounded-2xl p-4 text-sm leading-relaxed outline-none transition-all"
             style={{
@@ -161,8 +174,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
               e.target.style.borderColor = isAtLimit ? '#D75437' : 'rgba(26,26,26,0.1)';
             }}
             disabled={submitState === 'submitting'}
+            autoFocus
           />
-          {/* 字数计数 */}
           <div className="absolute bottom-3 right-3">
             <span
               className="text-xs font-medium tabular-nums"
@@ -171,6 +184,34 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
               {content.length}/{MAX_LENGTH}
             </span>
           </div>
+        </div>
+
+        {/* 星级评分（放输入框下面） */}
+        <div className="mt-5 mb-3">
+          <p className="text-xs font-medium mb-2" style={{ color: '#1A1A1A40' }}>您的评分</p>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map(star => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+                className="text-2xl transition-all duration-150 hover:scale-110 active:scale-95"
+                style={{
+                  color: star <= (hoverRating || rating) ? '#D4AF37' : '#E5E7EB',
+                  textShadow: star <= (hoverRating || rating) ? '0 0 4px rgba(212,175,55,0.3)' : 'none',
+                }}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+          {rating > 0 && (
+            <p className="text-[10px] mt-1 font-medium" style={{ color: '#D4AF37' }}>
+              {['', '非常不满意', '不满意', '一般', '满意', '非常满意'][rating]}
+            </p>
+          )}
         </div>
 
         {/* 说明文字 */}
@@ -198,7 +239,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!content.trim() || submitState === 'submitting' || isAtLimit}
+            disabled={!canSubmit || submitState === 'submitting'}
             className="flex-[2] py-3 rounded-2xl text-sm font-medium text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'linear-gradient(135deg, #D75437, #D4AF37)' }}
           >
@@ -216,7 +257,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productCode, productName, onClo
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
