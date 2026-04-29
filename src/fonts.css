@@ -1,0 +1,21 @@
+/* UNIO AROMA 本地字体声明 */
+/* 使用 fontsource 包，避免 Google Fonts 的跨国延迟 */
+
+/* Cinzel（英文标题） */
+@import '@fontsource/cinzel/400.css';
+@import '@fontsource/cinzel/700.css';
+
+/* Inter（UI文字） */
+@import '@fontsource/inter/300.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+/* Noto Serif SC（中文正文 - 只导入需要的字重） */
+@import '@fontsource/noto-serif-sc/200.css';
+@import '@fontsource/noto-serif-sc/300.css';
+@import '@fontsource/noto-serif-sc/400.css';
+@import '@fontsource/noto-serif-sc/500.css';
+@import '@fontsource/noto-serif-sc/600.css';
+@import '@fontsource/noto-serif-sc/700.css';

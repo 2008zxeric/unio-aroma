@@ -18,7 +18,7 @@ const headers = {
 
 // ============ 内存缓存（减少重复请求导致的10秒+等待） ============
 const cache = new Map<string, { data: any; ts: number }>();
-const CACHE_TTL = 60_000; // 1分钟缓存
+const CACHE_TTL = 300_000; // 5分钟缓存
 
 function getCacheKey(table: string, params: string): string {
   return `${table}?${params}`;
