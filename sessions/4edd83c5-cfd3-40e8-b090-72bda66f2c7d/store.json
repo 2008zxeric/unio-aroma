@@ -1,0 +1,25 @@
+{
+  "id": "4edd83c5-cfd3-40e8-b090-72bda66f2c7d",
+  "name": "UNIO产品描述批量写入",
+  "status": "active",
+  "createdAt": "2026-04-21T03:18:57.082Z",
+  "updatedAt": "2026-04-21T03:18:57.082Z",
+  "agents": [
+    {
+      "id": "agent_9ilxs6qb",
+      "name": "agent-8751b7c3",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-04-21T03:18:57.082Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_t51ln9q1",
+    "title": "UNIO产品描述批量写入",
+    "createdAt": "2026-04-21T03:18:57.082Z",
+    "file": "summary_t51ln9q1.md"
+  },
+  "lastMessageCount": 22
+}

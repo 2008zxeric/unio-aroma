@@ -1,0 +1,25 @@
+{
+  "id": "session-1776299917518-f57cpz",
+  "name": "寻香地图+性能优化",
+  "status": "active",
+  "createdAt": "2026-04-16T11:13:34.106Z",
+  "updatedAt": "2026-04-16T11:13:34.106Z",
+  "agents": [
+    {
+      "id": "agent_qhy9usqa",
+      "name": "agent-8751b7c3",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-04-16T11:13:34.106Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_q8xywkm2",
+    "title": "寻香地图+性能优化",
+    "createdAt": "2026-04-16T11:13:34.106Z",
+    "file": "summary_q8xywkm2.md"
+  },
+  "lastMessageCount": 172
+}

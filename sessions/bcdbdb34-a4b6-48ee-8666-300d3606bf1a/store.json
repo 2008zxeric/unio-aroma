@@ -1,0 +1,25 @@
+{
+  "id": "bcdbdb34-a4b6-48ee-8666-300d3606bf1a",
+  "name": "UNIO产品写入",
+  "status": "active",
+  "createdAt": "2026-04-21T03:29:09.008Z",
+  "updatedAt": "2026-04-21T03:29:09.008Z",
+  "agents": [
+    {
+      "id": "agent_phtf5ug7",
+      "name": "agent-8751b7c3",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-04-21T03:29:09.008Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_meqw563c",
+    "title": "UNIO产品写入",
+    "createdAt": "2026-04-21T03:29:09.008Z",
+    "file": "summary_meqw563c.md"
+  },
+  "lastMessageCount": 24
+}
