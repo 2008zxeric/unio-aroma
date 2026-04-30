@@ -7,6 +7,7 @@ const LOGO_IMG = '/logo.svg';
 
 // 可选账户提示列表
 const ADMIN_ACCOUNTS = [
+  { username: 'eric', label: 'Eric', desc: '超级管理员', role: 'super_admin' as AdminRole },
   { username: 'yuan', label: '元', desc: '超级管理员', role: 'super_admin' as AdminRole },
   { username: 'he', label: '和', desc: '管理员', role: 'admin' as AdminRole },
   { username: 'sheng', label: '生', desc: '查看者', role: 'viewer' as AdminRole },
@@ -128,7 +129,7 @@ export default function AdminLogin() {
             {/* 可用账户列表 */}
             {!matchedAccount && username.length > 0 && (
               <div className="text-xs text-[#9AAA9A] text-center leading-relaxed">
-                可用账户：<span className="text-[#5C725C]">元</span> / <span className="text-[#5C725C]">和</span> / <span className="text-[#5C725C]">生</span>
+                可用账户：<span className="text-[#5C725C]">Eric</span> / <span className="text-[#5C725C]">元</span> / <span className="text-[#5C725C]">和</span> / <span className="text-[#5C725C]">生</span>
               </div>
             )}
 
