@@ -25,6 +25,11 @@ import {
   Shield,
   MessageSquare,
   Layers,
+  Search,
+  Plus,
+  Home,
+  ArrowUp,
+  Zap,
 } from 'lucide-react';
 
 // 菜单项定义 — 每项绑定权限
@@ -67,6 +72,47 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/audit-logs': '操作日志',
 };
 
+// 浮动按钮配置（每个页面可配不同的快捷操作）
+const FLOATING_BUTTONS: Record<string, { icon: React.ElementType; label: string; color: string; action: 'search' | 'add' | 'home' | 'scrollTop'; href?: string }[]> = {
+  '/admin': [
+    { icon: RefreshCw, label: '刷新', color: '#4A7C59', action: 'scrollTop' },
+  ],
+  '/admin/products': [
+    { icon: Search, label: '搜索', color: '#5C725C', action: 'search' },
+    { icon: Plus, label: '添加', color: '#4A7C59', action: 'add' },
+  ],
+  '/admin/countries': [
+    { icon: Search, label: '搜索', color: '#5C725C', action: 'search' },
+    { icon: Plus, label: '添加', color: '#1C39BB', action: 'add' },
+  ],
+  '/admin/banners': [
+    { icon: Plus, label: '新增', color: '#7BA689', action: 'add' },
+  ],
+  '/admin/inventory': [
+    { icon: RefreshCw, label: '刷新', color: '#7BA689', action: 'scrollTop' },
+  ],
+  '/admin/images': [
+    { icon: RefreshCw, label: '刷新', color: '#4A7C59', action: 'scrollTop' },
+  ],
+  '/admin/series': [
+    { icon: Plus, label: '新增', color: '#4A7C59', action: 'add' },
+  ],
+  '/admin/reviews': [
+    { icon: RefreshCw, label: '刷新', color: '#4A7C59', action: 'scrollTop' },
+  ],
+};
+
+// 获取当前路径的匹配键
+function getRouteKey(pathname: string): string {
+  // 精确匹配优先
+  if (PAGE_TITLES[pathname]) return pathname;
+  // 前缀匹配（如 /admin/products/xxx → /admin/products）
+  for (const key of Object.keys(PAGE_TITLES)) {
+    if (pathname.startsWith(key + '/') || pathname.startsWith(key + '?')) return key;
+  }
+  return '/admin';
+}
+
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,11 +121,24 @@ export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [showFloatMenu, setShowFloatMenu] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // 监听滚动显示回到顶部按钮
+  React.useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const isActive = (path: string, end?: boolean) =>
     end ? location.pathname === path : location.pathname.startsWith(path);
 
   const currentTitle = PAGE_TITLES[location.pathname] || '后台管理';
+  const routeKey = getRouteKey(location.pathname);
+  const floatBtns = FLOATING_BUTTONS[routeKey] || [];
 
   const handleLogout = () => {
     logout();
@@ -88,6 +147,33 @@ export default function AdminLayout() {
 
   const handleRefresh = () => {
     window.location.reload();
+  };
+
+  const handleFloatAction = (btn: typeof floatBtns[0]) => {
+    setShowFloatMenu(false);
+    if (btn.action === 'scrollTop') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (btn.action === 'search') {
+      // 聚焦到页面的搜索框
+      const input = document.querySelector<HTMLInputElement>('input[placeholder*="搜索"], input[type="search"]');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    } else if (btn.action === 'add') {
+      // 点击页面中的"添加/新增"类按钮
+      const addBtn = document.querySelector<HTMLButtonElement>('button:has(svg.lucide-plus), button:has([class*="添加"]), a[href*="new"]');
+      if (addBtn) {
+        addBtn.click();
+      } else {
+        // 尝试找任何带 Plus 图标的按钮
+        document.querySelectorAll('button').forEach(b => {
+          if (b.innerHTML.includes('Plus') || b.textContent?.includes('添加') || b.textContent?.includes('新增')) {
+            b.click();
+          }
+        });
+      }
+    }
   };
 
   // 按权限过滤菜单
@@ -217,7 +303,7 @@ export default function AdminLayout() {
 
         {/* 底部操作区 */}
         <div className="p-3 border-t border-[#E0ECE0] space-y-1">
-          {/* 预览（当前编辑项前台页，无则首页） */}
+          {/* 预览 */}
           <a
             href={previewUrl || 'https://unioaroma.com/'}
             target="_blank"
@@ -286,7 +372,7 @@ export default function AdminLayout() {
               <RefreshCw size={16} />
             </button>
 
-            {/* 前台页（当前编辑项，无则首页） */}
+            {/* 前台页 */}
             <a
               href={previewUrl || 'https://unioaroma.com/'}
               target="_blank"
@@ -298,7 +384,7 @@ export default function AdminLayout() {
               <span>{previewUrl ? '前台页' : '前台首页'}</span>
             </a>
 
-            {/* 管理员信息 + 退出 */}
+            {/* 管理员信息 */}
             <button
               onClick={() => setLogoutConfirm(true)}
               title="退出登录"
@@ -320,11 +406,117 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* 内容区域 */}
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
+        {/* 内容区域 — 增加底部 padding 为浮动按钮留空间 */}
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto pb-20 lg:pb-8">
           <Outlet />
         </main>
       </div>
+
+      {/* ====== 全局浮动工具栏（右下角） ====== */}
+      {floatBtns.length > 0 && (
+        <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3">
+          {/* 浮动菜单展开项 */}
+          {showFloatMenu && (
+            <div className="flex flex-col items-end gap-2 mb-1">
+              {floatBtns.map((btn, i) => {
+                const Icon = btn.icon;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleFloatAction(btn)}
+                    className="group relative flex items-center gap-2"
+                  >
+                    {/* 标签 */}
+                    <span className="mr-1 px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-md border border-[#E0ECE0] shadow-lg text-xs font-medium text-[#3D5C3D] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {btn.label}
+                    </span>
+                    {/* 圆形按钮 */}
+                    <span
+                      className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+                      style={{ backgroundColor: btn.color }}
+                    >
+                      <Icon size={20} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 主开关按钮 */}
+          <button
+            onClick={() => setShowFloatMenu(!showFloatMenu)}
+            className={`w-12 h-12 rounded-full shadow-xl flex items-center justify-center text-white transition-all duration-300 hover:scale-110 active:scale-95 ${
+              showFloatMenu
+                ? 'bg-[#E85D3B] rotate-45'
+                : 'bg-gradient-to-r from-[#4A7C59] to-[#5E9470]'
+            }`}
+            title="快捷操作"
+          >
+            {showFloatMenu ? <X size={22} /> : <Zap size={22} />}
+          </button>
+        </div>
+      )}
+
+      {/* ====== 移动端底部固定导航条 ====== */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E0ECE0] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
+        <div className="flex items-center justify-around h-14 px-2">
+          <Link
+            to="/admin"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+              location.pathname === '/admin' ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
+            }`}
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-[9px] font-medium">首页</span>
+          </Link>
+          <Link
+            to="/admin/products"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+              location.pathname.startsWith('/admin/products') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
+            }`}
+          >
+            <Package size={20} />
+            <span className="text-[9px] font-medium">产品</span>
+          </Link>
+          <Link
+            to="/admin/inventory"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+              location.pathname.startsWith('/admin/inventory') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
+            }`}
+          >
+            <Warehouse size={20} />
+            <span className="text-[9px] font-medium">库存</span>
+          </Link>
+          <Link
+            to="/admin/images"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+              location.pathname.startsWith('/admin/images') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
+            }`}
+          >
+            <Image size={20} />
+            <span className="text-[9px] font-medium">图库</span>
+          </Link>
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[#9AAA9A]"
+          >
+            <Menu size={20} />
+            <span className="text-[9px] font-medium">菜单</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ====== 回到顶部按钮（桌面端） ====== */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="hidden lg:flex fixed right-4 bottom-20 z-40 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md border border-[#E0ECE0] shadow-lg items-center justify-center text-[#5C725C] hover:bg-[#F2F7F3] transition-all hover:scale-110 active:scale-95"
+          title="回到顶部"
+        >
+          <ArrowUp size={18} />
+        </button>
+      )}
     </div>
   );
 }
