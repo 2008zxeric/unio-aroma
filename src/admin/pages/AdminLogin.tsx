@@ -5,7 +5,7 @@ import type { AdminRole } from '../../lib/auth';
 
 const LOGO_IMG = '/logo.svg';
 
-// 登录页可选的管理员列表（和内置凭据一致）
+// 可选账户提示列表
 const ADMIN_ACCOUNTS = [
   { username: 'yuan', label: '元', desc: '超级管理员', role: 'super_admin' as AdminRole },
   { username: 'he', label: '和', desc: '管理员', role: 'admin' as AdminRole },
@@ -15,7 +15,7 @@ const ADMIN_ACCOUNTS = [
 export default function AdminLogin() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
-  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [username, setUsername] = useState('');
   const [pwd, setPwd] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,8 +27,12 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUser) {
-      setError('请先选择登录账号');
+    if (!username.trim()) {
+      setError('请输入用户名');
+      return;
+    }
+    if (!pwd) {
+      setError('请输入密码');
       return;
     }
     setLoading(true);
@@ -37,7 +41,7 @@ export default function AdminLogin() {
     // 防暴力破解延迟
     await new Promise(r => setTimeout(r, 600));
 
-    const result = await login(selectedUser, pwd);
+    const result = await login(username.trim(), pwd);
     if (result.success) {
       navigate('/admin', { replace: true });
     } else {
@@ -49,8 +53,9 @@ export default function AdminLogin() {
     setLoading(false);
   };
 
-  const selectedAccount = ADMIN_ACCOUNTS.find(a => a.username === selectedUser);
-  const roleInfo = selectedAccount ? ROLE_LABELS[selectedAccount.role] : null;
+  // 找匹配账户用于展示角色信息
+  const matchedAccount = ADMIN_ACCOUNTS.find(a => a.username === username.trim().toLowerCase());
+  const matchedRoleInfo = matchedAccount ? ROLE_LABELS[matchedAccount.role] : null;
 
   return (
     <div className="min-h-screen bg-[#F4F7F4] flex items-center justify-center px-4">
@@ -76,44 +81,29 @@ export default function AdminLogin() {
 
           {/* 表单 */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* 账号选择 */}
+            {/* 用户名输入 */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#5C725C] tracking-wider uppercase">选择账号</label>
-              <div className="grid grid-cols-3 gap-2">
-                {ADMIN_ACCOUNTS.map(account => {
-                  const info = ROLE_LABELS[account.role];
-                  return (
-                    <button
-                      key={account.username}
-                      type="button"
-                      onClick={() => { setSelectedUser(account.username); setError(''); }}
-                      className={`py-3 rounded-xl text-center transition-all border-2 ${
-                        selectedUser === account.username
-                          ? 'bg-[#4A7C59] text-white border-[#4A7C59] shadow-lg shadow-[#4A7C59]/20'
-                          : 'bg-white text-[#5C725C] border-[#E0ECE0] hover:border-[#4A7C59]/40'
-                      }`}
-                    >
-                      <span className="text-sm font-bold">{account.label}</span>
-                      {selectedUser === account.username && (
-                        <p className="text-[9px] mt-0.5 opacity-80">{info.desc}</p>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+              <label className="text-xs font-bold text-[#5C725C] tracking-wider uppercase">用户名</label>
+              <input
+                type="text"
+                value={username}
+                onChange={e => { setUsername(e.target.value); setError(''); }}
+                placeholder="请输入用户名"
+                autoFocus
+                autoComplete="username"
+                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all"
+              />
             </div>
 
             {/* 密码 */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#5C725C] tracking-wider uppercase">
-                {selectedAccount ? `${selectedAccount.label} · 密码` : '登录密码'}
-              </label>
+              <label className="text-xs font-bold text-[#5C725C] tracking-wider uppercase">密码</label>
               <input
                 type="password"
                 value={pwd}
                 onChange={e => setPwd(e.target.value)}
                 placeholder="请输入密码"
-                autoFocus={!!selectedUser}
+                autoComplete="current-password"
                 className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all"
               />
               {error && (
@@ -125,19 +115,26 @@ export default function AdminLogin() {
             </div>
 
             {/* 角色提示 */}
-            {roleInfo && (
+            {matchedRoleInfo && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#F4F7F4] border border-[#E0ECE0]/50">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: roleInfo.color }} />
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: matchedRoleInfo.color }} />
                 <span className="text-xs text-[#5C725C]">
-                  <span className="font-medium">{roleInfo.label}</span>
-                  <span className="text-[#9AAA9A] ml-1">— {roleInfo.desc}</span>
+                  <span className="font-medium">{matchedAccount?.label}</span>
+                  <span className="text-[#9AAA9A] ml-1">— {matchedRoleInfo.desc}</span>
                 </span>
+              </div>
+            )}
+
+            {/* 可用账户列表 */}
+            {!matchedAccount && username.length > 0 && (
+              <div className="text-xs text-[#9AAA9A] text-center leading-relaxed">
+                可用账户：<span className="text-[#5C725C]">元</span> / <span className="text-[#5C725C]">和</span> / <span className="text-[#5C725C]">生</span>
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading || !selectedUser || !pwd}
+              disabled={loading || !username.trim() || !pwd}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4A7C59] to-[#5E9470] text-white text-sm font-bold tracking-widest uppercase transition-all duration-200 hover:shadow-lg hover:shadow-[#4A7C59]/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
             >
               {loading ? (
