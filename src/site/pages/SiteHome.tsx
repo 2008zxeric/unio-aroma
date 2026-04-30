@@ -10,9 +10,10 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink } from 'lucide-react';
+import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink, Video } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
 import { getSeries, getProducts, getCountries } from '../siteDataService';
+import { bannerService } from '../../lib/dataService';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
@@ -74,6 +75,8 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [countryCount, setCountryCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [heroVideo, setHeroVideo] = useState<{ url: string; poster?: string } | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   // 动态统计：全部基于实际数据
   const originStats = useCountUp(countryCount, 2200);
@@ -91,6 +94,17 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
         setSeries(seriesData);
         setProducts(productsData);
         setCountryCount(countriesData.length);
+
+        // 获取首页视频Banner
+        try {
+          const allBanners = await bannerService.getAll();
+          const homeVideoBanner = allBanners.find(b =>
+            b.position === 'home' && b.is_active && b.video_url
+          );
+          if (homeVideoBanner) {
+            setHeroVideo({ url: homeVideoBanner.video_url!, poster: homeVideoBanner.poster_url || undefined });
+          }
+        } catch {}
       } catch (error) {
         console.error('Failed to load home data:', error);
       } finally {
@@ -118,11 +132,31 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
 
       {/* ============ HERO SECTION ============ */}
       <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
-        {/* 背景图 */}
+        {/* 背景图/视频 */}
         <div className="absolute inset-0">
-          <img src={HERO_IMG} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+          {heroVideo ? (
+            <>
+              <video
+                ref={videoRef}
+                src={heroVideo.url}
+                poster={heroVideo.poster}
+                muted
+                loop
+                playsInline
+                autoPlay
+                className="w-full h-full object-cover"
+                onCanPlay={() => { if (videoRef.current) videoRef.current.play().catch(() => {}); }}
+              />
+              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+            </>
+          ) : (
+            <>
+              <img src={HERO_IMG} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
+              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+            </>
+          )}
         </div>
 
         {/* 装饰分子环 */}
