@@ -59,16 +59,16 @@ export default function AdminLogin() {
   const matchedRoleInfo = matchedAccount ? ROLE_LABELS[matchedAccount.role] : null;
 
   return (
-    <div className="min-h-screen bg-[#F4F7F4] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F4F7F4] flex items-center justify-center px-4 mobile-bottom-pad">
       {/* 背景装饰 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4A7C59]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#7BA689]/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4A7C59]/5 rounded-full blur-3xl max-sm:opacity-50" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#7BA689]/8 rounded-full blur-3xl max-sm:opacity-50" />
       </div>
 
       <div className={`relative w-full max-w-sm ${shake ? 'animate-shake' : ''}`}>
         {/* 卡片 */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-[#4A7C59]/10 border border-[#E0ECE0] p-8 space-y-6">
+        <div className="bg-white rounded-3xl shadow-xl shadow-[#4A7C59]/10 border border-[#E0ECE0] sm:p-8 p-6 space-y-6">
           {/* Logo */}
           <div className="text-center space-y-3">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#4A7C59] to-[#7BA689] flex items-center justify-center shadow-lg shadow-[#4A7C59]/25 p-3">
@@ -92,7 +92,7 @@ export default function AdminLogin() {
                 placeholder="请输入用户名"
                 autoFocus
                 autoComplete="username"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all"
+                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all touch-btn"
               />
             </div>
 
@@ -105,7 +105,7 @@ export default function AdminLogin() {
                 onChange={e => setPwd(e.target.value)}
                 placeholder="请输入密码"
                 autoComplete="current-password"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all"
+                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all touch-btn"
               />
               {error && (
                 <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
@@ -136,7 +136,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading || !username.trim() || !pwd}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4A7C59] to-[#5E9470] text-white text-sm font-bold tracking-widest uppercase transition-all duration-200 hover:shadow-lg hover:shadow-[#4A7C59]/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4A7C59] to-[#5E9470] text-white text-sm font-bold tracking-widest uppercase transition-all duration-200 hover:shadow-lg hover:shadow-[#4A7C59]/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none touch-btn"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -152,7 +152,7 @@ export default function AdminLogin() {
 
           {/* 返回前台 */}
           <div className="text-center">
-            <a href="/" className="text-xs text-[#9AAA9A] hover:text-[#5C725C] transition-colors">
+            <a href="/" className="inline-block px-6 py-2.5 -mx-6 -my-2.5 text-xs text-[#9AAA9A] hover:text-[#5C725C] transition-colors active:text-[#5C725C]">
               ← 返回前台
             </a>
           </div>
