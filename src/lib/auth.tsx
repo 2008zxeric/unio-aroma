@@ -41,7 +41,11 @@ export type PermissionAction =
   | 'view_users'
   | 'manage_users'               // 用户CRUD
   | 'view_settings'
-  | 'edit_settings';
+  | 'edit_settings'
+  | 'view_images'                 // 图片库查看
+  | 'delete_images'               // 图片库删除
+  | 'view_series'                 // 系列管理查看
+  | 'edit_series';                // 系列管理编辑
 
 // ---- 角色权限矩阵 ----
 const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
@@ -55,6 +59,8 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
     'view_dicts', 'edit_dicts',
     'view_users', 'manage_users',
     'view_settings', 'edit_settings',
+    'view_images', 'delete_images',
+    'view_series', 'edit_series',
   ]),
   admin: new Set([
     'view_dashboard', 'view_products', 'edit_products', 'toggle_product_status',
@@ -65,6 +71,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
     'view_inventory', 'edit_inventory',
     'view_dicts', 'edit_dicts',
     'view_settings', 'edit_settings',
+    'view_images', 'view_series',
     // 不能管理用户
   ]),
   editor: new Set([
@@ -74,6 +81,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
     'view_inventory',
     'view_dicts',
     'view_settings',
+    'view_images', 'view_series',
   ]),
   viewer: new Set([
     'view_dashboard', 'view_products',
@@ -81,6 +89,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
     'view_inventory',
     'view_dicts',
     'view_settings',
+    'view_images', 'view_series',
   ]),
 };
 
