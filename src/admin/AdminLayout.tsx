@@ -412,12 +412,12 @@ export default function AdminLayout() {
         </main>
       </div>
 
-      {/* ====== 全局浮动工具栏（右下角） ====== */}
-      {floatBtns.length > 0 && (
-        <div className="fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3">
+      {/* ====== 全局浮动工具栏（右下角）— 仅首页，产品页/国家页有自己的浮动按钮 ====== */}
+      {floatBtns.length > 0 && !['/admin/products', '/admin/countries'].includes(routeKey) && (
+        <div className="fixed right-3 bottom-16 lg:right-4 lg:bottom-4 z-40 flex flex-col items-end gap-2">
           {/* 浮动菜单展开项 */}
           {showFloatMenu && (
-            <div className="flex flex-col items-end gap-2 mb-1">
+            <div className="flex flex-col items-end gap-1.5 mb-0.5">
               {floatBtns.map((btn, i) => {
                 const Icon = btn.icon;
                 return (
@@ -427,15 +427,15 @@ export default function AdminLayout() {
                     className="group relative flex items-center gap-2"
                   >
                     {/* 标签 */}
-                    <span className="mr-1 px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-md border border-[#E0ECE0] shadow-lg text-xs font-medium text-[#3D5C3D] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    <span className="mr-1 px-2 py-0.5 rounded-md bg-white/80 backdrop-blur border border-[#E0ECE0] shadow text-[10px] font-medium text-[#5C725C] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                       {btn.label}
                     </span>
                     {/* 圆形按钮 */}
                     <span
-                      className="w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-xl active:scale-95"
-                      style={{ backgroundColor: btn.color }}
+                      className="w-8 h-8 rounded-full shadow flex items-center justify-center text-white/90 transition-all hover:scale-105 active:scale-95"
+                      style={{ backgroundColor: btn.color + 'cc' }}
                     >
-                      <Icon size={20} />
+                      <Icon size={14} />
                     </span>
                   </button>
                 );
@@ -446,14 +446,14 @@ export default function AdminLayout() {
           {/* 主开关按钮 */}
           <button
             onClick={() => setShowFloatMenu(!showFloatMenu)}
-            className={`w-12 h-12 rounded-full shadow-xl flex items-center justify-center text-white transition-all duration-300 hover:scale-110 active:scale-95 ${
+            className={`w-9 h-9 rounded-full shadow flex items-center justify-center text-white/90 transition-all duration-200 hover:scale-105 active:scale-95 ${
               showFloatMenu
-                ? 'bg-[#E85D3B] rotate-45'
-                : 'bg-gradient-to-r from-[#4A7C59] to-[#5E9470]'
+                ? 'bg-[#E85D3B]/80 rotate-45'
+                : 'bg-[#4A7C59]/70'
             }`}
             title="快捷操作"
           >
-            {showFloatMenu ? <X size={22} /> : <Zap size={22} />}
+            {showFloatMenu ? <X size={16} /> : <Zap size={16} />}
           </button>
         </div>
       )}
