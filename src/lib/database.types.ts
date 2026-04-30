@@ -181,6 +181,8 @@ export interface Banner {
   id: string;
   name: string;
   image_url: string;
+  video_url?: string;           // 首页Banner视频（可选）
+  poster_url?: string;          // 视频封面图
   link_url?: string;
   position: string;            // home/story/collections/atlas/footer等
   is_active: boolean;
