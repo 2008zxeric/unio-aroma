@@ -13,6 +13,8 @@ import { AdminDicts, AdminUsers, AdminSettings } from './pages/DictManage';
 import { AuthProvider } from '../lib/auth';
 import AuditLogPage from './pages/AuditLogPage';
 import ReviewManage from './pages/ReviewManage';
+import ImageLibrary from './pages/ImageLibrary';
+import SeriesManagement from './pages/SeriesManagement';
 import { PermissionGuard } from './components/PermissionGuard';
 import { AdminPreviewProvider } from './AdminPreviewContext';
 
@@ -43,6 +45,8 @@ export default function AdminRouter() {
           <Route path="dicts" element={<PermissionGuard action="view_dicts"><AdminDicts /></PermissionGuard>} />
           <Route path="audit-logs" element={<PermissionGuard action="view_dashboard"><AuditLogPage /></PermissionGuard>} />
           <Route path="reviews" element={<PermissionGuard action="view_dashboard"><ReviewManage /></PermissionGuard>} />
+          <Route path="images" element={<PermissionGuard action="view_images"><ImageLibrary /></PermissionGuard>} />
+          <Route path="series" element={<PermissionGuard action="view_series"><SeriesManagement /></PermissionGuard>} />
           <Route path="users" element={<PermissionGuard action="view_users"><AdminUsers /></PermissionGuard>} />
           <Route path="settings" element={<PermissionGuard action="view_settings"><AdminSettings /></PermissionGuard>} />
         </Route>
