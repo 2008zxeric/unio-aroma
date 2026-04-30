@@ -37,6 +37,7 @@ export default function AdminBanners() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<BannerForm>(emptyForm());
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
@@ -63,7 +64,7 @@ export default function AdminBanners() {
       if (editingId) await bannerService.update(editingId, payload);
       else await bannerService.create(payload);
       setBanners(await bannerService.getAll());
-      setEditingId(null); setForm(emptyForm());
+      setEditingId(null); setForm(emptyForm()); setShowForm(false);
     } catch (err: any) { alert('保存失败：' + err.message); }
   };
 
@@ -127,18 +128,18 @@ export default function AdminBanners() {
           <h2 className="text-2xl font-bold text-[#1A2E1A]">海报/Banner 管理</h2>
           <p className="text-sm text-[#6B856B] mt-1">管理网站各页面的海报、广告横幅和首页视频</p>
         </div>
-        <Perm action="edit_banners"><button onClick={() => { setEditingId(null); setForm(emptyForm()); }}
+        <Perm action="edit_banners"><button onClick={() => { setEditingId(null); setForm(emptyForm()); setShowForm(true); }}
           className="touch-btn flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl font-medium text-sm">
           <Plus size={16} /> 添加海报
         </button></Perm>
       </div>
 
       {/* 表单 */}
-      {(editingId !== null || banners.length === 0) && (
+      {(showForm || banners.length === 0) && (
         <div className="rounded-2xl bg-white border border-[#D5E2D5] p-6 space-y-4">
           <div className="flex justify-between">
             <h3 className="text-lg font-semibold text-[#1A2E1A]">{editingId ? '编辑海报' : '添加海报'}</h3>
-            {editingId && <button onClick={() => setEditingId(null)} className="touch-btn p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#6B856B]"><X size={18} /></button>}
+            {editingId && <button onClick={() => { setEditingId(null); setShowForm(false); }} className="touch-btn p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#6B856B]"><X size={18} /></button>}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -236,7 +237,7 @@ export default function AdminBanners() {
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-[#E0ECE0]">
-            <button onClick={() => setEditingId(null)} className="touch-btn px-5 py-2.5 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
+            <button onClick={() => { setEditingId(null); setShowForm(false); }} className="touch-btn px-5 py-2.5 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
             <button onClick={handleSave} className="touch-btn px-6 py-2.5 bg-[#4A7C59] text-white text-sm font-medium rounded-xl">{editingId ? '保存' : '创建'}</button>
           </div>
         </div>
@@ -274,7 +275,7 @@ export default function AdminBanners() {
                   <span className="text-[11px] text-[#8AA08A]">{POSITIONS.find(p => p.value === b.position)?.label || b.position}</span>
                 </div>
                 <div className="flex gap-1 flex-shrink-0 ml-2">
-                  <Perm action="edit_banners"><button onClick={() => { setEditingId(b.id); setForm({
+                  <Perm action="edit_banners"><button onClick={() => { setEditingId(b.id); setShowForm(true); setForm({
                     name: b.name, image_url: b.image_url || '', video_url: b.video_url || '',
                     poster_url: b.poster_url || '', link_url: b.link_url || '',
                     position: b.position, is_active: b.is_active, sort_order: String(b.sort_order || 0),
