@@ -816,8 +816,8 @@ export default function AdminProducts() {
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: group.color }}
                   />
-                  <span className="text-sm font-semibold text-[#1A2E1A]">{group.name}</span>
-                  <span className="text-xs text-[#8AA08A]">{group.label}</span>
+                  <span className="text-sm md:text-sm text-[13px] font-semibold text-[#1A2E1A]">{group.name}</span>
+                  <span className="text-xs text-[#8AA08A] hidden md:inline">{group.label}</span>
                   <span className="ml-auto text-xs text-[#9AAA9A] font-mono">{group.products.length}款</span>
                   <span className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                     <ChevronDown size={14} className="text-[#9AAA9A]" />
@@ -830,21 +830,77 @@ export default function AdminProducts() {
                     {group.products.length === 0 ? (
                       <div className="px-4 py-6 text-center text-xs text-[#A8BAA8]">该系列暂无产品</div>
                     ) : (
-                      <div className="divide-y divide-[#F0F4F0]">
-                        {group.products.map(product => (
-                          <ProductCard
-                            key={product.id} product={product}
-                            productBoundCountries={productBoundCountries}
-                            onEdit={() => startEdit(product)}
-                            onDelete={() => handleDelete(product.id)}
-                            onToggleActive={() => handleToggleActive(product)}
-                            showDetail={showDetailId === product.id}
-                            onToggleDetail={() => setShowDetailId(showDetailId === product.id ? null : product.id)}
-                            canToggle={canToggle}
-                            canEdit={canEdit}
-                          />
-                        ))}
-                      </div>
+                      <>
+                        {/* 桌面端：列表行 */}
+                        <div className="hidden md:block divide-y divide-[#F0F4F0]">
+                          {group.products.map(product => (
+                            <ProductCard
+                              key={product.id} product={product}
+                              productBoundCountries={productBoundCountries}
+                              onEdit={() => startEdit(product)}
+                              onDelete={() => handleDelete(product.id)}
+                              onToggleActive={() => handleToggleActive(product)}
+                              showDetail={showDetailId === product.id}
+                              onToggleDetail={() => setShowDetailId(showDetailId === product.id ? null : product.id)}
+                              canToggle={canToggle}
+                              canEdit={canEdit}
+                            />
+                          ))}
+                        </div>
+                        {/* 移动端：卡片视图 */}
+                        <div className="md:hidden space-y-2 p-3">
+                          {group.products.map(product => {
+                            const unit = product.category === 'aesthetic' || product.category === 'meditation' ? '件' : 'ml';
+                            return (
+                              <div key={product.id}
+                                className="bg-white rounded-xl border border-[#E0ECE0] overflow-hidden active:scale-[0.98] transition-transform"
+                              >
+                                <div className="flex items-center gap-3 p-3" onClick={() => startEdit(product)}>
+                                  {/* 缩略图 */}
+                                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-[#F2F7F3] flex-shrink-0">
+                                    {product.image_url ? (
+                                      <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-[#A8BAA8]"><Package size={20} /></div>
+                                    )}
+                                  </div>
+                                  {/* 信息 */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${product.is_active ? 'bg-green-400' : 'bg-gray-300'}`} />
+                                      <span className="text-sm font-medium text-[#1A2E1A] truncate">{product.display_name || product.name_cn}</span>
+                                      {!product.is_active && <span className="text-[9px] px-1 py-0.5 bg-gray-100 text-gray-400 rounded">草稿</span>}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1 text-[11px] text-[#8AA08A] flex-wrap">
+                                      {product.series && <span className="text-[#D4AF37]/70">{product.series.name_cn}</span>}
+                                      {product.category && (
+                                        <span className="bg-[#F2F7F3] px-1.5 py-0.5 rounded text-[#5C725C]">
+                                          {SUB_CATEGORY_LABELS[product.category as keyof typeof SUB_CATEGORY_LABELS] || product.category}
+                                        </span>
+                                      )}
+                                      {/* 价格 */}
+                                      <span className="text-[#4A7C59] font-medium">
+                                        {product.price_10ml ? `¥${product.price_10ml}/10ml` : product.price_30ml ? `¥${product.price_30ml}/30ml` : ''}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {/* 操作 */}
+                                  <div className="flex flex-col gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                                    <button onClick={(e) => { e.stopPropagation(); onToggleActive(); }}
+                                      className="p-1.5 hover:bg-[#EEF4EF] rounded-lg transition-colors">
+                                      {product.is_active ? <ToggleRight size={18} className="text-green-400" /> : <ToggleLeft size={18} className="text-[#9AAA9A]" />}
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                                      className="p-1.5 hover:bg-[#EEF4EF] rounded-lg transition-colors">
+                                      <Edit2 size={13} className="text-[#5C725C]" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}
@@ -876,10 +932,10 @@ export default function AdminProducts() {
           )}
           <button
             onClick={() => { setFloatingSearchOpen(!floatingSearchOpen); setFloatingMenuOpen(false); }}
-            className="w-12 h-12 rounded-full bg-white shadow-lg border border-[#E0ECE0] flex items-center justify-center text-[#5C725C] hover:bg-[#F2F7F3] transition-all hover:shadow-xl"
+            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-lg border border-[#E0ECE0] flex items-center justify-center text-[#5C725C] hover:bg-[#F2F7F3] transition-all hover:shadow-xl"
             title="快速搜索"
           >
-            <Search size={20} />
+            <Search size={16} className="md:size-5" />
           </button>
         </div>
 
@@ -912,10 +968,10 @@ export default function AdminProducts() {
           )}
           <button
             onClick={() => { setFloatingMenuOpen(!floatingMenuOpen); setFloatingSearchOpen(false); }}
-            className="w-12 h-12 rounded-full bg-white shadow-lg border border-[#E0ECE0] flex items-center justify-center text-[#5C725C] hover:bg-[#F2F7F3] transition-all hover:shadow-xl"
+            className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-lg border border-[#E0ECE0] flex items-center justify-center text-[#5C725C] hover:bg-[#F2F7F3] transition-all hover:shadow-xl"
             title="更多操作"
           >
-            <Settings2 size={20} />
+            <Settings2 size={16} className="md:size-5" />
           </button>
         </div>
 
@@ -923,13 +979,15 @@ export default function AdminProducts() {
         {canEdit && (
           <button
             onClick={startCreate}
-            className="w-14 h-14 rounded-full bg-[#4A7C59] hover:bg-[#3D6B4A] shadow-xl hover:shadow-2xl flex items-center justify-center text-white transition-all active:scale-95"
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#4A7C59] hover:bg-[#3D6B4A] shadow-xl hover:shadow-2xl flex items-center justify-center text-white transition-all active:scale-95"
             title="添加新产品"
           >
-            <Plus size={24} />
+            <Plus size={20} className="md:size-6" />
           </button>
         )}
       </div>
+      {/* 移动端底部留白 */}
+      <div className="h-20 md:hidden" />
     </div>
   );
 }
@@ -1183,7 +1241,7 @@ function ProductEditFormV4({
     <div className="relative">
 
       {/* ====== 固定左侧导航栏 ====== */}
-      <div className="fixed left-4 top-24 z-40 flex flex-col gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-[#E0ECE0] shadow-lg p-2.5 min-w-[88px]">
+      <div className="hidden md:flex fixed left-4 top-24 z-40 flex-col gap-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-[#E0ECE0] shadow-lg p-2.5 min-w-[88px]">
         {/* Logo */}
         <div className="flex items-center gap-1.5 px-1 pb-1.5 mb-0.5 border-b border-[#E0ECE0]">
           <div className="w-6 h-6 rounded-md bg-[#4A7C59]/20 flex items-center justify-center flex-shrink-0">

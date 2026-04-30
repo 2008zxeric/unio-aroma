@@ -297,29 +297,29 @@ export default function ImageLibrary() {
     return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
   };
 
-  return (
-    <div className="space-y-6">
+    return (
+    <div className="space-y-6 pb-16 md:pb-6 mobile-bottom-pad">
       {/* 顶栏 */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#E8F3EC] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[#E8F3EC] flex items-center justify-center flex-shrink-0">
             <ImageIcon size={22} className="text-[#4A7C59]" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-xl font-bold text-[#1A2E1A]">图片库</h1>
-            <p className="text-xs text-[#9AAA9A]">
+            <p className="text-xs text-[#9AAA9A] truncate">
               共 {totalCount} 个文件 · {uploading ? `上传中 ${uploadProgress}%` : '拖拽或点击上传'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* 批量删除 */}
           {selectedFiles.size > 0 && (
             <button
               onClick={deleteSelected}
               disabled={deleting === 'batch'}
-              className="flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+              className="touch-btn flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
             >
               {deleting === 'batch' ? (
                 <><Loader2 size={14} className="animate-spin" /> 删除中...</>
@@ -331,22 +331,22 @@ export default function ImageLibrary() {
 
           <button
             onClick={() => loadFiles()}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#E0ECE0] hover:bg-[#F4F7F4] rounded-xl text-xs text-[#5C725C] transition-colors"
+            className="touch-btn flex items-center gap-1.5 px-3 py-2 bg-white border border-[#E0ECE0] hover:bg-[#F4F7F4] rounded-xl text-xs text-[#5C725C] transition-colors"
           >
             <RefreshCw size={14} /> 刷新
           </button>
 
           {/* 视图切换 */}
-          <div className="flex bg-white border border-[#E0ECE0] rounded-xl overflow-hidden">
+          <div className="flex bg-white border border-[#E0ECE0] rounded-xl overflow-hidden flex-shrink-0">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 ${viewMode === 'grid' ? 'bg-[#E8F3EC] text-[#4A7C59]' : 'text-[#9AAA9A] hover:text-[#5C725C]'}`}
+              className={`touch-btn p-2 ${viewMode === 'grid' ? 'bg-[#E8F3EC] text-[#4A7C59]' : 'text-[#9AAA9A] hover:text-[#5C725C]'}`}
             >
               <Grid3X3 size={16} />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 ${viewMode === 'list' ? 'bg-[#E8F3EC] text-[#4A7C59]' : 'text-[#9AAA9A] hover:text-[#5C725C]'}`}
+              className={`touch-btn p-2 ${viewMode === 'list' ? 'bg-[#E8F3EC] text-[#4A7C59]' : 'text-[#9AAA9A] hover:text-[#5C725C]'}`}
             >
               <ListIcon size={16} />
             </button>
@@ -361,7 +361,7 @@ export default function ImageLibrary() {
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className={`relative border-2 border-dashed rounded-2xl p-6 transition-all text-center cursor-pointer
+        className={`relative border-2 border-dashed rounded-2xl p-4 sm:p-6 transition-all text-center cursor-pointer
           ${isDragging
             ? 'border-[#4A7C59] bg-[#E8F3EC] scale-[1.01]'
             : 'border-[#D5E2D5] bg-[#FAFCFA] hover:border-[#B0CCB0] hover:bg-[#F4F9F4]'
@@ -407,19 +407,19 @@ export default function ImageLibrary() {
       </div></Perm>
 
       {/* 搜索 */}
-      <div className="relative">
+      <div className="relative touch-manipulation">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="搜索文件名..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E0ECE0] rounded-xl text-sm text-[#1A2E1A] placeholder:text-[#A8BAA8] outline-none focus:border-[#4A7C59] focus:ring-2 focus:ring-[#4A7C59]/20 transition-all"
+          className="touch-btn w-full pl-10 pr-10 py-3 sm:py-2.5 bg-white border border-[#E0ECE0] rounded-xl text-sm text-[#1A2E1A] placeholder:text-[#A8BAA8] outline-none focus:border-[#4A7C59] focus:ring-2 focus:ring-[#4A7C59]/20 transition-all"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9AAA9A] hover:text-[#5C725C]"
+            className="touch-btn absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9AAA9A] hover:text-[#5C725C] p-1.5"
           >
             <X size={16} />
           </button>
@@ -428,7 +428,7 @@ export default function ImageLibrary() {
 
       {/* 排序工具栏 */}
       {!loading && allFiles.length > 0 && (
-        <div className="flex items-center gap-3 text-xs text-[#5C725C]">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-[#5C725C]">
           <span>排序：</span>
           {(['date', 'name', 'manual'] as const).map(mode => (
             <button
@@ -499,7 +499,7 @@ export default function ImageLibrary() {
 
       {/* ===== 网格视图 ===== */}
       {!loading && viewMode === 'grid' && filteredFiles.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
           {filteredFiles.map(file => (
             <div
               key={file.name}
@@ -551,10 +551,10 @@ export default function ImageLibrary() {
                 />
 
                 {/* 悬浮操作 */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
                   <button
                     onClick={() => copyUrl(file.publicUrl, file.name)}
-                    className="w-8 h-8 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors"
+                    className="touch-btn w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors"
                     title="复制URL"
                   >
                     {copiedId === file.name ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -563,7 +563,7 @@ export default function ImageLibrary() {
                     href={file.publicUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors"
+                    className="touch-btn w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center transition-colors"
                     title="打开"
                   >
                     <ExternalLink size={14} />
@@ -571,7 +571,7 @@ export default function ImageLibrary() {
                   <button
                     onClick={() => deleteFile(file.name)}
                     disabled={deleting === file.name}
-                    className="w-8 h-8 rounded-lg bg-white/90 hover:bg-red-50 flex items-center justify-center transition-colors disabled:opacity-50"
+                    className="touch-btn w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white/90 hover:bg-red-50 flex items-center justify-center transition-colors disabled:opacity-50"
                     title="删除"
                   >
                     {deleting === file.name ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} className="text-red-500" />}
@@ -645,10 +645,10 @@ export default function ImageLibrary() {
                     {file.updated_at ? new Date(file.updated_at).toLocaleString('zh-CN') : '-'}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => copyUrl(file.publicUrl, file.name)}
-                        className="p-1.5 rounded-lg hover:bg-[#E8F3EC] text-[#5C725C] hover:text-[#4A7C59] transition-colors"
+                        className="touch-btn p-2 sm:p-1.5 rounded-lg hover:bg-[#E8F3EC] text-[#5C725C] hover:text-[#4A7C59] transition-colors"
                         title="复制URL"
                       >
                         {copiedId === file.name ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -657,7 +657,7 @@ export default function ImageLibrary() {
                         href={file.publicUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg hover:bg-blue-50 text-[#5C725C] hover:text-blue-600 transition-colors"
+                        className="touch-btn p-2 sm:p-1.5 rounded-lg hover:bg-blue-50 text-[#5C725C] hover:text-blue-600 transition-colors"
                         title="打开"
                       >
                         <ExternalLink size={14} />
@@ -665,7 +665,7 @@ export default function ImageLibrary() {
                       <button
                         onClick={() => deleteFile(file.name)}
                         disabled={deleting === file.name}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-[#5C725C] hover:text-red-500 transition-colors disabled:opacity-50"
+                        className="touch-btn p-2 sm:p-1.5 rounded-lg hover:bg-red-50 text-[#5C725C] hover:text-red-500 transition-colors disabled:opacity-50"
                         title="删除"
                       >
                         {deleting === file.name ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -681,21 +681,21 @@ export default function ImageLibrary() {
 
       {/* 分页 */}
       {totalPages > 1 && !search && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1 sm:gap-2">
           <button
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="p-2 rounded-lg border border-[#E0ECE0] bg-white hover:bg-[#F4F7F4] disabled:opacity-40 transition-colors"
+            className="touch-btn p-2 rounded-lg border border-[#E0ECE0] bg-white hover:bg-[#F4F7F4] disabled:opacity-40 transition-colors"
           >
             <ChevronLeft size={16} />
           </button>
-          <span className="text-sm text-[#5C725C] px-4">
+          <span className="text-sm text-[#5C725C] px-2 sm:px-4 whitespace-nowrap">
             第 {page + 1} / {totalPages} 页
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="p-2 rounded-lg border border-[#E0ECE0] bg-white hover:bg-[#F4F7F4] disabled:opacity-40 transition-colors"
+            className="touch-btn p-2 rounded-lg border border-[#E0ECE0] bg-white hover:bg-[#F4F7F4] disabled:opacity-40 transition-colors"
           >
             <ChevronRight size={16} />
           </button>

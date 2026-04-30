@@ -59,6 +59,71 @@ body {
   animation: textShimmer 4s linear infinite;
 }
 
+/* ====== 后台移动端优化 ====== */
+
+/* 防止移动端表格溢出 */
+@media (max-width: 768px) {
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  .admin-table-wrap::-webkit-scrollbar { height: 2px; }
+  .admin-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+  
+  /* 移动端卡片式列表项触控优化 */
+  .mobile-card-tap {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .mobile-card-tap:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+}
+
+/* 安全区域适配（iPhone X+） */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* 统一触控尺寸 */
+.touch-btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 自定义 xs 断点 */
+@media (min-width: 480px) {
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* 移动端底部留白 */
+.mobile-bottom-pad {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
 .animate-breath { animation: logoPulse 4s ease-in-out infinite; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

@@ -417,7 +417,7 @@ export default function AdminInventory() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
               tab === t.key ? 'bg-[#4A7C59] text-[#1A2E1A]' : 'text-[#5C725C] hover:text-[#1A2E1A]'
             }`}
           >{t.label}</button>
@@ -442,7 +442,7 @@ export default function AdminInventory() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               <div>
                 <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
                 <select value={filterSeries} onChange={e => { setFilterSeries(e.target.value); setFilterCategory(''); }} className={selectCls}>
@@ -463,14 +463,14 @@ export default function AdminInventory() {
               </div>
               <div>
                 <label className="block text-[10px] text-[#8AA08A] mb-1">库存状态</label>
-                <select value={filterStockStatus} onChange={e => setFilterStockStatus(e.target.value as any)} className={selectCls}>
+                <select value={filterStockStatus} onChange={e => setFilterStockStatus(e.target.value as any)} className={`${selectCls} text-[10px] sm:text-sm`}>
                   <option value="all">全部</option>
-                  <option value="instock">库存充足 (≥10ml)</option>
-                  <option value="low">库存偏低 (1-9ml)</option>
-                  <option value="zero">已售罄 (0ml)</option>
+                  <option value="instock">充足 (≥10ml)</option>
+                  <option value="low">偏低 (1-9ml)</option>
+                  <option value="zero">售罄 (0ml)</option>
                 </select>
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="block text-[10px] text-[#8AA08A] mb-1">搜索产品</label>
                 <div className="relative">
                   <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
@@ -482,7 +482,65 @@ export default function AdminInventory() {
           </div>
 
           {/* 表格 */}
-          <div className="rounded-xl bg-white border border-[#E0ECE0] overflow-hidden">
+
+          {/* 移动端卡片视图 */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {filteredSummaries.length === 0 ? (
+              <div className="rounded-xl bg-white border border-[#E0ECE0] p-8 text-center text-[#9AAA9A] text-sm">
+                {summaries.length === 0 ? '暂无库存数据，请先录入进货记录' : '没有符合筛选条件的产品'}
+              </div>
+            ) : (
+              filteredSummaries.map(s => {
+                const meta = productMetaMap.get(s.product_id);
+                const isZero = s.current_stock_ml === 0;
+                const isLow = s.current_stock_ml > 0 && s.current_stock_ml < 10;
+                return (
+                  <div
+                    key={s.product_id}
+                    className={`rounded-xl border p-4 space-y-2 ${
+                      isZero ? 'bg-red-500/[0.03] border-red-200' :
+                      isLow ? 'bg-yellow-500/5 border-yellow-200' :
+                      'bg-white border-[#E0ECE0]'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#1A2E1A] truncate">{s.product_name}</p>
+                        <p className="text-[10px] text-[#8AA08A] mt-0.5">
+                          {meta?.seriesName || '-'} · {meta?.categoryName || '-'}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
+                        isZero ? 'bg-red-100 text-red-500' :
+                        isLow ? 'bg-yellow-100 text-yellow-600' :
+                        'bg-green-100 text-green-600'
+                      }`}>
+                        {s.current_stock_ml}ml
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 pt-1 border-t border-[#E0ECE0]/50">
+                      <div className="text-center">
+                        <p className="text-[9px] text-[#9AAA9A]">进货</p>
+                        <p className="text-xs font-medium text-[#3D5C3D]">{s.total_purchased_ml}ml</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] text-[#9AAA9A]">销售</p>
+                        <p className="text-xs font-medium text-[#3D5C3D]">{s.total_sold_ml}ml</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] text-[#9AAA9A]">利润</p>
+                        <p className={`text-xs font-semibold ${s.total_profit >= 0 ? 'text-green-500' : 'text-red-400'}`}>
+                          ¥{s.total_profit.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="admin-table-wrap rounded-xl bg-white border border-[#E0ECE0] overflow-hidden hidden md:block">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-[#D5E2D5]">
@@ -549,7 +607,7 @@ export default function AdminInventory() {
               <span className="text-xs font-medium text-[#3D5C3D] flex items-center gap-1.5"><Filter size={13} /> 筛选</span>
               <button onClick={resetPurFilters} className="text-[10px] text-[#8AA08A] hover:text-[#5C725C] flex items-center gap-1"><RotateCcw size={10} /> 重置</button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               <div>
                 <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
                 <select value={purFilterSeries} onChange={e => setPurFilterSeries(e.target.value)} className={selectCls}>
@@ -582,22 +640,26 @@ export default function AdminInventory() {
 
           {/* 进货表单 */}
           {showPurchaseForm && (
-            <div className="rounded-xl bg-white border border-[#D5E2D5] p-5 space-y-4">
+            <div className="rounded-xl bg-white border border-[#D5E2D5] p-4 sm:p-5 space-y-4">
               <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
                 {editingPurchase ? '编辑进货记录' : '录入进货记录'}
                 <button onClick={cancelPurchaseForm} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label>
                   <select value={purchaseForm.product_id} onChange={e => setPurchaseForm(f => ({ ...f, product_id: e.target.value }))} className={selectCls}>
                     <option value="">选择...</option>{products.map(p => <option key={p.id} value={p.id}>{p.name_cn}</option>)}
                   </select>
                 </div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">进货日期</label><input type="date" value={purchaseForm.purchase_date} onChange={e => setPurchaseForm(f => ({ ...f, purchase_date: e.target.value }))} className={inputCls} /></div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" placeholder="例如: 100" value={purchaseForm.volume_ml} onChange={e => setPurchaseForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">进价(元/ml) *</label><input type="number" step="0.01" placeholder="单价" value={purchaseForm.unit_cost} onChange={e => setPurchaseForm(f => ({ ...f, unit_cost: e.target.value }))} className={inputCls} /></div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">供货商代码</label><input placeholder="例如: SUP001" value={purchaseForm.supplier_code} onChange={e => setPurchaseForm(f => ({ ...f, supplier_code: e.target.value }))} className={inputCls} /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">进货日期</label><input type="date" value={purchaseForm.purchase_date} onChange={e => setPurchaseForm(f => ({ ...f, purchase_date: e.target.value }))} className={inputCls} /></div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" placeholder="例如: 100" value={purchaseForm.volume_ml} onChange={e => setPurchaseForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">进价(元/ml) *</label><input type="number" step="0.01" placeholder="单价" value={purchaseForm.unit_cost} onChange={e => setPurchaseForm(f => ({ ...f, unit_cost: e.target.value }))} className={inputCls} /></div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">供货商代码</label><input placeholder="例如: SUP001" value={purchaseForm.supplier_code} onChange={e => setPurchaseForm(f => ({ ...f, supplier_code: e.target.value }))} className={inputCls} /></div>
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={cancelPurchaseForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
@@ -607,7 +669,7 @@ export default function AdminInventory() {
           )}
 
           {/* 进货列表 */}
-          <div className="rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
+          <div className="admin-table-wrap rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
             <table className="w-full text-sm min-w-[800px]">
               <thead><tr className="border-b border-[#D5E2D5]">
                 <SortableTh field="date" currentField={purSortField} currentDir={purSortDir} onSort={f => { setPurSortField(f); }}>日期</SortableTh>
@@ -666,7 +728,7 @@ export default function AdminInventory() {
               <span className="text-xs font-medium text-[#3D5C3D] flex items-center gap-1.5"><Filter size={13} /> 筛选</span>
               <button onClick={resetSalFilters} className="text-[10px] text-[#8AA08A] hover:text-[#5C725C] flex items-center gap-1"><RotateCcw size={10} /> 重置</button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               <div>
                 <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
                 <select value={salFilterSeries} onChange={e => setSalFilterSeries(e.target.value)} className={selectCls}>
@@ -698,15 +760,17 @@ export default function AdminInventory() {
           </div>
 
           {showSaleForm && (
-            <div className="rounded-xl bg-white border border-[#D5E2D5] p-5 space-y-4">
+            <div className="rounded-xl bg-white border border-[#D5E2D5] p-4 sm:p-5 space-y-4">
               <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
                 {editingSale ? '编辑销售记录' : '录入销售记录'}
                 <button onClick={cancelSaleForm} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label><select value={saleForm.product_id} onChange={e => setSaleForm(f => ({ ...f, product_id: e.target.value }))} className={selectCls}><option value="">选择...</option>{products.map(p => <option key={p.id} value={p.id}>{p.name_cn}</option>)}</select></div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">销售日期</label><input type="date" value={saleForm.sale_date} onChange={e => setSaleForm(f => ({ ...f, sale_date: e.target.value }))} className={inputCls} /></div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" value={saleForm.volume_ml} onChange={e => setSaleForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">销售日期</label><input type="date" value={saleForm.sale_date} onChange={e => setSaleForm(f => ({ ...f, sale_date: e.target.value }))} className={inputCls} /></div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" value={saleForm.volume_ml} onChange={e => setSaleForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
+                </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">销售金额(¥) *</label><input type="number" step="0.01" value={saleForm.total_amount} onChange={e => setSaleForm(f => ({ ...f, total_amount: e.target.value }))} className={inputCls} /></div>
               </div>
               <div className="flex justify-end gap-3">
@@ -716,7 +780,7 @@ export default function AdminInventory() {
             </div>
           )}
 
-          <div className="rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
+          <div className="admin-table-wrap rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
             <table className="w-full text-sm min-w-[750px]">
               <thead><tr className="border-b border-[#D5E2D5]">
                 <SortableTh field="date" currentField={salSortField} currentDir={salSortDir} onSort={f => { setSalSortField(f); }}>日期</SortableTh>

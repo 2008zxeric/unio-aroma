@@ -233,7 +233,7 @@ export default function AdminDashboard() {
     const color = isIn ? '#4A7C59' : '#D4AF37';
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={closeAllQuick}>
-        <div className="bg-white rounded-2xl shadow-2xl w-[90vw] max-w-lg max-h-[85vh] flex flex-col border border-[#E0ECE0]" onClick={e => e.stopPropagation()}>
+        <div className="bg-white rounded-2xl shadow-2xl w-[95vw] sm:w-[90vw] max-w-lg max-h-[90vh] sm:max-h-[85vh] flex flex-col border border-[#E0ECE0] p-3 sm:p-0" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#E0ECE0]">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '18' }}>
@@ -257,11 +257,11 @@ export default function AdminDashboard() {
                       value={quickKeyword}
                       onChange={e => setQuickKeyword(e.target.value)}
                       placeholder="搜索产品名称或代码..."
-                      className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] outline-none focus:border-[color]"
+                      className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] outline-none focus:border-[color] touch-btn"
                       autoFocus
                     />
                   </div>
-                  <div className="max-h-40 overflow-y-auto space-y-1 border border-[#E0ECE0] rounded-lg p-1">
+                  <div className="max-h-40 overflow-y-auto space-y-1 border border-[#E0ECE0] rounded-lg p-1 w-full sm:max-w-none">
                     {filteredQuickProds.map(p => (
                       <button
                         key={p.id}
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
                   <label className="block text-xs font-bold text-[#5C725C] mb-1.5">
                     规格 {isJing && <span className="text-[#D4AF37] font-normal">（香系列用个/件/套）</span>}
                   </label>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
                     {sizes.map(s => (
                       <button
                         key={s}
@@ -323,7 +323,7 @@ export default function AdminDashboard() {
                         value={quickCost}
                         onChange={e => setQuickCost(e.target.value)}
                         placeholder="0.00"
-                        className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] outline-none focus:border-[#4A7C59]/50"
+                        className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] outline-none focus:border-[#4A7C59]/50 touch-btn"
                       />
                       {quickSize && !isJing && (
                         <p className="text-[10px] text-[#9AAA9A] mt-1">参考：¥{getReferencePrice(quickProduct, quickSize, false).toFixed(2)}/ml</p>
@@ -336,7 +336,7 @@ export default function AdminDashboard() {
                         value={quickSupplier}
                         onChange={e => setQuickSupplier(e.target.value)}
                         placeholder="供货商代码"
-                        className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] outline-none focus:border-[#4A7C59]/50"
+                        className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] outline-none focus:border-[#4A7C59]/50 touch-btn"
                       />
                     </div>
                   </div>
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
                       value={quickAmount}
                       onChange={e => setQuickAmount(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] outline-none focus:border-[#D4AF37]/50"
+                      className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] outline-none focus:border-[#D4AF37]/50 touch-btn"
                     />
                     {quickSize && !isJing && (
                       <p className="text-[10px] text-[#9AAA9A] mt-1">参考售价：¥{getReferencePrice(quickProduct, quickSize, false).toFixed(2)}/ml</p>
@@ -423,14 +423,14 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 统计卡片 — 6 张 */}
+      {/* 统计卡片 — 6 张 (mobile: 1列宽大显示) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <div
               key={idx}
-              className="group p-4 rounded-2xl bg-white border border-[#E0ECE0] hover:border-[#D5E2D5] transition-all duration-300 hover:scale-[1.02]"
+              className="group p-4 rounded-2xl bg-white border border-[#E0ECE0] hover:border-[#D5E2D5] transition-all duration-300 max-sm:hover:scale-100 hover:scale-[1.02]"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -463,7 +463,7 @@ export default function AdminDashboard() {
             <Warehouse size={20} className="text-[#4A7C59]" />
             快速出入库
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => { setShowQuickIn(true); setShowQuickOut(false); resetQuickForm(); }}
               className="group p-5 rounded-xl border-2 border-dashed border-[#4A7C59]/30 hover:border-[#4A7C59] bg-[#F2F7F3] hover:bg-[#E8F3EC] transition-all duration-200 text-center"
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
         {/* 快捷操作 */}
         <div className="p-6 rounded-2xl bg-white border border-[#E0ECE0]">
           <h3 className="text-lg font-semibold text-[#1A2E1A] mb-4">快捷操作</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { label: '添加产品', desc: '录入新产品信息', to: '/admin/products', color: '#4A7C59' },
               { label: '添加国家', desc: '新增国家/地区', to: '/admin/countries', color: '#1C39BB' },
@@ -553,6 +553,9 @@ export default function AdminDashboard() {
       {/* 快速入库/出库 Modal */}
       {showQuickIn && <QuickModal mode="in" />}
       {showQuickOut && <QuickModal mode="out" />}
+
+      {/* 移动端底部安全区域填充 */}
+      <div className="mobile-bottom-pad" />
     </div>
   );
 }
