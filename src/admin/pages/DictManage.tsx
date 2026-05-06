@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle, KeyRound } from 'lucide-react';
+import { Perm } from '../components/PermissionGuard';
 import { supabase } from '../../lib/supabase';
 import { dictService, userService, seriesService } from '../../lib/dataService';
 import { useAuth, updateUserPassword } from '../../lib/auth';
@@ -272,13 +273,15 @@ function TaxonomyView() {
           <div className="flex-1">
             <p className="text-sm text-amber-800 font-medium">分类体系尚未初始化</p>
             <p className="text-xs text-amber-600 mt-1">检测到部分系列缺少子分类数据。点击下方按钮将自动初始化四大系列及其子分类（旧的冗余数据将被清理）。</p>
-            <button
-              onClick={handleInit}
-              disabled={initing}
-              className="mt-3 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm disabled:opacity-50 transition-colors"
-            >
-              {initing ? '初始化中...' : '一键初始化分类体系'}
-            </button>
+            <Perm action="edit_dicts">
+              <button
+                onClick={handleInit}
+                disabled={initing}
+                className="mt-3 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm disabled:opacity-50 transition-colors"
+              >
+                {initing ? '初始化中...' : '一键初始化分类体系'}
+              </button>
+            </Perm>
           </div>
         </div>
       )}
@@ -301,13 +304,15 @@ function TaxonomyView() {
           )}
         </div>
         {!hasAnySubcategories && !needsInit && (
-          <button
-            onClick={handleInit}
-            disabled={initing}
-            className="px-3 py-1.5 bg-[#4A7C59] text-white rounded-lg text-xs disabled:opacity-50"
-          >
-            {initing ? '初始化中...' : '初始化子分类'}
-          </button>
+          <Perm action="edit_dicts">
+            <button
+              onClick={handleInit}
+              disabled={initing}
+              className="px-3 py-1.5 bg-[#4A7C59] text-white rounded-lg text-xs disabled:opacity-50"
+            >
+              {initing ? '初始化中...' : '初始化子分类'}
+            </button>
+          </Perm>
         )}
       </div>
 
@@ -398,12 +403,14 @@ function TaxonomyView() {
                               className="w-full px-3 py-2 bg-white border border-[#D5E2D5] rounded-lg text-sm"
                             />
                           </div>
-                          <button
-                            onClick={handleSaveSub}
-                            className="px-4 py-2 bg-[#4A7C59] text-white rounded-lg text-sm font-medium hover:bg-[#3D6B4A] transition-colors"
-                          >
-                            保存
-                          </button>
+                          <Perm action="edit_dicts">
+                            <button
+                              onClick={handleSaveSub}
+                              className="px-4 py-2 bg-[#4A7C59] text-white rounded-lg text-sm font-medium hover:bg-[#3D6B4A] transition-colors"
+                            >
+                              保存
+                            </button>
+                          </Perm>
                         </div>
                       </div>
                     </div>
@@ -413,12 +420,14 @@ function TaxonomyView() {
                   {series.subcategories.length === 0 ? (
                     <div className="py-8 text-center">
                       <p className="text-xs text-[#8AA08A]">暂无子分类</p>
-                      <button
-                        onClick={() => openAddSub(series.id)}
-                        className="mt-2 text-xs text-[#7BA689] hover:text-[#4A7C59]"
-                      >
-                        点击添加
-                      </button>
+                      <Perm action="edit_dicts">
+                        <button
+                          onClick={() => openAddSub(series.id)}
+                          className="mt-2 text-xs text-[#7BA689] hover:text-[#4A7C59]"
+                        >
+                          点击添加
+                        </button>
+                      </Perm>
                     </div>
                   ) : (
                     <div className="divide-y divide-[#E0ECE0]/50">
@@ -429,6 +438,7 @@ function TaxonomyView() {
                           <code className="text-xs text-[#7A967A] bg-[#F0F5F0] px-2 py-0.5 rounded font-mono">{sub.value}</code>
                           <span className="text-xs text-[#9AAA9A] w-8 text-right">{sub.sort_order}</span>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Perm action="edit_dicts">
                             <button
                               onClick={() => openEditSub(sub, series.id)}
                               className="p-1.5 hover:bg-[#EEF4EF] rounded"
@@ -436,6 +446,8 @@ function TaxonomyView() {
                             >
                               <Edit2 size={13} className="text-[#5C725C]" />
                             </button>
+                          </Perm>
+                          <Perm action="edit_dicts">
                             <button
                               onClick={() => handleDeleteSub(sub.id)}
                               className="p-1.5 hover:bg-red-50 rounded"
@@ -443,6 +455,7 @@ function TaxonomyView() {
                             >
                               <Trash2 size={13} className="text-red-400/50" />
                             </button>
+                          </Perm>
                           </div>
                         </div>
                       ))}
@@ -452,12 +465,14 @@ function TaxonomyView() {
                   {/* 添加子分类按钮 */}
                   {!showSubForm && (
                     <div className="px-5 py-3 border-t border-[#E0ECE0]/50">
-                      <button
-                        onClick={() => openAddSub(series.id)}
-                        className="flex items-center gap-1.5 text-xs text-[#7BA689] hover:text-[#4A7C59] transition-colors"
-                      >
-                        <Plus size={13} /> 添加子分类
-                      </button>
+                      <Perm action="edit_dicts">
+                        <button
+                          onClick={() => openAddSub(series.id)}
+                          className="flex items-center gap-1.5 text-xs text-[#7BA689] hover:text-[#4A7C59] transition-colors"
+                        >
+                          <Plus size={13} /> 添加子分类
+                        </button>
+                      </Perm>
                     </div>
                   )}
                 </div>
@@ -583,12 +598,14 @@ function GeneralDictView() {
       {/* 操作栏 */}
       <div className="flex justify-between items-center">
         <span className="text-sm text-[#7A967A]">{items.length} 条记录</span>
-        <button
-          onClick={openAddForm}
-          className="flex items-center gap-2 px-4 py-2 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl text-sm"
-        >
-          <Plus size={14} /> 添加条目
-        </button>
+        <Perm action="edit_dicts">
+          <button
+            onClick={openAddForm}
+            className="flex items-center gap-2 px-4 py-2 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl text-sm"
+          >
+            <Plus size={14} /> 添加条目
+          </button>
+        </Perm>
       </div>
 
       {/* 新增/编辑表单 */}
@@ -629,9 +646,11 @@ function GeneralDictView() {
           </div>
           <div className="flex justify-end gap-3">
             <button onClick={cancelForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
-            <button onClick={handleSave} className="px-5 py-2 bg-[#4A7C59] text-white rounded-xl text-sm flex items-center gap-2">
-              <Save size={14} /> 保存
-            </button>
+            <Perm action="edit_dicts">
+              <button onClick={handleSave} className="px-5 py-2 bg-[#4A7C59] text-white rounded-xl text-sm flex items-center gap-2">
+                <Save size={14} /> 保存
+              </button>
+            </Perm>
           </div>
         </div>
       )}
@@ -652,12 +671,16 @@ function GeneralDictView() {
               <span className="text-sm text-[#1A2E1A] flex-1 font-medium">{item.label}</span>
               <span className="text-xs text-[#9AAA9A] w-12 text-right">{item.sort_order}</span>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                <button onClick={() => openEditForm(item)} className="p-1.5 hover:bg-[#EEF4EF] rounded" title="编辑">
-                  <Edit2 size={13} className="text-[#5C725C]" />
-                </button>
-                <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-500/10 rounded" title="删除">
-                  <Trash2 size={13} className="text-red-400/50" />
-                </button>
+                <Perm action="edit_dicts">
+                  <button onClick={() => openEditForm(item)} className="p-1.5 hover:bg-[#EEF4EF] rounded" title="编辑">
+                    <Edit2 size={13} className="text-[#5C725C]" />
+                  </button>
+                </Perm>
+                <Perm action="edit_dicts">
+                  <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-500/10 rounded" title="删除">
+                    <Trash2 size={13} className="text-red-400/50" />
+                  </button>
+                </Perm>
               </div>
             </div>
           ))}
@@ -786,12 +809,14 @@ export function AdminUsers() {
           <h2 className="text-2xl font-bold text-[#1A2E1A]">权限管理</h2>
           <p className="text-sm text-[#6B856B] mt-1">管理系统用户和角色权限</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl text-sm font-medium transition-colors"
-        >
-          <Plus size={14} /> 添加用户
-        </button>
+        <Perm action="manage_users">
+          <button
+            onClick={() => { resetForm(); setShowForm(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl text-sm font-medium transition-colors"
+          >
+            <Plus size={14} /> 添加用户
+          </button>
+        </Perm>
       </div>
 
       {/* 密码修改弹窗 */}
@@ -929,13 +954,15 @@ export function AdminUsers() {
                     </td>
                     {isSuperAdmin && (
                       <td className="px-4 py-3">
-                        <button
-                          onClick={() => setPwdModal({ userId: u.id, username: u.username, displayName: u.display_name || u.username })}
-                          className="flex items-center gap-1.5 text-xs text-[#4A7C59] hover:text-[#3D6B4A] transition-colors"
-                        >
-                          <KeyRound size={12} />
-                          重置密码
-                        </button>
+                        <Perm action="manage_users">
+                          <button
+                            onClick={() => setPwdModal({ userId: u.id, username: u.username, displayName: u.display_name || u.username })}
+                            className="flex items-center gap-1.5 text-xs text-[#4A7C59] hover:text-[#3D6B4A] transition-colors"
+                          >
+                            <KeyRound size={12} />
+                            重置密码
+                          </button>
+                        </Perm>
                       </td>
                     )}
                     <td className="px-4 py-3 text-[#7A967A] text-xs">
@@ -943,6 +970,7 @@ export function AdminUsers() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
+                      <Perm action="manage_users">
                         <button
                           onClick={() => startEdit(u)}
                           className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]"
@@ -950,6 +978,7 @@ export function AdminUsers() {
                         >
                           <Edit2 size={14} />
                         </button>
+                      </Perm>
                         {isSuperAdmin && (
                           <button
                             onClick={() => setPwdModal({ userId: u.id, username: u.username, displayName: u.display_name || u.username })}

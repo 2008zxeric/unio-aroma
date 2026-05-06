@@ -596,8 +596,13 @@ export default function AdminProducts() {
         await productService.create(record);
       }
 
-      await loadData();
-      backToList();
+        await loadData();
+        // 编辑时停留在当前页面，新增时返回列表
+        if (!editingId) {
+          backToList();
+        } else {
+          setViewMode('edit');
+        }
     } catch (err: any) {
       console.error('保存失败:', err);
       alert('保存失败：' + (err.message || '未知错误'));

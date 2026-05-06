@@ -5,6 +5,7 @@ import { bannerService } from '../../lib/dataService';
 import type { Banner } from '../../lib/database.types';
 import ImageUploadField from '../components/ImageUploadField';
 import { Perm } from '../components/PermissionGuard';
+import { useAuth, writeAuditLog } from '../../lib/auth';
 
 const POSITIONS = [
   { value: 'home', label: '首页' },
@@ -41,7 +42,9 @@ export default function AdminBanners() {
   const [form, setForm] = useState<BannerForm>(emptyForm());
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [saving, setSaving] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     bannerService.getAll().then(data => { setBanners(data); setLoading(false); }).catch(() => setLoading(false));
@@ -49,6 +52,7 @@ export default function AdminBanners() {
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.image_url.trim()) { alert('请填写名称和图片URL！'); return; }
+    setSaving(true);
     try {
       const payload: any = {
         name: form.name,
@@ -61,11 +65,16 @@ export default function AdminBanners() {
       if (form.video_url) payload.video_url = form.video_url;
       if (form.poster_url) payload.poster_url = form.poster_url;
 
-      if (editingId) await bannerService.update(editingId, payload);
-      else await bannerService.create(payload);
+      if (editingId) {
+        await bannerService.update(editingId, payload);
+        await writeAuditLog(user!.id, 'update', 'banner', editingId, { note: '横幅: ' + form.name });
+      } else {
+        const created = await bannerService.create(payload);
+        await writeAuditLog(user!.id, 'create', 'banner', created.id, { note: '横幅: ' + form.name });
+      }
       setBanners(await bannerService.getAll());
       setEditingId(null); setForm(emptyForm()); setShowForm(false);
-    } catch (err: any) { alert('保存失败：' + err.message); }
+    } catch (err: any) { alert('保存失败：' + err.message); } finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
@@ -238,7 +247,7 @@ export default function AdminBanners() {
           </div>
           <div className="flex justify-end gap-3 pt-2 border-t border-[#E0ECE0]">
             <button onClick={() => { setEditingId(null); setShowForm(false); }} className="touch-btn px-5 py-2.5 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
-            <button onClick={handleSave} className="touch-btn px-6 py-2.5 bg-[#4A7C59] text-white text-sm font-medium rounded-xl">{editingId ? '保存' : '创建'}</button>
+            <button onClick={handleSave} disabled={saving} className="touch-btn px-6 py-2.5 bg-[#4A7C59] text-white text-sm font-medium rounded-xl">{editingId ? '保存' : '创建'}</button>
           </div>
         </div>
       )}

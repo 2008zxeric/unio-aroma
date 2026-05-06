@@ -45,7 +45,8 @@ export type PermissionAction =
   | 'view_images'                 // 图片库查看
   | 'delete_images'               // 图片库删除
   | 'view_series'                 // 系列管理查看
-  | 'edit_series';                // 系列管理编辑
+  | 'edit_series'                // 系列管理编辑
+  | 'edit_reviews'                // 评价审核管理
 
 // ---- 角色权限矩阵 ----
 const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
@@ -61,6 +62,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
     'view_settings', 'edit_settings',
     'view_images', 'delete_images',
     'view_series', 'edit_series',
+    'edit_reviews',
   ]),
   admin: new Set([
     'view_dashboard', 'view_products', 'edit_products', 'toggle_product_status',
@@ -72,6 +74,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, Set<PermissionAction>> = {
     'view_dicts', 'edit_dicts',
     'view_settings', 'edit_settings',
     'view_images', 'view_series',
+    'edit_reviews',
     // 不能管理用户
   ]),
   editor: new Set([
