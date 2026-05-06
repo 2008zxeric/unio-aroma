@@ -10,10 +10,11 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink, Video } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink, Video, X } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
 import { getSeries, getProducts, getCountries } from '../siteDataService';
-import { bannerService } from '../../lib/dataService';
+import { siteTextService } from '../../lib/dataService';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
@@ -75,8 +76,10 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [countryCount, setCountryCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [heroVideo, setHeroVideo] = useState<{ url: string; poster?: string } | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [welcomeVideo, setWelcomeVideo] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeMuted, setWelcomeMuted] = useState(true);
+  const welcomeVideoRef = useRef<HTMLVideoElement>(null);
   
   // 动态统计：全部基于实际数据
   const originStats = useCountUp(countryCount, 2200);
@@ -95,14 +98,15 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
         setProducts(productsData);
         setCountryCount(countriesData.length);
 
-        // 获取首页视频Banner
+        // 获取首页欢迎视频
         try {
-          const allBanners = await bannerService.getAll();
-          const homeVideoBanner = allBanners.find(b =>
-            b.position === 'home' && b.is_active && b.video_url
-          );
-          if (homeVideoBanner) {
-            setHeroVideo({ url: homeVideoBanner.video_url!, poster: homeVideoBanner.poster_url || undefined });
+          const text = await siteTextService.getByKey('home_welcome_video');
+          if (text?.value) {
+            setWelcomeVideo(text.value);
+            // 首次访问才播放，播放后就记录到 localStorage
+            if (!localStorage.getItem('unio_welcome_video_played')) {
+              setShowWelcome(true);
+            }
           }
         } catch {}
       } catch (error) {
@@ -132,31 +136,11 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
 
       {/* ============ HERO SECTION ============ */}
       <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
-        {/* 背景图/视频 */}
+        {/* 背景图 */}
         <div className="absolute inset-0">
-          {heroVideo ? (
-            <>
-              <video
-                ref={videoRef}
-                src={heroVideo.url}
-                poster={heroVideo.poster}
-                muted
-                loop
-                playsInline
-                autoPlay
-                className="w-full h-full object-cover"
-                onCanPlay={() => { if (videoRef.current) videoRef.current.play().catch(() => {}); }}
-              />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
-            </>
-          ) : (
-            <>
-              <img src={HERO_IMG} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
-            </>
-          )}
+          <img src={HERO_IMG} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
         </div>
 
         {/* 装饰分子环 */}
@@ -510,6 +494,74 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           </div>
         </div>
       </footer>
+
+      {/* ============ 欢迎视频浮层（首次访问全屏播放一次） ============ */}
+      {showWelcome && welcomeVideo && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center" onClick={() => {
+            // 点击视频本身也可以跳过
+            localStorage.setItem('unio_welcome_video_played', 'true');
+            setShowWelcome(false);
+          }}>
+          <video
+              ref={welcomeVideoRef}
+              src={welcomeVideo}
+              muted={welcomeMuted}
+              playsInline
+              autoPlay
+              preload="auto"
+              className="w-full h-full object-contain max-h-screen"
+              onLoadedData={() => {
+                welcomeVideoRef.current?.play().catch(() => setShowWelcome(false));
+              }}
+              onEnded={() => {
+                localStorage.setItem('unio_welcome_video_played', 'true');
+                setShowWelcome(false);
+              }}
+              onError={() => setShowWelcome(false)}
+            />
+          {/* 跳过按钮 */}
+          <div className="absolute top-12 right-6 z-10 flex items-center gap-3">
+            {/* 音量控制 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setWelcomeMuted(!welcomeMuted);
+              }}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/70 hover:bg-white/20 hover:text-white transition-all"
+            >
+              {welcomeMuted ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              )}
+            </button>
+            {/* 关闭按钮 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                localStorage.setItem('unio_welcome_video_played', 'true');
+                setShowWelcome(false);
+              }}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/70 hover:bg-white/20 hover:text-white transition-all"
+            >
+            <X size={18} />
+          </button>
+          </div>
+          {/* 底部提示 */}
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/40 text-xs tracking-[0.3em] animate-pulse">
+            首次体验 · 播放结束后自动进入
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
