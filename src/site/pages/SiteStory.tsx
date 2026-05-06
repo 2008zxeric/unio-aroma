@@ -172,6 +172,9 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
               <p className="text-sm sm:text-base md:text-xl text-black/33 sm:text-black/40 tracking-[0.15em] sm:tracking-widest max-w-2xl sm:max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-2 sm:pt-4">
                 首席专家 Alice 廿载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的&ldquo;宁静避难所&rdquo;。这是专业积淀与分享精神的完美交响。
               </p>
+              <p className="text-sm sm:text-base md:text-xl text-black/33 sm:text-black/40 tracking-[0.15em] sm:tracking-widest max-w-2xl sm:max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-3 sm:pt-5 border-t border-black/5 sm:border-black/6">
+                合伙人 Amanda 同样是深耕芳疗领域多年的资深专家，她继承并壮大了这份芳香事业。凭借深厚的专业功底与对品质的极致追求，Amanda 为 UNIO 品牌的每一款产品注入严苛的品控标准，成为元香品质与专业最坚实的保障。
+              </p>
             </div>
 
             <div className="relative group">
