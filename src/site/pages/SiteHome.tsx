@@ -103,8 +103,10 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           const text = await siteTextService.getByKey('home_welcome_video');
           if (text?.value) {
             setWelcomeVideo(text.value);
-            // 首次访问才播放，播放后就记录到 localStorage
-            if (!localStorage.getItem('unio_welcome_video_played')) {
+            // 每天首次访问才播放（每日一次）
+            const lastPlayed = localStorage.getItem('unio_welcome_video_played_date');
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            if (lastPlayed !== today) {
               setShowWelcome(true);
             }
           }
@@ -499,7 +501,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       {showWelcome && welcomeVideo && createPortal(
         <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center" onClick={() => {
             // 点击视频本身也可以跳过
-            localStorage.setItem('unio_welcome_video_played', 'true');
+            localStorage.setItem('unio_welcome_video_played_date', new Date().toISOString().slice(0, 10));
             setShowWelcome(false);
           }}>
           <video
@@ -514,7 +516,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                 welcomeVideoRef.current?.play().catch(() => setShowWelcome(false));
               }}
               onEnded={() => {
-                localStorage.setItem('unio_welcome_video_played', 'true');
+                localStorage.setItem('unio_welcome_video_played_date', new Date().toISOString().slice(0, 10));
                 setShowWelcome(false);
               }}
               onError={() => setShowWelcome(false)}
@@ -547,7 +549,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                localStorage.setItem('unio_welcome_video_played', 'true');
+                localStorage.setItem('unio_welcome_video_played_date', new Date().toISOString().slice(0, 10));
                 setShowWelcome(false);
               }}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/70 hover:bg-white/20 hover:text-white transition-all"

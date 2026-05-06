@@ -1,1 +1,16 @@
-{"projectId":"prj_Voyy934dvoj8IkQQAorOSqergMtX","orgId":"team_DVEJ340AIwQkAxI6ThqTevHh","projectName":"unio-aroma-site"}
+{
+  "projectId": "prj_Voyy934dvoj8IkQQAorOSqergMtX",
+  "orgId": "team_DVEJ340AIwQkAxI6ThqTevHh",
+  "projectName": "unio-aroma-site",
+  "settings": {
+    "createdAt": 1775695741611,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
