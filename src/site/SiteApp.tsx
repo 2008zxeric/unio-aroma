@@ -268,7 +268,7 @@ const SiteApp: React.FC = () => {
       case 'china-atlas': return <SiteChinaAtlas onNavigate={handleNavigate} />;
       case 'destination': return navParams.countryId ? <SiteDestination countryId={navParams.countryId} onNavigate={handleNavigate} /> : <SiteAtlas onNavigate={handleNavigate} />;
       case 'story': return <SiteStory onNavigate={handleNavigate} />;
-      case 'oracle': return <SiteOracle onNavigate={handleNavigate} />;
+      case 'oracle': return <SiteOracle onNavigate={handleNavigate} onShowWechat={() => setShowWechatQR(true)} />;
       default: return <SiteHome onNavigate={handleNavigate} />;
     }
   };
