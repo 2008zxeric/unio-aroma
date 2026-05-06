@@ -30,6 +30,7 @@ export function AdminTexts() {
       { key: 'brand_intro', desc: '品牌简介段落', defaultValue: '' },
       { key: 'section_products_title', desc: '产品区标题', defaultValue: '极境原力 · 单方精油' },
       { key: 'section_countries_title', desc: '国家区标题', defaultValue: '全球寻香地图' },
+      { key: 'home_welcome_video', desc: '首页欢迎视频（首次访问全屏播放，仅一次）', defaultValue: '' },
     ],
     story: [
       { key: 'story_title_1', desc: '篇章1 标题', defaultValue: '廿载寻香之路' },

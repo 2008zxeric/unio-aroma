@@ -316,17 +316,19 @@ export default function ImageLibrary() {
         <div className="flex items-center gap-1.5">
           {/* 批量删除 */}
           {selectedFiles.size > 0 && (
-            <button
-              onClick={deleteSelected}
-              disabled={deleting === 'batch'}
-              className="touch-btn flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
-            >
-              {deleting === 'batch' ? (
-                <><Loader2 size={14} className="animate-spin" /> 删除中...</>
-              ) : (
-                <><Trash2 size={14} /> 删除选中 ({selectedFiles.size})</>
-              )}
-            </button>
+            <Perm action="delete_images">
+              <button
+                onClick={deleteSelected}
+                disabled={deleting === 'batch'}
+                className="touch-btn flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+              >
+                {deleting === 'batch' ? (
+                  <><Loader2 size={14} className="animate-spin" /> 删除中...</>
+                ) : (
+                  <><Trash2 size={14} /> 删除选中 ({selectedFiles.size})</>
+                )}
+              </button>
+            </Perm>
           )}
 
           <button
@@ -568,6 +570,7 @@ export default function ImageLibrary() {
                   >
                     <ExternalLink size={14} />
                   </a>
+                  <Perm action="delete_images">
                   <button
                     onClick={() => deleteFile(file.name)}
                     disabled={deleting === file.name}
@@ -576,6 +579,7 @@ export default function ImageLibrary() {
                   >
                     {deleting === file.name ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} className="text-red-500" />}
                   </button>
+                  </Perm>
                 </div>
               </div>
 
@@ -662,6 +666,7 @@ export default function ImageLibrary() {
                       >
                         <ExternalLink size={14} />
                       </a>
+                      <Perm action="delete_images">
                       <button
                         onClick={() => deleteFile(file.name)}
                         disabled={deleting === file.name}
@@ -670,6 +675,7 @@ export default function ImageLibrary() {
                       >
                         {deleting === file.name ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>
+                      </Perm>
                     </div>
                   </td>
                 </tr>

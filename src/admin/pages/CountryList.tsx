@@ -10,6 +10,7 @@ import type { Country, Product, Series } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
 import ImageUploadField from '../components/ImageUploadField';
 import { useAdminPreview } from '../AdminPreviewContext';
+import { useAuth, writeAuditLog } from '../../lib/auth';
 
 // ============================================
 // 国家表单接口（含产品绑定）
@@ -82,6 +83,7 @@ export default function AdminCountries() {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const { setPreviewUrl } = useAdminPreview();
+  const { user } = useAuth();
 
   // --- 列表筛选 ---
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,10 +245,19 @@ export default function AdminCountries() {
         sort_order: parseInt(form.sort_order) || 0,
         product_ids: form.boundProductIds,
       };
-      if (editingId) await countryService.update(editingId, record);
-      else await countryService.create(record);
+      if (editingId) {
+        await countryService.update(editingId, record);
+        if (user) await writeAuditLog(user.id, 'update', 'country', editingId, { note: '国家名: ' + form.name_cn });
+      } else {
+        const created = await countryService.create(record);
+        const id = created.id || created;
+        if (user) await writeAuditLog(user.id, 'create', 'country', id, { note: '国家名: ' + form.name_cn });
+        setEditingId(id);
+        setViewMode('edit');
+      }
       await loadData();
-      backToList();
+      // 编辑时停留在当前编辑页，不跳转回列表
+      if (editingId) setViewMode('edit');
     } catch (err: any) {
       alert('保存失败：' + err.message);
     } finally {

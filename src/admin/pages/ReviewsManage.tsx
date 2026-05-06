@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { reviewService } from '../../lib/dataService';
 import type { Review } from '../../lib/database.types';
+import { Perm } from '../components/PermissionGuard';
 
 const PAGE_SIZE = 15;
 
@@ -189,27 +190,33 @@ export default function ReviewsManage() {
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">{selectedIds.size} 条已选</span>
-            <button
-              onClick={() => handleBulkApprove(true)}
-              disabled={actionLoading}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-50"
-            >
-              <CheckCircle size={12} /> 批量通过
-            </button>
-            <button
-              onClick={() => handleBulkApprove(false)}
-              disabled={actionLoading}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-50"
-            >
-              <XCircle size={12} /> 批量拒绝
-            </button>
-            <button
-              onClick={handleBulkDelete}
-              disabled={actionLoading}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50"
-            >
-              <Trash2 size={12} /> 批量删除
-            </button>
+            <Perm action="edit_reviews">
+              <button
+                onClick={() => handleBulkApprove(true)}
+                disabled={actionLoading}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 disabled:opacity-50"
+              >
+                <CheckCircle size={12} /> 批量通过
+              </button>
+            </Perm>
+            <Perm action="edit_reviews">
+              <button
+                onClick={() => handleBulkApprove(false)}
+                disabled={actionLoading}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-50"
+              >
+                <XCircle size={12} /> 批量拒绝
+              </button>
+            </Perm>
+            <Perm action="edit_reviews">
+              <button
+                onClick={handleBulkDelete}
+                disabled={actionLoading}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 disabled:opacity-50"
+              >
+                <Trash2 size={12} /> 批量删除
+              </button>
+            </Perm>
           </div>
         )}
       </div>
@@ -320,32 +327,38 @@ export default function ReviewsManage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1.5">
                       {review.is_approved ? (
-                        <button
-                          onClick={() => handleApprove(review.id, false)}
-                          disabled={actionLoading}
-                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg disabled:opacity-50"
-                          title="拒绝"
-                        >
-                          <XCircle size={14} />
-                        </button>
+                        <Perm action="edit_reviews">
+                          <button
+                            onClick={() => handleApprove(review.id, false)}
+                            disabled={actionLoading}
+                            className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg disabled:opacity-50"
+                            title="拒绝"
+                          >
+                            <XCircle size={14} />
+                          </button>
+                        </Perm>
                       ) : (
-                        <button
-                          onClick={() => handleApprove(review.id, true)}
-                          disabled={actionLoading}
-                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
-                          title="通过"
-                        >
-                          <CheckCircle size={14} />
-                        </button>
+                        <Perm action="edit_reviews">
+                          <button
+                            onClick={() => handleApprove(review.id, true)}
+                            disabled={actionLoading}
+                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
+                            title="通过"
+                          >
+                            <CheckCircle size={14} />
+                          </button>
+                        </Perm>
                       )}
-                      <button
-                        onClick={() => handleDelete(review.id)}
-                        disabled={actionLoading}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50"
-                        title="删除"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <Perm action="edit_reviews">
+                        <button
+                          onClick={() => handleDelete(review.id)}
+                          disabled={actionLoading}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50"
+                          title="删除"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </Perm>
                     </div>
                   </td>
                 </tr>
