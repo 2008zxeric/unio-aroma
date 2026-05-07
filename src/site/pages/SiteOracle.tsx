@@ -1,11 +1,12 @@
 /**
  * UNIO AROMA 前台 - 感官祭司 AI 聊天页
- * v3 — localStorage 持久化对话 + Unio元香祭司称谓 + 尊称修正
+ * v4 — 复方问诊勾选表单集成
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowRight, Activity, Wind, MessageCircle, Loader2, RefreshCw, ShoppingCart, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Activity, Wind, MessageCircle, Loader2, RefreshCw, ShoppingCart, AlertTriangle, FlaskRound } from 'lucide-react';
 import { getProducts } from '../siteDataService';
 import type { Product } from '../types';
+import BlendingQuestionnaire, { serializeQuestionnaire, QuestionnaireData, DEFAULT_QUESTIONNAIRE } from '../components/BlendingQuestionnaire';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -25,6 +26,7 @@ const MAX_TURNS = 5;
 
 // localStorage 键名
 const STORAGE_KEY = 'unio_oracle_messages';
+const QUESTIONNAIRE_KEY = 'unio_blending_questionnaire';
 
 // 欢迎语
 const GREETING = '从极境撷取芳香，因世界元于一息。\n\n我是 Unio元香祭司，已准备好感知你此刻的杂音。';
@@ -38,6 +40,59 @@ const QUICK_QUESTIONS = [
   '肩颈酸痛，浑身疲惫',
   '想提升空间能量场'
 ];
+
+// 匹配用户"要复方"意图的关键词
+const BLENDING_INTENT_PATTERNS = [
+  /要.*(复方|配方|调配|定制|调)/i,
+  /需要.*(复方|调配|定制|配方)/i,
+  /想.*(复方|调|定制|搭配)/i,
+  /复方.*(吧|啊|下|试试|可以)/i,
+  /帮我.*(复方|配|调|定)/i,
+  /请.*(复方|配|调|定)/i,
+  /好.*(复方|配|调)/i,
+  /可以.*(复方|配|调)/i,
+  /定制.*(配方|复方|精油)/i,
+  /一人一方/i,
+  /专属.*(配方|调配|复方)/i,
+];
+
+/**
+ * 检测用户消息是否表达了"要复方"的意图
+ */
+function isBlendingIntent(text: string): boolean {
+  // 这些模式表示用户还在描述问题，不是要复方
+  const skipPatterns = [
+    /复方.*是.*什么/i,
+    /什么.*是.*复方/i,
+    /复方.*介绍/i,
+    /复方.*价格/i,
+    /复方.*多少钱/i,
+  ];
+  for (const sp of skipPatterns) {
+    if (sp.test(text)) return false;
+  }
+
+  for (const p of BLENDING_INTENT_PATTERNS) {
+    if (p.test(text)) return true;
+  }
+  return false;
+}
+
+/**
+ * 检测祭司上一条回复是否在询问"是否需要复方"
+ */
+function isAskingForBlend(content: string): boolean {
+  const askPatterns = [
+    /是否需要.*复方/i,
+    /需要.*复方/i,
+    /要不要.*复方/i,
+    /要.*定制.*复方/i,
+    /要.*调配.*复方/i,
+    /为您调配.*复方/i,
+    /一人一方/i,
+  ];
+  return askPatterns.some(p => p.test(content));
+}
 
 /**
  * 从 localStorage 读取已保存的对话
@@ -64,6 +119,26 @@ function saveMessages(messages: ChatMessage[]) {
   } catch {}
 }
 
+/**
+ * 保存问诊表单数据
+ */
+function saveQuestionnaireData(data: QuestionnaireData) {
+  try {
+    localStorage.setItem(QUESTIONNAIRE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+/**
+ * 加载问诊表单数据
+ */
+function loadQuestionnaireData(): QuestionnaireData | null {
+  try {
+    const saved = localStorage.getItem(QUESTIONNAIRE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return null;
+}
+
 const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
   const [input, setInput] = useState('');
@@ -73,9 +148,12 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
   const [reachLimit, setReachLimit] = useState(false);
   const [apiError, setApiError] = useState(false);
 
+  // 复方问诊表单状态
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [lastBlendingData, setLastBlendingData] = useState<QuestionnaireData | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const productsLoaded = useRef(false);
-  // 防止初次加载时重复保存
   const savedRef = useRef(false);
 
   // 页面加载时获取产品知识库
@@ -90,9 +168,8 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
       .catch(err => console.warn('未能加载产品知识库:', err));
   }, []);
 
-  // 同步对话到 localStorage（每次消息变化时）
+  // 同步对话到 localStorage
   useEffect(() => {
-    // 跳过首次渲染
     if (!savedRef.current) {
       savedRef.current = true;
       return;
@@ -105,10 +182,9 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [messages, loading]);
+  }, [messages, loading, showQuestionnaire]);
 
   const sendToOracle = useCallback(async (userMessage: string, history: ChatMessage[]) => {
-    // 保留最近的对话（限6条防止超长）
     const recentHistory = history.slice(-6);
     const payload = {
       messages: [
@@ -176,11 +252,64 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
     setLoading(true);
     setTurnCount(prev => prev + 1);
 
+    // 检测是否表达了"要复方"的意图
+    // 检查上一条祭司消息是否在询问复方
+    const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
+    const shouldShowForm = (
+      isBlendingIntent(trimmedInput) ||
+      (lastAssistantMsg && isAskingForBlend(lastAssistantMsg.content) && /^(好|可以|要|是|嗯|行|ok|试试|对的)/i.test(trimmedInput))
+    );
+
+    if (shouldShowForm) {
+      // 不发送到API，而是展示问诊表单
+      setLoading(false);
+      setShowQuestionnaire(true);
+      // 加载之前保存过的问诊数据（如果有）
+      const savedData = loadQuestionnaireData();
+      if (savedData) {
+        setLastBlendingData(savedData);
+      }
+      return;
+    }
+
     const reply = await sendToOracle(trimmedInput, messages);
 
     setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     setLoading(false);
   }, [input, loading, reachLimit, turnCount, messages, sendToOracle]);
+
+  /**
+   * 问诊表单提交后的回调
+   */
+  const handleQuestionnaireSubmit = useCallback((data: QuestionnaireData) => {
+    setShowQuestionnaire(false);
+    setLastBlendingData(data);
+    saveQuestionnaireData(data);
+
+    const serialized = serializeQuestionnaire(data);
+
+    // 将结构化的问诊数据作为用户消息发送
+    const userMsg: ChatMessage = {
+      role: 'user',
+      content: `我想要一款专属复方精油。${serialized}`
+    };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+
+    // 消耗一次轮数（如果还没消耗的话）
+    setTurnCount(prev => prev + 1);
+
+    // 发送请求
+    setLoading(true);
+    sendToOracle(userMsg.content, messages).then(reply => {
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setLoading(false);
+    });
+  }, [messages, sendToOracle]);
+
+  const handleQuestionnaireCancel = useCallback(() => {
+    setShowQuestionnaire(false);
+  }, []);
 
   const handleReset = useCallback(() => {
     const fresh: ChatMessage[] = [{ role: 'assistant', content: GREETING }];
@@ -188,6 +317,8 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
     setTurnCount(0);
     setReachLimit(false);
     setApiError(false);
+    setShowQuestionnaire(false);
+    setLastBlendingData(null);
     saveMessages(fresh);
   }, []);
 
@@ -243,11 +374,25 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
               </div>
             </div>
           ))}
+
           {loading && (
             <div className="flex justify-start">
               <div className="bg-[#FAF9F5] p-5 md:p-10 rounded-[1.8rem] md:rounded-[3rem] text-black/30 italic flex items-center gap-4">
                 <Wind size={20} className="animate-spin text-[#D75437]" />
                 祭司正在调配极境分子频率...
+              </div>
+            </div>
+          )}
+
+          {/* 复方问诊表单嵌入 */}
+          {showQuestionnaire && (
+            <div className="flex justify-start">
+              <div className="w-full max-w-xl">
+                <BlendingQuestionnaire
+                  onSubmit={handleQuestionnaireSubmit}
+                  onCancel={handleQuestionnaireCancel}
+                  onContactWechat={onShowWechat}
+                />
               </div>
             </div>
           )}
@@ -268,8 +413,8 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
             </div>
           )}
 
-          {/* 快速选择问题（仅当无对话时） */}
-          {messages.length === 1 && !loading && !reachLimit && (
+          {/* 快速选择问题（仅当无对话且无复方表单时） */}
+          {messages.length === 1 && !loading && !reachLimit && !showQuestionnaire && (
             <div className="mt-8">
               <p className="text-xs text-black/20 text-center mb-4 tracking-widest uppercase">—— 诉说你的困扰 ——</p>
               <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-4">
@@ -295,25 +440,46 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder={
-                loading ? '祭司沉思中...'
+                showQuestionnaire ? '请先完成上方的问诊表单'
+                : loading ? '祭司沉思中...'
                 : reachLimit ? '咨询已达上限，请重置对话'
                 : '倾诉你内心的杂音...'
               }
-              disabled={loading || reachLimit}
+              disabled={loading || reachLimit || showQuestionnaire}
               className="flex-1 px-4 md:px-10 outline-none text-sm md:text-lg bg-transparent placeholder:opacity-20 min-w-0"
             />
             <button
               onClick={handleSend}
-              disabled={loading || !input.trim() || reachLimit}
+              disabled={loading || !input.trim() || reachLimit || showQuestionnaire}
               className="w-10 h-10 md:w-16 md:h-16 bg-[#1a1a1a] text-white rounded-full flex items-center justify-center hover:bg-[#D75437] transition-all disabled:opacity-20 active:scale-95 shadow-lg shrink-0"
             >
               {loading ? <Loader2 className="animate-spin" /> : <ArrowRight className="w-5 h-5 md:w-8 md:h-8" />}
             </button>
           </div>
+          {/* 复方表单提示 */}
+          {showQuestionnaire && (
+            <p className="text-center text-xs text-black/30 mt-3 flex items-center justify-center gap-1.5">
+              <FlaskRound size={12} />
+              祭司正在了解你的身体状况，以便精准调配
+            </p>
+          )}
           {reachLimit && (
             <p className="text-center text-xs text-amber-500 mt-3">
               点击右上角 <RefreshCw size={12} className="inline" /> 重置按钮开始新对话
             </p>
+          )}
+
+          {/* 上次问诊数据快捷恢复 */}
+          {lastBlendingData && !showQuestionnaire && messages.length > 2 && (
+            <div className="mt-3 flex justify-center">
+              <button
+                onClick={() => setShowQuestionnaire(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-[10px] text-black/40 hover:text-black/70 border border-black/8 rounded-full hover:bg-white transition-all"
+              >
+                <FlaskRound size={12} />
+                修改问诊信息，重新调配复方
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -334,10 +500,8 @@ function renderMessageContent(content: string, onNavigate: (view: string, params
   if (!content) return null;
 
   // 检测是否包含"祭司的忠告"免责声明块
-  // 找到 "祭司的忠告" 关键词出现的位置，分割为主内容 + 免责声明
   const disclaimerIdx = content.indexOf('祭司的忠告');
   if (disclaimerIdx >= 0) {
-    // 从"祭司的忠告"往前找行首（🌿 的表情符号行）
     const sliceStart = content.lastIndexOf('🌿', disclaimerIdx);
     if (sliceStart >= 0) {
       const mainBody = content.slice(0, sliceStart).trim();
@@ -353,7 +517,6 @@ function renderMessageContent(content: string, onNavigate: (view: string, params
     }
   }
 
-  // 没有免责声明，正常渲染
   return renderMarkup(content, onNavigate, false, onShowWechat);
 }
 
@@ -366,12 +529,9 @@ function renderMarkup(
   isDisclaimer: boolean = false,
   onShowWechat?: () => void
 ) {
-  // 分割文本与标记
   const parts = text.split(/(\[[^\]]*\])/g);
 
-  // 如果是免责声明，包裹一层警示卡片
   if (isDisclaimer) {
-    // 移除 "🌿 **祭司的忠告**" 标题部分，单独提取正文
     const bodyParts = text.split(/🌿\s*\**祭司的忠告\**/);
     const disclaimerBody = bodyParts[bodyParts.length - 1]?.trim() || text;
     return (
@@ -389,7 +549,6 @@ function renderMarkup(
     );
   }
 
-  // 正常渲染（非免责声明）
   return (
     <>
       {parts.map((part, i) => {
