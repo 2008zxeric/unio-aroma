@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
-import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle, Copy, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // 懒加载页面组件 — 首屏只加载 SiteHome，其余按需
@@ -774,10 +774,38 @@ const SiteApp: React.FC = () => {
               <MessageCircle size={20} smSize={22} className="text-white" />
             </div>
             <h3 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-1">微信客服</h3>
-            <p className="text-[10px] sm:text-xs text-black/38 mb-4 sm:mb-5 tracking-wider">扫码添加客服咨询</p>
+            <p className="text-[10px] sm:text-xs text-black/38 mb-4 sm:mb-5 tracking-wider">扫码或复制微信号添加客服咨询</p>
             <div className="bg-[#FAFAF8] rounded-xl sm:rounded-2xl p-2.5 sm:p-3 inline-block">
               <img src="/wechat-qr.png" alt="微信客服二维码" className="w-40 h-40 sm:w-48 sm:h-48 object-contain" />
             </div>
+            {/* 微信号 + 复制 */}
+            <div className="mt-3 sm:mt-4 flex items-center justify-center gap-2 bg-[#FAFAF8] rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5">
+              <span className="text-xs sm:text-sm font-medium text-[#1A1A1A] tracking-wider">微信号：</span>
+              <span className="text-xs sm:text-sm font-bold text-[#1A1A1A] select-all">jiruilan</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('jiruilan');
+                  alert('微信号已复制，请打开微信搜索添加');
+                }}
+                className="ml-1 p-1.5 rounded-lg bg-[#07C160]/10 text-[#07C160] hover:bg-[#07C160]/20 transition-colors"
+                title="复制微信号"
+              >
+                <Copy size={14} />
+              </button>
+            </div>
+            {/* 去微信添加按钮 */}
+            <button
+              onClick={() => {
+                window.location.href = 'weixin://';
+                // fallback: 如果微信未唤起，提示用户
+                setTimeout(() => {
+                  // 不是真报错，只是引导
+                }, 500);
+              }}
+              className="mt-3 sm:mt-4 w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#07C160] text-white font-bold text-xs sm:text-sm tracking-wider hover:bg-[#06AD56] transition-colors active:scale-[0.98]"
+            >
+              打开微信添加
+            </button>
             <p className="text-[9px] sm:text-[10px] text-black/22 mt-3 sm:mt-4 tracking-wider">UNIO AROMA · 元香</p>
           </div>
         </div>
