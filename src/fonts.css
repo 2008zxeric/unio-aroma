@@ -1,5 +1,5 @@
 /* UNIO AROMA 本地字体声明 */
-/* 使用 fontsource 包，避免 Google Fonts 的跨国延迟 */
+/* 精确子集导入 — 只加载实际需要的 Unicode 范围，避免 40MB+ 的字体包 */
 
 /* Cinzel（英文标题） */
 @import '@fontsource/cinzel/400.css';
@@ -12,10 +12,17 @@
 @import '@fontsource/inter/600.css';
 @import '@fontsource/inter/700.css';
 
-/* Noto Serif SC（中文正文 - 只导入需要的字重） */
-@import '@fontsource/noto-serif-sc/200.css';
-@import '@fontsource/noto-serif-sc/300.css';
-@import '@fontsource/noto-serif-sc/400.css';
-@import '@fontsource/noto-serif-sc/500.css';
-@import '@fontsource/noto-serif-sc/600.css';
-@import '@fontsource/noto-serif-sc/700.css';
+/* Noto Serif SC（中文正文）
+   — 只导入 chinese-simplified + latin 两个子集
+   — 只导入实际使用的字重（200/300/400/500/600/700）
+   — 砍掉 cyrillic/vietnamese/latin-ext 等无用子集 */
+@import '@fontsource/noto-serif-sc/chinese-simplified-300.css';
+@import '@fontsource/noto-serif-sc/chinese-simplified-400.css';
+@import '@fontsource/noto-serif-sc/chinese-simplified-500.css';
+@import '@fontsource/noto-serif-sc/chinese-simplified-600.css';
+@import '@fontsource/noto-serif-sc/chinese-simplified-700.css';
+@import '@fontsource/noto-serif-sc/latin-300.css';
+@import '@fontsource/noto-serif-sc/latin-400.css';
+@import '@fontsource/noto-serif-sc/latin-500.css';
+@import '@fontsource/noto-serif-sc/latin-600.css';
+@import '@fontsource/noto-serif-sc/latin-700.css';
