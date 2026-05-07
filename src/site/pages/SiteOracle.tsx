@@ -29,7 +29,7 @@ const STORAGE_KEY = 'unio_oracle_messages';
 const QUESTIONNAIRE_KEY = 'unio_blending_questionnaire';
 
 // 欢迎语
-const GREETING = '从极境撷取芳香，因世界元于一息。\n\n我是 Unio元香祭司，已准备好感知你此刻的杂音。';
+const GREETING = '从极境撷取芳香，因世界元于一息。\n\n我是 UNIO元香祭司，已准备好感知你此刻的杂音。';
 
 // 预设问题（方便用户快速选择）
 const QUICK_QUESTIONS = [
@@ -348,7 +348,7 @@ const SiteOracle: React.FC<SiteOracleProps> = ({ onNavigate, onShowWechat }) => 
               <Activity size={24} className={loading ? 'animate-pulse' : ''} />
             </div>
             <div>
-              <h3 className="text-xl md:text-3xl font-bold tracking-widest text-black/80">Unio元香祭司</h3>
+              <h3 className="text-xl md:text-3xl font-bold tracking-widest text-black/80">UNIO元香祭司</h3>
               <p className="text-[7px] md:text-[9px] tracking-[0.4em] uppercase opacity-30 font-bold mt-1">DeepSeek Scent Oracle · UNIO</p>
             </div>
           </div>
