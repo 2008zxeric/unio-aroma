@@ -29,6 +29,8 @@ export interface QuestionnaireData {
   specialStatus: string[];
   /** 是否有在服药 */
   onMedication: 'yes' | 'no' | '';
+  /** 药物详情（服用什么药） */
+  medicationDetails: string;
   /** 皮肤类型 */
   skinType: string;
   /** 皮肤敏感度 */
@@ -45,6 +47,7 @@ export const DEFAULT_QUESTIONNAIRE: QuestionnaireData = {
   conditions: [],
   specialStatus: [],
   onMedication: '',
+  medicationDetails: '',
   skinType: '',
   skinSensitivity: '',
   usagePreference: '',
@@ -178,7 +181,12 @@ export function serializeQuestionnaire(data: QuestionnaireData): string {
 
   // 用药
   if (data.onMedication === 'yes') {
-    parts.push('正在服用药物（请祭司在配方中注意药物交互作用）');
+    const details = data.medicationDetails?.trim();
+    if (details) {
+      parts.push(`正在服用药物：${details}`);
+    } else {
+      parts.push('正在服用药物（请祭司在配方中注意药物交互作用）');
+    }
   }
 
   // 皮肤
@@ -257,19 +265,18 @@ const BlendingQuestionnaire: React.FC<BlendingQuestionnaireProps> = ({ onSubmit,
     setData(prev => {
       let conditions = [...prev.conditions];
       if (value === 'none') {
-        // 选了"全无" → 清除其他所有
-        conditions = ['none'];
+        if (conditions.includes('none')) {
+          // 再点一次"无"→ 取消"无"，恢复到可自由勾选
+          conditions = [];
+        } else {
+          conditions = ['none'];
+        }
       } else {
-        // 选了具体的 → 去掉"全无"
         conditions = conditions.filter(c => c !== 'none');
         if (conditions.includes(value)) {
           conditions = conditions.filter(c => c !== value);
         } else {
           conditions.push(value);
-        }
-        // 如果全清空了，自动回到"全无"
-        if (conditions.length === 0) {
-          conditions = ['none'];
         }
       }
       return { ...prev, conditions };
@@ -280,16 +287,18 @@ const BlendingQuestionnaire: React.FC<BlendingQuestionnaireProps> = ({ onSubmit,
     setData(prev => {
       let status = [...prev.specialStatus];
       if (value === 'none') {
-        status = ['none'];
+        if (status.includes('none')) {
+          // 再点一次"无"→ 取消"无"，恢复到可自由勾选
+          status = [];
+        } else {
+          status = ['none'];
+        }
       } else {
         status = status.filter(s => s !== 'none');
         if (status.includes(value)) {
           status = status.filter(s => s !== value);
         } else {
           status.push(value);
-        }
-        if (status.length === 0) {
-          status = ['none'];
         }
       }
       return { ...prev, specialStatus: status };
@@ -490,6 +499,17 @@ const BlendingQuestionnaire: React.FC<BlendingQuestionnaireProps> = ({ onSubmit,
                   </button>
                 ))}
               </div>
+              {data.onMedication === 'yes' && (
+                <div className="mt-2">
+                  <textarea
+                    value={data.medicationDetails}
+                    onChange={(e) => setData(prev => ({ ...prev, medicationDetails: e.target.value }))}
+                    placeholder="请列出您正在服用的药物名称（如：华法林、二甲双胍、优甲乐等），以便祭司综合评估安全性。"
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-xl border border-black/8 bg-white text-xs md:text-sm text-black/70 placeholder:text-black/20 outline-none focus:border-black/30 transition-all resize-none"
+                  />
+                </div>
+              )}
             </Section>
 
             {/* 下一步 */}
