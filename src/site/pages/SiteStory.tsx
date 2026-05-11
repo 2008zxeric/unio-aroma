@@ -1,22 +1,33 @@
 /**
- * UNIO AROMA 前台 - 品牌叙事页 v3 (图片恢复版)
- * 
- * 基于 v7 移动端优化 + 恢复原始 Unsplash 图片
- * 修复：countryCount 未定义 / smSize 非法 prop
+ * UNIO AROMA 前台 - 品牌叙事页 v4
+ * 图片全部从数据库动态读取，无数据时fallback到默认硬编码
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store } from 'lucide-react';
 import { optimizeHeroImage } from '../imageUtils';
-import { getBanners } from '../siteDataService';
+import { getBannerUrls } from '../siteDataService';
 
-// 恢复原始 Unsplash 图片 + 品牌 Logo
-const ASSETS = {
-  hero_eric: optimizeHeroImage('https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920'),
-  hero_alice: optimizeHeroImage('https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920'),
-  map: optimizeHeroImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920'),
-  logo: '/logo.svg',
+// 默认备用图片（当数据库无数据时使用）
+const DEFAULT_ASSETS: Record<string, string> = {
+  story_prologue: optimizeHeroImage('https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920'),
+  story_map: optimizeHeroImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920'),
+  story_expert_alice: optimizeHeroImage('https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920'),
+  story_finale: '/story-finale-banner.webp',
 };
+
+// 门店图片（走 public 静态资源，后台可替换）
+const STORE_IMAGES: Record<string, string> = {
+  chengdu: '/storemain.webp',
+  ningbo: '/storemain1.webp',
+  pattaya: '/store1.webp',
+};
+
+const IMAGE_KEYS = [
+  'story_prologue', 'story_map', 'story_expert_alice',
+  'story_store_chengdu', 'story_store_ningbo', 'story_store_pattaya',
+  'story_finale',
+];
 
 interface SiteStoryProps {
   onNavigate: (view: string) => void;
@@ -24,14 +35,12 @@ interface SiteStoryProps {
 
 const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
   const finaleRef = useRef<HTMLDivElement>(null);
-  const [storyBanner, setStoryBanner] = useState<string>('/story-finale-banner.webp');
+  const [images, setImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // 从数据库获取品牌叙事banner
-    getBanners('story').then(data => {
-      if (data.length > 0 && data[0].image_url) {
-        setStoryBanner(data[0].image_url);
-      }
+    // 从数据库批量获取所有品牌叙事页图片
+    getBannerUrls(IMAGE_KEYS).then(data => {
+      setImages(data);
     }).catch(() => {});
 
     const el = finaleRef.current;
@@ -49,6 +58,10 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
     return () => observer.disconnect();
   }, []);
 
+  // 获取图片：数据库 > 默认值
+  const img = (key: string): string => images[key] || DEFAULT_ASSETS[key] || '';
+  const store = (key: string): string => images[key] || STORE_IMAGES[key];
+
   return (
     <div className="min-h-screen bg-white selection:bg-[#D75437] selection:text-white overflow-x-hidden">
 
@@ -56,7 +69,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
       <section className="h-screen relative flex flex-col items-center justify-center text-center px-6">
         <div className="absolute inset-0 overflow-hidden">
           <img decoding="async"
-            src={ASSETS.hero_eric}
+            src={img('story_prologue')}
             className="w-full h-full object-cover scale-105 animate-slow-zoom grayscale opacity-30"
             alt="Hero Background"
           />
@@ -118,10 +131,9 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           </div>
 
           <div className="lg:col-span-5 relative group">
-            {/* 创始人区域 — 地图/场景图 */}
             <div className="aspect-[3/4] rounded-2xl sm:rounded-[5rem] overflow-hidden shadow-lg sm:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] relative z-10 border-[6px] sm:border-[12px] border-white transition-all duration-[2s]">
               <img decoding="async"
-                src={ASSETS.map}
+                src={img('story_map')}
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s]"
                 alt="Global Origins"
               />
@@ -145,7 +157,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
             <div className="order-2 lg:order-1 relative group">
               <div className="aspect-[4/5] rounded-2xl sm:rounded-[6rem] overflow-hidden shadow-xl sm:shadow-2xl p-2.5 sm:p-4 bg-white">
                 <img decoding="async"
-                  src={ASSETS.hero_eric}
+                  src={img('story_prologue')}
                   className="w-full h-full object-cover rounded-xl sm:rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
                   alt="Eric - The Explorer"
                 />
@@ -188,7 +200,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
             <div className="relative group">
               <div className="aspect-[4/5] rounded-2xl sm:rounded-[6rem] overflow-hidden shadow-xl sm:shadow-2xl p-2.5 sm:p-4 bg-white">
                 <img decoding="async"
-                  src={ASSETS.hero_alice}
+                  src={img('story_expert_alice')}
                   className="w-full h-full object-cover rounded-xl sm:rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
                   alt="Alice - The Expert"
                 />
@@ -207,7 +219,6 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
       <section className="py-20 sm:py-48 md:py-64 px-6 sm:px-16 md:px-24">
         <div className="max-w-[1920px] mx-auto">
 
-          {/* 区块标题 */}
           <div className="text-center space-y-6 sm:space-y-8 mb-16 sm:mb-28 md:mb-40">
             <div className="flex items-center justify-center gap-3 sm:gap-4">
               <div className="h-px w-8 sm:w-12 bg-[#D4AF37]/40" />
@@ -220,14 +231,13 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
             <p className="text-[9px] sm:text-xs tracking-[0.3em] sm:tracking-[0.5em] text-black/28 sm:text-black/30 uppercase font-bold">Our Sanctuaries</p>
           </div>
 
-          {/* 三家店铺 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
 
             {/* 成都 */}
             <div className="group relative">
               <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
                 <img decoding="async"
-                  src="/storemain.webp"
+                  src={store('story_store_chengdu')}
                   className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
                   alt="UNIO AROMA Chengdu"
                 />
@@ -247,7 +257,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
             <div className="group relative">
               <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
                 <img decoding="async"
-                  src="/storemain1.webp"
+                  src={store('story_store_ningbo')}
                   className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
                   alt="UNIO AROMA Ningbo"
                 />
@@ -267,7 +277,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
             <div className="group relative">
               <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
                 <img decoding="async"
-                  src="/store1.webp"
+                  src={store('story_store_pattaya')}
                   className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
                   alt="UNIO AROMA Pattaya"
                 />
@@ -285,7 +295,6 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
 
           </div>
 
-          {/* 底部装饰文字 */}
           <div className="text-center mt-12 sm:mt-20 md:mt-28 space-y-3">
             <p className="text-xs sm:text-sm text-black/25 sm:text-black/30 tracking-[0.2em] sm:tracking-[0.3em]">
               四川 成都 &nbsp;·&nbsp; 浙江 宁波 &nbsp;·&nbsp; 泰国 芭提雅
@@ -304,7 +313,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           {/* 终章背景图 - 滚动渐现效果 */}
           <div className="absolute inset-0 overflow-hidden">
             <img decoding="async"
-              src={storyBanner}
+              src={img('story_finale')}
               className="story-finale-bg absolute inset-0 w-full h-full object-cover opacity-0 scale-110 grayscale blur-sm"
               alt="Final CTA Background"
             />

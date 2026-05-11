@@ -1,359 +1,225 @@
 import { useEffect, useState, useRef } from 'react';
-import { Plus, Edit2, Trash2, Image as ImageIcon, X, Video, Upload, Loader2, Eye, Home, BookOpen, LayoutGrid, Map, Layers } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, X, Loader2, Home, BookOpen, LayoutGrid, Save } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { bannerService } from '../../lib/dataService';
 import type { Banner } from '../../lib/database.types';
 import ImageUploadField from '../components/ImageUploadField';
 import { Perm } from '../components/PermissionGuard';
-import { useAuth, writeAuditLog } from '../../lib/auth';
 
-const POSITIONS = [
-  { value: 'home', label: '首页 Hero 背景图', icon: Home, desc: '首屏全屏大图，下方叠加标题/Slogan' },
-  { value: 'story', label: '品牌叙事·终章背景', icon: BookOpen, desc: '故事页底部CTA大图，深色底+渐现效果' },
-  { value: 'collections', label: '馆藏页·系列广告横条', icon: LayoutGrid, desc: '四大系列各配一张产品广告横幅，按系列区分' },
-  { value: 'atlas', label: '寻香地图页', icon: Map, desc: '地图页顶部/底部banner（暂未使用）' },
-  { value: 'footer', label: '底部/通用', icon: Layers, desc: '通用区域（暂未使用）' },
-];
-
-const BUCKET = 'product-images';
-const VIDEO_PREFIX = 'videos/';
-
-interface BannerForm {
-  name: string;
-  image_url: string;
-  video_url: string;
-  poster_url: string;
-  link_url: string;
-  position: string;
-  is_active: boolean;
-  sort_order: string;
+// ===== 网站所有固定图片位定义 =====
+interface ImageSlot {
+  key: string;
+  group: string;
+  label: string;
+  desc: string;
+  fallback: string;
+  groupIcon: React.ElementType;
 }
 
-const emptyForm = (): BannerForm => ({
-  name: '', image_url: '', video_url: '', poster_url: '',
-  link_url: '', position: 'home', is_active: true, sort_order: '0',
-});
+const GROUPS = [
+  { value: 'home', label: '首页', icon: Home },
+  { value: 'story', label: '品牌叙事页', icon: BookOpen },
+  { value: 'collections', label: '馆藏页', icon: LayoutGrid },
+];
+
+const IMAGE_SLOTS: ImageSlot[] = [
+  // ── 首页 ──
+  { key: 'home_hero', group: 'home', label: '全屏Hero背景图', desc: '首屏全幅背景，叠加暗色遮罩+标题/Slogan', fallback: '/assets/brand/brand.webp', groupIcon: Home },
+  { key: 'home_series_yuan', group: 'home', label: '元系列卡片图', desc: '首页「四大馆藏」区块·元系列展示卡背景', fallback: '/assets/products/water/Patchouli Nocturne.webp', groupIcon: Home },
+  { key: 'home_series_he', group: 'home', label: '和系列卡片图', desc: '首页「四大馆藏」区块·和系列展示卡背景', fallback: '/assets/brand/spary.webp', groupIcon: Home },
+  { key: 'home_series_sheng', group: 'home', label: '生系列卡片图', desc: '首页「四大馆藏」区块·生系列展示卡背景', fallback: '/assets/brand/see.webp', groupIcon: Home },
+  { key: 'home_series_jing', group: 'home', label: '香系列卡片图', desc: '首页「四大馆藏」区块·香系列展示卡背景', fallback: '/assets/brand/brand.webp', groupIcon: Home },
+
+  // ── 品牌叙事页 ──
+  { key: 'story_prologue', group: 'story', label: '序幕背景（Eric人物图）', desc: '品牌叙事第一屏全幅大图·行者Eric', fallback: 'Unsplash 旅行家图', groupIcon: BookOpen },
+  { key: 'story_map', group: 'story', label: '创始基石·世界地图', desc: '品牌叙事第二屏右侧展示的世界地图', fallback: 'Unsplash 世界地图', groupIcon: BookOpen },
+  { key: 'story_expert_alice', group: 'story', label: 'Alice·实验室场景图', desc: '品牌叙事第三屏·专家Alice场景照片', fallback: 'Unsplash 实验室图', groupIcon: BookOpen },
+  { key: 'story_store_chengdu', group: 'story', label: '成都门店照片', desc: '品牌叙事「寻香之所」·成都店', fallback: '/storemain.webp', groupIcon: BookOpen },
+  { key: 'story_store_ningbo', group: 'story', label: '宁波门店照片', desc: '品牌叙事「寻香之所」·宁波店', fallback: '/storemain1.webp', groupIcon: BookOpen },
+  { key: 'story_store_pattaya', group: 'story', label: '芭提雅门店照片', desc: '品牌叙事「寻香之所」·芭提雅店', fallback: '/store1.webp', groupIcon: BookOpen },
+  { key: 'story_finale', group: 'story', label: '终章背景大图', desc: '品牌叙事底部CTA深色大底图·渐现+模糊效果', fallback: '/story-finale-banner.webp', groupIcon: BookOpen },
+
+  // ── 馆藏页 ──
+  { key: 'collections_ad_yuan', group: 'collections', label: '元系列广告横幅', desc: '馆藏页·元系列切换时的广告横幅大图', fallback: '/assets/banner/banner-ad-1.webp', groupIcon: LayoutGrid },
+  { key: 'collections_ad_he', group: 'collections', label: '和系列广告横幅', desc: '馆藏页·和系列切换时的广告横幅大图', fallback: '/assets/banner/banner-ad-2.webp', groupIcon: LayoutGrid },
+  { key: 'collections_ad_sheng', group: 'collections', label: '生系列广告横幅', desc: '馆藏页·生系列切换时的广告横幅大图', fallback: '/assets/banner/banner-ad-3.webp', groupIcon: LayoutGrid },
+  { key: 'collections_ad_jing', group: 'collections', label: '香系列广告横幅', desc: '馆藏页·香系列切换时的广告横幅大图', fallback: '/assets/banner/banner-ad-4.webp', groupIcon: LayoutGrid },
+];
 
 export default function AdminBanners() {
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const [banners, setBanners] = useState<Map<string, Banner>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<BannerForm>(emptyForm());
-  const [videoUploading, setVideoUploading] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [activePos, setActivePos] = useState('home');
-  const videoInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
+  const [activeGroup, setActiveGroup] = useState('home');
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState('');
 
   useEffect(() => {
-    bannerService.getAll().then(data => { setBanners(data); setLoading(false); }).catch(() => setLoading(false));
+    loadAllBanners();
   }, []);
 
-  const handleSave = async () => {
-    if (!form.name.trim() || !form.image_url.trim()) { alert('请填写名称和图片URL！'); return; }
-    setSaving(true);
+  const loadAllBanners = async () => {
+    setLoading(true);
     try {
-      const payload: any = {
-        name: form.name,
-        image_url: form.image_url,
-        link_url: form.link_url || null,
-        position: form.position,
-        is_active: form.is_active,
-        sort_order: parseInt(form.sort_order) || 0,
-      };
-      if (form.video_url) payload.video_url = form.video_url;
-      if (form.poster_url) payload.poster_url = form.poster_url;
-
-      if (editingId) {
-        await bannerService.update(editingId, payload);
-        await writeAuditLog(user!.id, 'update', 'banner', editingId, { note: '横幅: ' + form.name });
-      } else {
-        const created = await bannerService.create(payload);
-        await writeAuditLog(user!.id, 'create', 'banner', created.id, { note: '横幅: ' + form.name });
-      }
-      setBanners(await bannerService.getAll());
-      setEditingId(null); setForm(emptyForm()); setShowForm(false);
-    } catch (err: any) { alert('保存失败：' + err.message); } finally { setSaving(false); }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('确认删除？')) return;
-    await bannerService.delete(id);
-    setBanners(await bannerService.getAll());
-  };
-
-  // 上传视频到 Supabase Storage
-  const uploadVideo = async (file: File) => {
-    setVideoUploading(true);
-    setVideoProgress(0);
-    try {
-      // 检查文件大小（最大50MB）
-      if (file.size > 50 * 1024 * 1024) {
-        alert('视频文件太大，请压缩至 50MB 以内（建议 10MB 左右）');
-        return;
-      }
-
-      setVideoProgress(10);
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4';
-      const ts = Date.now();
-      const path = `${VIDEO_PREFIX}${ts}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
-        cacheControl: '3600',
-        upsert: true,
-      });
-
-      if (upErr) throw new Error(upErr.message);
-      setVideoProgress(80);
-
-      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      setVideoProgress(100);
-      setForm(f => ({ ...f, video_url: urlData.publicUrl }));
-      alert('✅ 视频上传成功！');
-    } catch (err: any) {
-      alert('视频上传失败：' + (err.message || err));
+      const all = await bannerService.getAll();
+      const map = new Map<string, Banner>();
+      all.forEach(b => map.set(b.name, b));
+      setBanners(map);
+    } catch (e: any) {
+      console.error('加载海报失败:', e);
     } finally {
-      setVideoUploading(false);
-      setVideoProgress(0);
+      setLoading(false);
     }
   };
 
-  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await uploadVideo(file);
-    if (videoInputRef.current) videoInputRef.current.value = '';
+  const handleSave = async (slot: ImageSlot) => {
+    if (!editUrl.trim()) return;
+
+    try {
+      const existing = banners.get(slot.key);
+      const payload: any = {
+        name: slot.key,
+        image_url: editUrl,
+        position: slot.group,
+        is_active: true,
+        sort_order: 1,
+      };
+
+      if (existing) {
+        await bannerService.update(existing.id, payload);
+      } else {
+        await bannerService.create(payload);
+      }
+
+      await loadAllBanners();
+      setEditingKey(null);
+      setEditUrl('');
+    } catch (err: any) {
+      alert('保存失败: ' + err.message);
+    }
   };
 
-  const removeVideo = () => {
-    setForm(f => ({ ...f, video_url: '', poster_url: '' }));
+  const handleClear = async (slot: ImageSlot) => {
+    if (!confirm(`确认清除「${slot.label}」的图片？前台将恢复默认图片`)) return;
+    const existing = banners.get(slot.key);
+    if (existing) {
+      await bannerService.delete(existing.id);
+      await loadAllBanners();
+    }
   };
+
+  const slotsInGroup = IMAGE_SLOTS.filter(s => s.group === activeGroup);
 
   return (
     <div className="space-y-6 mobile-bottom-pad">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A2E1A]">海报/Banner 管理</h2>
-          <p className="text-sm text-[#6B856B] mt-1">管理网站各页面的海报、广告横幅和首页视频</p>
+          <h2 className="text-2xl font-bold text-[#1A2E1A]">图片位管理</h2>
+          <p className="text-sm text-[#6B856B] mt-1">管理网站各页面的所有图片，按需替换，前台自动更新</p>
         </div>
-        <Perm action="edit_banners"><button onClick={() => { setEditingId(null); setForm(emptyForm()); setShowForm(true); }}
-          className="touch-btn flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl font-medium text-sm">
-          <Plus size={16} /> 添加海报
-        </button></Perm>
       </div>
 
-      {/* 位置筛选 + 可视化说明 */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {POSITIONS.map(pos => {
-            const PosIcon = pos.icon;
-            const count = banners.filter(b => b.position === pos.value).length;
-            const isActive = activePos === pos.value;
+      {/* 分组标签 */}
+      <div className="flex items-center gap-2">
+        {GROUPS.map(g => {
+          const Icon = g.icon;
+          const count = slotsInGroup.length;
+          return (
+            <button key={g.value} onClick={() => setActiveGroup(g.value)}
+              className={`touch-btn flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeGroup === g.value
+                  ? 'bg-[#4A7C59] text-white shadow-sm'
+                  : 'bg-white border border-[#E0ECE0] text-[#5C725C] hover:bg-[#EEF4EF]'
+              }`}>
+              <Icon size={16} />
+              <span>{g.label}</span>
+              <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded ${
+                activeGroup === g.value ? 'bg-white/20' : 'bg-[#EEF4EF] text-[#6B856B]'
+              }`}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {loading ? (
+        <div className="text-center py-20 text-[#6B856B]"><Loader2 size={24} className="animate-spin mx-auto mb-2" />加载中...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {slotsInGroup.map(slot => {
+            const banner = banners.get(slot.key);
+            const isEditing = editingKey === slot.key;
+            const imageUrl = banner?.image_url || '';
+            const hasImage = !!imageUrl;
+
             return (
-              <button key={pos.value} onClick={() => setActivePos(pos.value)}
-                className={`touch-btn flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-[#4A7C59] text-white shadow-sm'
-                    : 'bg-white border border-[#E0ECE0] text-[#5C725C] hover:bg-[#EEF4EF]'
-                }`}>
-                <PosIcon size={14} />
-                <span>{pos.label}</span>
-                {count > 0 && (
-                  <span className={`ml-0.5 px-1.5 py-0.5 rounded text-[9px] ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-[#EEF4EF] text-[#6B856B]'
-                  }`}>{count}</span>
-                )}
-              </button>
+              <div key={slot.key} className="rounded-2xl bg-white border border-[#E0ECE0] overflow-hidden hover:border-[#D5E2D5] transition-all">
+                {/* 图片预览区 */}
+                <div className="aspect-video bg-[#F2F7F3] relative overflow-hidden">
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={slot.label} className="w-full h-full object-cover"
+                      onError={e => { e.currentTarget.src = ''; e.currentTarget.style.display = 'none'; }} />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-[#9AAA9A] gap-1">
+                      <ImageIcon size={32} className="opacity-30" />
+                      <span className="text-[10px] opacity-50">未设置·使用默认图</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 信息区 */}
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h4 className="text-sm font-semibold text-[#1A2E1A]">{slot.label}</h4>
+                    <p className="text-[11px] text-[#6B856B] mt-0.5">{slot.desc}</p>
+                  </div>
+
+                  {/* 编辑区域 */}
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <ImageUploadField
+                        label="上传新图片"
+                        value={editUrl}
+                        onChange={v => setEditUrl(v)}
+                        previewSize="w-full h-24 rounded-lg object-cover"
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={() => handleSave(slot)}
+                          className="touch-btn flex items-center gap-1.5 px-4 py-2 bg-[#4A7C59] text-white text-xs font-medium rounded-xl hover:bg-[#3D6B4A]">
+                          <Save size={13} /> 保存
+                        </button>
+                        <button onClick={() => { setEditingKey(null); setEditUrl(''); }}
+                          className="touch-btn px-3 py-2 text-xs text-[#5C725C] rounded-xl hover:bg-[#EEF4EF]">
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[#9AAA9A]">
+                        {hasImage ? '✅ 已设置自定义图片' : '⬜ 使用默认图片'}
+                      </span>
+                      <div className="flex gap-1">
+                        <Perm action="edit_banners">
+                          <button onClick={() => { setEditingKey(slot.key); setEditUrl(imageUrl); }}
+                            className="touch-btn px-3 py-1.5 text-xs font-medium bg-[#EEF4EF] text-[#3D5C3D] rounded-lg hover:bg-[#D5E2D5] transition-colors">
+                            替换
+                          </button>
+                        </Perm>
+                        {hasImage && (
+                          <Perm action="edit_banners">
+                            <button onClick={() => handleClear(slot)}
+                              className="touch-btn px-3 py-1.5 text-xs text-red-400 rounded-lg hover:bg-red-50 transition-colors">
+                              清除
+                            </button>
+                          </Perm>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
-        {/* 当前选中位置的说明 */}
-        <div className="px-3 py-2 bg-[#FAFCFA] border border-[#E0ECE0] rounded-lg text-xs text-[#6B856B] flex items-center gap-2">
-          <Eye size={13} className="text-[#8AA08A]" />
-          <span className="flex-1">{POSITIONS.find(p => p.value === activePos)?.desc}</span>
-          <span className="text-[10px] text-[#9AAA9A] bg-white px-2 py-0.5 rounded">前台效果预览 ↓</span>
-        </div>
-      </div>
-
-      {/* 表单 — 编辑模式下显示 */}
-      {(showForm) && (
-        <div className="rounded-2xl bg-white border border-[#D5E2D5] p-6 space-y-4">
-          <div className="flex justify-between">
-            <h3 className="text-lg font-semibold text-[#1A2E1A]">{editingId ? '编辑海报' : '添加海报'}</h3>
-            {editingId && <button onClick={() => { setEditingId(null); setShowForm(false); }} className="touch-btn p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#6B856B]"><X size={18} /></button>}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-[#6B856B] mb-1.5">名称 *</label>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="例如: 首页主视觉"
-                className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] focus:border-[#4A7C59]/50 outline-none touch-btn" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#6B856B] mb-1.5">位置</label>
-              <select value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
-                className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] touch-btn">
-                {POSITIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* 图片上传 */}
-          <ImageUploadField
-            label="海报图片"
-            value={form.image_url}
-            onChange={v => setForm(f => ({ ...f, image_url: v }))}
-            previewSize="w-full h-auto max-h-48 sm:max-h-36 rounded-xl object-cover"
-          />
-
-          {/* 视频上传 — 仅用于首页Banner */}
-          <div className="rounded-xl bg-[#F8FAF8] border border-dashed border-[#D5E2D5] p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Video size={16} className="text-[#4A7C59]" />
-              <span className="text-sm font-medium text-[#3D5C3D]">首页视频（可选，有视频时会自动播放替代图片）</span>
-            </div>
-
-            {form.video_url ? (
-              <div className="space-y-2">
-                <div className="relative rounded-xl overflow-hidden bg-black max-w-md">
-                  <video src={form.video_url} controls className="w-full max-h-40" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#8AA08A] truncate flex-1">{form.video_url.split('/').pop()}</span>
-                  <button onClick={removeVideo} className="touch-btn px-3 py-1.5 text-xs text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                    移除视频
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <input
-                  ref={videoInputRef}
-                  type="file"
-                  accept="video/mp4,video/webm,video/quicktime"
-                  onChange={handleVideoChange}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => videoInputRef.current?.click()}
-                  disabled={videoUploading}
-                  className="touch-btn flex items-center gap-2 px-4 py-2.5 bg-white border border-[#D5E2D5] rounded-xl text-sm text-[#5C725C] hover:bg-[#EEF4EF] transition-colors disabled:opacity-50"
-                >
-                  {videoUploading ? (
-                    <><Loader2 size={16} className="animate-spin" /> 上传中 {videoProgress}%</>
-                  ) : (
-                    <><Upload size={16} /> 选择视频文件</>
-                  )}
-                </button>
-                <span className="text-[10px] text-[#9AAA9A]">推荐 MP4，10秒以内，10MB 以内</span>
-              </div>
-            )}
-
-            {/* 视频封面图 */}
-            {form.video_url && (
-              <div>
-                <label className="block text-xs font-medium text-[#6B856B] mb-1.5">视频封面图（可选，加载视频前显示）</label>
-                <ImageUploadField
-                  label=""
-                  value={form.poster_url}
-                  onChange={v => setForm(f => ({ ...f, poster_url: v }))}
-                  previewSize="w-full h-auto max-h-32 rounded-xl object-cover"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-[#6B856B] mb-1.5">点击链接</label>
-              <input value={form.link_url} onChange={e => setForm(f => ({ ...f, link_url: e.target.value }))}
-                placeholder="https://..."
-                className="w-full px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] outline-none touch-btn" />
-            </div>
-            <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 cursor-pointer px-4 py-2 rounded-xl bg-[#EEF4EF] border border-[#E0ECE0] touch-btn">
-                <input type="checkbox" checked={form.is_active} onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))} className="accent-[#4A7C59]" />
-                <span className="text-sm text-[#2D442D]">激活</span>
-              </label>
-            </div>
-          </div>
-          <div className="flex justify-end gap-3 pt-2 border-t border-[#E0ECE0]">
-            <button onClick={() => { setEditingId(null); setShowForm(false); }} className="touch-btn px-5 py-2.5 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
-            <button onClick={handleSave} disabled={saving} className="touch-btn px-6 py-2.5 bg-[#4A7C59] text-white text-sm font-medium rounded-xl">{editingId ? '保存' : '创建'}</button>
-          </div>
-        </div>
-      )}
-
-      {/* 列表 — 按位置筛选 */}
-      {loading ? <div className="text-center py-20 text-[#6B856B]">加载中...</div> : (
-        <>
-          {/* 当前选中位置的预览说明 */}
-          <div className="rounded-2xl bg-white border border-[#E0ECE0] overflow-hidden">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center gap-2 mb-3">
-                {(() => { const PosIcon = POSITIONS.find(p => p.value === activePos)?.icon || Eye; return <PosIcon size={16} className="text-[#4A7C59]" />; })()}
-                <h3 className="text-sm font-semibold text-[#1A2E1A]">{POSITIONS.find(p => p.value === activePos)?.label} — 前台效果示意</h3>
-              </div>
-              <div className="text-[11px] text-[#6B856B] space-y-1 mb-3">
-                <p>💡 为这个位置添加/编辑海报，前台的对应区域就会自动显示该图片。</p>
-                <p>• <strong>首页 Hero</strong>：全屏背景图，加暗色遮罩后显示标题文字</p>
-                <p>• <strong>品牌叙事·终章</strong>：深色CTA卡片背景，渐现+模糊效果</p>
-                <p>• <strong>馆藏页·系列广告</strong>：系列切换时显示的横幅大图（4张图片对应4个系列）</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {banners.filter(b => b.position === activePos).map(b => (
-            <div key={b.id} className="group rounded-xl bg-white border border-[#E0ECE0] overflow-hidden hover:border-[#D5E2D5] transition-all shadow-sm sm:shadow-none">
-              <div className="aspect-video bg-[#E8F3EC] relative overflow-hidden">
-                {b.video_url ? (
-                  <video
-                    src={b.video_url}
-                    poster={b.poster_url || undefined}
-                    muted
-                    loop
-                    className="w-full h-full object-cover"
-                  />
-                ) : b.image_url ? (
-                  <img src={b.image_url} alt={b.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#9AAA9A]"><ImageIcon size={36} /></div>
-                )}
-                {b.video_url && (
-                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-[#4A7C59]/80 rounded text-[10px] text-white flex items-center gap-1">
-                    <Video size={10} /> 视频
-                  </div>
-                )}
-                {!b.is_active && <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/60 rounded text-[10px] text-white">未激活</div>}
-              </div>
-              <div className="p-4 sm:p-3 flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-medium text-[#1A2E1A] truncate">{b.name}</h4>
-                  <span className="text-[11px] text-[#8AA08A]">{POSITIONS.find(p => p.value === b.position)?.label || b.position}</span>
-                </div>
-                <div className="flex gap-1 flex-shrink-0 ml-2">
-                  <Perm action="edit_banners"><button onClick={() => { setEditingId(b.id); setShowForm(true); setForm({
-                    name: b.name, image_url: b.image_url || '', video_url: b.video_url || '',
-                    poster_url: b.poster_url || '', link_url: b.link_url || '',
-                    position: b.position, is_active: b.is_active, sort_order: String(b.sort_order || 0),
-                  }); }} className="touch-btn p-1.5 hover:bg-[#EEF4EF] rounded"><Edit2 size={13} className="text-[#5C725C]" /></button></Perm>
-                  <Perm action="edit_banners"><button onClick={() => handleDelete(b.id)} className="touch-btn p-1.5 hover:bg-red-500/10 rounded"><Trash2 size={13} className="text-red-400/50" /></button></Perm>
-                </div>
-              </div>
-            </div>
-          ))}
-          {banners.filter(b => b.position === activePos).length === 0 && (
-            <div className="sm:col-span-2 lg:col-span-3 text-center py-16 text-[#8AA08A]">
-              <ImageIcon size={48} className="mx-auto mb-4 opacity-30" />
-              <p>此位置暂无海报</p>
-              <p className="text-xs mt-1 text-[#9AAA9A]">点击上方「添加海报」按钮创建</p>
-            </div>
-          )}
-        </div>
-        </>
       )}
     </div>
   );

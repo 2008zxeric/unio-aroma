@@ -13,7 +13,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ZoomIn, ArrowLeft, Shield, Wind, Droplets, Flame, Mountain, Sparkles, TreePine, FlaskConical, MapPin, Home, Search } from 'lucide-react';
 import { Series, Product, SeriesCode, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { optimizeProductThumb, optimizeImage } from '../imageUtils';
-import { getSeries, getProducts, getBanners } from '../siteDataService';
+import { getSeries, getProducts, getBannerUrls } from '../siteDataService';
 
 interface SiteCollectionsProps {
   initialSeries?: string;
@@ -225,7 +225,10 @@ const SearchResultCard: React.FC<{ item: Product; onSelect: (code: string) => vo
     </div>
   );
 };
+const COLLECT_IMG_KEYS = ['collections_ad_yuan', 'collections_ad_he', 'collections_ad_sheng', 'collections_ad_jing'];
+
 // 四张产品广告图：四个系列各配一张独立banner
+// 后台可替换，key对应: collections_ad_yuan / he / sheng / jing
 const BANNER_ADS: Record<string, string> = {
   yuan:  '/assets/banner/banner-ad-1.webp',
   he:    '/assets/banner/banner-ad-2.webp',
@@ -320,21 +323,10 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
         setSeries(seriesData);
         setProducts(productsData);
 
-        // 获取馆藏页banner（4个系列各一张广告横条）
+        // 获取馆藏页广告横幅（精确定位4个图片位）
         try {
-          const data = await getBanners('collections');
-          const bannerMap: Record<string, string> = {};
-          const codeMap: Record<string, string> = { yuan: 'yuan', he: 'he', sheng: 'sheng', jing: 'jing' };
-          data.forEach(b => {
-            // 根据banner名称关联系列：如名称包含"元"则关联yuan，以此类推
-            const code = Object.entries(codeMap).find(([_, c]) =>
-              b.name.includes(c) || b.name.includes({ yuan: '元', he: '和', sheng: '生', jing: '香' }[c] || c)
-            )?.[0];
-            if (code && b.image_url) {
-              bannerMap[code] = b.image_url;
-            }
-          });
-          setCollectionBanners(bannerMap);
+          const imgData = await getBannerUrls(COLLECT_IMG_KEYS);
+          setCollectionBanners(imgData);
         } catch (e) {
           console.warn('Failed to load collections banners:', e);
         }
@@ -566,7 +558,7 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
           <div className="max-w-[2560px] mx-auto px-3 sm:px-10 lg:px-24 mb-8 sm:mb-20">
             <div className="relative w-full aspect-[2/1] sm:aspect-[3/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
               <img
-                src={collectionBanners[filter] || BANNER_ADS[filter]}
+                src={collectionBanners['collections_ad_' + filter] || BANNER_ADS[filter]}
                 className={`w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105 ${
                   filter === 'yuan' || filter === 'sheng' ? 'object-bottom' : 'object-center'
                 }`}
