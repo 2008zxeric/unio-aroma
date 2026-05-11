@@ -5,16 +5,16 @@
  * 修复：countryCount 未定义 / smSize 非法 prop
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store } from 'lucide-react';
 import { optimizeHeroImage } from '../imageUtils';
+import { getBanners } from '../siteDataService';
 
 // 恢复原始 Unsplash 图片 + 品牌 Logo
 const ASSETS = {
   hero_eric: optimizeHeroImage('https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920'),
   hero_alice: optimizeHeroImage('https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920'),
   map: optimizeHeroImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920'),
-  banner: '/story-finale-banner.webp',
   logo: '/logo.svg',
 };
 
@@ -24,8 +24,16 @@ interface SiteStoryProps {
 
 const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
   const finaleRef = useRef<HTMLDivElement>(null);
+  const [storyBanner, setStoryBanner] = useState<string>('/story-finale-banner.webp');
 
   useEffect(() => {
+    // 从数据库获取品牌叙事banner
+    getBanners('story').then(data => {
+      if (data.length > 0 && data[0].image_url) {
+        setStoryBanner(data[0].image_url);
+      }
+    }).catch(() => {});
+
     const el = finaleRef.current;
     if (!el) return;
 
@@ -296,7 +304,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           {/* 终章背景图 - 滚动渐现效果 */}
           <div className="absolute inset-0 overflow-hidden">
             <img decoding="async"
-              src={ASSETS.banner}
+              src={storyBanner}
               className="story-finale-bg absolute inset-0 w-full h-full object-cover opacity-0 scale-110 grayscale blur-sm"
               alt="Final CTA Background"
             />
