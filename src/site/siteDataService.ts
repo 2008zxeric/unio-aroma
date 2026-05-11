@@ -163,7 +163,31 @@ export async function getCountryById(id: string): Promise<Country | null> {
   return countries.length > 0 ? countries[0] : null;
 }
 
-// ============ Banner 服务 ============
+// ============ Banner/图片位服务 ============
+// 按 name 精确获取单个图片位的URL，用于精细化管理
+export async function getBannerUrl(name: string): Promise<string | null> {
+  try {
+    const data = await fetchFromSupabase('banners', `name=eq.${name}&is_active=eq.true&limit=1`);
+    if (data.length > 0 && data[0].image_url) return data[0].image_url;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// 批量获取多个图片位的URL
+export async function getBannerUrls(names: string[]): Promise<Record<string, string>> {
+  const result: Record<string, string> = {};
+  try {
+    const nameFilter = names.map(n => `name=eq.${n}`).join(',');
+    const data = await fetchFromSupabase('banners', `or=(${nameFilter})&is_active=eq.true`);
+    data.forEach((b: any) => {
+      if (b.name && b.image_url) result[b.name] = b.image_url;
+    });
+  } catch { /* silent */ }
+  return result;
+}
+
 export async function getBanners(position: string): Promise<Banner[]> {
   const now = new Date().toISOString();
   return fetchFromSupabase(
