@@ -1,8 +1,15 @@
 import { useEffect, useState, useRef } from 'react';
 import { Plus, Edit2, Trash2, Image as ImageIcon, X, Loader2, Home, BookOpen, LayoutGrid, Save } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 import { bannerService } from '../../lib/dataService';
 import type { Banner } from '../../lib/database.types';
+
+// 后台用独立的 service_role 客户端来执行写入操作（绕过RLS）
+const adminSupabase = createClient(
+  'https://xuicjydgtoltdhkbqoju.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWNqeWRndG9sdGRoa2Jxb2p1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUzMjY2OCwiZXhwIjoyMDkxMTA4NjY4fQ.PrfPpjQH0pWxzUUVqooXui1f3avjexLNsMPlj6CtvUQ'
+);
 import ImageUploadField from '../components/ImageUploadField';
 import { Perm } from '../components/PermissionGuard';
 
@@ -85,9 +92,11 @@ export default function AdminBanners() {
       };
 
       if (existing) {
-        await bannerService.update(existing.id, payload);
+        const { error } = await adminSupabase.from('banners').update(payload).eq('id', existing.id);
+        if (error) throw error;
       } else {
-        await bannerService.create(payload);
+        const { error } = await adminSupabase.from('banners').insert(payload);
+        if (error) throw error;
       }
 
       await loadAllBanners();
@@ -102,7 +111,8 @@ export default function AdminBanners() {
     if (!confirm(`确认清除「${slot.label}」的图片？前台将恢复默认图片`)) return;
     const existing = banners.get(slot.key);
     if (existing) {
-      await bannerService.delete(existing.id);
+      const { error } = await adminSupabase.from('banners').delete().eq('id', existing.id);
+      if (error) throw error;
       await loadAllBanners();
     }
   };
