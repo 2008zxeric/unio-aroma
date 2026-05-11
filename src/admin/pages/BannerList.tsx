@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Plus, Edit2, Trash2, Image as ImageIcon, X, Video, Upload, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, X, Video, Upload, Loader2, Eye, Home, BookOpen, LayoutGrid, Map, Layers } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { bannerService } from '../../lib/dataService';
 import type { Banner } from '../../lib/database.types';
@@ -8,11 +8,11 @@ import { Perm } from '../components/PermissionGuard';
 import { useAuth, writeAuditLog } from '../../lib/auth';
 
 const POSITIONS = [
-  { value: 'home', label: '首页' },
-  { value: 'story', label: '品牌叙事页' },
-  { value: 'collections', label: '馆藏页' },
-  { value: 'atlas', label: '寻香地图页' },
-  { value: 'footer', label: '底部/通用' },
+  { value: 'home', label: '首页 Hero 背景图', icon: Home, desc: '首屏全屏大图，下方叠加标题/Slogan' },
+  { value: 'story', label: '品牌叙事·终章背景', icon: BookOpen, desc: '故事页底部CTA大图，深色底+渐现效果' },
+  { value: 'collections', label: '馆藏页·系列广告横条', icon: LayoutGrid, desc: '四大系列各配一张产品广告横幅，按系列区分' },
+  { value: 'atlas', label: '寻香地图页', icon: Map, desc: '地图页顶部/底部banner（暂未使用）' },
+  { value: 'footer', label: '底部/通用', icon: Layers, desc: '通用区域（暂未使用）' },
 ];
 
 const BUCKET = 'product-images';
@@ -43,6 +43,7 @@ export default function AdminBanners() {
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [activePos, setActivePos] = useState('home');
   const videoInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
@@ -143,8 +144,41 @@ export default function AdminBanners() {
         </button></Perm>
       </div>
 
-      {/* 表单 */}
-      {(showForm || banners.length === 0) && (
+      {/* 位置筛选 + 可视化说明 */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {POSITIONS.map(pos => {
+            const PosIcon = pos.icon;
+            const count = banners.filter(b => b.position === pos.value).length;
+            const isActive = activePos === pos.value;
+            return (
+              <button key={pos.value} onClick={() => setActivePos(pos.value)}
+                className={`touch-btn flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  isActive
+                    ? 'bg-[#4A7C59] text-white shadow-sm'
+                    : 'bg-white border border-[#E0ECE0] text-[#5C725C] hover:bg-[#EEF4EF]'
+                }`}>
+                <PosIcon size={14} />
+                <span>{pos.label}</span>
+                {count > 0 && (
+                  <span className={`ml-0.5 px-1.5 py-0.5 rounded text-[9px] ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-[#EEF4EF] text-[#6B856B]'
+                  }`}>{count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {/* 当前选中位置的说明 */}
+        <div className="px-3 py-2 bg-[#FAFCFA] border border-[#E0ECE0] rounded-lg text-xs text-[#6B856B] flex items-center gap-2">
+          <Eye size={13} className="text-[#8AA08A]" />
+          <span className="flex-1">{POSITIONS.find(p => p.value === activePos)?.desc}</span>
+          <span className="text-[10px] text-[#9AAA9A] bg-white px-2 py-0.5 rounded">前台效果预览 ↓</span>
+        </div>
+      </div>
+
+      {/* 表单 — 编辑模式下显示 */}
+      {(showForm) && (
         <div className="rounded-2xl bg-white border border-[#D5E2D5] p-6 space-y-4">
           <div className="flex justify-between">
             <h3 className="text-lg font-semibold text-[#1A2E1A]">{editingId ? '编辑海报' : '添加海报'}</h3>
@@ -252,10 +286,27 @@ export default function AdminBanners() {
         </div>
       )}
 
-      {/* 列表 */}
+      {/* 列表 — 按位置筛选 */}
       {loading ? <div className="text-center py-20 text-[#6B856B]">加载中...</div> : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {banners.map(b => (
+        <>
+          {/* 当前选中位置的预览说明 */}
+          <div className="rounded-2xl bg-white border border-[#E0ECE0] overflow-hidden">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-3">
+                {(() => { const PosIcon = POSITIONS.find(p => p.value === activePos)?.icon || Eye; return <PosIcon size={16} className="text-[#4A7C59]" />; })()}
+                <h3 className="text-sm font-semibold text-[#1A2E1A]">{POSITIONS.find(p => p.value === activePos)?.label} — 前台效果示意</h3>
+              </div>
+              <div className="text-[11px] text-[#6B856B] space-y-1 mb-3">
+                <p>💡 为这个位置添加/编辑海报，前台的对应区域就会自动显示该图片。</p>
+                <p>• <strong>首页 Hero</strong>：全屏背景图，加暗色遮罩后显示标题文字</p>
+                <p>• <strong>品牌叙事·终章</strong>：深色CTA卡片背景，渐现+模糊效果</p>
+                <p>• <strong>馆藏页·系列广告</strong>：系列切换时显示的横幅大图（4张图片对应4个系列）</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {banners.filter(b => b.position === activePos).map(b => (
             <div key={b.id} className="group rounded-xl bg-white border border-[#E0ECE0] overflow-hidden hover:border-[#D5E2D5] transition-all shadow-sm sm:shadow-none">
               <div className="aspect-video bg-[#E8F3EC] relative overflow-hidden">
                 {b.video_url ? (
@@ -294,13 +345,15 @@ export default function AdminBanners() {
               </div>
             </div>
           ))}
-          {banners.length === 0 && (
+          {banners.filter(b => b.position === activePos).length === 0 && (
             <div className="sm:col-span-2 lg:col-span-3 text-center py-16 text-[#8AA08A]">
               <ImageIcon size={48} className="mx-auto mb-4 opacity-30" />
-              <p>暂无海报，点击上方按钮添加</p>
+              <p>此位置暂无海报</p>
+              <p className="text-xs mt-1 text-[#9AAA9A]">点击上方「添加海报」按钮创建</p>
             </div>
           )}
         </div>
+        </>
       )}
     </div>
   );

@@ -13,14 +13,14 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink, Video, X } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
-import { getSeries, getProducts, getCountries } from '../siteDataService';
+import { getBanners, getSeries, getProducts, getCountries } from '../siteDataService';
 import { siteTextService } from '../../lib/dataService';
+import type { Banner } from '../types';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
-const HERO_IMG = '/assets/brand/brand.webp';
 const LOGO_IMG = '/logo.svg';
 
 const SERIES_IMAGES: Record<string, string> = {
@@ -76,6 +76,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [countryCount, setCountryCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [homeBanners, setHomeBanners] = useState<Banner[]>([]);
   const [welcomeVideo, setWelcomeVideo] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeMuted, setWelcomeMuted] = useState(true);
@@ -97,6 +98,12 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
         setSeries(seriesData);
         setProducts(productsData);
         setCountryCount(countriesData.length);
+
+        // 获取首页banner（第一个激活的作为Hero背景图）
+        try {
+          const homeBannerData = await getBanners('home');
+          setHomeBanners(homeBannerData);
+        } catch {}
 
         // 获取首页欢迎视频
         try {
@@ -138,9 +145,9 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
 
       {/* ============ HERO SECTION ============ */}
       <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
-        {/* 背景图 */}
+        {/* 背景图 — 从数据库动态读取，无数据则用硬编码备选 */}
         <div className="absolute inset-0">
-          <img src={HERO_IMG} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
+          <img src={homeBanners.length > 0 ? homeBanners[0].image_url : '/assets/brand/brand.webp'} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
           <div className="absolute inset-0 bg-black/40" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
         </div>
@@ -292,7 +299,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           {series.map((s, idx) => {
             const config = SERIES_CONFIG[s.code];
             const productCount = getSeriesStats(s.code);
-            const bgImage = SERIES_IMAGES[s.code] || HERO_IMG;
+            const bgImage = SERIES_IMAGES[s.code] || '/assets/brand/brand.webp';
             return (
               <div
                 key={s.id}
