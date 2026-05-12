@@ -179,11 +179,18 @@ export async function getBannerUrl(name: string): Promise<string | null> {
 export async function getBannerUrls(names: string[]): Promise<Record<string, string>> {
   const result: Record<string, string> = {};
   try {
-    const nameFilter = names.map(n => `name=eq.${n}`).join(',');
-    const data = await fetchFromSupabase('banners', `or=(${nameFilter})&is_active=eq.true`);
-    data.forEach((b: any) => {
-      if (b.name && b.image_url) result[b.name] = b.image_url;
-    });
+    // Supabase REST API 的 or 查询需要 in 语法或逐个查询
+    // 逐个查询更可靠，避免 or 语法的解析歧义
+    const promises = names.map(name =>
+      fetchFromSupabase('banners', `name=eq.${name}&is_active=eq.true&limit=1`)
+        .then(data => {
+          if (data.length > 0 && data[0].name && data[0].image_url) {
+            result[data[0].name] = data[0].image_url;
+          }
+        })
+        .catch(() => {})
+    );
+    await Promise.all(promises);
   } catch { /* silent */ }
   return result;
 }

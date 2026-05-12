@@ -41,13 +41,14 @@ const SeriesIcon: React.FC<{ icon: string; className?: string }> = ({ icon, clas
   return icons[icon] || <Sparkles className={className} />;
 };
 
-// ===== 计数动画 Hook（稳定版）=====
+// ===== 计数动画 Hook（修复版）=====
 function useCountUp(target: number, duration: number = 2000) {
-  const [count, setCount] = useState(target);
+  const [count, setCount] = useState(0);
   const animRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (animRef.current) cancelAnimationFrame(animRef.current);
+    setCount(0); // 回到 0
 
     const timer = setTimeout(() => {
       const startTime = performance.now();
@@ -55,7 +56,7 @@ function useCountUp(target: number, duration: number = 2000) {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const eased = 1 - Math.pow(2, -10 * progress);
-        setCount(Math.floor(eased * target));
+        setCount(Math.round(eased * target));
         if (progress < 1) {
           animRef.current = requestAnimationFrame(step);
         }
@@ -86,7 +87,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   // 动态统计：全部基于实际数据
   const originStats = useCountUp(countryCount, 2200);
   const productStats = useCountUp(products.length || 0, 2000);
-  const yearStats = useCountUp(23, 1800);
+  const yearStats = useCountUp(2026 - 2003, 1800); // 从 2003 年起算
 
   useEffect(() => {
     async function loadData() {
@@ -250,10 +251,10 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
             </div>
             <h2 className="text-2xl sm:text-7xl font-bold text-[#1A1A1A]/90 leading-tight sm:leading-tight tracking-tighter">
               始于神州西南，<br />
-              <span className="text-black/15 sm:text-black/20">专业深耕，迹遍全球。</span>
+              <span className="text-black/15 sm:text-black/20">足履全球，萃炼自然。</span>
             </h2>
             <p className="text-sm sm:text-2xl text-black/40 leading-relaxed sm:leading-loose max-w-2xl mx-auto lg:mx-0">
-              元香 UNIO 凝聚了 Alice 廿三载芳疗临床的深厚积淀，将 Eric 在全球极境感知的生存原力转化为精准的现代身心愈合艺术。
+              元香 UNIO 将 Alice 深厚的芳疗临床底蕴与 Eric 在全球极境感知的生存原力相融合，转化为精准的现代身心愈合艺术。
             </p>
             <button
               onClick={() => onNavigate('story')}
