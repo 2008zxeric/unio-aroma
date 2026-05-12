@@ -139,14 +139,22 @@ html {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
-/* Story Finale - 背景滚动渐现 */
-.story-finale-bg {
-  transition: opacity 3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              filter 3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              transform 5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+/* Story Finale - 背景呼吸脉动效果 */
+@keyframes softPulse {
+  0%, 100% { 
+    transform: scale(1.05);
+    filter: grayscale(0.3);
+  }
+  50% { 
+    transform: scale(1.12);
+    filter: grayscale(0);
+  }
 }
-.story-finale-visible .story-finale-bg {
-  opacity: 0.6 !important;
-  filter: grayscale(0) blur(0) !important;
-  transform: scale(1) !important;
+.animate-soft-pulse {
+  animation: softPulse 6s ease-in-out infinite;
+}
+
+/* 给容器添加 subtle inner glow */
+.story-finale-box {
+  backdrop-filter: blur(2px);
 }

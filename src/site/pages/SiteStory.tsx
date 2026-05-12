@@ -42,25 +42,11 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
     getBannerUrls(IMAGE_KEYS).then(data => {
       setImages(data);
     }).catch(() => {});
-
-    const el = finaleRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.classList.add('story-finale-visible');
-        }
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
   }, []);
 
   // 获取图片：数据库 > 默认值
   const img = (key: string): string => images[key] || DEFAULT_ASSETS[key] || '';
-  const store = (key: string): string => images[key] || STORE_IMAGES[key];
+  const store = (key: string): string => images[key] || STORE_IMAGES[key.replace('story_store_', '')];
 
   return (
     <div className="min-h-screen bg-white selection:bg-[#D75437] selection:text-white overflow-x-hidden">
@@ -308,19 +294,20 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
       </section>
 
       {/* ===== 5. 终章 ===== */}
-      <section className="pb-40 sm:pb-64 md:pb-80 px-6">
-        <div ref={finaleRef} className="story-finale-box max-w-[1200px] sm:max-w-[1400px] mx-auto p-12 sm:p-28 md:p-40 rounded-2xl sm:rounded-[6rem] bg-[#1a1a1a] text-white text-center space-y-12 sm:space-y-16 md:space-y-20 shadow-lg sm:shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)] overflow-hidden relative group">
-          {/* 终章背景图 - 滚动渐现效果 */}
-          <div className="absolute inset-0 overflow-hidden">
+      <section className="px-6 sm:px-8 md:px-12 lg:px-16 pb-6 sm:pb-8">
+        <div ref={finaleRef} className="story-finale-box w-full min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] rounded-2xl sm:rounded-[3rem] md:rounded-[6rem] bg-[#1a1a1a] text-white flex items-center justify-center relative overflow-hidden group shadow-lg sm:shadow-[0_60px_120px_-30px_rgba(0,0,0,0.4)]">
+          {/* 终章背景图 - 动态脉动呼吸效果 */}
+          <div className="absolute inset-0">
             <img decoding="async"
               src={img('story_finale')}
-              className="story-finale-bg absolute inset-0 w-full h-full object-cover opacity-0 scale-110 grayscale blur-sm"
+              className="story-finale-bg w-full h-full object-cover scale-110 animate-soft-pulse"
               alt="Final CTA Background"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-[#D75437]/5 to-transparent" />
+          {/* 暗色遮罩 - 确保文字可读 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#D75437]/10 via-black/40 to-black/60" />
 
-          <div className="relative z-10 space-y-10 sm:space-y-14 md:space-y-16">
+          <div className="relative z-10 space-y-10 sm:space-y-14 md:space-y-16 p-12 sm:p-16 md:p-24 text-center">
             <Quote size={56} className="sm:w-20 sm:h-20 mx-auto text-[#D4AF37] opacity-50 sm:opacity-60" />
             <div className="space-y-4 sm:space-y-6">
               <h3 className="text-3xl sm:text-6xl md:text-[8rem] font-bold tracking-[0.08em] sm:tracking-[0.1em] text-white/92 sm:text-white/95 leading-none">元于一息</h3>

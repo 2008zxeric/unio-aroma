@@ -132,7 +132,7 @@ export default function AdminBanners() {
       <div className="flex items-center gap-2">
         {GROUPS.map(g => {
           const Icon = g.icon;
-          const count = slotsInGroup.length;
+          const count = IMAGE_SLOTS.filter(s => s.group === g.value).length;
           return (
             <button key={g.value} onClick={() => setActiveGroup(g.value)}
               className={`touch-btn flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
