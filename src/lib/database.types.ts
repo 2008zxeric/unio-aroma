@@ -248,6 +248,35 @@ export interface AuditLog {
   created_at: string;
 }
 
+// ---- 购物车/需求单 ----
+export interface CartOrder {
+  id: string;
+  customer_name: string;
+  contact_phone: string;
+  contact_wechat: string;
+  contact_email: string;
+  notes: string;
+  status: 'pending' | 'contacted' | 'completed' | 'cancelled';
+  total_amount: number;
+  source: 'frontend' | 'backend';
+  created_at: string;
+  updated_at: string;
+  items?: CartOrderItem[];  // 关联查询
+}
+
+export interface CartOrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  product_name: string;
+  size: string;
+  quantity: number;
+  unit_price: number;
+  base_cost: number;
+  subtotal: number;
+  created_at: string;
+}
+
 // ---- 产品评价 ----
 export interface Review {
   id: string;

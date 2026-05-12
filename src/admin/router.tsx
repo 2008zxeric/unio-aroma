@@ -16,6 +16,8 @@ import ReviewManage from './pages/ReviewManage';
 import ImageLibrary from './pages/ImageLibrary';
 import SeriesManagement from './pages/SeriesManagement';
 import WelcomeVideo from './pages/WelcomeVideo';
+import CartOrders from './pages/CartOrders';
+import BulkOutbound from './pages/BulkOutbound';
 import { PermissionGuard } from './components/PermissionGuard';
 import { AdminPreviewProvider } from './AdminPreviewContext';
 
@@ -51,6 +53,8 @@ export default function AdminRouter() {
           <Route path="welcome-video" element={<PermissionGuard action="view_banners"><WelcomeVideo /></PermissionGuard>} />
           <Route path="users" element={<PermissionGuard action="view_users"><AdminUsers /></PermissionGuard>} />
           <Route path="settings" element={<PermissionGuard action="view_settings"><AdminSettings /></PermissionGuard>} />
+          <Route path="orders" element={<PermissionGuard action="view_dashboard"><CartOrders /></PermissionGuard>} />
+          <Route path="bulk-outbound" element={<PermissionGuard action="view_inventory"><BulkOutbound /></PermissionGuard>} />
         </Route>
 
         {/* 未匹配 → 首页 */}

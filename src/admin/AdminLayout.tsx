@@ -31,6 +31,8 @@ import {
   Zap,
   ArrowUp,
   Play,
+  ShoppingBag,
+  Download,
 } from 'lucide-react';
 
 // 菜单项定义 — 每项绑定权限
@@ -48,6 +50,8 @@ const MENU_ITEMS = [
   { path: '/admin/welcome-video', icon: Play, label: '欢迎视频', perm: 'view_banners' as PermissionAction },
   { type: 'divider', label: '运营数据' },
   { path: '/admin/inventory', icon: Warehouse, label: '库存利润', perm: 'view_inventory' as PermissionAction },
+  { path: '/admin/orders', icon: ShoppingBag, label: '需求单', perm: 'view_dashboard' as PermissionAction },
+  { path: '/admin/bulk-outbound', icon: Download, label: '批量出库', perm: 'view_inventory' as PermissionAction },
   { type: 'divider', label: '互动管理' },
   { path: '/admin/reviews', icon: MessageSquare, label: '评价审核', perm: 'view_dashboard' as PermissionAction },
   { type: 'divider', label: '系统' },
@@ -74,6 +78,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/users': '权限管理',
   '/admin/settings': '系统设置',
   '/admin/audit-logs': '操作日志',
+  '/admin/orders': '需求单管理',
+  '/admin/bulk-outbound': '批量出库',
 };
 
 // 浮动按钮配置（每个页面可配不同的快捷操作）

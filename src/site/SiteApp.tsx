@@ -11,8 +11,10 @@
  */
 
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
-import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle, Copy, Check } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle, Copy, Check, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CartDrawer from './components/CartDrawer';
+import { getCartCount } from './cartStore';
 
 // 懒加载页面组件 — 首屏只加载 SiteHome，其余按需
 const SiteHome = lazy(() => import('./pages/SiteHome'));
@@ -79,6 +81,21 @@ const SiteApp: React.FC = () => {
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showWechatQR, setShowWechatQR] = useState(false);
+
+  // 购物车状态
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartBadge, setCartBadge] = useState(0);
+
+  // 刷新购物车角标
+  const refreshCartBadge = useCallback(() => {
+    setCartBadge(getCartCount());
+  }, []);
+
+  useEffect(() => {
+    refreshCartBadge();
+    const interval = setInterval(refreshCartBadge, 2000);
+    return () => clearInterval(interval);
+  }, [refreshCartBadge]);
 
   // 页面切换动画状态
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -427,9 +444,22 @@ const SiteApp: React.FC = () => {
           </div>
         </div>
 
-        {/* 右上角：详情页返回 */}
+        {/* 右上角：详情页返回 + 购物车 */}
         {['product', 'destination'].includes(view) && (
           <div className="pointer-events-auto flex items-center gap-2">
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/85 backdrop-blur-xl rounded-full shadow-lg text-black/45 hover:text-[#D75437] transition-all text-[10px] sm:text-sm tracking-wide"
+              title="购物车"
+            >
+              <ShoppingCart size={14} smSize={16} />
+              {cartBadge > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#D75437] text-white text-[8px] font-bold flex items-center justify-center">
+                  {cartBadge > 9 ? '9+' : cartBadge}
+                </span>
+              )}
+              <span className="hidden sm:inline">购物车</span>
+            </button>
             <button
               onClick={goBack}
               className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white/85 backdrop-blur-xl rounded-full shadow-lg text-black/45 hover:text-[#D75437] transition-all text-[10px] sm:text-sm tracking-wide"
@@ -568,6 +598,29 @@ const SiteApp: React.FC = () => {
             <Home size={16} smSize={18} />
           </button>
         )}
+
+        {/* 购物车悬浮按钮 */}
+        <div className="relative group">
+          <button
+            onClick={() => setCartOpen(true)}
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/[0.92] backdrop-blur-xl border border-black/8 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 relative"
+            style={{ color: `${C?.red || '#D75437'}` }}
+            title="购物车"
+          >
+            <ShoppingCart size={18} smSize={20} />
+            {cartBadge > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-white text-[8px] font-bold flex items-center justify-center"
+                style={{ backgroundColor: '#D75437' }}>
+                {cartBadge > 9 ? '9+' : cartBadge}
+              </span>
+            )}
+          </button>
+          <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <div className="bg-white rounded-lg sm:rounded-xl shadow-xl px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs text-black/55 whitespace-nowrap">
+              购物车
+            </div>
+          </div>
+        </div>
 
         {/* 微信客服悬浮按钮 */}
         <div className="relative group">
@@ -810,6 +863,9 @@ const SiteApp: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ===== 购物车抽屉 ===== */}
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 };

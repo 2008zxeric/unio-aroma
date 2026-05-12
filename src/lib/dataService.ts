@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import type { 
   Product, Country, Series, Banner, SiteText, HomeRecommend,
-  PurchaseRecord, SalesRecord, ProductInventory, DictItem, AdminUser
+  PurchaseRecord, SalesRecord, ProductInventory, DictItem, AdminUser,
+  CartOrder, CartOrderItem
 } from './database.types';
 
 // ============================================
@@ -581,6 +582,125 @@ export const reviewService = {
   /** 批量删除 */
   bulkDelete: async (ids: string[]): Promise<void> => {
     const { error } = await supabase.from('reviews').delete().in('id', ids);
+    if (error) throw error;
+  },
+};
+
+// ============================================
+// 购物车/需求单服务
+// ============================================
+
+export const cartOrderService = {
+  /** 获取所有需求单（按时间倒序） */
+  getAll: async (): Promise<CartOrder[]> => {
+    const { data, error } = await supabase
+      .from('cart_orders')
+      .select('*, items:cart_order_items(*)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []) as CartOrder[];
+  },
+
+  /** 按状态筛选 */
+  getByStatus: async (status: string): Promise<CartOrder[]> => {
+    const { data, error } = await supabase
+      .from('cart_orders')
+      .select('*, items:cart_order_items(*)')
+      .eq('status', status)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []) as CartOrder[];
+  },
+
+  /** 获取单个需求单（含明细） */
+  getById: async (id: string): Promise<CartOrder | null> => {
+    const { data, error } = await supabase
+      .from('cart_orders')
+      .select('*, items:cart_order_items(*)')
+      .eq('id', id)
+      .single();
+    if (error) return null;
+    return data as CartOrder;
+  },
+
+  /** 创建需求单 */
+  create: async (order: { customer_name?: string; contact_phone?: string; contact_wechat?: string; notes?: string; source?: string }): Promise<CartOrder> => {
+    const { data, error } = await supabase
+      .from('cart_orders')
+      .insert({
+        customer_name: order.customer_name || '',
+        contact_phone: order.contact_phone || '',
+        contact_wechat: order.contact_wechat || '',
+        notes: order.notes || '',
+        source: order.source || 'frontend',
+        total_amount: 0,
+        status: 'pending',
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data as CartOrder;
+  },
+
+  /** 更新需求单（状态/客户信息） */
+  update: async (id: string, record: Partial<CartOrder>): Promise<CartOrder> => {
+    const { data, error } = await supabase
+      .from('cart_orders')
+      .update(record)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as CartOrder;
+  },
+
+  /** 删除需求单（级联删除明细） */
+  delete: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('cart_orders').delete().eq('id', id);
+    if (error) throw error;
+  },
+};
+
+export const cartOrderItemService = {
+  /** 批量创建需求单明细 */
+  bulkCreate: async (items: { order_id: string; product_id: string; product_name: string; size: string; quantity: number; unit_price: number; base_cost: number }[]): Promise<CartOrderItem[]> => {
+    const records = items.map(item => ({
+      ...item,
+      subtotal: item.quantity * item.unit_price,
+    }));
+    const { data, error } = await supabase
+      .from('cart_order_items')
+      .insert(records)
+      .select();
+    if (error) throw error;
+
+    // 更新需求单总金额
+    const total = records.reduce((sum, r) => sum + r.subtotal, 0);
+    if (items.length > 0) {
+      const { error: updateErr } = await supabase
+        .from('cart_orders')
+        .update({ total_amount: total })
+        .eq('id', items[0].order_id);
+      if (updateErr) console.warn('[cartOrderItemService] update total failed', updateErr);
+    }
+
+    return (data || []) as CartOrderItem[];
+  },
+
+  /** 获取某个需求单的明细 */
+  getByOrderId: async (orderId: string): Promise<CartOrderItem[]> => {
+    const { data, error } = await supabase
+      .from('cart_order_items')
+      .select('*')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data || []) as CartOrderItem[];
+  },
+
+  /** 删除明细 */
+  delete: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('cart_order_items').delete().eq('id', id);
     if (error) throw error;
   },
 };

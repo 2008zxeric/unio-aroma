@@ -19,12 +19,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft, ExternalLink, Heart, Share2, ChevronLeft, ChevronRight,
   Copy, Check, Sparkles, ShoppingBag, Star, Shield, AlertTriangle,
-  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn, Quote, Home, List
+  MapPin, Leaf, Wind, Eye, Clock, Beaker, X, ZoomIn, Quote, Home, List,
+  ShoppingCart, Plus, Minus
 } from 'lucide-react';
 import ProductReviews from '../components/ProductReviews';
 import { Product, SERIES_CONFIG, ELEMENT_LABELS } from '../types';
 import { getProductById, getProductByCode, getProducts } from '../siteDataService';
 import { optimizeProductFull, optimizeProductThumb, optimizeImage } from '../imageUtils';
+import { addToCart, getCartCount } from '../cartStore';
 
 interface SiteProductDetailProps {
   productCode?: string;   // 产品短码（新格式，优先使用）
@@ -59,6 +61,43 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
   const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
   const [scrollY, setScrollY] = useState(0);
   const imagesRef = useRef<HTMLDivElement>(null);
+
+  // ==== 购物车状态 ====
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [cartQty, setCartQty] = useState(1);
+  const [cartAdded, setCartAdded] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const onAddToCartRef = useRef<(() => void) | null>(null);
+
+  // 外部暴露给 SiteApp
+  useEffect(() => {
+    setCartCount(getCartCount());
+  }, []);
+
+  const handleAddToCart = () => {
+    if (!product || !selectedSize) return;
+    const priceOption = priceOptions.find(o => o.size === selectedSize);
+    if (!priceOption) return;
+    addToCart({
+      product_id: product.id,
+      product_name: product.name_cn,
+      product_code: product.code,
+      image_url: product.image_url || '',
+      series_code: product.series_code,
+      size: selectedSize,
+      quantity: cartQty,
+      unit_price: priceOption.price,
+      base_cost: product.total_cost ? product.total_cost / 10 : 0,
+    });
+    setCartAdded(true);
+    setCartCount(getCartCount());
+    setTimeout(() => setCartAdded(false), 1500);
+  };
+
+  // 暴露 addToCart 给 SiteApp
+  if (onAddToCartRef) {
+    (window as any).__unio_product_add_to_cart = handleAddToCart;
+  }
 
   const handleImageLoad = useCallback((idx: number) => {
     setImageLoaded(prev => ({ ...prev, [idx]: true }));
@@ -394,13 +433,52 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
           </div>
         )}
 
-        {/* 底栏 */}
-        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t p-4 z-[90]" style={{ borderColor: C.line }}>
-          <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-4 text-white rounded-2xl font-bold text-sm tracking-wider shadow-lg active:scale-[0.98] transition-all"
-            style={{ background: `linear-gradient(135deg, ${C.red}, #E85A3F)`, boxShadow: `0 8px 24px ${C.red}25` }}>
-            <ShoppingBag size={16} /><span>前往小红书购买</span><ExternalLink size={14} className="opacity-60" />
-          </a>
+        {/* 底栏 — 加入购物车 + 小红书双按钮 */}
+        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t p-3 z-[90]" style={{ borderColor: C.line }}>
+          {priceOptions.length > 0 && (
+            <div className="flex items-center gap-2 mb-2">
+              {/* 规格选择 */}
+              <div className="flex gap-1.5 flex-1 overflow-x-auto scrollbar-hide">
+                {priceOptions.map((o, i) => (
+                  <button key={i} onClick={() => { setSelectedSize(o.size); setCartQty(1); }}
+                    className={`flex-shrink-0 px-3 py-2 rounded-xl text-[10px] font-medium transition-all border ${
+                      selectedSize === o.size 
+                        ? 'text-white border-transparent' 
+                        : 'border-black/8 text-black/45 hover:text-black/70'
+                    }`}
+                    style={selectedSize === o.size ? { backgroundColor: C.red, borderColor: C.red } : {}}>
+                    {o.size} <span style={selectedSize === o.size ? {} : { color: C.red }}>¥{o.price}</span>
+                  </button>
+                ))}
+              </div>
+              {/* 数量 */}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button onClick={() => setCartQty(Math.max(1, cartQty - 1))}
+                  className="w-7 h-7 rounded-full flex items-center justify-center border transition-colors disabled:opacity-30"
+                  style={{ borderColor: C.line, color: `${C.dark}40` }} disabled={cartQty <= 1}>
+                  <Minus size={11} />
+                </button>
+                <span className="text-xs font-medium w-6 text-center" style={{ color: C.dark }}>{cartQty}</span>
+                <button onClick={() => setCartQty(cartQty + 1)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center border transition-colors"
+                  style={{ borderColor: C.line, color: `${C.dark}40` }}>
+                  <Plus size={11} />
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <button onClick={handleAddToCart} disabled={!selectedSize || cartAdded}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-xs tracking-wider text-white transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ background: `linear-gradient(135deg, ${C.red}, #E85A3F)`, boxShadow: `0 8px 24px ${C.red}25` }}>
+              {cartAdded ? <><Check size={14} /> 已加入</> : <><ShoppingCart size={14} /> 加入购物车</>}
+            </button>
+            <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-2xl font-bold text-[10px] tracking-wider transition-all active:scale-[0.98] whitespace-nowrap"
+              style={{ backgroundColor: `${C.dark}05`, color: `${C.dark}50`, border: `1px solid ${C.line}` }}>
+              <ShoppingBag size={12} />小红书<ExternalLink size={10} className="opacity-50" />
+            </a>
+          </div>
         </div>
 
         {/* ━━ 用户评价板块（移动端）━━━━ */}
@@ -524,13 +602,61 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                   </div>
                 )}
 
-                {/* 购买按钮 */}
-                <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2.5 w-full py-4 text-white rounded-2xl font-bold text-sm tracking-wider transition-all hover:shadow-xl active:scale-[0.98]"
-                  style={{ background: `linear-gradient(135deg, ${C.red}, #E85A3F)`, boxShadow: `0 6px 20px ${C.red}28` }}>
-                  <ShoppingBag size={17} /><span>前往小红书购买</span><ExternalLink size={14} className="opacity-50" />
-                </a>
-                <p className="text-center text-[9px] tracking-widest" style={{ color: `${C.dark}18` }}>点击跳转小红书查看详情及优惠</p>
+                {/* 购买按钮 — 加入购物车 + 规格选择 */}
+                {priceOptions.length > 0 && (
+                  <div className="space-y-3">
+                    {/* 规格选择行 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-bold tracking-widest" style={{ color: `${C.dark}28` }}>选择规格</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {priceOptions.map((o, i) => (
+                        <button key={i} onClick={() => { setSelectedSize(o.size); setCartQty(1); }}
+                          className={`px-4 py-2.5 rounded-xl text-xs font-medium transition-all border ${
+                            selectedSize === o.size
+                              ? 'text-white border-transparent shadow-md'
+                              : 'border-black/8 text-black/45 hover:border-black/20 hover:text-black/70'
+                          }`}
+                          style={selectedSize === o.size ? { backgroundColor: C.red, borderColor: C.red } : {}}>
+                          {o.size} · <span style={selectedSize === o.size ? {} : { color: C.red }}>¥{o.price}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {/* 数量 + 加入购物车 */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl border" style={{ borderColor: C.line }}>
+                        <button onClick={() => setCartQty(Math.max(1, cartQty - 1))}
+                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors disabled:opacity-30"
+                          style={{ color: `${C.dark}40` }} disabled={cartQty <= 1}>
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-sm font-medium w-8 text-center" style={{ color: C.dark }}>{cartQty}</span>
+                        <button onClick={() => setCartQty(cartQty + 1)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors"
+                          style={{ color: `${C.dark}40` }}>
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                      <button onClick={handleAddToCart} disabled={!selectedSize || cartAdded}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs tracking-wider text-white transition-all hover:shadow-xl active:scale-[0.98] disabled:opacity-50"
+                        style={{ background: `linear-gradient(135deg, ${C.red}, #E85A3F)`, boxShadow: `0 6px 20px ${C.red}28` }}>
+                        {cartAdded ? <><Check size={15} /> 已加入购物车</> : <><ShoppingCart size={15} /> 加入购物车</>}
+                      </button>
+                      <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl text-xs font-medium transition-all hover:shadow-md active:scale-[0.98] whitespace-nowrap"
+                        style={{ backgroundColor: `${C.dark}04`, color: `${C.dark}45`, border: `1px solid ${C.line}` }}>
+                        <ShoppingBag size={13} />小红书<ExternalLink size={10} className="opacity-50" />
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {(!priceOptions || priceOptions.length === 0) && (
+                  <a href={xhsUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2.5 w-full py-4 text-white rounded-2xl font-bold text-sm tracking-wider transition-all hover:shadow-xl active:scale-[0.98]"
+                    style={{ background: `linear-gradient(135deg, ${C.red}, #E85A3F)`, boxShadow: `0 6px 20px ${C.red}28` }}>
+                    <ShoppingBag size={17} /><span>前往小红书购买</span><ExternalLink size={14} className="opacity-50" />
+                  </a>
+                )}
 
                 {/* 特别提醒 */}
                 <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: '#FFFCF7', border: '1px solid rgba(217,153,68,0.15)' }}>
