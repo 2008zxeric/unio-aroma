@@ -11,10 +11,11 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Package, Search, X, Check, Plus, Minus, ShoppingBag, Loader2, User, Phone, MessageCircle,
-  FileText, Save, Download, AlertTriangle, CheckSquare, Square, RefreshCw, Wallet
+  Search, X, Check, Plus, Minus, ShoppingBag, Loader2, User, Phone, MessageCircle,
+  FileText, Download, CheckSquare, Square, RefreshCw
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { cartOrderService, cartOrderItemService } from '../../lib/dataService';
 import type { Product } from '../../lib/database.types';
 
 // 品牌色
@@ -63,7 +64,8 @@ export default function BulkOutbound() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name_cn, name, code, series_code, price_5ml, price_10ml, price_15ml, price_30ml, price_50ml, price_100ml, price_piece, total_cost')
+        .select('id, name_cn, code, series_code, price_5ml, price_10ml, price_15ml, price_30ml, price_50ml, price_100ml, price_piece, total_cost')
+        .eq('is_active', true)
         .order('sort_order');
       if (error) throw error;
       const products = (data || []) as Product[];
@@ -140,24 +142,16 @@ export default function BulkOutbound() {
     if (selectedItems.length === 0) return alert('请至少选择一件产品');
     setSubmitting(true);
     try {
-      // 1. 创建需求单
-      const totalAmount = selectedItems.reduce((s, i) => s + i.unit_price * i.quantity, 0);
-      const { data: order, error: orderErr } = await supabase
-        .from('cart_orders')
-        .insert({
-          customer_name: customerName || '后台出库',
-          contact_phone: customerPhone || '',
-          contact_wechat: customerWechat || '',
-          notes: notes || '',
-          source: 'backend',
-          total_amount: totalAmount,
-          status: 'completed',
-        })
-        .select()
-        .single();
-      if (orderErr) throw orderErr;
+      // 1. 创建需求单（使用 dataService）
+      const order = await cartOrderService.create({
+        customer_name: customerName || '后台出库',
+        contact_phone: customerPhone || '',
+        contact_wechat: customerWechat || '',
+        notes: notes || '',
+        source: 'backend',
+      });
 
-      // 2. 批量创建明细
+      // 2. 批量创建明细 + 自动更新总金额（使用 dataService）
       const orderItems = selectedItems.map(item => ({
         order_id: order.id,
         product_id: item.product_id,
@@ -166,12 +160,8 @@ export default function BulkOutbound() {
         quantity: item.quantity,
         unit_price: item.unit_price,
         base_cost: item.base_cost || 0,
-        subtotal: item.unit_price * item.quantity,
       }));
-      const { error: itemsErr } = await supabase
-        .from('cart_order_items')
-        .insert(orderItems);
-      if (itemsErr) throw itemsErr;
+      await cartOrderItemService.bulkCreate(orderItems);
 
       // 3. 写入销售记录（出库）
       const salesRecords = selectedItems.map(item => ({
@@ -187,11 +177,8 @@ export default function BulkOutbound() {
         .insert(salesRecords);
       if (salesErr) throw salesErr;
 
-      // 4. 更新需求单总金额
-      await supabase
-        .from('cart_orders')
-        .update({ total_amount: totalAmount })
-        .eq('id', order.id);
+      // 3.5 更新需求单状态为已完成
+      await cartOrderService.update(order.id, { status: 'completed' as any });
 
       setDone(true);
       setTimeout(() => {

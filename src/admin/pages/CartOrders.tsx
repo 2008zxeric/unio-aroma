@@ -12,11 +12,11 @@
  */
 import React, { useState, useEffect } from 'react';
 import {
-  ShoppingBag, Search, X, ChevronDown, ChevronUp, Loader2, Phone, MessageCircle, Mail, User,
-  CheckCircle, Clock, AlertCircle, Trash2, Edit3, Save, FileText, ExternalLink, 
-  ListFilter, RefreshCw, Layers, Wallet
+  ShoppingBag, Search, X, ChevronDown, ChevronUp, Loader2, Phone, MessageCircle, User,
+  CheckCircle, Clock, AlertCircle, Trash2, Edit3, Save, FileText,
+  RefreshCw, Layers
 } from 'lucide-react';
-import { cartOrderService, cartOrderItemService } from '../../lib/dataService';
+import { cartOrderService } from '../../lib/dataService';
 import { CartOrder, CartOrderItem } from '../../lib/database.types';
 
 // ===== 状态配置 =====

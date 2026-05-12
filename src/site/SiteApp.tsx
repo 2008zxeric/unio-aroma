@@ -279,7 +279,7 @@ const SiteApp: React.FC = () => {
       case 'home': return <SiteHome onNavigate={handleNavigate} />;
       case 'collections': return <SiteCollections initialSeries={navParams.series} onNavigate={handleNavigate} />;
       case 'product': return (navParams.productCode || navParams.productId)
-        ? <SiteProductDetail productCode={navParams.productCode || ''} productId={navParams.productId} onNavigate={handleNavigate} onGoBack={goBack} />
+        ? <SiteProductDetail productCode={navParams.productCode || ''} productId={navParams.productId} onNavigate={handleNavigate} />
         : <SiteCollections onNavigate={handleNavigate} />;
       case 'atlas': return <SiteAtlas onNavigate={handleNavigate} />;
       case 'china-atlas': return <SiteChinaAtlas onNavigate={handleNavigate} />;

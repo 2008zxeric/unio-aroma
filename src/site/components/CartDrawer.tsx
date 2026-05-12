@@ -7,7 +7,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, X, Plus, Minus, Trash2, Send, Check, ChevronRight, Loader2, MessageCircle } from 'lucide-react';
-import { CartItem, getCart, updateCartItemQuantity, removeCartItem, clearCart, getCartTotal } from '../cartStore';
+import { CartItem, getCart, updateCartItemQuantity, removeCartItem, clearCart } from '../cartStore';
 import { supabase } from '../../lib/supabase';
 
 // ===== 品牌色 =====

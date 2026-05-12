@@ -32,7 +32,6 @@ interface SiteProductDetailProps {
   productCode?: string;   // 产品短码（新格式，优先使用）
   productId?: string;     // 旧 UUID（兼容旧链接）
   onNavigate: (view: string, params?: Record<string, string>) => void;
-  onGoBack?: () => void;
 }
 
 const LOGO_PLACEHOLDER = '/logo.svg';
@@ -67,9 +66,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
   const [cartQty, setCartQty] = useState(1);
   const [cartAdded, setCartAdded] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const onAddToCartRef = useRef<(() => void) | null>(null);
 
-  // 外部暴露给 SiteApp
   useEffect(() => {
     setCartCount(getCartCount());
   }, []);
@@ -93,11 +90,6 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
     setCartCount(getCartCount());
     setTimeout(() => setCartAdded(false), 1500);
   };
-
-  // 暴露 addToCart 给 SiteApp
-  if (onAddToCartRef) {
-    (window as any).__unio_product_add_to_cart = handleAddToCart;
-  }
 
   const handleImageLoad = useCallback((idx: number) => {
     setImageLoaded(prev => ({ ...prev, [idx]: true }));
