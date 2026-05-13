@@ -146,8 +146,10 @@ export interface PurchaseRecord {
   product_id: string;
   purchase_date: string;      // 进货日期
   volume_ml: number;          // 容量(ml)
-  unit_cost: number;          // 进价(元/ml 或 总价)
+  unit_cost: number;          // 进价(元/ml)
+  total_cost: number;         // 总进价（批量模式：数量×单价+分摊的运费）
   supplier_code?: string;     // 供货商代码
+  handler?: string;           // 经手人
   notes?: string;
   created_at: string;
 }
@@ -160,7 +162,20 @@ export interface SalesRecord {
   volume_ml: number;
   sale_price: number;         // 销售单价
   total_amount: number;       // 销售金额
+  handler?: string;           // 经手人
   notes?: string;
+  created_at: string;
+}
+
+// ---- 其他收支记录 ----
+export interface FinanceRecord {
+  id: string;
+  record_date: string;
+  record_type: 'other_income' | 'other_expense';
+  category: string;           // 字典表 dict_type 值
+  amount: number;             // 金额
+  notes?: string;
+  handler?: string;           // 经手人
   created_at: string;
 }
 

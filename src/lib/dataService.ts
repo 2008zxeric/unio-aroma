@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type { 
   Product, Country, Series, Banner, SiteText, HomeRecommend,
-  PurchaseRecord, SalesRecord, ProductInventory, DictItem, AdminUser
+  PurchaseRecord, SalesRecord, ProductInventory, DictItem, AdminUser, FinanceRecord
 } from './database.types';
 
 // ============================================
@@ -583,4 +583,15 @@ export const reviewService = {
     const { error } = await supabase.from('reviews').delete().in('id', ids);
     if (error) throw error;
   },
+};
+
+// ============================================
+// 其他收支记录服务
+// ============================================
+
+export const financeRecordService = {
+  getAll: () => getAll<FinanceRecord>('finance_records', { orderBy: { column: 'record_date', ascending: false } }),
+  create: (record: Partial<FinanceRecord>) => create<FinanceRecord>('finance_records', record),
+  update: (id: string, record: Partial<FinanceRecord>) => update<FinanceRecord>('finance_records', id, record),
+  delete: (id: string) => remove('finance_records', id),
 };

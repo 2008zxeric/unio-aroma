@@ -5,8 +5,8 @@ import {
   Package, Save, Download, Filter, Search, RotateCcw,
   ArrowUpDown, ArrowUp, ArrowDown,
 } from 'lucide-react';
-import { productService, inventoryService, purchaseService, salesService } from '../../lib/dataService';
-import type { Product, PurchaseRecord, SalesRecord, ProductInventory } from '../../lib/database.types';
+import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService } from '../../lib/dataService';
+import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
@@ -48,31 +48,36 @@ export default function AdminInventory() {
   const [editingPurchase, setEditingPurchase] = useState<PurchaseRecord | null>(null);
   const [editingSale, setEditingSale] = useState<SalesRecord | null>(null);
 
+  // 字典数据：经手人
+  const [handlerOptions, setHandlerOptions] = useState<DictItem[]>([]);
+
   // 进货表单
   const [purchaseForm, setPurchaseForm] = useState({
     product_id: '', purchase_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', unit_cost: '', supplier_code: '',
+    volume_ml: '', unit_cost: '', supplier_code: '', handler: '',
   });
 
   // 销售表单
   const [saleForm, setSaleForm] = useState({
     product_id: '', sale_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', total_amount: '',
+    volume_ml: '', total_amount: '', handler: '',
   });
 
   const loadAllData = async () => {
     try {
       setLoading(true);
-      const [prodData, sumData, purData, salData] = await Promise.all([
+      const [prodData, sumData, purData, salData, handlers] = await Promise.all([
         productService.getAll(),
         inventoryService.getAllSummaries(),
         purchaseService.getAll(),
         salesService.getAll(),
+        dictService.getByType('handler').catch(() => []),
       ]);
       setProducts(prodData);
       setSummaries(sumData);
       setPurchases(purData);
       setSales(salData);
+      setHandlerOptions(handlers);
     } catch (err) {
       console.error('加载库存数据失败:', err);
       try {
@@ -252,6 +257,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
           supplier_code: purchaseForm.supplier_code,
+          handler: purchaseForm.handler || null,
         });
         setEditingPurchase(null);
       } else {
@@ -259,9 +265,10 @@ export default function AdminInventory() {
           ...purchaseForm,
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
+          handler: purchaseForm.handler || null,
         });
       }
-      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '' });
+      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '' });
       setShowPurchaseForm(false);
       await loadAllData();
     } catch (err: any) { alert(editingPurchase ? '修改失败：' + err.message : '添加失败：' + err.message); }
@@ -275,6 +282,7 @@ export default function AdminInventory() {
       volume_ml: String(p.volume_ml),
       unit_cost: String(p.unit_cost),
       supplier_code: p.supplier_code || '',
+      handler: p.handler || '',
     });
     setShowPurchaseForm(true);
   };
@@ -290,7 +298,7 @@ export default function AdminInventory() {
   const cancelPurchaseForm = () => {
     setShowPurchaseForm(false);
     setEditingPurchase(null);
-    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '' });
+    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '' });
   };
 
   // ---- 销售操作 ----
@@ -306,6 +314,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(saleForm.volume_ml),
           total_amount: parseFloat(saleForm.total_amount),
           sale_price: parseFloat(saleForm.total_amount) / parseFloat(saleForm.volume_ml),
+          handler: saleForm.handler || null,
         });
         setEditingSale(null);
       } else {
@@ -314,9 +323,10 @@ export default function AdminInventory() {
           volume_ml: parseFloat(saleForm.volume_ml),
           total_amount: parseFloat(saleForm.total_amount),
           sale_price: parseFloat(saleForm.total_amount) / parseFloat(saleForm.volume_ml),
+          handler: saleForm.handler || null,
         });
       }
-      setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '' });
+      setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: '' });
       setShowSaleForm(false);
       await loadAllData();
     } catch (err: any) { alert(editingSale ? '修改失败：' + err.message : '添加失败：' + err.message); }
@@ -329,6 +339,7 @@ export default function AdminInventory() {
       sale_date: s.sale_date,
       volume_ml: String(s.volume_ml),
       total_amount: String(s.total_amount),
+      handler: s.handler || '',
     });
     setShowSaleForm(true);
   };
@@ -344,7 +355,7 @@ export default function AdminInventory() {
   const cancelSaleForm = () => {
     setShowSaleForm(false);
     setEditingSale(null);
-    setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '' });
+    setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: '' });
   };
 
   // 通用 select/input 样式
@@ -660,6 +671,12 @@ export default function AdminInventory() {
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">进价(元/ml) *</label><input type="number" step="0.01" placeholder="单价" value={purchaseForm.unit_cost} onChange={e => setPurchaseForm(f => ({ ...f, unit_cost: e.target.value }))} className={inputCls} /></div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">供货商代码</label><input placeholder="例如: SUP001" value={purchaseForm.supplier_code} onChange={e => setPurchaseForm(f => ({ ...f, supplier_code: e.target.value }))} className={inputCls} /></div>
                 </div>
+                <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
+                  <select value={purchaseForm.handler} onChange={e => setPurchaseForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
+                    <option value="">请选择</option>
+                    {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={cancelPurchaseForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
@@ -679,6 +696,7 @@ export default function AdminInventory() {
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">单价(元/ml)</th>
                 <SortableTh field="amount" currentField={purSortField} currentDir={purSortDir} onSort={f => { setPurSortField(f); }}>总价(元)</SortableTh>
                 <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">供货商</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
                 <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A] w-24">操作</th>
               </tr></thead>
               <tbody>
@@ -694,6 +712,7 @@ export default function AdminInventory() {
                       <td className="px-4 py-2 text-right text-[#3D5C3D]">¥{p.unit_cost?.toFixed(2)}</td>
                       <td className="px-4 py-2 text-right text-green-500/70 font-medium">¥{((p.volume_ml || 0) * (p.unit_cost || 0)).toFixed(2)}</td>
                       <td className="px-4 py-2 text-[#6B856B]">{p.supplier_code || '-'}</td>
+                      <td className="px-4 py-2 text-[#6B856B]">{(() => { const h = handlerOptions.find(ho => ho.value === p.handler); return h ? h.label : p.handler || '-'; })()}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
                           <Perm action="edit_inventory"><button onClick={() => startEditPurchase(p)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button></Perm>
@@ -703,7 +722,7 @@ export default function AdminInventory() {
                     </tr>
                   );
                 })}
-                {filteredPurchases.length === 0 && <tr><td colSpan={8} className="px-4 py-12 text-center text-[#9AAA9A]">暂无进货记录</td></tr>}
+                {filteredPurchases.length === 0 && <tr><td colSpan={9} className="px-4 py-12 text-center text-[#9AAA9A]">暂无进货记录</td></tr>}
               </tbody>
             </table>
           </div>
@@ -772,6 +791,12 @@ export default function AdminInventory() {
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" value={saleForm.volume_ml} onChange={e => setSaleForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
                 </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">销售金额(¥) *</label><input type="number" step="0.01" value={saleForm.total_amount} onChange={e => setSaleForm(f => ({ ...f, total_amount: e.target.value }))} className={inputCls} /></div>
+                <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
+                  <select value={saleForm.handler} onChange={e => setSaleForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
+                    <option value="">请选择</option>
+                    {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={cancelSaleForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
@@ -789,6 +814,7 @@ export default function AdminInventory() {
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">容量(ml)</th>
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">单价</th>
                 <SortableTh field="amount" currentField={salSortField} currentDir={salSortDir} onSort={f => { setSalSortField(f); }}>金额(¥)</SortableTh>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
                 <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A] w-24">操作</th>
               </tr></thead>
               <tbody>
@@ -803,6 +829,7 @@ export default function AdminInventory() {
                       <td className="px-4 py-2 text-right text-[#3D5C3D]">{s.volume_ml}</td>
                       <td className="px-4 py-2 text-right text-[#3D5C3D]">¥{s.sale_price?.toFixed(2)}</td>
                       <td className="px-4 py-2 text-right text-blue-500/70 font-medium">¥{s.total_amount?.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-[#6B856B]">{(() => { const h = handlerOptions.find(ho => ho.value === s.handler); return h ? h.label : s.handler || '-'; })()}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
                           <Perm action="edit_inventory"><button onClick={() => startEditSale(s)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button></Perm>
