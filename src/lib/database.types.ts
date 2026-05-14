@@ -149,6 +149,7 @@ export interface PurchaseRecord {
   unit_cost: number;          // 进价(元/ml)
   total_cost: number;         // 总进价（批量模式：数量×单价+分摊的运费）
   supplier_code?: string;     // 供货商代码
+  warehouse?: string;          // 仓库代码（A/B/C/D）
   handler?: string;           // 经手人
   notes?: string;
   created_at: string;
@@ -162,6 +163,7 @@ export interface SalesRecord {
   volume_ml: number;
   sale_price: number;         // 销售单价
   total_amount: number;       // 销售金额
+  warehouse?: string;          // 仓库代码（A/B/C/D）
   handler?: string;           // 经手人
   notes?: string;
   created_at: string;

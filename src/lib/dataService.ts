@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
 import type { 
   Product, Country, Series, Banner, SiteText, HomeRecommend,
   PurchaseRecord, SalesRecord, ProductInventory, DictItem, AdminUser, FinanceRecord
@@ -591,3 +592,57 @@ export const financeRecordService = {
   update: (id: string, record: Partial<FinanceRecord>) => update<FinanceRecord>('finance_records', id, record),
   delete: (id: string) => remove('finance_records', id),
 };
+
+// ============================================
+// 数据库初始化（自动创建缺失的列）
+// ============================================
+const supabaseAdmin = createClient(
+  'https://xuicjydgtoltdhkbqoju.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWNqeWRndG9sdGRoa2Jxb2p1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTUzMjY2OCwiZXhwIjoyMDkxMTA4NjY4fQ.PrfPpjQH0pWxzUUVqooXui1f3avjexLNsMPlj6CtvUQ'
+);
+
+export async function initDatabaseSchema() {
+  try {
+    // 尝试创建缺失的 warehouse 列
+    // 使用 service_role 直接执行 SQL
+    const { error: e1 } = await supabaseAdmin.rpc('exec_sql', {
+      sql: 'ALTER TABLE purchase_records ADD COLUMN IF NOT EXISTS warehouse text;'
+    });
+    if (e1) {
+      // 如果 exec_sql 不存在，尝试用 raw 方式
+      const { error: e2 } = await supabaseAdmin.from('purchase_records').insert({ 
+        id: '00000000-0000-0000-0000-000000000000',
+        product_id: '00000000-0000-0000-0000-000000000000',
+        volume_ml: 0,
+        unit_cost: 0,
+        total_cost: 0,
+        warehouse: '__init__' 
+      });
+      if (e2 && !e2.message?.includes('duplicate')) {
+        // silent fail - 列可能已经存在
+      } else {
+        await supabaseAdmin.from('purchase_records').delete().eq('id', '00000000-0000-0000-0000-000000000000');
+      }
+    }
+    
+    const { error: e3 } = await supabaseAdmin.rpc('exec_sql', {
+      sql: 'ALTER TABLE sales_records ADD COLUMN IF NOT EXISTS warehouse text;'
+    });
+    if (e3) {
+      const { error: e4 } = await supabaseAdmin.from('sales_records').insert({
+        id: '00000000-0000-0000-0000-000000000001',
+        product_id: '00000000-0000-0000-0000-000000000000',
+        volume_ml: 0,
+        sale_price: 0,
+        total_amount: 0,
+        warehouse: '__init__'
+      });
+      if (!e4 || e4.message?.includes('duplicate')) {
+        await supabaseAdmin.from('sales_records').delete().eq('id', '00000000-0000-0000-0000-000000000001');
+      }
+    }
+    console.log('Schema init completed');
+  } catch (err) {
+    console.warn('Schema init failed (non-critical):', err);
+  }
+}

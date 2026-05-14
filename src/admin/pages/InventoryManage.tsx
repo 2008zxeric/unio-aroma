@@ -5,7 +5,7 @@ import {
   Package, Save, Download, Filter, Search, RotateCcw,
   ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, Upload,
 } from 'lucide-react';
-import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService } from '../../lib/dataService';
+import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService, initDatabaseSchema } from '../../lib/dataService';
 import { supabase } from '../../lib/supabase';
 import { auditLogService, useAuth } from '../../lib/auth';
 import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord, AuditLog } from '../../lib/database.types';
@@ -36,6 +36,7 @@ export default function AdminInventory() {
   const [purSortField, setPurSortField] = useState<'date' | 'amount'>('date');
   const [purSortDir, setPurSortDir] = useState<'asc' | 'desc'>('desc');
   const [purFilterHandler, setPurFilterHandler] = useState('');
+  const [purFilterWarehouse, setPurFilterWarehouse] = useState('');
 
   const [salFilterSeries, setSalFilterSeries] = useState('');
   const [salFilterKeyword, setSalFilterKeyword] = useState('');
@@ -44,6 +45,7 @@ export default function AdminInventory() {
   const [salSortField, setSalSortField] = useState<'date' | 'amount'>('date');
   const [salSortDir, setSalSortDir] = useState<'asc' | 'desc'>('desc');
   const [salFilterHandler, setSalFilterHandler] = useState('');
+  const [salFilterWarehouse, setSalFilterWarehouse] = useState('');
 
   // ---- 其他收支筛选 ----
   const [finFilterType, setFinFilterType] = useState<'all' | 'income' | 'expense'>('all');
@@ -64,6 +66,8 @@ export default function AdminInventory() {
   const [handlerOptions, setHandlerOptions] = useState<DictItem[]>([]);
   // 字典数据：供货商
   const [supplierOptions, setSupplierOptions] = useState<DictItem[]>([]);
+  // 字典数据：仓库
+  const [warehouseOptions, setWarehouseOptions] = useState<DictItem[]>([]);
 
   // 自动匹配当前登录用户的默认经手人（优先用 display_name，其次 username）
   const defaultHandler = useMemo(() => {
@@ -77,14 +81,14 @@ export default function AdminInventory() {
 
   // ---- 导入CSV入库状态 ----
   const [showImportCsv, setShowImportCsv] = useState(false);
-  const [csvData, setCsvData] = useState<{ product_name: string; volume_ml: string; unit_cost: string; supplier: string; date: string }[]>([]);
+  const [csvData, setCsvData] = useState<{ product_name: string; volume_ml: string; unit_cost: string; supplier: string; warehouse: string; date: string }[]>([]);
   const [csvImportDate, setCsvImportDate] = useState(new Date().toISOString().split('T')[0]);
   const [csvImportHandler, setCsvImportHandler] = useState('');
   const [csvImporting, setCsvImporting] = useState(false);
 
   // ---- 导入CSV出库状态 ----
   const [showSaleCsv, setShowSaleCsv] = useState(false);
-  const [saleCsvData, setSaleCsvData] = useState<{ product_name: string; volume_ml: string; unit_price: string; date: string }[]>([]);
+  const [saleCsvData, setSaleCsvData] = useState<{ product_name: string; volume_ml: string; unit_price: string; warehouse: string; date: string }[]>([]);
   const [saleCsvDate, setSaleCsvDate] = useState(new Date().toISOString().split('T')[0]);
   const [saleCsvHandler, setSaleCsvHandler] = useState('');
   const [saleCsvImporting, setSaleCsvImporting] = useState(false);
@@ -141,13 +145,13 @@ export default function AdminInventory() {
   // 进货表单
   const [purchaseForm, setPurchaseForm] = useState({
     product_id: '', purchase_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', unit_cost: '', supplier_code: '', handler: '',
+    volume_ml: '', unit_cost: '',    supplier_code: '', handler: '', warehouse: '',
   });
 
   // 销售表单
   const [saleForm, setSaleForm] = useState({
     product_id: '', sale_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', total_amount: '', handler: '',
+    volume_ml: '', total_amount: '', handler: '', warehouse: '',
   });
 
   // 按 Tab 懒加载数据（带内存缓存，Tab切换时不重复请求）
@@ -179,11 +183,13 @@ export default function AdminInventory() {
         promises.push(purchaseService.getAll().then(d => setPurchases(d)));
         promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
         promises.push(dictService.getByType('supplier').catch(() => []).then(d => setSupplierOptions(d)));
+        promises.push(dictService.getByType('warehouse').catch(() => []).then(d => setWarehouseOptions(d)));
       }
       // 销售记录 Tab
       if (currentTab === 'sales') {
         promises.push(salesService.getAll().then(d => setSales(d)));
         promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
+        promises.push(dictService.getByType('warehouse').catch(() => []).then(d => setWarehouseOptions(d)));
       }
       // 其他收支 Tab
       if (currentTab === 'finance') {
@@ -207,7 +213,10 @@ export default function AdminInventory() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadTabData(tab); }, [tab]);
+  useEffect(() => {
+    initDatabaseSchema();
+    loadTabData(tab);
+  }, [tab]);
 
   // 构建产品ID → 系列code + category 的映射
   const productMetaMap = useMemo(() => {
@@ -269,6 +278,8 @@ export default function AdminInventory() {
       if (purFilterDateTo && p.purchase_date > purFilterDateTo) return false;
       // 经手人筛选
       if (purFilterHandler && p.handler !== purFilterHandler) return false;
+      // 仓库筛选
+      if (purFilterWarehouse && p.warehouse !== purFilterWarehouse) return false;
       return true;
     });
     // 排序
@@ -280,7 +291,7 @@ export default function AdminInventory() {
       return dir * (amtA - amtB);
     });
     return result;
-  }, [purchases, purFilterSeries, purFilterKeyword, purFilterDateFrom, purFilterDateTo, purFilterHandler, purSortField, purSortDir, productMetaMap, products]);
+  }, [purchases, purFilterSeries, purFilterKeyword, purFilterDateFrom, purFilterDateTo, purFilterHandler, purFilterWarehouse, purSortField, purSortDir, productMetaMap, products]);
 
   const filteredSales = useMemo(() => {
     const result = sales.filter(s => {
@@ -301,6 +312,8 @@ export default function AdminInventory() {
       if (salFilterDateTo && s.sale_date > salFilterDateTo) return false;
       // 经手人筛选
       if (salFilterHandler && s.handler !== salFilterHandler) return false;
+      // 仓库筛选
+      if (salFilterWarehouse && s.warehouse !== salFilterWarehouse) return false;
       return true;
     });
     // 排序
@@ -310,7 +323,7 @@ export default function AdminInventory() {
       return dir * ((a.total_amount || 0) - (b.total_amount || 0));
     });
     return result;
-  }, [sales, salFilterSeries, salFilterKeyword, salFilterDateFrom, salFilterDateTo, salFilterHandler, salSortField, salSortDir, productMetaMap, products]);
+  }, [sales, salFilterSeries, salFilterKeyword, salFilterDateFrom, salFilterDateTo, salFilterHandler, salFilterWarehouse, salSortField, salSortDir, productMetaMap, products]);
 
   // 汇总统计（基于筛选后）
   const totalStock = filteredSummaries.reduce((s, item) => s + item.current_stock_ml, 0);
@@ -331,18 +344,20 @@ export default function AdminInventory() {
         csv += `"${s.product_name}","${meta?.seriesName || ''}","${meta?.categoryName || ''}",${s.total_purchased_ml},${s.total_sold_ml},${s.current_stock_ml},${s.total_cost.toFixed(2)},${s.total_revenue.toFixed(2)},${s.total_profit.toFixed(2)}\n`;
       }
     } else if (type === 'purchases') {
-      csv = BOM + '日期,产品,系列,容量(ml),单价(元/ml),总价(元),供货商\n';
+      csv = BOM + '日期,产品,系列,容量(ml),单价(元/ml),总价(元),供货商,仓库\n';
       for (const p of filteredPurchases) {
         const prod = products.find(pr => pr.id === p.product_id);
         const meta = productMetaMap.get(p.product_id);
-        csv += `${p.purchase_date},"${prod?.name_cn || ''}","${meta?.seriesName || ''}",${p.volume_ml},${p.unit_cost?.toFixed(2) || 0},${((p.volume_ml || 0) * (p.unit_cost || 0)).toFixed(2)},"${p.supplier_code || ''}"\n`;
+        const whLabel = warehouseOptions.find(w => w.value === p.warehouse)?.label || p.warehouse || '';
+        csv += `${p.purchase_date},"${prod?.name_cn || ''}","${meta?.seriesName || ''}",${p.volume_ml},${p.unit_cost?.toFixed(2) || 0},${((p.volume_ml || 0) * (p.unit_cost || 0)).toFixed(2)},"${p.supplier_code || ''}","${whLabel}"\n`;
       }
     } else {
-      csv = BOM + '日期,产品,系列,容量(ml),单价(元/ml),金额(¥)\n';
+      csv = BOM + '日期,产品,系列,容量(ml),单价(元/ml),金额(¥),仓库\n';
       for (const s of filteredSales) {
         const prod = products.find(p => p.id === s.product_id);
         const meta = productMetaMap.get(s.product_id);
-        csv += `${s.sale_date},"${prod?.name_cn || ''}","${meta?.seriesName || ''}",${s.volume_ml},${s.sale_price?.toFixed(2) || 0},${s.total_amount?.toFixed(2) || 0}\n`;
+        const whLabel = warehouseOptions.find(w => w.value === s.warehouse)?.label || s.warehouse || '';
+        csv += `${s.sale_date},"${prod?.name_cn || ''}","${meta?.seriesName || ''}",${s.volume_ml},${s.sale_price?.toFixed(2) || 0},${s.total_amount?.toFixed(2) || 0},"${whLabel}"\n`;
       }
     }
 
@@ -351,17 +366,17 @@ export default function AdminInventory() {
     const a = document.createElement('a');
     a.href = url; a.download = fileName; a.click();
     URL.revokeObjectURL(url);
-  }, [filteredSummaries, filteredPurchases, filteredSales, products, productMetaMap]);
+  }, [filteredSummaries, filteredPurchases, filteredSales, products, productMetaMap, warehouseOptions]);
 
   const resetOverviewFilters = () => {
     setFilterSeries(''); setFilterCategory(''); setFilterKeyword(''); setFilterStockStatus('all');
   };
   const resetPurFilters = () => {
-    setPurFilterSeries(''); setPurFilterKeyword(''); setPurFilterDateFrom(''); setPurFilterDateTo(''); setPurFilterHandler('');
+    setPurFilterSeries(''); setPurFilterKeyword(''); setPurFilterDateFrom(''); setPurFilterDateTo(''); setPurFilterHandler(''); setPurFilterWarehouse('');
     setPurSortField('date'); setPurSortDir('desc');
   };
   const resetSalFilters = () => {
-    setSalFilterSeries(''); setSalFilterKeyword(''); setSalFilterDateFrom(''); setSalFilterDateTo(''); setSalFilterHandler('');
+    setSalFilterSeries(''); setSalFilterKeyword(''); setSalFilterDateFrom(''); setSalFilterDateTo(''); setSalFilterHandler(''); setSalFilterWarehouse('');
     setSalSortField('date'); setSalSortDir('desc');
   };
 
@@ -378,6 +393,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
           supplier_code: purchaseForm.supplier_code,
+          warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
         setEditingPurchase(null);
@@ -386,10 +402,11 @@ export default function AdminInventory() {
           ...purchaseForm,
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
+          warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
       }
-      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '' });
+      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '', warehouse: '' });
       setShowPurchaseForm(false);
       await loadTabData(tab, true);
     } catch (err: any) { alert(editingPurchase ? '修改失败：' + err.message : '添加失败：' + err.message); }
@@ -404,6 +421,7 @@ export default function AdminInventory() {
       unit_cost: String(p.unit_cost),
       supplier_code: p.supplier_code || '',
       handler: p.handler || '',
+      warehouse: p.warehouse || '',
     });
     setShowPurchaseForm(true);
   };
@@ -431,7 +449,7 @@ export default function AdminInventory() {
   const cancelPurchaseForm = () => {
     setShowPurchaseForm(false);
     setEditingPurchase(null);
-    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '' });
+    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '', warehouse: '' });
   };
 
   // ---- 销售操作 ----
@@ -523,6 +541,7 @@ export default function AdminInventory() {
           unit_cost: unitCost,
           total_cost: volumeMl * unitCost,
           supplier_code: row.supplier || null,
+          warehouse: row.warehouse || null,
           handler: csvImportHandler || null,
         });
         successCount++;
@@ -560,7 +579,8 @@ export default function AdminInventory() {
           volume_ml: cols[1] || '',
           unit_cost: cols[2] || '',
           supplier: cols[3] || '',
-          date: cols[4] || '',
+          warehouse: cols[4] || '',
+          date: cols[5] || '',
         };
       }).filter(r => r.product_name && r.volume_ml);
       setCsvData(rows);
@@ -572,7 +592,7 @@ export default function AdminInventory() {
 
   const downloadCsvTemplate = () => {
     const BOM = '\uFEFF';
-    const csv = BOM + '产品名称, 容量(ml), 单价(元/ml), 供货商, 日期\n';
+    const csv = BOM + '产品名称, 容量(ml), 单价(元/ml), 供货商, 仓库, 日期\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -609,6 +629,7 @@ export default function AdminInventory() {
           volume_ml: volumeMl,
           sale_price: unitPrice,
           total_amount: volumeMl * unitPrice,
+          warehouse: row.warehouse || null,
           handler: saleCsvHandler || null,
         });
         successCount++;
@@ -643,7 +664,8 @@ export default function AdminInventory() {
           product_name: cols[0] || '',
           volume_ml: cols[1] || '',
           unit_price: cols[2] || '',
-          date: cols[3] || '',
+          warehouse: cols[3] || '',
+          date: cols[4] || '',
         };
       }).filter(r => r.product_name && r.volume_ml);
       setSaleCsvData(rows);
@@ -654,7 +676,7 @@ export default function AdminInventory() {
 
   const downloadSaleCsvTemplate = () => {
     const BOM = '\uFEFF';
-    const csv = BOM + '产品名称, 容量(ml), 售价(元/ml), 日期\n';
+    const csv = BOM + '产品名称, 容量(ml), 售价(元/ml), 仓库, 日期\n';
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1121,6 +1143,13 @@ export default function AdminInventory() {
                   {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">仓库</label>
+                <select value={purFilterWarehouse} onChange={e => setPurFilterWarehouse(e.target.value)} className={selectCls}>
+                  <option value="">全部仓库</option>
+                  {warehouseOptions.map(w => <option key={w.id} value={w.value}>{w.label}</option>)}
+                </select>
+              </div>
               <div className="flex items-end">
                 <p className="text-[10px] text-[#A8BAA8]">{filteredPurchases.length} / {purchases.length} 条记录</p>
               </div>
@@ -1184,6 +1213,12 @@ export default function AdminInventory() {
                     {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
                   </select>
                 </div>
+                <div><label className="block text-xs text-[#6B856B] mb-1.5">仓库</label>
+                  <select value={purchaseForm.warehouse} onChange={e => setPurchaseForm(f => ({ ...f, warehouse: e.target.value }))} className={selectCls}>
+                    <option value="">请选择</option>
+                    {warehouseOptions.map(w => <option key={w.id} value={w.value}>{w.label}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={cancelPurchaseForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
@@ -1207,9 +1242,9 @@ export default function AdminInventory() {
                   </button></Perm>
                 </div>
                 <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-orange-100">
-                  产品名称, 容量(ml), 单价(元/ml), 供货商, 日期
+                  产品名称, 容量(ml), 单价(元/ml), 供货商, 仓库, 日期
                 </p>
-                <p>产品名称需与系统完全一致，供货商可选，日期留空则使用下方默认日期</p>
+                <p>产品名称需与系统完全一致，供货商可选，仓库填A/B/C/D，日期留空则使用下方默认日期</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -1240,6 +1275,7 @@ export default function AdminInventory() {
                         <th className="text-right px-3 py-1.5 text-[#8AA08A]">容量</th>
                         <th className="text-right px-3 py-1.5 text-[#8AA08A]">单价</th>
                         <th className="text-left px-3 py-1.5 text-[#8AA08A]">供货商</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">仓库</th>
                         <th className="text-left px-3 py-1.5 text-[#8AA08A]">日期</th>
                       </tr></thead>
                       <tbody>
@@ -1249,6 +1285,7 @@ export default function AdminInventory() {
                             <td className="px-3 py-1 text-right text-[#5C725C]">{r.volume_ml}</td>
                             <td className="px-3 py-1 text-right text-[#5C725C]">{r.unit_cost || '-'}</td>
                             <td className="px-3 py-1 text-[#5C725C]">{r.supplier || '-'}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.warehouse || '-'}</td>
                             <td className="px-3 py-1 text-[#5C725C]">{r.date || csvImportDate}</td>
                           </tr>
                         ))}
@@ -1277,6 +1314,7 @@ export default function AdminInventory() {
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">单价(元/ml)</th>
                 <SortableTh field="amount" currentField={purSortField} currentDir={purSortDir} onSort={f => { setPurSortField(f); }}>总价(元)</SortableTh>
                 <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">供货商</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">仓库</th>
                 <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
                 <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A] w-24">操作</th>
               </tr></thead>
@@ -1293,6 +1331,7 @@ export default function AdminInventory() {
                       <td className="px-4 py-2 text-right text-[#3D5C3D]">¥{p.unit_cost?.toFixed(2)}</td>
                       <td className="px-4 py-2 text-right text-green-500/70 font-medium">¥{((p.volume_ml || 0) * (p.unit_cost || 0)).toFixed(2)}</td>
                       <td className="px-4 py-2 text-[#6B856B]">{p.supplier_code || '-'}</td>
+                      <td className="px-4 py-2 text-[#6B856B]">{warehouseOptions.find(w => w.value === p.warehouse)?.label || p.warehouse || '-'}</td>
                       <td className="px-4 py-2 text-[#6B856B]">{(() => { const h = handlerOptions.find(ho => ho.value === p.handler); return h ? h.label : p.handler || '-'; })()}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
@@ -1363,6 +1402,13 @@ export default function AdminInventory() {
                   {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">仓库</label>
+                <select value={salFilterWarehouse} onChange={e => setSalFilterWarehouse(e.target.value)} className={selectCls}>
+                  <option value="">全部仓库</option>
+                  {warehouseOptions.map(w => <option key={w.id} value={w.value}>{w.label}</option>)}
+                </select>
+              </div>
               <div className="flex items-end">
                 <p className="text-[10px] text-[#A8BAA8]">{filteredSales.length} / {sales.length} 条记录</p>
               </div>
@@ -1416,6 +1462,12 @@ export default function AdminInventory() {
                     {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
                   </select>
                 </div>
+                <div><label className="block text-xs text-[#6B856B] mb-1.5">仓库</label>
+                  <select value={saleForm.warehouse} onChange={e => setSaleForm(f => ({ ...f, warehouse: e.target.value }))} className={selectCls}>
+                    <option value="">请选择</option>
+                    {warehouseOptions.map(w => <option key={w.id} value={w.value}>{w.label}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={cancelSaleForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
@@ -1433,6 +1485,7 @@ export default function AdminInventory() {
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">容量(ml)</th>
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">单价</th>
                 <SortableTh field="amount" currentField={salSortField} currentDir={salSortDir} onSort={f => { setSalSortField(f); }}>金额(¥)</SortableTh>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">仓库</th>
                 <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
                 <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A] w-24">操作</th>
               </tr></thead>
@@ -1448,6 +1501,7 @@ export default function AdminInventory() {
                       <td className="px-4 py-2 text-right text-[#3D5C3D]">{s.volume_ml}</td>
                       <td className="px-4 py-2 text-right text-[#3D5C3D]">¥{s.sale_price?.toFixed(2)}</td>
                       <td className="px-4 py-2 text-right text-blue-500/70 font-medium">¥{s.total_amount?.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-[#6B856B]">{warehouseOptions.find(w => w.value === s.warehouse)?.label || s.warehouse || '-'}</td>
                       <td className="px-4 py-2 text-[#6B856B]">{(() => { const h = handlerOptions.find(ho => ho.value === s.handler); return h ? h.label : s.handler || '-'; })()}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
@@ -1458,7 +1512,7 @@ export default function AdminInventory() {
                     </tr>
                   );
                 })}
-                {filteredSales.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-[#9AAA9A]">暂无销售记录</td></tr>}
+                {filteredSales.length === 0 && <tr><td colSpan={8} className="px-4 py-12 text-center text-[#9AAA9A]">暂无销售记录</td></tr>}
               </tbody>
             </table>
           </div>
@@ -1478,9 +1532,9 @@ export default function AdminInventory() {
                   </button></Perm>
                 </div>
                 <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-purple-100">
-                  产品名称, 容量(ml), 售价(元/ml), 日期
+                  产品名称, 容量(ml), 售价(元/ml), 仓库, 日期
                 </p>
-                <p>产品名称需与系统完全一致，日期留空则使用下方默认日期</p>
+                <p>产品名称需与系统完全一致，仓库填A/B/C/D，日期留空则使用下方默认日期</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -1510,6 +1564,7 @@ export default function AdminInventory() {
                         <th className="text-left px-3 py-1.5 text-[#8AA08A]">产品</th>
                         <th className="text-right px-3 py-1.5 text-[#8AA08A]">容量</th>
                         <th className="text-right px-3 py-1.5 text-[#8AA08A]">售价</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">仓库</th>
                         <th className="text-left px-3 py-1.5 text-[#8AA08A]">日期</th>
                       </tr></thead>
                       <tbody>
@@ -1518,6 +1573,7 @@ export default function AdminInventory() {
                             <td className="px-3 py-1 text-[#1A2E1A]">{r.product_name}</td>
                             <td className="px-3 py-1 text-right text-[#5C725C]">{r.volume_ml}</td>
                             <td className="px-3 py-1 text-right text-[#5C725C]">{r.unit_price || '-'}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.warehouse || '-'}</td>
                             <td className="px-3 py-1 text-[#5C725C]">{r.date || saleCsvDate}</td>
                           </tr>
                         ))}
