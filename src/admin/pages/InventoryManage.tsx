@@ -913,9 +913,9 @@ export default function AdminInventory() {
                 <Filter size={14} /> 筛选条件
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => exportCSV('overview')} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
+                <Perm action="export_data"><button onClick={() => exportCSV('overview')} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
                   <Download size={12} /> 导出CSV
-                </button>
+                </button></Perm>
                 <button onClick={resetOverviewFilters} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8AA08A] hover:text-[#5C725C] rounded-lg transition-colors">
                   <RotateCcw size={11} /> 重置
                 </button>
@@ -1075,12 +1075,12 @@ export default function AdminInventory() {
             <Perm action="edit_inventory"><button onClick={() => { setPurchaseForm(f => ({ ...f, handler: defaultHandler })); setShowPurchaseForm(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
               <Plus size={16} /> 录入进货
             </button></Perm>
-            <button onClick={() => { setShowImportCsv(true); setShowPurchaseForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showImportCsv ? 'bg-orange-50 border-orange-300 text-orange-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
+            <Perm action="export_data"><button onClick={() => { setShowImportCsv(true); setShowPurchaseForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showImportCsv ? 'bg-orange-50 border-orange-300 text-orange-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
               <Package size={16} /> 导入CSV
-            </button>
-            <button onClick={() => exportCSV('purchases')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
+            </button></Perm>
+            <Perm action="export_data"><button onClick={() => exportCSV('purchases')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
               <Download size={12} /> 导出CSV
-            </button>
+            </button></Perm>
           </div>
 
           {/* 进货筛选 */}
@@ -1202,9 +1202,9 @@ export default function AdminInventory() {
               <div className="text-xs text-[#8AA08A] space-y-1 bg-orange-50 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <p>📋 CSV格式（第一行为列标题）：</p>
-                  <button onClick={downloadCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-100 rounded-lg transition-colors">
+                  <Perm action="export_data"><button onClick={downloadCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-100 rounded-lg transition-colors">
                     <Download size={11} /> 下载模板
-                  </button>
+                  </button></Perm>
                 </div>
                 <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-orange-100">
                   产品名称, 容量(ml), 单价(元/ml), 供货商, 日期
@@ -1317,12 +1317,12 @@ export default function AdminInventory() {
             <Perm action="edit_inventory"><button onClick={() => { setSaleForm(f => ({ ...f, handler: defaultHandler })); setShowSaleForm(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors">
               <Plus size={16} /> 录入销售
             </button></Perm>
-            <button onClick={() => { setShowSaleCsv(true); setShowSaleForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showSaleCsv ? 'bg-purple-50 border-purple-300 text-purple-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
+            <Perm action="export_data"><button onClick={() => { setShowSaleCsv(true); setShowSaleForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showSaleCsv ? 'bg-purple-50 border-purple-300 text-purple-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
               <Package size={16} /> 导入CSV
-            </button>
-            <button onClick={() => exportCSV('sales')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
+            </button></Perm>
+            <Perm action="export_data"><button onClick={() => exportCSV('sales')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
               <Download size={12} /> 导出CSV
-            </button>
+            </button></Perm>
           </div>
 
           {/* 销售筛选 */}
@@ -1473,9 +1473,9 @@ export default function AdminInventory() {
               <div className="text-xs text-[#8AA08A] space-y-1 bg-purple-50 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <p>📋 CSV格式（第一行为列标题）：</p>
-                  <button onClick={downloadSaleCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-purple-700 hover:bg-purple-100 rounded-lg transition-colors">
+                  <Perm action="export_data"><button onClick={downloadSaleCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-purple-700 hover:bg-purple-100 rounded-lg transition-colors">
                     <Download size={11} /> 下载模板
-                  </button>
+                  </button></Perm>
                 </div>
                 <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-purple-100">
                   产品名称, 容量(ml), 售价(元/ml), 日期
@@ -1545,12 +1545,12 @@ export default function AdminInventory() {
               <Perm action="edit_inventory"><button onClick={() => { setFinanceForm(f => ({ ...f, handler: defaultHandler })); setShowFinanceForm(true); setShowFinanceCsv(false); }} className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
                 <Plus size={16} /> 新增收支
               </button></Perm>
-              <button onClick={() => { setShowFinanceCsv(true); setShowFinanceForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showFinanceCsv ? 'bg-purple-50 border-purple-300 text-purple-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
+              <Perm action="export_data"><button onClick={() => { setShowFinanceCsv(true); setShowFinanceForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showFinanceCsv ? 'bg-purple-50 border-purple-300 text-purple-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
                 <Upload size={16} /> 导入CSV
-              </button>
-              <button onClick={exportFinanceCSV} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
+              </button></Perm>
+              <Perm action="export_data"><button onClick={exportFinanceCSV} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
                 <Download size={12} /> 导出CSV
-              </button>
+              </button></Perm>
               <span className="text-xs text-[#8AA08A]">收入 {totalOtherIncome.toFixed(0)} / 支出 {totalOtherExpense.toFixed(0)} / 净 {totalOtherIncome - totalOtherExpense >= 0 ? '+' : ''}{(totalOtherIncome - totalOtherExpense).toFixed(2)}</span>
             </div>
           </div>
@@ -1565,9 +1565,9 @@ export default function AdminInventory() {
               <div className="text-xs text-[#8AA08A] space-y-1 bg-purple-50 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <p>📋 CSV格式（第一行为列标题）：</p>
-                  <button onClick={downloadFinanceCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-purple-700 hover:bg-purple-100 rounded-lg transition-colors">
+                  <Perm action="export_data"><button onClick={downloadFinanceCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-purple-700 hover:bg-purple-100 rounded-lg transition-colors">
                     <Download size={11} /> 下载模板
-                  </button>
+                  </button></Perm>
                 </div>
                 <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-purple-100">
                   类型, 分类, 金额, 经手人, 备注, 日期
