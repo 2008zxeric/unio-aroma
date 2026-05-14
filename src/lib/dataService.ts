@@ -416,10 +416,6 @@ export const inventoryService = {
   },
 };
 
-// ============================================
-// 字典服务
-// ============================================
-
 export const dictService = {
   getByType: async (type: string): Promise<DictItem[]> => {
     const { data, error } = await supabase

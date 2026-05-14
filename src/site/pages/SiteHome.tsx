@@ -90,42 +90,41 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const yearStats = useCountUp(2026 - 2003, 1800); // 从 2003 年起算
 
   useEffect(() => {
+    // 分阶段加载策略：
+    // Phase 1（~200ms）：释放 loading，展示页面框架（Hero区域已有静态默认图）
+    // Phase 2（API完成后）：填充系列卡片、统计数据等
+    
     async function loadData() {
+      // 同时发起所有数据请求
+      const [seriesData, productsData, countriesData] = await Promise.all([
+        getSeries(),
+        getProducts(),
+        getCountries()
+      ]);
+      setSeries(seriesData);
+      setProducts(productsData);
+      setCountryCount(countriesData.length);
+
+      // 非阻塞：视频和图片在首屏后加载，不影响整体渲染
       try {
-        const [seriesData, productsData, countriesData] = await Promise.all([
-          getSeries(),
-          getProducts(),
-          getCountries()
-        ]);
-        setSeries(seriesData);
-        setProducts(productsData);
-        setCountryCount(countriesData.length);
-
-        // 获取首页图片（Hero背景+4系列卡片）
-        try {
-          const imgData = await getBannerUrls(HOME_IMG_KEYS);
-          setHomeImages(imgData);
-        } catch {}
-
-        // 获取首页欢迎视频
-        try {
-          const text = await siteTextService.getByKey('home_welcome_video');
-          if (text?.value) {
-            setWelcomeVideo(text.value);
-            // 每天首次访问才播放（每日一次）
-            const lastPlayed = localStorage.getItem('unio_welcome_video_played_date');
-            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-            if (lastPlayed !== today) {
-              setShowWelcome(true);
-            }
-          }
-        } catch {}
-      } catch (error) {
-        console.error('Failed to load home data:', error);
-      } finally {
-        setLoading(false);
-      }
+        const imgData = await getBannerUrls(HOME_IMG_KEYS);
+        setHomeImages(imgData);
+      } catch {}
+      try {
+        const text = await siteTextService.getByKey('home_welcome_video');
+        if (text?.value) {
+          setWelcomeVideo(text.value);
+          const lastPlayed = localStorage.getItem('unio_welcome_video_played_date');
+          const bjDate = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+          if (lastPlayed !== bjDate) setShowWelcome(true);
+        }
+      } catch {}
     }
+    
+    // Phase 1：立刻释放 loading，不让用户等转圈
+    setLoading(false);
+    
+    // 后台发起数据请求（不阻塞渲染）
     loadData();
   }, []);
 
@@ -510,7 +509,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       {showWelcome && welcomeVideo && createPortal(
         <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center" onClick={() => {
             // 点击视频本身也可以跳过
-            localStorage.setItem('unio_welcome_video_played_date', new Date().toISOString().slice(0, 10));
+            localStorage.setItem('unio_welcome_video_played_date', new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10));
             setShowWelcome(false);
           }}>
           <video
@@ -525,7 +524,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                 welcomeVideoRef.current?.play().catch(() => setShowWelcome(false));
               }}
               onEnded={() => {
-                localStorage.setItem('unio_welcome_video_played_date', new Date().toISOString().slice(0, 10));
+                localStorage.setItem('unio_welcome_video_played_date', new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10));
                 setShowWelcome(false);
               }}
               onError={() => setShowWelcome(false)}
@@ -558,7 +557,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                localStorage.setItem('unio_welcome_video_played_date', new Date().toISOString().slice(0, 10));
+                localStorage.setItem('unio_welcome_video_played_date', new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10));
                 setShowWelcome(false);
               }}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/70 hover:bg-white/20 hover:text-white transition-all"
@@ -567,8 +566,8 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           </button>
           </div>
           {/* 底部提示 */}
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/40 text-xs tracking-[0.3em] animate-pulse">
-            首次体验 · 播放结束后自动进入
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/40 text-xs tracking-[0.3em] animate-pulse whitespace-nowrap">
+            播放结束后自动进入
           </div>
         </div>,
         document.body

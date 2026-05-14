@@ -16,9 +16,42 @@ const headers = {
   'Authorization': `Bearer ${SUPABASE_KEY}`,
 };
 
-// ============ 内存缓存（减少重复请求导致的10秒+等待） ============
+// ============ 内存缓存 + localStorage 持久化（减少重复请求导致的10秒+等待） ============
 const cache = new Map<string, { data: any; ts: number }>();
-const CACHE_TTL = 300_000; // 5分钟缓存
+
+// localStorage 缓存 key
+const PERSIST_CACHE_KEY = 'unio_cache_v1';
+const CACHE_TTL = 300_000; // 5分钟缓存（内存）
+const PERSIST_TTL = 3_600_000; // 1小时缓存（localStorage — 数据变化极慢）
+
+// 模块初始化时从 localStorage 恢复缓存（手机刷新后还能用）
+try {
+  if (typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem(PERSIST_CACHE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved) as [string, { data: any; ts: number }][];
+      const now = Date.now();
+      parsed.forEach(([key, entry]) => {
+        if (now - entry.ts < PERSIST_TTL) cache.set(key, entry);
+      });
+    }
+  }
+} catch {}
+
+// 保存到 localStorage（节流，每5秒写一次，不阻塞渲染）
+let persistTimer: any = null;
+function persistCache() {
+  if (persistTimer) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const entries = Array.from(cache.entries());
+        localStorage.setItem(PERSIST_CACHE_KEY, JSON.stringify(entries));
+      }
+    } catch {}
+  }, 5000);
+}
 
 function getCacheKey(table: string, params: string): string {
   return `${table}?${params}`;
@@ -39,6 +72,7 @@ function setCache(key: string, data: any): void {
     if (oldest) cache.delete(oldest);
   }
   cache.set(key, { data, ts: Date.now() });
+  persistCache(); // 持久化到 localStorage
 }
 
 // 并发请求去重：同一时间相同URL只发一个请求
