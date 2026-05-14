@@ -393,6 +393,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
           supplier_code: purchaseForm.supplier_code,
+          warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
         setEditingPurchase(null);
@@ -403,6 +404,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
           supplier_code: purchaseForm.supplier_code,
+          warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
       }
@@ -467,6 +469,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(saleForm.volume_ml),
           total_amount: parseFloat(saleForm.total_amount),
           sale_price: parseFloat(saleForm.total_amount) / parseFloat(saleForm.volume_ml),
+          warehouse: saleForm.warehouse || null,
           handler: saleForm.handler || null,
         });
         setEditingSale(null);
@@ -477,6 +480,7 @@ export default function AdminInventory() {
           volume_ml: parseFloat(saleForm.volume_ml),
           total_amount: parseFloat(saleForm.total_amount),
           sale_price: parseFloat(saleForm.total_amount) / parseFloat(saleForm.volume_ml),
+          warehouse: saleForm.warehouse || null,
           handler: saleForm.handler || null,
         });
       }
