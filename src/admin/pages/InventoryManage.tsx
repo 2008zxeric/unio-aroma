@@ -393,16 +393,16 @@ export default function AdminInventory() {
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
           supplier_code: purchaseForm.supplier_code,
-          warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
         setEditingPurchase(null);
       } else {
         await purchaseService.create({
-          ...purchaseForm,
+          product_id: purchaseForm.product_id,
+          purchase_date: purchaseForm.purchase_date,
           volume_ml: parseFloat(purchaseForm.volume_ml),
           unit_cost: parseFloat(purchaseForm.unit_cost),
-          warehouse: purchaseForm.warehouse || null,
+          supplier_code: purchaseForm.supplier_code,
           handler: purchaseForm.handler || null,
         });
       }
@@ -414,6 +414,8 @@ export default function AdminInventory() {
 
   const startEditPurchase = (p: PurchaseRecord) => {
     setEditingPurchase(p);
+    const prod = products.find(pr => pr.id === p.product_id);
+    setPurSearchText(prod?.name_cn || '');
     setPurchaseForm({
       product_id: p.product_id,
       purchase_date: p.purchase_date,
@@ -470,7 +472,8 @@ export default function AdminInventory() {
         setEditingSale(null);
       } else {
         await salesService.create({
-          ...saleForm,
+          product_id: saleForm.product_id,
+          sale_date: saleForm.sale_date,
           volume_ml: parseFloat(saleForm.volume_ml),
           total_amount: parseFloat(saleForm.total_amount),
           sale_price: parseFloat(saleForm.total_amount) / parseFloat(saleForm.volume_ml),
@@ -485,6 +488,8 @@ export default function AdminInventory() {
 
   const startEditSale = (s: SalesRecord) => {
     setEditingSale(s);
+    const prod = products.find(pr => pr.id === s.product_id);
+    setSalSearchText(prod?.name_cn || '');
     setSaleForm({
       product_id: s.product_id,
       sale_date: s.sale_date,
