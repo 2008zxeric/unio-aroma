@@ -1,18 +1,21 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
   Warehouse, TrendingUp, TrendingDown,
   Plus, Trash2, Edit2, X, DollarSign,
   Package, Save, Download, Filter, Search, RotateCcw,
-  ArrowUpDown, ArrowUp, ArrowDown,
+  ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, Upload,
 } from 'lucide-react';
 import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService } from '../../lib/dataService';
-import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord } from '../../lib/database.types';
+import { supabase } from '../../lib/supabase';
+import { auditLogService, useAuth } from '../../lib/auth';
+import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord, AuditLog } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
 
 export default function AdminInventory() {
-  const [tab, setTab] = useState<'overview' | 'purchases' | 'sales'>('overview');
+  const { user } = useAuth();
+  const [tab, setTab] = useState<'overview' | 'purchases' | 'sales' | 'finance' | 'logs'>('overview');
   const [summaries, setSummaries] = useState<ProductInventory[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
@@ -32,6 +35,7 @@ export default function AdminInventory() {
   const [purFilterDateTo, setPurFilterDateTo] = useState('');
   const [purSortField, setPurSortField] = useState<'date' | 'amount'>('date');
   const [purSortDir, setPurSortDir] = useState<'asc' | 'desc'>('desc');
+  const [purFilterHandler, setPurFilterHandler] = useState('');
 
   const [salFilterSeries, setSalFilterSeries] = useState('');
   const [salFilterKeyword, setSalFilterKeyword] = useState('');
@@ -39,6 +43,14 @@ export default function AdminInventory() {
   const [salFilterDateTo, setSalFilterDateTo] = useState('');
   const [salSortField, setSalSortField] = useState<'date' | 'amount'>('date');
   const [salSortDir, setSalSortDir] = useState<'asc' | 'desc'>('desc');
+  const [salFilterHandler, setSalFilterHandler] = useState('');
+
+  // ---- 其他收支筛选 ----
+  const [finFilterType, setFinFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [finFilterCategory, setFinFilterCategory] = useState('');
+  const [finFilterHandler, setFinFilterHandler] = useState('');
+  const [finFilterDateFrom, setFinFilterDateFrom] = useState('');
+  const [finFilterDateTo, setFinFilterDateTo] = useState('');
 
   // 新增记录表单状态
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
@@ -50,6 +62,81 @@ export default function AdminInventory() {
 
   // 字典数据：经手人
   const [handlerOptions, setHandlerOptions] = useState<DictItem[]>([]);
+  // 字典数据：供货商
+  const [supplierOptions, setSupplierOptions] = useState<DictItem[]>([]);
+
+  // 自动匹配当前登录用户的默认经手人（优先用 display_name，其次 username）
+  const defaultHandler = useMemo(() => {
+    if (!user || handlerOptions.length === 0) return '';
+    const nameMatch = handlerOptions.find(h =>
+      h.label === user.display_name || h.value === user.display_name ||
+      h.label === user.username || h.value === user.username
+    );
+    return nameMatch?.value || '';
+  }, [user, handlerOptions]);
+
+  // ---- 导入CSV入库状态 ----
+  const [showImportCsv, setShowImportCsv] = useState(false);
+  const [csvData, setCsvData] = useState<{ product_name: string; volume_ml: string; unit_cost: string; supplier: string; date: string }[]>([]);
+  const [csvImportDate, setCsvImportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [csvImportHandler, setCsvImportHandler] = useState('');
+  const [csvImporting, setCsvImporting] = useState(false);
+
+  // ---- 导入CSV出库状态 ----
+  const [showSaleCsv, setShowSaleCsv] = useState(false);
+  const [saleCsvData, setSaleCsvData] = useState<{ product_name: string; volume_ml: string; unit_price: string; date: string }[]>([]);
+  const [saleCsvDate, setSaleCsvDate] = useState(new Date().toISOString().split('T')[0]);
+  const [saleCsvHandler, setSaleCsvHandler] = useState('');
+  const [saleCsvImporting, setSaleCsvImporting] = useState(false);
+
+  // ---- 其他收支状态 ----
+  const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>([]);
+  const [showFinanceForm, setShowFinanceForm] = useState(false);
+  const [editingFinance, setEditingFinance] = useState<FinanceRecord | null>(null);
+  const [incomeOptions, setIncomeOptions] = useState<DictItem[]>([]);
+  const [expenseOptions, setExpenseOptions] = useState<DictItem[]>([]);
+  const [financeForm, setFinanceForm] = useState({
+    record_date: new Date().toISOString().split('T')[0],
+    record_type: 'income' as 'income' | 'expense',
+    category: '', amount: '', notes: '', handler: '',
+  });
+  // ---- 其他收支 CSV 导入状态 ----
+  const [showFinanceCsv, setShowFinanceCsv] = useState(false);
+  const [financeCsvData, setFinanceCsvData] = useState<{ record_type: string; category: string; amount: string; handler: string; notes: string; date: string }[]>([]);
+  const [financeCsvDate, setFinanceCsvDate] = useState(new Date().toISOString().split('T')[0]);
+  const [financeCsvImporting, setFinanceCsvImporting] = useState(false);
+  // 看板汇总（从 financeRecords 实时计算，不依赖 state）
+  const totalOtherIncome = useMemo(() => 
+    financeRecords.filter(r => r.record_type === 'income').reduce((s, r) => s + Number(r.amount || 0), 0),
+  [financeRecords]);
+
+  const totalOtherExpense = useMemo(() => 
+    financeRecords.filter(r => r.record_type !== 'income').reduce((s, r) => s + Number(r.amount || 0), 0),
+  [financeRecords]);
+
+  // 其他收支筛选后的数据
+  const filteredFinanceRecords = useMemo(() => {
+    return financeRecords.filter(r => {
+      if (finFilterType !== 'all' && r.record_type !== finFilterType) return false;
+      if (finFilterCategory && r.category !== finFilterCategory) return false;
+      if (finFilterHandler && r.handler !== finFilterHandler) return false;
+      if (finFilterDateFrom && r.record_date < finFilterDateFrom) return false;
+      if (finFilterDateTo && r.record_date > finFilterDateTo) return false;
+      return true;
+    });
+  }, [financeRecords, finFilterType, finFilterCategory, finFilterHandler, finFilterDateFrom, finFilterDateTo]);
+
+  // ---- 操作日志状态 ----
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+
+  // 产品搜索文字（进/销表单）
+  const [purSearchText, setPurSearchText] = useState('');
+  const [salSearchText, setSalSearchText] = useState('');
+
+  // 批量搜索文字
+  const [bpSearchText, setBpSearchText] = useState('');
+  const [bsSearchText, setBsSearchText] = useState('');
 
   // 进货表单
   const [purchaseForm, setPurchaseForm] = useState({
@@ -63,34 +150,64 @@ export default function AdminInventory() {
     volume_ml: '', total_amount: '', handler: '',
   });
 
-  const loadAllData = async () => {
+  // 按 Tab 懒加载数据（带内存缓存，Tab切换时不重复请求）
+  const loadedTabsRef = useRef<Set<string>>(new Set());
+  const loadTabData = async (currentTab: string, force?: boolean) => {
     try {
+      // 如果这个 Tab 已经加载过，且不是强制刷新，直接返回
+      if (!force && loadedTabsRef.current.has(currentTab) && products.length > 0) {
+        return;
+      }
       setLoading(true);
-      const [prodData, sumData, purData, salData, handlers] = await Promise.all([
-        productService.getAll(),
-        inventoryService.getAllSummaries(),
-        purchaseService.getAll(),
-        salesService.getAll(),
-        dictService.getByType('handler').catch(() => []),
-      ]);
-      setProducts(prodData);
-      setSummaries(sumData);
-      setPurchases(purData);
-      setSales(salData);
-      setHandlerOptions(handlers);
+      const promises: Promise<any>[] = [];
+      
+      // 强制的全量刷新：CRUD 后需要刷新 summaries（看板数据）
+      if (force && currentTab !== 'overview') {
+        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+      }
+      if (loadedTabsRef.current.size === 0) {
+        promises.push(productService.getAll().then(d => setProducts(d)));
+        promises.push(financeRecordService.getAll().catch(() => [] as FinanceRecord[]).then(d => setFinanceRecords(d)));
+      }
+      
+      // 库存概览 Tab
+      if (currentTab === 'overview') {
+        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+      }
+      // 进货记录 Tab
+      if (currentTab === 'purchases') {
+        promises.push(purchaseService.getAll().then(d => setPurchases(d)));
+        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
+        promises.push(dictService.getByType('supplier').catch(() => []).then(d => setSupplierOptions(d)));
+      }
+      // 销售记录 Tab
+      if (currentTab === 'sales') {
+        promises.push(salesService.getAll().then(d => setSales(d)));
+        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
+      }
+      // 其他收支 Tab
+      if (currentTab === 'finance') {
+        const frPromise = financeRecordService.getAll().catch(() => [] as FinanceRecord[]);
+        promises.push(frPromise.then(d => setFinanceRecords(d)));
+        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
+        promises.push(dictService.getByType('other_income').catch(() => []).then(d => setIncomeOptions(d)));
+        promises.push(dictService.getByType('other_expense').catch(() => []).then(d => setExpenseOptions(d)));
+      }
+      // 操作日志 Tab
+      if (currentTab === 'logs') {
+        promises.push(auditLogService.getAll(200).then(d => setAuditLogs(d)));
+      }
+      
+      await Promise.all(promises);
+      if (currentTab !== 'logs') {
+        loadedTabsRef.current.add(currentTab);
+      }
     } catch (err) {
       console.error('加载库存数据失败:', err);
-      try {
-        const prodData = await productService.getAll();
-        setProducts(prodData);
-      } catch {}
-      setSummaries([]);
-      setPurchases([]);
-      setSales([]);
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadAllData(); }, []);
+  useEffect(() => { loadTabData(tab); }, [tab]);
 
   // 构建产品ID → 系列code + category 的映射
   const productMetaMap = useMemo(() => {
@@ -150,6 +267,8 @@ export default function AdminInventory() {
       // 日期范围
       if (purFilterDateFrom && p.purchase_date < purFilterDateFrom) return false;
       if (purFilterDateTo && p.purchase_date > purFilterDateTo) return false;
+      // 经手人筛选
+      if (purFilterHandler && p.handler !== purFilterHandler) return false;
       return true;
     });
     // 排序
@@ -161,7 +280,7 @@ export default function AdminInventory() {
       return dir * (amtA - amtB);
     });
     return result;
-  }, [purchases, purFilterSeries, purFilterKeyword, purFilterDateFrom, purFilterDateTo, purSortField, purSortDir, productMetaMap, products]);
+  }, [purchases, purFilterSeries, purFilterKeyword, purFilterDateFrom, purFilterDateTo, purFilterHandler, purSortField, purSortDir, productMetaMap, products]);
 
   const filteredSales = useMemo(() => {
     const result = sales.filter(s => {
@@ -180,6 +299,8 @@ export default function AdminInventory() {
       // 日期范围
       if (salFilterDateFrom && s.sale_date < salFilterDateFrom) return false;
       if (salFilterDateTo && s.sale_date > salFilterDateTo) return false;
+      // 经手人筛选
+      if (salFilterHandler && s.handler !== salFilterHandler) return false;
       return true;
     });
     // 排序
@@ -189,7 +310,7 @@ export default function AdminInventory() {
       return dir * ((a.total_amount || 0) - (b.total_amount || 0));
     });
     return result;
-  }, [sales, salFilterSeries, salFilterKeyword, salFilterDateFrom, salFilterDateTo, salSortField, salSortDir, productMetaMap, products]);
+  }, [sales, salFilterSeries, salFilterKeyword, salFilterDateFrom, salFilterDateTo, salFilterHandler, salSortField, salSortDir, productMetaMap, products]);
 
   // 汇总统计（基于筛选后）
   const totalStock = filteredSummaries.reduce((s, item) => s + item.current_stock_ml, 0);
@@ -236,18 +357,18 @@ export default function AdminInventory() {
     setFilterSeries(''); setFilterCategory(''); setFilterKeyword(''); setFilterStockStatus('all');
   };
   const resetPurFilters = () => {
-    setPurFilterSeries(''); setPurFilterKeyword(''); setPurFilterDateFrom(''); setPurFilterDateTo('');
+    setPurFilterSeries(''); setPurFilterKeyword(''); setPurFilterDateFrom(''); setPurFilterDateTo(''); setPurFilterHandler('');
     setPurSortField('date'); setPurSortDir('desc');
   };
   const resetSalFilters = () => {
-    setSalFilterSeries(''); setSalFilterKeyword(''); setSalFilterDateFrom(''); setSalFilterDateTo('');
+    setSalFilterSeries(''); setSalFilterKeyword(''); setSalFilterDateFrom(''); setSalFilterDateTo(''); setSalFilterHandler('');
     setSalSortField('date'); setSalSortDir('desc');
   };
 
   // ---- 进货操作 ----
   const handleAddPurchase = async () => {
-    if (!purchaseForm.product_id || !purchaseForm.volume_ml || !purchaseForm.unit_cost) {
-      alert('请填写完整信息！'); return;
+    if (!purchaseForm.product_id || !purchaseForm.volume_ml) {
+      alert('请选择产品和填写容量！'); return;
     }
     try {
       if (editingPurchase) {
@@ -270,7 +391,7 @@ export default function AdminInventory() {
       }
       setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '' });
       setShowPurchaseForm(false);
-      await loadAllData();
+      await loadTabData(tab, true);
     } catch (err: any) { alert(editingPurchase ? '修改失败：' + err.message : '添加失败：' + err.message); }
   };
 
@@ -290,8 +411,20 @@ export default function AdminInventory() {
   const handleDeletePurchase = async (id: string) => {
     if (!confirm('确认删除此进货记录？删除后库存会相应减少。')) return;
     try {
+      // 先读取记录信息，用于写日志
+      const { data: rec } = await supabase.from('purchase_records').select('*').eq('id', id).single();
       await purchaseService.delete(id);
-      await loadAllData();
+      await loadTabData(tab, true);
+      // 写操作日志
+      if (rec) {
+        const amount = (Number(rec.volume_ml) || 0) * (Number(rec.unit_cost) || 0);
+        await supabase.from('audit_logs').insert({
+          action: '删除进货',
+          target_type: 'purchase_records',
+          target_id: id,
+          detail: { product_id: rec.product_id, volume_ml: rec.volume_ml, unit_cost: rec.unit_cost, amount },
+        });
+      }
     } catch (err: any) { alert('删除失败：' + err.message); }
   };
 
@@ -303,8 +436,8 @@ export default function AdminInventory() {
 
   // ---- 销售操作 ----
   const handleAddSale = async () => {
-    if (!saleForm.product_id || !saleForm.volume_ml || !saleForm.total_amount) {
-      alert('请填写完整信息！'); return;
+    if (!saleForm.product_id || !saleForm.volume_ml) {
+      alert('请选择产品和填写容量！'); return;
     }
     try {
       if (editingSale) {
@@ -328,7 +461,7 @@ export default function AdminInventory() {
       }
       setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: '' });
       setShowSaleForm(false);
-      await loadAllData();
+      await loadTabData(tab, true);
     } catch (err: any) { alert(editingSale ? '修改失败：' + err.message : '添加失败：' + err.message); }
   };
 
@@ -347,8 +480,17 @@ export default function AdminInventory() {
   const handleDeleteSale = async (id: string) => {
     if (!confirm('确认删除此销售记录？删除后库存会相应增加。')) return;
     try {
+      const { data: rec } = await supabase.from('sales_records').select('*').eq('id', id).single();
       await salesService.delete(id);
-      await loadAllData();
+      await loadTabData(tab, true);
+      if (rec) {
+        await supabase.from('audit_logs').insert({
+          action: '删除销售',
+          target_type: 'sales_records',
+          target_id: id,
+          detail: { product_id: rec.product_id, volume_ml: rec.volume_ml, total_amount: rec.total_amount },
+        });
+      }
     } catch (err: any) { alert('删除失败：' + err.message); }
   };
 
@@ -356,6 +498,329 @@ export default function AdminInventory() {
     setShowSaleForm(false);
     setEditingSale(null);
     setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: '' });
+  };
+
+  // ---- 批量入库 ----
+  // ---- CSV导入入库 ----
+  const handleCsvImport = async () => {
+    if (csvData.length === 0) { alert('请先上传CSV文件！'); return; }
+    if (!csvImportHandler) { alert('请选择经手人！'); return; }
+    setCsvImporting(true);
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+    try {
+      for (const row of csvData) {
+        const product = products.find(p => p.name_cn === row.product_name);
+        if (!product) { failCount++; errors.push(`未找到产品: ${row.product_name}`); continue; }
+        const volumeMl = parseFloat(row.volume_ml);
+        if (isNaN(volumeMl) || volumeMl <= 0) { failCount++; errors.push(`${row.product_name}: 无效容量 ${row.volume_ml}`); continue; }
+        const unitCost = parseFloat(row.unit_cost) || 0;
+        await purchaseService.create({
+          product_id: product.id,
+          purchase_date: row.date || csvImportDate,
+          volume_ml: volumeMl,
+          unit_cost: unitCost,
+          total_cost: volumeMl * unitCost,
+          supplier_code: row.supplier || null,
+          handler: csvImportHandler || null,
+        });
+        successCount++;
+      }
+      setCsvData([]);
+      setShowImportCsv(false);
+      setCsvImportHandler('');
+      if (errors.length > 0) { alert(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
+      else { alert(`成功导入 ${successCount} 条进货记录！`); }
+      await loadTabData(tab, true);
+    } catch (err: any) { alert('导入失败：' + err.message); }
+    finally { setCsvImporting(false); }
+  };
+
+  const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { alert('CSV文件至少需要标题行+1行数据'); return; }
+      // 解析标题行，判断列顺序
+      const header = lines[0].toLowerCase();
+      const hasProductCol = header.includes('产品') || header.includes('product') || header.includes('名称');
+      const hasVolumeCol = header.includes('容量') || header.includes('volume') || header.includes('数量');
+      const hasCostCol = header.includes('单价') || header.includes('unit_cost') || header.includes('进价');
+      const hasSupplierCol = header.includes('供货') || header.includes('supplier');
+      const hasDateCol = header.includes('日期') || header.includes('date');
+      if (!hasProductCol || !hasVolumeCol) { alert('CSV格式错误：需要包含"产品名称"和"容量"列'); return; }
+      const rows = lines.slice(1).map(l => {
+        const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+        return {
+          product_name: cols[0] || '',
+          volume_ml: cols[1] || '',
+          unit_cost: cols[2] || '',
+          supplier: cols[3] || '',
+          date: cols[4] || '',
+        };
+      }).filter(r => r.product_name && r.volume_ml);
+      setCsvData(rows);
+    };
+    reader.readAsText(file);
+    // 重置input，允许重复上传同一文件
+    e.target.value = '';
+  };
+
+  const downloadCsvTemplate = () => {
+    const BOM = '\uFEFF';
+    const csv = BOM + '产品名称, 容量(ml), 单价(元/ml), 供货商, 日期\n';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `UNIO_进货模板_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const cancelCsvImport = () => {
+    setShowImportCsv(false);
+    setCsvData([]);
+    setCsvImportHandler('');
+  };
+
+  // ---- CSV导入出库 ----
+  const handleCsvSaleImport = async () => {
+    if (saleCsvData.length === 0) { alert('请先上传CSV文件！'); return; }
+    if (!saleCsvHandler) { alert('请选择经手人！'); return; }
+    setSaleCsvImporting(true);
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+    try {
+      for (const row of saleCsvData) {
+        const product = products.find(p => p.name_cn === row.product_name);
+        if (!product) { failCount++; errors.push(`未找到产品: ${row.product_name}`); continue; }
+        const volumeMl = parseFloat(row.volume_ml);
+        if (isNaN(volumeMl) || volumeMl <= 0) { failCount++; errors.push(`${row.product_name}: 无效容量 ${row.volume_ml}`); continue; }
+        const unitPrice = parseFloat(row.unit_price) || 0;
+        await salesService.create({
+          product_id: product.id,
+          sale_date: row.date || saleCsvDate,
+          volume_ml: volumeMl,
+          sale_price: unitPrice,
+          total_amount: volumeMl * unitPrice,
+          handler: saleCsvHandler || null,
+        });
+        successCount++;
+      }
+      setSaleCsvData([]);
+      setShowSaleCsv(false);
+      setSaleCsvHandler('');
+      if (errors.length > 0) { alert(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
+      else { alert(`成功导入 ${successCount} 条销售记录！`); }
+      await loadTabData(tab, true);
+    } catch (err: any) { alert('导入失败：' + err.message); }
+    finally { setSaleCsvImporting(false); }
+  };
+
+  const handleSaleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { alert('CSV文件至少需要标题行+1行数据'); return; }
+      const header = lines[0].toLowerCase();
+      const hasProductCol = header.includes('产品') || header.includes('product') || header.includes('名称');
+      const hasVolumeCol = header.includes('容量') || header.includes('volume') || header.includes('数量');
+      const hasPriceCol = header.includes('单价') || header.includes('price') || header.includes('售价');
+      const hasDateCol = header.includes('日期') || header.includes('date');
+      if (!hasProductCol || !hasVolumeCol) { alert('CSV格式错误：需要包含"产品名称"和"容量"列'); return; }
+      const rows = lines.slice(1).map(l => {
+        const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+        return {
+          product_name: cols[0] || '',
+          volume_ml: cols[1] || '',
+          unit_price: cols[2] || '',
+          date: cols[3] || '',
+        };
+      }).filter(r => r.product_name && r.volume_ml);
+      setSaleCsvData(rows);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const downloadSaleCsvTemplate = () => {
+    const BOM = '\uFEFF';
+    const csv = BOM + '产品名称, 容量(ml), 售价(元/ml), 日期\n';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `UNIO_销售模板_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const cancelSaleCsv = () => {
+    setShowSaleCsv(false);
+    setSaleCsvData([]);
+    setSaleCsvHandler('');
+  };
+
+  // ---- 其他收支操作 ----
+  const handleAddFinance = async () => {
+    if (!financeForm.category || !financeForm.amount) {
+      alert('请填写完整信息！'); return;
+    }
+    try {
+      if (editingFinance) {
+        await financeRecordService.update(editingFinance.id, {
+          ...financeForm,
+          amount: parseFloat(financeForm.amount),
+        });
+        setEditingFinance(null);
+      } else {
+        await financeRecordService.create({
+          ...financeForm,
+          amount: parseFloat(financeForm.amount),
+        });
+      }
+      setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'income', category: '', amount: '', notes: '', handler: '' });
+      setShowFinanceForm(false);
+      await loadTabData(tab, true);
+    } catch (err: any) { alert(editingFinance ? '修改失败：' + err.message : '添加失败：' + err.message); }
+  };
+
+  const startEditFinance = (f: FinanceRecord) => {
+    setEditingFinance(f);
+    setFinanceForm({
+      record_date: f.record_date,
+      record_type: f.record_type,
+      category: f.category,
+      amount: String(f.amount),
+      notes: f.notes || '',
+      handler: f.handler || '',
+    });
+    setShowFinanceForm(true);
+  };
+
+  const handleDeleteFinance = async (id: string) => {
+    if (!confirm('确认删除此收支记录？')) return;
+    try {
+      const { data: rec } = await supabase.from('finance_records').select('*').eq('id', id).single();
+      await financeRecordService.delete(id);
+      await loadTabData(tab, true);
+      if (rec) {
+        await supabase.from('audit_logs').insert({
+          action: '删除收支',
+          target_type: 'finance_records',
+          target_id: id,
+          detail: { record_type: rec.record_type, category: rec.category, amount: rec.amount, notes: rec.notes },
+        });
+      }
+    } catch (err: any) { alert('删除失败：' + err.message); }
+  };
+
+  const cancelFinanceForm = () => {
+    setShowFinanceForm(false);
+    setEditingFinance(null);
+    setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'income', category: '', amount: '', notes: '', handler: '' });
+  };
+
+  // ---- 其他收支 CSV 操作 ----
+  const handleFinanceCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { alert('CSV文件至少需要标题行+1行数据'); return; }
+      const header = lines[0].toLowerCase();
+      const hasTypeCol = header.includes('类型') || header.includes('type');
+      const hasCategoryCol = header.includes('分类') || header.includes('category');
+      const hasAmountCol = header.includes('金额') || header.includes('amount');
+      if (!hasTypeCol || !hasAmountCol) { alert('CSV格式错误：需要包含"类型"和"金额"列'); return; }
+      const rows = lines.slice(1).map(l => {
+        const cols = l.split(',').map(c => c.trim().replace(/^\"|\"$/g, ''));
+        return {
+          record_type: cols[0] || '',
+          category: cols[1] || '',
+          amount: cols[2] || '',
+          handler: cols[3] || '',
+          notes: cols[4] || '',
+          date: cols[5] || '',
+        };
+      }).filter(r => r.amount);
+      setFinanceCsvData(rows);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleCsvFinanceImport = async () => {
+    if (financeCsvData.length === 0) { alert('没有待导入的数据'); return; }
+    setFinanceCsvImporting(true);
+    let successCount = 0, failCount = 0;
+    const errors: string[] = [];
+    try {
+      for (const row of financeCsvData) {
+        const typeStr = row.record_type.trim().toLowerCase();
+        const recordType = typeStr === '支出' || typeStr === 'expense' ? 'expense' : 'income';
+        const amount = parseFloat(row.amount);
+        if (isNaN(amount) || amount <= 0) { failCount++; errors.push(`${row.amount} 金额无效`); continue; }
+        await financeRecordService.create({
+          record_date: row.date || financeCsvDate,
+          record_type: recordType,
+          category: row.category || '其他',
+          amount,
+          handler: row.handler || null,
+          notes: row.notes || null,
+        });
+        successCount++;
+      }
+      setFinanceCsvData([]);
+      setShowFinanceCsv(false);
+      if (errors.length > 0) { alert(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
+      else { alert(`成功导入 ${successCount} 条收支记录！`); }
+      await loadTabData(tab, true);
+    } catch (err: any) { alert('导入失败：' + err.message); }
+    finally { setFinanceCsvImporting(false); }
+  };
+
+  const downloadFinanceCsvTemplate = () => {
+    const BOM = '\uFEFF';
+    const csv = BOM + '类型, 分类, 金额, 经手人, 备注, 日期\n收入, 其他收入, 100, 张三, 平台返现, 2026-05-12\n支出, 房租, 5000, 张三, 5月办公租金, 2026-05-01';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `UNIO_收支模板_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportFinanceCSV = () => {
+    if (filteredFinanceRecords.length === 0) { alert('没有可导出的记录'); return; }
+    const BOM = '\uFEFF';
+    const header = '类型, 分类, 金额, 经手人, 备注, 日期\n';
+    const rows = filteredFinanceRecords.map(r => {
+      const typeLabel = r.record_type === 'income' ? '收入' : '支出';
+      // 不包含逗号的字段不用加引号，有逗号或特殊字符时加
+      const esc = (v: string) => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+      return [typeLabel, esc(r.category), r.amount.toFixed(2), esc(r.handler || ''), esc(r.notes || ''), r.record_date].join(', ');
+    }).join('\n');
+    const csv = BOM + header + rows;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `UNIO_收支记录_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // 通用 select/input 样式
@@ -401,12 +866,13 @@ export default function AdminInventory() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: '当前总库存', value: `${totalStock.toLocaleString()} ml`, icon: Package, color: '#7B9EA8', bg: 'rgba(123,158,168,0.1)' },
           { label: '总进货成本', value: `¥${totalCost.toFixed(2)}`, icon: TrendingDown, color: '#E85D3B', bg: 'rgba(232,93,59,0.1)' },
           { label: '总销售收入', value: `¥${totalRevenue.toFixed(2)}`, icon: TrendingUp, color: '#4A9D5C', bg: 'rgba(74,157,92,0.1)' },
-          { label: '总利润', value: `¥${totalProfit.toFixed(2)}`, icon: DollarSign, color: totalProfit >= 0 ? '#7BA689' : '#EF4444', bg: totalProfit >= 0 ? 'rgba(212,175,55,0.1)' : 'rgba(239,68,68,0.1)' },
+          { label: '其他收支', value: `+${totalOtherIncome.toFixed(0)} / -${totalOtherExpense.toFixed(0)}`, icon: DollarSign, color: '#7B9EA8', bg: 'rgba(123,158,168,0.1)' },
+          { label: '综合利润', value: `¥${(totalProfit + totalOtherIncome - totalOtherExpense).toFixed(2)}`, icon: DollarSign, color: totalProfit >= 0 ? '#7BA689' : '#EF4444', bg: totalProfit >= 0 ? 'rgba(212,175,55,0.1)' : 'rgba(239,68,68,0.1)' },
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -419,11 +885,13 @@ export default function AdminInventory() {
       </div>
 
       {/* Tab 切换 */}
-      <div className="flex items-center gap-1 p-1 bg-white rounded-xl w-fit">
+      <div className="flex items-center gap-1 p-1 bg-white rounded-xl w-fit flex-wrap">
         {[
           { key: 'overview' as const, label: '库存概览' },
           { key: 'purchases' as const, label: '进货记录' },
           { key: 'sales' as const, label: '销售记录' },
+          { key: 'finance' as const, label: '其他收支' },
+          { key: 'logs' as const, label: '操作日志' },
         ].map(t => (
           <button
             key={t.key}
@@ -604,9 +1072,12 @@ export default function AdminInventory() {
       {tab === 'purchases' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Perm action="edit_inventory"><button onClick={() => setShowPurchaseForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
+            <Perm action="edit_inventory"><button onClick={() => { setPurchaseForm(f => ({ ...f, handler: defaultHandler })); setShowPurchaseForm(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
               <Plus size={16} /> 录入进货
             </button></Perm>
+            <button onClick={() => { setShowImportCsv(true); setShowPurchaseForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showImportCsv ? 'bg-orange-50 border-orange-300 text-orange-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
+              <Package size={16} /> 导入CSV
+            </button>
             <button onClick={() => exportCSV('purchases')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
               <Download size={12} /> 导出CSV
             </button>
@@ -618,7 +1089,7 @@ export default function AdminInventory() {
               <span className="text-xs font-medium text-[#3D5C3D] flex items-center gap-1.5"><Filter size={13} /> 筛选</span>
               <button onClick={resetPurFilters} className="text-[10px] text-[#8AA08A] hover:text-[#5C725C] flex items-center gap-1"><RotateCcw size={10} /> 重置</button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div>
                 <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
                 <select value={purFilterSeries} onChange={e => setPurFilterSeries(e.target.value)} className={selectCls}>
@@ -643,6 +1114,13 @@ export default function AdminInventory() {
                 <label className="block text-[10px] text-[#8AA08A] mb-1">截止日期</label>
                 <input type="date" value={purFilterDateTo} onChange={e => setPurFilterDateTo(e.target.value)} className={inputCls} />
               </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">经手人</label>
+                <select value={purFilterHandler} onChange={e => setPurFilterHandler(e.target.value)} className={selectCls}>
+                  <option value="">全部</option>
+                  {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                </select>
+              </div>
               <div className="flex items-end">
                 <p className="text-[10px] text-[#A8BAA8]">{filteredPurchases.length} / {purchases.length} 条记录</p>
               </div>
@@ -659,17 +1137,46 @@ export default function AdminInventory() {
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label>
-                  <select value={purchaseForm.product_id} onChange={e => setPurchaseForm(f => ({ ...f, product_id: e.target.value }))} className={selectCls}>
-                    <option value="">选择...</option>{products.map(p => <option key={p.id} value={p.id}>{p.name_cn}</option>)}
-                  </select>
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
+                    <input
+                      type="text"
+                      value={purSearchText}
+                      onChange={e => setPurSearchText(e.target.value)}
+                      placeholder="输入产品名称搜索..."
+                      className={`${inputCls} pl-8`}
+                    />
+                    {purSearchText && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).map(p => (
+                          <div
+                            key={p.id}
+                            onClick={() => { setPurchaseForm(f => ({ ...f, product_id: p.id })); setPurSearchText(p.name_cn); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF] ${purchaseForm.product_id === p.id ? 'bg-[#EEF4EF] font-medium' : ''}`}
+                          >
+                            <span className="text-[#1A2E1A]">{p.name_cn}</span>
+                            <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
+                          </div>
+                        ))}
+                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">进货日期</label><input type="date" value={purchaseForm.purchase_date} onChange={e => setPurchaseForm(f => ({ ...f, purchase_date: e.target.value }))} className={inputCls} /></div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" placeholder="例如: 100" value={purchaseForm.volume_ml} onChange={e => setPurchaseForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-xs text-[#6B856B] mb-1.5">进价(元/ml) *</label><input type="number" step="0.01" placeholder="单价" value={purchaseForm.unit_cost} onChange={e => setPurchaseForm(f => ({ ...f, unit_cost: e.target.value }))} className={inputCls} /></div>
-                  <div><label className="block text-xs text-[#6B856B] mb-1.5">供货商代码</label><input placeholder="例如: SUP001" value={purchaseForm.supplier_code} onChange={e => setPurchaseForm(f => ({ ...f, supplier_code: e.target.value }))} className={inputCls} /></div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">进价(元/ml)</label><input type="number" step="0.01" placeholder="可填0" value={purchaseForm.unit_cost} onChange={e => setPurchaseForm(f => ({ ...f, unit_cost: e.target.value }))} className={inputCls} /></div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">供货商</label>
+                    <select value={purchaseForm.supplier_code} onChange={e => setPurchaseForm(f => ({ ...f, supplier_code: e.target.value }))} className={selectCls}>
+                      <option value="">请选择</option>
+                      {supplierOptions.map(s => <option key={s.id} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </div>
                 </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
                   <select value={purchaseForm.handler} onChange={e => setPurchaseForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
@@ -682,6 +1189,80 @@ export default function AdminInventory() {
                 <button onClick={cancelPurchaseForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
                 <button onClick={handleAddPurchase} className="px-5 py-2 bg-green-600 text-white rounded-lg text-sm flex items-center gap-2"><Save size={14} /> {editingPurchase ? '保存修改' : '保存进货记录'}</button>
               </div>
+            </div>
+          )}
+
+          {/* CSV导入入库表单 */}
+          {showImportCsv && (
+            <div className="rounded-xl bg-white border border-orange-200 p-4 sm:p-5 space-y-4">
+              <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
+                导入CSV批量入库
+                <button onClick={cancelCsvImport} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
+              </h4>
+              <div className="text-xs text-[#8AA08A] space-y-1 bg-orange-50 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <p>📋 CSV格式（第一行为列标题）：</p>
+                  <button onClick={downloadCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-orange-700 hover:bg-orange-100 rounded-lg transition-colors">
+                    <Download size={11} /> 下载模板
+                  </button>
+                </div>
+                <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-orange-100">
+                  产品名称, 容量(ml), 单价(元/ml), 供货商, 日期
+                </p>
+                <p>产品名称需与系统完全一致，供货商可选，日期留空则使用下方默认日期</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">选择CSV文件</label>
+                  <input type="file" accept=".csv" onChange={handleCsvFileUpload} className="block w-full text-xs text-[#6B856B] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 cursor-pointer" />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
+                  <select value={csvImportHandler} onChange={e => setCsvImportHandler(e.target.value)} className={selectCls}>
+                    <option value="">请选择</option>
+                    {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">默认入库日期（CSV无日期时使用）</label>
+                  <input type="date" value={csvImportDate} onChange={e => setCsvImportDate(e.target.value)} className={inputCls} />
+                </div>
+              </div>
+              {csvData.length > 0 && (
+                <div>
+                  <p className="text-xs text-[#6B856B] mb-2">已解析 <strong>{csvData.length}</strong> 条记录，点击确认入库：</p>
+                  <div className="max-h-32 overflow-y-auto border border-[#E0ECE0] rounded-lg">
+                    <table className="w-full text-xs">
+                      <thead><tr className="border-b border-[#E0ECE0] bg-gray-50">
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">产品</th>
+                        <th className="text-right px-3 py-1.5 text-[#8AA08A]">容量</th>
+                        <th className="text-right px-3 py-1.5 text-[#8AA08A]">单价</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">供货商</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">日期</th>
+                      </tr></thead>
+                      <tbody>
+                        {csvData.map((r, i) => (
+                          <tr key={i} className="border-b border-[#E0ECE0]/50">
+                            <td className="px-3 py-1 text-[#1A2E1A]">{r.product_name}</td>
+                            <td className="px-3 py-1 text-right text-[#5C725C]">{r.volume_ml}</td>
+                            <td className="px-3 py-1 text-right text-[#5C725C]">{r.unit_cost || '-'}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.supplier || '-'}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.date || csvImportDate}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-3">
+                    <button onClick={() => setCsvData([])} className="px-4 py-2 text-xs text-[#5C725C] hover:bg-[#EEF4EF] rounded-lg">清空</button>
+                    <Perm action="edit_inventory"><button onClick={handleCsvImport} disabled={csvImporting} className="px-4 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-gray-300 text-white rounded-lg text-sm flex items-center gap-2">
+                      {csvImporting ? '导入中...' : <><Save size={14} /> 确认导入{csvData.length}条</>}
+                    </button></Perm>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -733,9 +1314,12 @@ export default function AdminInventory() {
       {tab === 'sales' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Perm action="edit_inventory"><button onClick={() => setShowSaleForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors">
+            <Perm action="edit_inventory"><button onClick={() => { setSaleForm(f => ({ ...f, handler: defaultHandler })); setShowSaleForm(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors">
               <Plus size={16} /> 录入销售
             </button></Perm>
+            <button onClick={() => { setShowSaleCsv(true); setShowSaleForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showSaleCsv ? 'bg-purple-50 border-purple-300 text-purple-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
+              <Package size={16} /> 导入CSV
+            </button>
             <button onClick={() => exportCSV('sales')} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
               <Download size={12} /> 导出CSV
             </button>
@@ -747,7 +1331,7 @@ export default function AdminInventory() {
               <span className="text-xs font-medium text-[#3D5C3D] flex items-center gap-1.5"><Filter size={13} /> 筛选</span>
               <button onClick={resetSalFilters} className="text-[10px] text-[#8AA08A] hover:text-[#5C725C] flex items-center gap-1"><RotateCcw size={10} /> 重置</button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div>
                 <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
                 <select value={salFilterSeries} onChange={e => setSalFilterSeries(e.target.value)} className={selectCls}>
@@ -772,6 +1356,13 @@ export default function AdminInventory() {
                 <label className="block text-[10px] text-[#8AA08A] mb-1">截止日期</label>
                 <input type="date" value={salFilterDateTo} onChange={e => setSalFilterDateTo(e.target.value)} className={inputCls} />
               </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">经手人</label>
+                <select value={salFilterHandler} onChange={e => setSalFilterHandler(e.target.value)} className={selectCls}>
+                  <option value="">全部</option>
+                  {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                </select>
+              </div>
               <div className="flex items-end">
                 <p className="text-[10px] text-[#A8BAA8]">{filteredSales.length} / {sales.length} 条记录</p>
               </div>
@@ -785,12 +1376,40 @@ export default function AdminInventory() {
                 <button onClick={cancelSaleForm} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
               </h4>
               <div className="grid grid-cols-1 gap-4">
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label><select value={saleForm.product_id} onChange={e => setSaleForm(f => ({ ...f, product_id: e.target.value }))} className={selectCls}><option value="">选择...</option>{products.map(p => <option key={p.id} value={p.id}>{p.name_cn}</option>)}</select></div>
+                <div><label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label>
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
+                    <input
+                      type="text"
+                      value={salSearchText}
+                      onChange={e => setSalSearchText(e.target.value)}
+                      placeholder="输入产品名称搜索..."
+                      className={`${inputCls} pl-8`}
+                    />
+                    {salSearchText && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).map(p => (
+                          <div
+                            key={p.id}
+                            onClick={() => { setSaleForm(f => ({ ...f, product_id: p.id })); setSalSearchText(p.name_cn); }}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF] ${saleForm.product_id === p.id ? 'bg-[#EEF4EF] font-medium' : ''}`}
+                          >
+                            <span className="text-[#1A2E1A]">{p.name_cn}</span>
+                            <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
+                          </div>
+                        ))}
+                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">销售日期</label><input type="date" value={saleForm.sale_date} onChange={e => setSaleForm(f => ({ ...f, sale_date: e.target.value }))} className={inputCls} /></div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" value={saleForm.volume_ml} onChange={e => setSaleForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
                 </div>
-                <div><label className="block text-xs text-[#6B856B] mb-1.5">销售金额(¥) *</label><input type="number" step="0.01" value={saleForm.total_amount} onChange={e => setSaleForm(f => ({ ...f, total_amount: e.target.value }))} className={inputCls} /></div>
+                <div><label className="block text-xs text-[#6B856B] mb-1.5">销售金额(¥)</label><input type="number" step="0.01" placeholder="可填0" value={saleForm.total_amount} onChange={e => setSaleForm(f => ({ ...f, total_amount: e.target.value }))} className={inputCls} /></div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
                   <select value={saleForm.handler} onChange={e => setSaleForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
                     <option value="">请选择</option>
@@ -840,6 +1459,352 @@ export default function AdminInventory() {
                   );
                 })}
                 {filteredSales.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-[#9AAA9A]">暂无销售记录</td></tr>}
+              </tbody>
+            </table>
+          </div>
+
+          {/* CSV导入出库表单 */}
+          {showSaleCsv && (
+            <div className="rounded-xl bg-white border border-purple-200 p-4 sm:p-5 space-y-4">
+              <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
+                导入CSV批量出库
+                <button onClick={cancelSaleCsv} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
+              </h4>
+              <div className="text-xs text-[#8AA08A] space-y-1 bg-purple-50 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <p>📋 CSV格式（第一行为列标题）：</p>
+                  <button onClick={downloadSaleCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-purple-700 hover:bg-purple-100 rounded-lg transition-colors">
+                    <Download size={11} /> 下载模板
+                  </button>
+                </div>
+                <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-purple-100">
+                  产品名称, 容量(ml), 售价(元/ml), 日期
+                </p>
+                <p>产品名称需与系统完全一致，日期留空则使用下方默认日期</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">选择CSV文件</label>
+                  <input type="file" accept=".csv" onChange={handleSaleCsvFileUpload} className="block w-full text-xs text-[#6B856B] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 cursor-pointer" />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
+                  <select value={saleCsvHandler} onChange={e => setSaleCsvHandler(e.target.value)} className={selectCls}>
+                    <option value="">请选择</option>
+                    {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">默认出库日期（CSV无日期时使用）</label>
+                  <input type="date" value={saleCsvDate} onChange={e => setSaleCsvDate(e.target.value)} className={inputCls} />
+                </div>
+              </div>
+              {saleCsvData.length > 0 && (
+                <div>
+                  <p className="text-xs text-[#6B856B] mb-2">已解析 <strong>{saleCsvData.length}</strong> 条记录，点击确认出库：</p>
+                  <div className="max-h-32 overflow-y-auto border border-[#E0ECE0] rounded-lg">
+                    <table className="w-full text-xs">
+                      <thead><tr className="border-b border-[#E0ECE0] bg-gray-50">
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">产品</th>
+                        <th className="text-right px-3 py-1.5 text-[#8AA08A]">容量</th>
+                        <th className="text-right px-3 py-1.5 text-[#8AA08A]">售价</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">日期</th>
+                      </tr></thead>
+                      <tbody>
+                        {saleCsvData.map((r, i) => (
+                          <tr key={i} className="border-b border-[#E0ECE0]/50">
+                            <td className="px-3 py-1 text-[#1A2E1A]">{r.product_name}</td>
+                            <td className="px-3 py-1 text-right text-[#5C725C]">{r.volume_ml}</td>
+                            <td className="px-3 py-1 text-right text-[#5C725C]">{r.unit_price || '-'}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.date || saleCsvDate}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-3">
+                    <button onClick={() => setSaleCsvData([])} className="px-4 py-2 text-xs text-[#5C725C] hover:bg-[#EEF4EF] rounded-lg">清空</button>
+                    <Perm action="edit_inventory"><button onClick={handleCsvSaleImport} disabled={saleCsvImporting} className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-300 text-white rounded-lg text-sm flex items-center gap-2">
+                      {saleCsvImporting ? '导入中...' : <><Save size={14} /> 确认出库{saleCsvData.length}条</>}
+                    </button></Perm>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===================== 其他收支 Tab ===================== */}
+      {tab === 'finance' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Perm action="edit_inventory"><button onClick={() => { setFinanceForm(f => ({ ...f, handler: defaultHandler })); setShowFinanceForm(true); setShowFinanceCsv(false); }} className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-green-500 text-white rounded-xl text-sm font-medium transition-colors">
+                <Plus size={16} /> 新增收支
+              </button></Perm>
+              <button onClick={() => { setShowFinanceCsv(true); setShowFinanceForm(false); }} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors border ${showFinanceCsv ? 'bg-purple-50 border-purple-300 text-purple-700' : 'border-[#D5E2D5] text-[#4A7C59] hover:bg-[#EEF4EF]'}`}>
+                <Upload size={16} /> 导入CSV
+              </button>
+              <button onClick={exportFinanceCSV} className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
+                <Download size={12} /> 导出CSV
+              </button>
+              <span className="text-xs text-[#8AA08A]">收入 {totalOtherIncome.toFixed(0)} / 支出 {totalOtherExpense.toFixed(0)} / 净 {totalOtherIncome - totalOtherExpense >= 0 ? '+' : ''}{(totalOtherIncome - totalOtherExpense).toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* CSV导入收支 */}
+          {showFinanceCsv && (
+            <div className="rounded-xl bg-white border border-purple-200 p-4 sm:p-5 space-y-4">
+              <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
+                导入CSV批量录入收支
+                <button onClick={() => { setShowFinanceCsv(false); setFinanceCsvData([]); }} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
+              </h4>
+              <div className="text-xs text-[#8AA08A] space-y-1 bg-purple-50 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <p>📋 CSV格式（第一行为列标题）：</p>
+                  <button onClick={downloadFinanceCsvTemplate} className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-purple-700 hover:bg-purple-100 rounded-lg transition-colors">
+                    <Download size={11} /> 下载模板
+                  </button>
+                </div>
+                <p className="font-mono text-[10px] bg-white rounded px-2 py-1 border border-purple-100">
+                  类型, 分类, 金额, 经手人, 备注, 日期
+                </p>
+                <p>类型填"收入"或"支出"；分类填收支类别名称；日期留空则使用下方默认日期</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">选择CSV文件</label>
+                  <input type="file" accept=".csv" onChange={handleFinanceCsvFileUpload} className="block w-full text-xs text-[#6B856B] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 cursor-pointer" />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#6B856B] mb-1.5">默认日期（CSV无日期时使用）</label>
+                  <input type="date" value={financeCsvDate} onChange={e => setFinanceCsvDate(e.target.value)} className={inputCls} />
+                </div>
+              </div>
+              {financeCsvData.length > 0 && (
+                <div>
+                  <p className="text-xs text-[#6B856B] mb-2">已解析 <strong>{financeCsvData.length}</strong> 条记录，点击确认导入：</p>
+                  <div className="max-h-32 overflow-y-auto border border-[#E0ECE0] rounded-lg">
+                    <table className="w-full text-xs">
+                      <thead><tr className="border-b border-[#E0ECE0] bg-gray-50">
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">类型</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">分类</th>
+                        <th className="text-right px-3 py-1.5 text-[#8AA08A]">金额</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">经手人</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">备注</th>
+                        <th className="text-left px-3 py-1.5 text-[#8AA08A]">日期</th>
+                      </tr></thead>
+                      <tbody>
+                        {financeCsvData.map((r, i) => (
+                          <tr key={i} className="border-b border-[#E0ECE0]/50">
+                            <td className="px-3 py-1 text-[#1A2E1A]"><span className={`px-1.5 py-0.5 rounded ${r.record_type === '支出' || r.record_type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'}`}>{r.record_type || '-'}</span></td>
+                            <td className="px-3 py-1 text-[#1A2E1A]">{r.category || '-'}</td>
+                            <td className="px-3 py-1 text-right text-[#5C725C] font-medium">{r.amount}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.handler || '-'}</td>
+                            <td className="px-3 py-1 text-[#8AA08A] max-w-[120px] truncate">{r.notes || '-'}</td>
+                            <td className="px-3 py-1 text-[#5C725C]">{r.date || financeCsvDate}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-3">
+                    <button onClick={() => setFinanceCsvData([])} className="px-4 py-2 text-xs text-[#5C725C] hover:bg-[#EEF4EF] rounded-lg">清空</button>
+                    <Perm action="edit_inventory"><button onClick={handleCsvFinanceImport} disabled={financeCsvImporting} className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-300 text-white rounded-lg text-sm flex items-center gap-2">
+                      {financeCsvImporting ? '导入中...' : <><Save size={14} /> 确认导入{financeCsvData.length}条</>}
+                    </button></Perm>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 收支筛选栏 */}
+          <div className="rounded-xl bg-white border border-[#E0ECE0] p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium text-[#3D5C3D] flex items-center gap-1.5"><Filter size={13} /> 筛选</span>
+              <button onClick={() => { setFinFilterType('all'); setFinFilterCategory(''); setFinFilterHandler(''); setFinFilterDateFrom(''); setFinFilterDateTo(''); }} className="text-[10px] text-[#8AA08A] hover:text-[#5C725C] flex items-center gap-1"><RotateCcw size={10} /> 重置</button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">类型</label>
+                <select value={finFilterType} onChange={e => { setFinFilterType(e.target.value as any); setFinFilterCategory(''); }} className={selectCls}>
+                  <option value="all">全部</option>
+                  <option value="income">收入</option>
+                  <option value="expense">支出</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">分类</label>
+                <select value={finFilterCategory} onChange={e => setFinFilterCategory(e.target.value)} className={selectCls} disabled={finFilterType === 'all'}>
+                  <option value="">全部</option>
+                  {(finFilterType === 'income' ? incomeOptions : finFilterType === 'expense' ? expenseOptions : []).map(o => (
+                    <option key={o.id} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">经手人</label>
+                <select value={finFilterHandler} onChange={e => setFinFilterHandler(e.target.value)} className={selectCls}>
+                  <option value="">全部</option>
+                  {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">起始日期</label>
+                <input type="date" value={finFilterDateFrom} onChange={e => setFinFilterDateFrom(e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-[10px] text-[#8AA08A] mb-1">截止日期</label>
+                <input type="date" value={finFilterDateTo} onChange={e => setFinFilterDateTo(e.target.value)} className={inputCls} />
+              </div>
+            </div>
+          </div>
+
+          {/* 收支表单 */}
+          {showFinanceForm && (
+            <div className="rounded-xl bg-white border border-[#D5E2D5] p-4 sm:p-5 space-y-4">
+              <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
+                {editingFinance ? '编辑收支记录' : '新增收支记录'}
+                <button onClick={cancelFinanceForm} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
+              </h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">日期</label><input type="date" value={financeForm.record_date} onChange={e => setFinanceForm(f => ({ ...f, record_date: e.target.value }))} className={inputCls} /></div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">类型</label>
+                    <select value={financeForm.record_type} onChange={e => setFinanceForm(f => ({ ...f, record_type: e.target.value as any, category: '' }))} className={selectCls}>
+                      <option value="income">收入</option>
+                      <option value="expense">支出</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">分类 *</label>
+                    <select value={financeForm.category} onChange={e => setFinanceForm(f => ({ ...f, category: e.target.value }))} className={selectCls}>
+                      <option value="">请选择</option>
+                      {(financeForm.record_type === 'other_income' ? incomeOptions : expenseOptions).map(o => (
+                        <option key={o.id} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">金额(¥) *</label><input type="number" step="0.01" value={financeForm.amount} onChange={e => setFinanceForm(f => ({ ...f, amount: e.target.value }))} className={inputCls} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
+                    <select value={financeForm.handler} onChange={e => setFinanceForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
+                      <option value="">请选择</option>
+                      {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                    </select>
+                  </div>
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">备注</label><input type="text" value={financeForm.notes} onChange={e => setFinanceForm(f => ({ ...f, notes: e.target.value }))} className={inputCls} placeholder="备注说明" /></div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <button onClick={cancelFinanceForm} className="px-5 py-2 text-sm text-[#5C725C] hover:text-[#1A2E1A] rounded-xl hover:bg-[#EEF4EF]">取消</button>
+                <button onClick={handleAddFinance} className="px-5 py-2 bg-[#4A7C59] text-white rounded-lg text-sm flex items-center gap-2"><Save size={14} /> {editingFinance ? '保存修改' : '保存记录'}</button>
+              </div>
+            </div>
+          )}
+
+          {/* 收支列表 */}
+          <div className="admin-table-wrap rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
+            <p className="text-[10px] text-[#A8BAA8] px-4 pt-3">当前显示 {filteredFinanceRecords.length} / {financeRecords.length} 条记录</p>
+            <table className="w-full text-sm min-w-[700px]">
+              <thead><tr className="border-b border-[#D5E2D5]">
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">日期</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">类型</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">分类</th>
+                <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">金额(¥)</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">备注</th>
+                <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A] w-24">操作</th>
+              </tr></thead>
+              <tbody>
+                {filteredFinanceRecords.map(fr => {
+                  const hLabel = handlerOptions.find(ho => ho.value === fr.handler)?.label || fr.handler || '-';
+                  const catLabel = (fr.record_type === 'income' ? incomeOptions : expenseOptions).find(o => o.value === fr.category)?.label || fr.category;
+                  return (
+                    <tr key={fr.id} className="border-b border-[#D5E2D5]/[0.03] hover:bg-[#EEF4EF]">
+                      <td className="px-4 py-2 text-[#5C725C]">{fr.record_date}</td>
+                      <td className="px-4 py-2 text-xs"><span className={`px-2 py-0.5 rounded-full ${fr.record_type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'}`}>{fr.record_type === 'income' ? '收入' : '支出'}</span></td>
+                      <td className="px-4 py-2 text-[#2D442D] font-medium">{catLabel}</td>
+                      <td className={`px-4 py-2 text-right font-semibold ${fr.record_type === 'income' ? 'text-green-500' : 'text-red-400'}`}>{fr.record_type === 'income' ? '+' : '-'}¥{Number(fr.amount).toFixed(2)}</td>
+                      <td className="px-4 py-2 text-[#6B856B]">{hLabel}</td>
+                      <td className="px-4 py-2 text-xs text-[#8AA08A] max-w-[200px] truncate">{fr.notes || '-'}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center justify-center gap-1">
+                          <Perm action="edit_inventory"><button onClick={() => startEditFinance(fr)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button></Perm>
+                          <Perm action="edit_inventory"><button onClick={() => handleDeleteFinance(fr.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400/50" title="删除"><Trash2 size={13} /></button></Perm>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredFinanceRecords.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-[#9AAA9A]">暂无其他收支记录</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== 操作日志 Tab ===================== */}
+      {tab === 'logs' && (
+        <div className="space-y-4">
+          <div className="admin-table-wrap rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
+            <p className="text-[10px] text-[#A8BAA8] px-4 pt-3">
+              显示最近 {auditLogs.length} 条操作记录
+              <button onClick={() => loadTabData('logs', true)} className="ml-3 text-[#4A7C59] hover:underline inline-flex items-center gap-1">
+                <RotateCcw size={10} /> 刷新
+              </button>
+            </p>
+            <table className="w-full text-sm min-w-[700px]">
+              <thead><tr className="border-b border-[#D5E2D5]">
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A] w-40">时间</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A] w-28">操作</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A] w-24">经手人</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">详情</th>
+              </tr></thead>
+              <tbody>
+                {auditLogs.map(log => {
+                  // 从 admin_users 关联信息获取用户名
+                  const userInfo = (log as any).admin_users as { username: string; display_name?: string } | null;
+                  const userName = userInfo?.display_name || userInfo?.username || log.user_id?.slice(0, 8) || '系统';
+                  let detail = '';
+                  try {
+                    const d = typeof log.detail === 'string' ? JSON.parse(log.detail) : log.detail;
+                    if (d) {
+                      const parts: string[] = [];
+                      if (d.username) parts.push(`用户名: ${d.username}`);
+                      if (d.product_id) parts.push(`产品ID: ${d.product_id.slice(0, 8)}...`);
+                      if (d.volume_ml) parts.push(`容量: ${d.volume_ml}ml`);
+                      if (d.unit_cost) parts.push(`单价: ¥${d.unit_cost}`);
+                      if (d.amount) parts.push(`金额: ¥${Number(d.amount).toFixed(2)}`);
+                      if (d.total_amount) parts.push(`金额: ¥${Number(d.total_amount).toFixed(2)}`);
+                      if (d.notes) parts.push(`备注: ${d.notes}`);
+                      detail = parts.join(' · ');
+                    }
+                  } catch {}
+                  return (
+                    <tr key={log.id} className="border-b border-[#D5E2D5]/[0.03] hover:bg-[#EEF4EF]">
+                      <td className="px-4 py-2 text-xs text-[#5C725C] whitespace-nowrap">
+                        {new Date(log.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          log.action.includes('删除') ? 'bg-red-50 text-red-500' :
+                          log.action.includes('login') || log.action.includes('logout') ? 'bg-gray-50 text-gray-500' :
+                          'bg-blue-50 text-blue-600'
+                        }`}>{log.action}</span>
+                      </td>
+                      <td className="px-4 py-2 text-xs text-[#2D442D] font-medium">{userName}</td>
+                      <td className="px-4 py-2 text-xs text-[#6B856B] max-w-[300px] truncate">{detail || '-'}</td>
+                    </tr>
+                  );
+                })}
+                {auditLogs.length === 0 && <tr><td colSpan={4} className="px-4 py-12 text-center text-[#9AAA9A]">暂无操作日志</td></tr>}
               </tbody>
             </table>
           </div>
