@@ -30,6 +30,7 @@ const GENERAL_DICT_TYPES = [
   { value: 'supplier', label: '供货商', desc: '供货商等级与信息' },
   { value: 'extraction_method', label: '提炼方式', desc: '蒸馏萃取、压榨法等' },
   { value: 'region', label: '区域分类', desc: '欧洲、亚洲、神州等' },
+  { value: 'warehouse', label: '仓库', desc: '仓库代码（A/B/C/D等）' },
 ];
 
 // ============================================
