@@ -342,7 +342,7 @@ const SiteApp: React.FC = () => {
               transform: isExiting ? 'translateY(10px)' : 'translateY(0)',
               transitionDelay: '0.6s'
             }}>
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-[0.25em] sm:tracking-[0.3em] text-[#1A1A1A]">
+              <h2 className="text-3xl sm:text-5xl heading-luxury tracking-[0.25em] sm:tracking-[0.3em] text-[#1A1A1A]">
                 元香 UNIO
               </h2>
               <div className="h-px w-16 sm:w-20 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
@@ -376,7 +376,7 @@ const SiteApp: React.FC = () => {
             <img src={LOGO_IMG} className="w-16 h-16 sm:w-24 sm:h-24 mx-auto drop-shadow-lg" 
               style={{ animation: 'breath 2.5s ease-in-out infinite' }} alt="元香 UNIO" />
             <div className="space-y-1.5">
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-[0.25em] text-[#1A1A1A]">元香 UNIO</h2>
+              <h2 className="text-2xl sm:text-4xl heading-luxury tracking-[0.25em] text-[#1A1A1A]">元香 UNIO</h2>
               <div className="h-px w-12 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
               <p className="text-[8px] sm:text-[10px] tracking-[0.35em] text-black/20 uppercase font-bold">
                 Original · Harmony · Sanctuary
@@ -417,7 +417,7 @@ const SiteApp: React.FC = () => {
                 </svg>
               </div>
             )}
-            <div className={`w-12 h-12 sm:w-20 sm:h-20 bg-white/65 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-2.5 sm:p-3 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-[360deg] ${isLongPressComplete ? 'scale-90 bg-[#D75437]/10 border-[#D75437]/30' : longPressProgress > 0 ? 'scale-95' : ''}`}>
+            <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-white/65 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-2.5 sm:p-2.5 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-[360deg] ${isLongPressComplete ? 'scale-90 bg-[#D75437]/10 border-[#D75437]/30' : longPressProgress > 0 ? 'scale-95' : ''}`}>
               <img src={LOGO_IMG} className="w-full object-contain" alt="Logo" />
             </div>
           </div>

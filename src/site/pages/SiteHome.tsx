@@ -168,8 +168,8 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
               <div className="w-10 sm:w-12 h-px bg-[#D4AF37]/30" />
             </div>
 
-            {/* 主标题 — 移动端降为 vw 但更克制 */}
-            <h1 className="text-[8vw] sm:text-[12rem] font-bold tracking-[0.1em] sm:tracking-[0.15em] text-white leading-none drop-shadow-2xl flex items-center justify-center">
+            {/* 主标题 — 静奢风格：Light 字重 + 宽字距 */}
+            <h1 className="text-[8vw] sm:text-[12rem] heading-luxury tracking-[0.15em] sm:tracking-[0.2em] text-white leading-none drop-shadow-2xl flex items-center justify-center">
               <span className="text-white">元香</span>
               <span className="text-[0.32em] sm:text-[0.38em] ml-1.5 sm:ml-6 tracking-tight text-white/80 opacity-90 italic drop-shadow-lg">UNIO</span>
             </h1>
@@ -288,7 +288,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
             <span className="text-[8px] sm:text-[11px] tracking-[0.4em] sm:tracking-[0.5em] text-[#D4AF37] font-bold uppercase">Four Dimensions</span>
             <div className="w-10 sm:w-12 h-px bg-[#D4AF37]/30" />
           </div>
-          <h2 className="text-2xl sm:text-7xl font-bold text-[#1A1A1A]/90 tracking-tighter">
+          <h2 className="text-2xl sm:text-7xl heading-luxury tracking-[0.15em] sm:tracking-[0.2em] text-[#1A1A1A]/85">
             四维馆藏
           </h2>
           <p className="text-xs sm:text-xl text-black/25 sm:text-black/30 tracking-[0.2em] sm:tracking-[0.3em]">
@@ -365,7 +365,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                     </div>
                     <span className="text-2xl sm:text-4xl font-bold text-black/[0.03] sm:text-black/[0.04] group-hover:text-black/10 transition-colors tracking-tight">{item.num}</span>
                   </div>
-                  <h3 className="text-base sm:text-2xl font-bold text-[#1A1A1A]/85 sm:text-black/80 tracking-wide sm:tracking-wider mb-1.5 sm:mb-2">{item.title}</h3>
+                  <h3 className="text-base sm:text-2xl heading-luxury tracking-[0.15em] sm:tracking-[0.2em] text-[#1A1A1A]/80 sm:text-black/75 mb-1.5 sm:mb-2">{item.title}</h3>
                   <p className="text-[7px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-black/18 sm:text-black/20 uppercase font-bold mb-4 sm:mb-6">{item.sub}</p>
                   <p className="text-xs sm:text-base text-black/35 sm:text-black/40 leading-relaxed">{item.desc}</p>
                 </div>
@@ -379,7 +379,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       <section className="py-16 sm:py-36 px-6 bg-stone-50/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 sm:mb-24 sm:mb-32">
-            <h2 className="text-2xl sm:text-6xl font-bold text-[#1A1A1A]/90 tracking-wide sm:tracking-wider">探索元香宇宙</h2>
+            <h2 className="text-2xl sm:text-6xl heading-luxury tracking-[0.15em] sm:tracking-[0.2em] text-[#1A1A1A]/85">探索元香宇宙</h2>
             <p className="mt-2 sm:mt-4 text-base sm:text-2xl text-black/30 sm:text-black/40 tracking-[0.15em] sm:tracking-widest">EXPLORE THE UNIO UNIVERSE</p>
           </div>
 

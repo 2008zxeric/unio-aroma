@@ -8,6 +8,13 @@
   --stone-grey: #F5F5F5;
   --azure-blue: #1C39BB;
   --warm-amber: #D4AF37;
+  
+  /* Quiet Luxury 排版令牌 */
+  --heading-letter-spacing: 0.15em;
+  --heading-line-height: 1.15;
+  --body-line-height: 1.7;
+  --border-subtle: rgba(40, 40, 40, 0.12);
+  --border-light: rgba(40, 40, 40, 0.06);
 }
 
 body {
@@ -157,4 +164,34 @@ html {
 /* 给容器添加 subtle inner glow */
 .story-finale-box {
   backdrop-filter: blur(2px);
+}
+
+/* ====== Quiet Luxury / 静奢风格 工具类 ====== */
+
+/* 大标题 — 加宽字距，仅用 Light 字重 */
+.heading-luxury {
+  font-family: 'Cinzel', 'Noto Serif SC', serif;
+  font-weight: 300;
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: var(--heading-line-height);
+}
+
+/* 静奢白底边框 */
+.border-subtle {
+  border-width: 1px;
+  border-color: var(--border-subtle);
+}
+.border-light {
+  border-width: 1px;
+  border-color: var(--border-light);
+}
+.hr-subtle {
+  border: none;
+  height: 1px;
+  background-color: var(--border-subtle);
+}
+
+/* 正文行高 */
+.body-luxury {
+  line-height: var(--body-line-height);
 }
