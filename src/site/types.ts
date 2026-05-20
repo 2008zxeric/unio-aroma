@@ -112,9 +112,9 @@ export const SERIES_CONFIG: Record<SeriesCode, {
     icon: 'shield'
   },
   he: {
-    name_cn: '和',
+    name_cn: '合',
     name_en: 'Harmony',
-    fullName_cn: '和 · 复方',
+    fullName_cn: '合 · 复方',
     fullName_en: 'Clinical Blends',
     description: '科学频率重构',
     icon: 'sparkles'
@@ -146,7 +146,7 @@ export const ELEMENT_LABELS: Record<string, string> = {
   fire: 'Fire · 火（花）',
   earth: 'Earth · 土（根/树脂）',
   base: 'Base · 基础油',
-  // 和·身心
+  // 合·身心
   body: 'Body · 身体',
   mind: 'Mind · 心智',
   soul: 'Soul · 灵魂',

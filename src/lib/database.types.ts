@@ -36,7 +36,7 @@ export const SUB_CATEGORY_LABELS: Record<SubCategory, string> = {
 // ---- 系列信息映射 ----
 export const SERIES_INFO: Record<SeriesCode, { name_cn: string; name_en: string; slogan: string; subCategories: SubCategory[] }> = {
   yuan: { name_cn: '元', name_en: 'Yuan', slogan: '元 · 单方 / 极境生存原力', subCategories: ['fire', 'metal', 'wood', 'water', 'earth', 'base'] },
-  he:   { name_cn: '和', name_en: 'He',   slogan: '和 · 复方 / 科学频率重构', subCategories: ['body', 'mind', 'soul'] },
+  he:   { name_cn: '合', name_en: 'He',   slogan: '合 · 复方 / 科学频率重构', subCategories: ['body', 'mind', 'soul'] },
   sheng:{ name_cn: '生', name_en: 'Sheng', slogan: '生 · 纯露 / 植物生命之水', subCategories: ['clear', 'nourish', 'soothe'] },
   jing: { name_cn: '香', name_en: 'Jing', slogan: '香 · 空间 / 极简芳香美学', subCategories: ['aesthetic', 'meditation'] },
 };

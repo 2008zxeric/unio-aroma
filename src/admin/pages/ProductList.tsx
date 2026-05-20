@@ -382,7 +382,7 @@ export default function AdminProducts() {
     const groups: { code: string; name: string; label: string; color: string; products: Product[] }[] = [];
     const seriesOrder = [
       { code: 'yuan', name: '元·单方', label: '极境生存原力', color: '#D4AF37' },
-      { code: 'he',   name: '和·复方', label: '科学频率重构', color: '#60A5FA' },
+      { code: 'he',   name: '合·复方', label: '科学频率重构', color: '#60A5FA' },
       { code: 'sheng', name: '生·纯露', label: '植物生命之水', color: '#4ADE80' },
       { code: 'jing', name: '香·空间', label: '极简芳香美学', color: '#A78BFA' },
     ];
@@ -746,7 +746,7 @@ export default function AdminProducts() {
             className="px-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-xl text-sm text-[#1A2E1A] focus:outline-none min-w-[150px]">
             <option value="">🏷️ 全部子分类</option>
             <optgroup label="🔥 元·单方"><option value="fire">Fire · 火（花）</option><option value="metal">Metal · 金（果实/种子）</option><option value="wood">Wood · 木（木质/树皮）</option><option value="water">Water · 水（叶/草）</option><option value="earth">Earth · 土（根/树脂）</option><option value="base">Base · 基础油</option></optgroup>
-            <optgroup label="⚗️ 和·复方"><option value="body">身体</option><option value="mind">心智</option><option value="soul">灵魂</option></optgroup>
+            <optgroup label="⚗️ 合·复方"><option value="body">身体</option><option value="mind">心智</option><option value="soul">灵魂</option></optgroup>
             <optgroup label="💧 生·纯露"><option value="clear">清净</option><option value="nourish">润养</option><option value="soothe">舒缓</option></optgroup>
             <optgroup label="✨ 香·空间"><option value="aesthetic">芳香美学</option><option value="meditation">凝思之物</option></optgroup>
           </select>
@@ -1352,7 +1352,7 @@ function ProductEditFormV4({
                   className="w-full bg-white border border-[#D5E2D5] rounded-lg px-3 py-2.5 text-sm text-[#1A2E1A] focus:border-[#4A7C59] outline-none">
                   <option value="">→ 选择系列...</option>
                   <option value="yuan">🔥 元 · 单方 / 极境生存原力</option>
-                  <option value="he">⚗️ 和 · 复方 / 科学频率重构</option>
+                  <option value="he">⚗️ 合 · 复方 / 科学频率重构</option>
                   <option value="sheng">💧 生 · 纯露 / 植物生命之水</option>
                   <option value="jing">✨ 香 · 空间 / 极简芳香美学</option>
                 </select>

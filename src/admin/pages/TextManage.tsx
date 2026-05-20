@@ -40,7 +40,7 @@ export function AdminTexts() {
     collections: [
       { key: 'series_yuan_title', desc: '元·单方 标题', defaultValue: '元 · 单方精油' },
       { key: 'series_yuan_desc', desc: '元·单方 描述', defaultValue: '' },
-      { key: 'series_he_title', desc: '和·复方 标题', defaultValue: '和 · 复方油' },
+      { key: 'series_he_title', desc: '合·复方 标题', defaultValue: '合 · 复方油' },
       { key: 'series_sheng_title', desc: '生·纯露 标题', defaultValue: '生 · 纯露' },
       { key: 'series_xiang_title', desc: '香·空间 标题', defaultValue: '香 · 空间香氛' },
     ],

@@ -296,7 +296,7 @@ const SiteApp: React.FC = () => {
               <div className="w-full h-full border border-[#D75437]/10 rounded-full animate-[spin-slow_40s_linear_infinite]" 
                 style={{ clipPath: 'inset(0 50% 50% 0)' }} />
             </div>
-            {/* 恒·绿环 */}
+            {/* 合·绿环 */}
             <div className="absolute w-80 h-80 sm:w-[28rem] sm:h-[28rem]" style={{
               top: '50%', left: '50%',
               transform: `translate(-50%, -50%) ${isExiting ? 'scale(1.6)' : 'scale(0.9)'}`,

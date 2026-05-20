@@ -452,7 +452,7 @@ export default function SeriesManagement() {
       <div className="bg-[#FAFCFA] rounded-xl border border-[#E0ECE0] px-5 py-4">
         <p className="text-xs text-[#9AAA9A] leading-relaxed">
           <strong className="text-[#5C725C]">💡 提示：</strong>
-          系列是产品的顶级分类，目前固定 4 个（元·精油 / 恒·复方 / 生·纯露 / 境·香道）。
+          系列是产品的顶级分类，目前固定 4 个（元·精油 / 合·复方 / 生·纯露 / 境·香道）。
           排序影响前台展示顺序，下架后该系列不会在前台显示。修改系列代码会影响已关联产品的分类。
         </p>
       </div>

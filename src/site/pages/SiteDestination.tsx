@@ -96,7 +96,7 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
   const groupedProducts = useMemo(() => {
     if (!country?.product_ids || country.product_ids.length === 0) return [];
     const themeMap: Record<string, string> = {
-      yuan: '元 · 极境单方', he: '和 · 复方疗愈',
+      yuan: '元 · 极境单方', he: '合 · 复方疗愈',
       sheng: '生 · 植物纯露', jing: '香 · 空间美学'
     };
     const relatedProducts = products.filter(p => country.product_ids!.includes(p.id));

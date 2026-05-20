@@ -239,7 +239,7 @@ const BANNER_ADS: Record<string, string> = {
 // 系列展示主题
 const seriesThemes: Record<string, { label: string; fullLabel: string; en: string; color: string }> = {
   yuan: { label: '元', fullLabel: '元 · 单方', en: 'ORIGIN · SINGLES', color: '#D75437' },
-  he:   { label: '和', fullLabel: '和 · 复方', en: 'HARMONY · BLENDS', color: '#1C39BB' },
+  he:   { label: '合', fullLabel: '合 · 复方', en: 'HARMONY · BLENDS', color: '#1C39BB' },
   sheng:{ label: '生', fullLabel: '生 · 纯露', en: 'LIFE · HYDROSOL', color: '#1A2E1A' },
   jing: { label: '香', fullLabel: '香 · 空间', en: 'SANCTUARY · AROMA', color: '#D4AF37' },
 };

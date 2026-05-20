@@ -9,7 +9,7 @@ const LOGO_IMG = '/logo.svg';
 const ADMIN_ACCOUNTS = [
   { username: 'eric', label: 'Eric', desc: '超级管理员', role: 'super_admin' as AdminRole },
   { username: 'yuan', label: '元', desc: '超级管理员', role: 'super_admin' as AdminRole },
-  { username: 'he', label: '和', desc: '管理员', role: 'admin' as AdminRole },
+  { username: 'he', label: '合', desc: '管理员', role: 'admin' as AdminRole },
   { username: 'sheng', label: '生', desc: '查看者', role: 'viewer' as AdminRole },
 ];
 
