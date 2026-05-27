@@ -17,7 +17,20 @@
     <link rel="preload" href="/logo.svg" as="image" />
 </head>
 <body class="bg-[#F5F5F5]">
-    <div id="root"></div>
+    <div id="root"><!-- 骨架屏：JS 加载前立即显示 -->
+<style>
+  @keyframes s-pulse { 0%,100%{opacity:.4} 50%{opacity:.8} }
+  .s-s{animation:s-pulse 1.6s ease-in-out infinite;background:linear-gradient(135deg,#D4AF3712,#D7543708);}
+  .s-cir{border-radius:999px;}.s-bar{border-radius:6px;}
+</style>
+<div class="s-s s-cir" style="width:60px;height:60px;position:fixed;top:32px;left:32px;"></div>
+<div class="s-s s-bar" style="width:46px;height:6px;position:fixed;top:44px;right:32px;"></div>
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:24px;padding:0 32px;">
+  <div class="s-s s-cir" style="width:80px;height:80px;"></div>
+  <div class="s-s s-bar" style="width:200px;height:16px;"></div>
+  <div class="s-s s-bar" style="width:120px;height:10px;"></div>
+</div>
+</div>
     <script type="module" src="index.tsx"></script>
 </body>
 </html>

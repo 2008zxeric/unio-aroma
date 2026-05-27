@@ -28,6 +28,15 @@ body {
 .font-serif-zh { font-family: "Noto Serif SC", serif; }
 
 /* Animations */
+/* 骨架屏品牌色脉冲 */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.skeleton-brand {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(215,84,55,0.05));
+}
 @keyframes luxuryReveal {
   0% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; transform: scale(1.1); }
   100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
@@ -168,10 +177,10 @@ html {
 
 /* ====== Quiet Luxury / 静奢风格 工具类 ====== */
 
-/* 大标题 — 加宽字距，仅用 Light 字重 */
+/* 大标题 — 加宽字距 */
 .heading-luxury {
   font-family: 'Cinzel', 'Noto Serif SC', serif;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: var(--heading-letter-spacing);
   line-height: var(--heading-line-height);
 }

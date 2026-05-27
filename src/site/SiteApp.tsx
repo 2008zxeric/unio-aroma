@@ -494,8 +494,14 @@ const SiteApp: React.FC = () => {
         }`}
       >
         <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 border-3 border-[#D4AF37]/18 border-t-[#D4AF37] rounded-full animate-spin" />
+          <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-8">
+            {/* Logo 骨架圆 */}
+            <div className="w-20 h-20 rounded-full skeleton-brand" />
+            {/* 标题骨架 */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-[200px] h-4 rounded-md skeleton-brand" />
+              <div className="w-[120px] h-2.5 rounded-md skeleton-brand" />
+            </div>
           </div>
         }>
           {renderView()}

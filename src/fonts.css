@@ -5,24 +5,17 @@
 @import '@fontsource/cinzel/400.css';
 @import '@fontsource/cinzel/700.css';
 
-/* Inter（UI文字） */
-@import '@fontsource/inter/300.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
+/* Inter（UI文字）— 仅 latin 子集 */
+@import '@fontsource/inter/latin-300.css';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
 
 /* Noto Serif SC（中文正文）
-   — 只导入 chinese-simplified + latin 两个子集
-   — 只导入实际使用的字重（200/300/400/500/600/700）
-   — 砍掉 cyrillic/vietnamese/latin-ext 等无用子集 */
-@import '@fontsource/noto-serif-sc/chinese-simplified-300.css';
+   — chinese-simplified + latin 两个子集
+   — 仅保留 400（正文）+ 700（粗体），去掉 300/500/600 */
 @import '@fontsource/noto-serif-sc/chinese-simplified-400.css';
-@import '@fontsource/noto-serif-sc/chinese-simplified-500.css';
-@import '@fontsource/noto-serif-sc/chinese-simplified-600.css';
 @import '@fontsource/noto-serif-sc/chinese-simplified-700.css';
-@import '@fontsource/noto-serif-sc/latin-300.css';
 @import '@fontsource/noto-serif-sc/latin-400.css';
-@import '@fontsource/noto-serif-sc/latin-500.css';
-@import '@fontsource/noto-serif-sc/latin-600.css';
 @import '@fontsource/noto-serif-sc/latin-700.css';
