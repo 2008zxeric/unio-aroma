@@ -392,10 +392,7 @@ export default function AdminInventory() {
         // 其他数据按需加载，不在首屏预加载
       }
       
-      // 库存概览 Tab
-      if (currentTab === 'overview') {
-        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
-      }
+      // 库存概览 Tab — 首屏需要 summaries + financeRecords（看板卡片用到其他收支）\n      if (currentTab === 'overview') {\n        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));\n        promises.push(financeRecordService.getAll().catch(() => []).then(d => setFinanceRecords(d as any)));\n      }
       // 进货记录 Tab
       if (currentTab === 'purchases') {
         promises.push(purchaseService.getAll().then(d => setPurchases(d)));
@@ -1398,6 +1395,7 @@ export default function AdminInventory() {
                   <SortableTh field="cost" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>成本(¥)</SortableTh>
                   <SortableTh field="revenue" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>收入(¥)</SortableTh>
                   <SortableTh field="profit" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>利润(¥)</SortableTh>
+                  <th className="text-center px-2 py-3 text-xs font-medium text-[#8AA08A] w-12">操作</th>
                 </tr></thead>
                 <tbody>
                   {sortedSummaries.map(s => {
@@ -1419,11 +1417,27 @@ export default function AdminInventory() {
                         <td className="px-4 py-2.5 text-right text-[#8AA08A]">¥{s.total_cost.toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-right text-[#3D5C3D]">¥{s.total_revenue.toFixed(2)}</td>
                         <td className={`px-4 py-2.5 text-right font-semibold ${s.total_profit >= 0 ? 'text-green-500' : 'text-red-400'}`}>¥{s.total_profit.toFixed(2)}</td>
+                        <td className="px-2 py-2.5 text-center">
+                          <div className="flex items-center gap-1 justify-center">
+                            <button
+                              onClick={() => { setShowPurchaseForm(true); setEditingPurchase(null); setTab('purchases'); setTimeout(() => { setPurchaseForm(f => ({ ...f, product_id: s.product_id })); document.getElementById('purchase-form')?.scrollIntoView({ behavior: 'smooth' }); }, 100); }}
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-medium transition-colors border border-emerald-200"
+                              title="快速进货"
+                            >+进货</button>
+                            {s.current_stock_ml < 0 && (
+                              <Perm action="edit_inventory"><button
+                                onClick={() => handleStockZero(s.product_id, s.product_name, s.current_stock_ml)}
+                                className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 font-medium transition-colors"
+                                title="补录进货运单归零"
+                              >归零</button></Perm>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
                   {sortedSummaries.length === 0 && (
-                    <tr><td colSpan={9} className="px-4 py-12 text-center text-[#9AAA9A]">
+                    <tr><td colSpan={10} className="px-4 py-12 text-center text-[#9AAA9A]">
                       {summaries.length === 0 ? '暂无库存数据，请先录入进货记录' : '没有符合筛选条件的产品'}
                     </td></tr>
                   )}
@@ -1502,7 +1516,7 @@ export default function AdminInventory() {
 
           {/* 进货表单 */}
           {showPurchaseForm && (
-            <div className="rounded-xl bg-white border border-[#D5E2D5] p-4 sm:p-5 space-y-4">
+            <div id="purchase-form" className="rounded-xl bg-white border border-[#D5E2D5] p-4 sm:p-5 space-y-4">
               <h4 className="font-semibold text-[#1A2E1A] flex items-center justify-between">
                 {editingPurchase ? '编辑进货记录' : '录入进货记录'}
                 <button onClick={cancelPurchaseForm} className="p-1 hover:bg-[#EEF4EF] rounded text-[#6B856B]"><X size={16} /></button>
