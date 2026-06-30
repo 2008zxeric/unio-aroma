@@ -303,12 +303,12 @@ export default function ImageLibrary() {
       {/* 顶栏 */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#E8F3EC] flex items-center justify-center flex-shrink-0">
-            <ImageIcon size={22} className="text-[#4A7C59]" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <ImageIcon size={24} className="text-emerald-600" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-[#1A2E1A]">图片库</h1>
-            <p className="text-xs text-[#9AAA9A] truncate">
+            <h1 className="text-2xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">图片库</h1>
+            <p className="text-sm text-slate-400 truncate">
               共 {totalCount} 个文件 · {uploading ? `上传中 ${uploadProgress}%` : '拖拽或点击上传'}
             </p>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLE_LABELS } from '../../lib/auth';
 import type { AdminRole } from '../../lib/auth';
+import { Shield, Fingerprint, ArrowLeft } from 'lucide-react';
 
 const LOGO_IMG = '/logo.svg';
 
@@ -28,20 +29,11 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setError('请输入用户名');
-      return;
-    }
-    if (!pwd) {
-      setError('请输入密码');
-      return;
-    }
+    if (!username.trim()) { setError('请输入用户名'); return; }
+    if (!pwd) { setError('请输入密码'); return; }
     setLoading(true);
     setError('');
-
-    // 防暴力破解延迟
     await new Promise(r => setTimeout(r, 600));
-
     const result = await login(username.trim(), pwd);
     if (result.success) {
       navigate('/admin', { replace: true });
@@ -54,37 +46,45 @@ export default function AdminLogin() {
     setLoading(false);
   };
 
-  // 找匹配账户用于展示角色信息
   const matchedAccount = ADMIN_ACCOUNTS.find(a => a.username === username.trim().toLowerCase());
   const matchedRoleInfo = matchedAccount ? ROLE_LABELS[matchedAccount.role] : null;
 
   return (
-    <div className="min-h-screen bg-[#F4F7F4] flex items-center justify-center px-4 mobile-bottom-pad">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#4A7C59]/5 rounded-full blur-3xl max-sm:opacity-50" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#7BA689]/8 rounded-full blur-3xl max-sm:opacity-50" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 flex items-center justify-center px-4 mobile-bottom-pad relative overflow-hidden">
+      {/* 科技感背景装饰 */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* 网格线 */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }} />
+        {/* 光晕 */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 -right-20 w-80 h-80 bg-teal-400/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-3xl" />
       </div>
 
       <div className={`relative w-full max-w-sm ${shake ? 'animate-shake' : ''}`}>
-        {/* 卡片 */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-[#4A7C59]/10 border border-[#E0ECE0] sm:p-8 p-6 space-y-6">
-          {/* Logo */}
+        {/* 卡片 — 玻璃拟态 */}
+        <div className="bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl shadow-black/30 sm:p-8 p-6 space-y-6">
+          {/* Logo + 标题 */}
           <div className="text-center space-y-3">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#4A7C59] to-[#7BA689] flex items-center justify-center shadow-lg shadow-[#4A7C59]/25 p-3">
-              <img src={LOGO_IMG} className="w-full object-contain drop-shadow" alt="UNIO" />
+            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 p-3 ring-1 ring-white/20">
+              <img src={LOGO_IMG} className="w-full object-contain brightness-0 invert" alt="UNIO" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#1A2E1A] tracking-widest">UNIO AROMA</h1>
-              <p className="text-xs text-[#9AAA9A] tracking-widest uppercase mt-1">管理系统</p>
+              <h1 className="text-2xl font-bold text-white tracking-widest">UNIO AROMA</h1>
+              <p className="text-sm text-slate-400 tracking-[0.3em] uppercase mt-1 flex items-center justify-center gap-2">
+                <Shield size={12} className="text-emerald-400" />
+                管理系统
+              </p>
             </div>
           </div>
 
           {/* 表单 */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* 用户名输入 */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#5C725C] tracking-wider uppercase">用户名</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-400 tracking-wider uppercase">用户名</label>
               <input
                 type="text"
                 value={username}
@@ -92,24 +92,23 @@ export default function AdminLogin() {
                 placeholder="请输入用户名"
                 autoFocus
                 autoComplete="username"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all touch-btn"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all hover:border-white/20"
               />
             </div>
 
-            {/* 密码 */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#5C725C] tracking-wider uppercase">密码</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-400 tracking-wider uppercase">密码</label>
               <input
                 type="password"
                 value={pwd}
                 onChange={e => setPwd(e.target.value)}
                 placeholder="请输入密码"
                 autoComplete="current-password"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#E0ECE0] bg-[#F8FAF8] text-[#1A2E1A] text-sm placeholder:text-[#C0CCC0] focus:outline-none focus:ring-2 focus:ring-[#4A7C59]/30 focus:border-[#4A7C59] transition-all touch-btn"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all hover:border-white/20"
               />
               {error && (
-                <p className="text-xs text-red-500 flex items-center gap-1.5 mt-1">
-                  <span className="w-1 h-1 rounded-full bg-red-500 inline-block" />
+                <p className="text-xs text-rose-400 flex items-center gap-1.5 mt-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block" />
                   {error}
                 </p>
               )}
@@ -117,49 +116,55 @@ export default function AdminLogin() {
 
             {/* 角色提示 */}
             {matchedRoleInfo && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#F4F7F4] border border-[#E0ECE0]/50">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: matchedRoleInfo.color }} />
-                <span className="text-xs text-[#5C725C]">
-                  <span className="font-medium">{matchedAccount?.label}</span>
-                  <span className="text-[#9AAA9A] ml-1">— {matchedRoleInfo.desc}</span>
+              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-transparent" style={{ backgroundColor: matchedRoleInfo.color, boxShadow: `0 0 8px ${matchedRoleInfo.color}40` }} />
+                <span className="text-sm text-slate-300">
+                  <span className="font-medium text-white">{matchedAccount?.label}</span>
+                  <span className="text-slate-500 ml-1.5">— {matchedRoleInfo.desc}</span>
                 </span>
               </div>
             )}
 
-            {/* 可用账户列表 */}
+            {/* 可用账户 */}
             {!matchedAccount && username.length > 0 && (
-              <div className="text-xs text-[#9AAA9A] text-center leading-relaxed">
-                可用账户：<span className="text-[#5C725C]">Eric</span> / <span className="text-[#5C725C]">元</span> / <span className="text-[#5C725C]">和</span> / <span className="text-[#5C725C]">生</span>
+              <div className="text-xs text-slate-500 text-center">
+                可用账户：<span className="text-emerald-400 font-medium">Eric</span> / <span className="text-emerald-400 font-medium">元</span> / <span className="text-emerald-400 font-medium">和</span> / <span className="text-emerald-400 font-medium">生</span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading || !username.trim() || !pwd}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#4A7C59] to-[#5E9470] text-white text-sm font-bold tracking-widest uppercase transition-all duration-200 hover:shadow-lg hover:shadow-[#4A7C59]/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none touch-btn"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-bold tracking-widest uppercase transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
+                <>
                   <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                   </svg>
                   验证中…
-                </span>
-              ) : '进入后台'}
+                </>
+              ) : (
+                <>
+                  <Fingerprint size={16} />
+                  进入后台
+                </>
+              )}
             </button>
           </form>
 
           {/* 返回前台 */}
           <div className="text-center">
-            <a href="/" className="inline-block px-6 py-2.5 -mx-6 -my-2.5 text-xs text-[#9AAA9A] hover:text-[#5C725C] transition-colors active:text-[#5C725C]">
-              ← 返回前台
+            <a href="/" className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-slate-500 hover:text-emerald-400 transition-colors">
+              <ArrowLeft size={14} />
+              返回前台
             </a>
           </div>
         </div>
 
-        {/* 提示 */}
-        <p className="text-center text-[10px] text-[#C0CCC0] mt-6 tracking-wider">
+        {/* 底部提示 */}
+        <p className="text-center text-xs text-slate-600 mt-6 tracking-wider">
           在前台长按 Logo 3 秒可进入此页面
         </p>
       </div>

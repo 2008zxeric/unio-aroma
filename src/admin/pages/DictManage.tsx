@@ -42,8 +42,8 @@ export function AdminDicts() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#1A2E1A]">字典管理</h2>
-        <p className="text-sm text-[#6B856B] mt-1">管理产品分类体系、供货商、提炼方式等枚举数据</p>
+        <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">字典管理</h2>
+        <p className="text-base text-slate-500 mt-1">管理产品分类体系、供货商、提炼方式等枚举数据</p>
       </div>
 
       {/* Tab 切换 */}

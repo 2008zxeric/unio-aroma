@@ -139,8 +139,8 @@ export default function WelcomeVideo() {
     <div className="space-y-6 mobile-bottom-pad max-w-2xl">
       {/* 标题 */}
       <div>
-        <h2 className="text-2xl font-bold text-[#1A2E1A]">首页欢迎视频</h2>
-        <p className="text-sm text-[#6B856B] mt-1">
+        <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">首页欢迎视频</h2>
+        <p className="text-base text-slate-500 mt-1">
           上传一个短片作为首页欢迎视频，首次访问时全屏播放一次
         </p>
       </div>

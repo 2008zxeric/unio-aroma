@@ -105,8 +105,8 @@ export function AdminTexts() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#1A2E1A]">文字管理</h2>
-        <p className="text-sm text-[#6B856B] mt-1">编辑网站各页面显示的文字内容</p>
+        <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">文字管理</h2>
+        <p className="text-base text-slate-500 mt-1">编辑网站各页面显示的文字内容</p>
       </div>
 
       {/* 页面切换 */}

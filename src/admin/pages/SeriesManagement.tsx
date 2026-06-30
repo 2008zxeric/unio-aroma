@@ -141,12 +141,12 @@ export default function SeriesManagement() {
       {/* 顶栏 */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D75437]/10 to-[#D4AF37]/10 flex items-center justify-center">
-            <Layers size={22} className="text-[#D75437]" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/10 to-amber-500/10 flex items-center justify-center shadow-sm">
+            <Layers size={24} className="text-rose-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#1A2E1A]">系列管理</h1>
-            <p className="text-xs text-[#9AAA9A]">
+            <h1 className="text-2xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">系列管理</h1>
+            <p className="text-sm text-slate-400">
               {series.filter(s => s.is_active).length} 个激活 · 共 {series.length} 个
             </p>
           </div>
@@ -154,16 +154,16 @@ export default function SeriesManagement() {
         <div className="flex items-center gap-2">
           <button
             onClick={loadSeries}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#E0ECE0] hover:bg-[#F4F7F4] rounded-xl text-xs text-[#5C725C] transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 hover:shadow-sm rounded-xl text-sm text-slate-600 transition-all duration-200"
           >
-            <RefreshCw size={14} /> 刷新
+            <RefreshCw size={16} /> 刷新
           </button>
           <Perm action="edit_dicts">
             <button
               onClick={openNew}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl text-xs font-semibold transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-emerald-500/25"
             >
-              <Plus size={14} /> 新建系列
+              <Plus size={16} /> 新建系列
             </button>
           </Perm>
         </div>

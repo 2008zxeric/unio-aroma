@@ -334,17 +334,17 @@ export default function AdminCountries() {
       {/* 标题栏 */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A2E1A]">国家管理</h2>
-          <p className="text-sm text-[#6B856B] mt-1">
+          <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">国家管理</h2>
+          <p className="text-base text-slate-500 mt-1">
             管理全球极境国家/地区信息、到访次数、解锁状态、
-            <span className="text-[#7BA689]/70">关联产品</span>、Eric 相册等
+            <span className="text-emerald-500/70">关联产品</span>、Eric 相册等
           </p>
         </div>
         <Perm action="edit_countries"><button
           onClick={startCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#4A7C59] hover:bg-[#3D6B4A] text-white rounded-xl font-medium text-sm transition-colors"
+          className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white rounded-xl font-semibold text-base transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-emerald-500/25"
         >
-          <Plus size={16} /> 添加国家
+          <Plus size={18} /> 添加国家
         </button></Perm>
       </div>
 

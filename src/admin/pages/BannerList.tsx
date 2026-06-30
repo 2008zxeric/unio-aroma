@@ -124,8 +124,8 @@ export default function AdminBanners() {
     <div className="space-y-6 mobile-bottom-pad">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A2E1A]">图片位管理</h2>
-          <p className="text-sm text-[#6B856B] mt-1">管理网站各页面的所有图片，按需替换，前台自动更新</p>
+          <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">图片位管理</h2>
+          <p className="text-base text-slate-500 mt-1">管理网站各页面的所有图片，按需替换，前台自动更新</p>
         </div>
       </div>
 

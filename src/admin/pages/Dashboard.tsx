@@ -125,6 +125,7 @@ export default function AdminDashboard() {
           color: '#4A7C59',
           bgColor: 'rgba(74,124,89,0.12)',
           trend: { value: `${activeProducts} 上架`, up: true },
+          linkTo: '/admin/products',
         },
         {
           title: '国家/地区',
@@ -133,6 +134,7 @@ export default function AdminDashboard() {
           color: '#1C39BB',
           bgColor: 'rgba(28,57,187,0.1)',
           trend: { value: `${activeCountries} 激活`, up: true },
+          linkTo: '/admin/countries',
         },
         {
           title: '评价审核',
@@ -141,6 +143,7 @@ export default function AdminDashboard() {
           color: '#D4AF37',
           bgColor: 'rgba(212,175,55,0.12)',
           trend: { value: `共 ${totalReviews} 条`, up: true },
+          linkTo: '/admin/reviews',
         },
         {
           title: '库存预警',
@@ -149,6 +152,7 @@ export default function AdminDashboard() {
           color: '#E85D3B',
           bgColor: 'rgba(232,93,59,0.1)',
           trend: lowStockCount > 0 ? { value: `${lowStockCount} 个产品`, up: false } : undefined,
+          linkTo: '/admin/inventory?tab=overview',
         },
         {
           title: '海报/Banner',

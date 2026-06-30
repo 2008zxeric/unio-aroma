@@ -65,13 +65,13 @@ export default function AuditLogPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A2E1A]">操作日志</h2>
-          <p className="text-sm text-[#6B856B] mt-1">记录所有后台操作，包括上下架、内容修改、登录等</p>
+          <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">操作日志</h2>
+          <p className="text-base text-slate-500 mt-1">记录所有后台操作，包括上下架、内容修改、登录等</p>
         </div>
         <button
           onClick={loadLogs}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#F4F7F4] text-[#5C725C] rounded-xl text-sm font-medium hover:bg-[#E8F3EC] transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 rounded-xl text-base font-medium hover:shadow-md hover:shadow-slate-200/50 transition-all duration-200 disabled:opacity-50 border border-slate-200"
         >
           <RotateCcw size={14} className={loading ? 'animate-spin' : ''} />
           刷新
@@ -79,23 +79,23 @@ export default function AuditLogPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-[#6B856B]">加载中...</div>
+        <div className="text-center py-20 text-slate-500">加载中...</div>
       ) : logs.length === 0 ? (
-        <div className="text-center py-20 text-[#8AA08A]">
-          <ScrollText size={48} className="mx-auto mb-4 opacity-30" />
-          <p>暂无操作日志</p>
+        <div className="text-center py-20 text-slate-400">
+          <ScrollText size={56} className="mx-auto mb-4 opacity-30" />
+          <p className="text-base">暂无操作日志</p>
         </div>
       ) : (
-        <div className="rounded-xl bg-white border border-[#E0ECE0] overflow-hidden">
+        <div className="rounded-xl bg-white border border-slate-200 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
-                <tr className="border-b border-[#E0ECE0] bg-[#F8FAF8]">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">时间</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">操作人</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">操作</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">对象</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#7A967A] uppercase tracking-wider">详情</th>
+                <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-emerald-50/50">
+                  <th className="text-left px-4 py-3.5 text-sm font-semibold text-slate-600 uppercase tracking-wider">时间</th>
+                  <th className="text-left px-4 py-3.5 text-sm font-semibold text-slate-600 uppercase tracking-wider">操作人</th>
+                  <th className="text-left px-4 py-3.5 text-sm font-semibold text-slate-600 uppercase tracking-wider">操作</th>
+                  <th className="text-left px-4 py-3.5 text-sm font-semibold text-slate-600 uppercase tracking-wider">对象</th>
+                  <th className="text-left px-4 py-3.5 text-sm font-semibold text-slate-600 uppercase tracking-wider">详情</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,24 +107,24 @@ export default function AuditLogPage() {
                   const color = ACTION_COLORS[log.action] || 'bg-gray-100 text-gray-500';
 
                   return (
-                    <tr key={log.id} className="border-b border-[#E0ECE0]/30 hover:bg-[#F8FAF8]">
-                      <td className="px-4 py-3 text-xs text-[#7A967A] whitespace-nowrap">
+                    <tr key={log.id} className="border-b border-slate-200/30 hover:bg-emerald-50/40 transition-all duration-200">
+                      <td className="px-4 py-3.5 text-sm text-slate-500 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <Clock size={12} />
                           {log.created_at ? new Date(log.created_at).toLocaleString('zh-CN') : '-'}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="text-[#1A2E1A] font-medium">{userName}</span>
+                      <td className="px-4 py-3.5">
+                        <span className="text-slate-800 font-semibold">{userName}</span>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium ${color}`}>
+                      <td className="px-4 py-3.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-semibold ${color}`}>
                           {icon}
                           {actionLabel}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[#5C725C]">{targetLabel}</td>
-                      <td className="px-4 py-3 text-xs text-[#8AA08A] max-w-[200px] truncate">
+                      <td className="px-4 py-3.5 text-slate-600 text-base">{targetLabel}</td>
+                      <td className="px-4 py-3.5 text-sm text-slate-500 max-w-[200px] truncate">
                         {log.detail ? JSON.stringify(log.detail) : '-'}
                       </td>
                     </tr>

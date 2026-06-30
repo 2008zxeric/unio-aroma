@@ -35,9 +35,10 @@ export default function AdminInventory() {
   const [filterSeries, setFilterSeries] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterKeyword, setFilterKeyword] = useState('');
-  const [filterStockStatus, setFilterStockStatus] = useState<'all' | 'instock' | 'low' | 'zero'>('all');
+  const [filterStockStatus, setFilterStockStatus] = useState<'all' | 'instock' | 'low' | 'zero' | 'positive'>('all');
   const [showOverviewFilter, setShowOverviewFilter] = useState(false);
   const [overviewSort, setOverviewSort] = useState<{ field: string; dir: 'asc' | 'desc' }>({ field: 'stock', dir: 'asc' });
+  const [showProfitDetail, setShowProfitDetail] = useState(false);
 
   // 进货/销售记录筛选
   const [purFilterSeries, setPurFilterSeries] = useState('');
@@ -475,6 +476,7 @@ export default function AdminInventory() {
       if (filterStockStatus === 'low' && !(s.current_stock_ml > 0 && s.current_stock_ml < 10)) return false;
       if (filterStockStatus === 'zero' && s.current_stock_ml !== 0) return false;
       if (filterStockStatus === 'instock' && s.current_stock_ml < 10) return false;
+      if (filterStockStatus === 'positive' && s.current_stock_ml <= 0) return false;
       if (filterKeyword) {
         const kw = filterKeyword.toLowerCase();
         if (!s.product_name.toLowerCase().includes(kw) && !s.product_id.includes(kw)) return false;
@@ -621,6 +623,29 @@ export default function AdminInventory() {
   const resetSalFilters = () => {
     setSalFilterSeries(''); setSalFilterKeyword(''); setSalFilterDateFrom(''); setSalFilterDateTo(''); setSalFilterHandler(''); setSalFilterWarehouse('');
     setSalSortField('date'); setSalSortDir('desc');
+  };
+
+  // ---- 一键归零负数库存 ----
+  const handleStockZero = async (productId: string, productName: string, negAmount: number) => {
+    const fixMl = Math.abs(negAmount);
+    const msg = `将「${productName}」库存从 ${negAmount}ml 调整为 0ml？
+
+系统会添加一条 ${fixMl}ml 的进货记录（成本 ¥0）来冲抵。`;
+    if (!confirm(msg)) return;
+    try {
+      await purchaseService.create({
+        product_id: productId,
+        purchase_date: new Date().toISOString().split('T')[0],
+        volume_ml: fixMl,
+        unit_cost: 0,
+        total_cost: 0,
+        supplier_code: '',
+        warehouse: '',
+        handler: user?.display_name || user?.username || 'admin',
+      });
+      success(`「${productName}」库存已归零（补录 ${fixMl}ml）`);
+      await loadTabData(tab, true);
+    } catch (err: any) { error('归零失败：' + err.message); }
   };
 
   // ---- 进货操作 ----
@@ -1170,24 +1195,27 @@ export default function AdminInventory() {
         const totalExpense = totalCostAll + totalOtherExpense;
         const retainedProfit = totalIncome - totalExpense;
         const lowStockCount = summaries.filter(s => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
-        const zeroStockCount = summaries.filter(s => s.current_stock_ml === 0).length;
+        const zeroStockCount = summaries.filter(s => s.current_stock_ml <= 0).length;
+        const positiveStockTotal = summaries.reduce((s, item) => s + Math.max(0, item.current_stock_ml), 0);
+        const positiveStockCount = summaries.filter(s => s.current_stock_ml > 0).length;
         return (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label: '总收入', value: `¥${totalIncome.toFixed(0)}`, sub: `销售 ¥${totalRevenueAll.toFixed(0)} + 其他 ¥${totalOtherIncome.toFixed(0)}`, color: '#4A9D5C', bg: 'rgba(74,157,92,0.06)', icon: TrendingUp },
-              { label: '总费用', value: `¥${totalExpense.toFixed(0)}`, sub: `成本 ¥${totalCostAll.toFixed(0)} + 支出 ¥${totalOtherExpense.toFixed(0)}`, color: '#E85D3B', bg: 'rgba(232,93,59,0.06)', icon: TrendingDown },
-              { label: '留存总利润', value: `¥${retainedProfit.toFixed(0)}`, sub: retainedProfit >= 0 ? `利润率 ${totalIncome > 0 ? ((retainedProfit / totalIncome) * 100).toFixed(1) : 0}%` : '亏损', color: retainedProfit >= 0 ? '#7BA689' : '#EF4444', bg: retainedProfit >= 0 ? 'rgba(212,175,55,0.08)' : 'rgba(239,68,68,0.06)', icon: DollarSign },
-              { label: '剩余库存', value: `${totalStockAll.toLocaleString()} ml`, sub: zeroStockCount > 0 || lowStockCount > 0 ? `⚠️ 售罄${zeroStockCount} · 偏低${lowStockCount}` : `${summaries.length} 款产品在架`, color: '#7B9EA8', bg: 'rgba(123,158,168,0.06)', icon: Package },
+              { label: '总收入', value: `¥${totalIncome.toFixed(0)}`, sub: `销售 ¥${totalRevenueAll.toFixed(0)} + 其他 ¥${totalOtherIncome.toFixed(0)}`, color: '#059669', bg: '#ecfdf5', icon: TrendingUp, tab: 'sales' as const },
+              { label: '总费用', value: `¥${totalExpense.toFixed(0)}`, sub: `成本 ¥${totalCostAll.toFixed(0)} + 支出 ¥${totalOtherExpense.toFixed(0)}`, color: '#e11d48', bg: '#fff1f2', icon: TrendingDown, tab: 'purchases' as const },
+              { label: '留存总利润', value: `¥${retainedProfit.toFixed(0)}`, sub: retainedProfit >= 0 ? `利润率 ${totalIncome > 0 ? ((retainedProfit / totalIncome) * 100).toFixed(1) : 0}%` : '亏损', color: retainedProfit >= 0 ? '#059669' : '#e11d48', bg: retainedProfit >= 0 ? '#ecfdf5' : '#fff1f2', icon: DollarSign, tab: 'overview' as const, onClick: () => setShowProfitDetail(true) },
+              { label: '剩余库存', value: `${positiveStockTotal.toLocaleString()} ml`, sub: zeroStockCount > 0 || lowStockCount > 0 ? `${positiveStockCount} 款在架 · ⚠️ 售罄${zeroStockCount} · 偏低${lowStockCount}` : `${positiveStockCount} 款产品在架`, color: '#0891b2', bg: '#ecfeff', icon: Package, tab: 'overview' as const, onClick: () => { setTab('overview'); setFilterStockStatus('positive'); setShowOverviewFilter(true); } },
             ].map((card, i) => {
               const Icon = card.icon;
               return (
-                <div key={i} className="group p-4 rounded-xl bg-white border border-[#E0ECE0] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                <div key={i} onClick={() => (card as any).onClick ? (card as any).onClick() : setTab(card.tab)} className="group p-5 rounded-xl bg-white border border-slate-200 hover:shadow-lg hover:shadow-emerald-200/20 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1.5 rounded-lg transition-colors" style={{ backgroundColor: card.bg }}><Icon size={15} style={{ color: card.color }} /></div>
-                    <span className="text-[11px] font-medium text-[#8AA08A]">{card.label}</span>
+                    <div className="p-2 rounded-lg transition-colors" style={{ backgroundColor: card.bg }}><Icon size={18} style={{ color: card.color }} /></div>
+                    <span className="text-sm font-semibold text-slate-500">{card.label}</span>
                   </div>
-                  <p className="text-xl font-bold" style={{ color: card.color }}>{card.value}</p>
-                  <p className="text-[10px] text-[#A8BAA8] mt-1 leading-tight">{card.sub}</p>
+                  <p className="text-2xl font-bold" style={{ color: card.color }}>{card.value}</p>
+                  <p className="text-xs text-slate-400 mt-1 leading-tight">{card.sub}</p>
+                  <span className="inline-block mt-2 text-[10px] text-slate-400 group-hover:text-emerald-500 transition-colors">点击查看明细 →</span>
                 </div>
               );
             })}
@@ -1273,6 +1301,7 @@ export default function AdminInventory() {
                     <select value={filterStockStatus} onChange={e => setFilterStockStatus(e.target.value as any)} className={`${selectCls} text-[10px] sm:text-sm`}>
                       <option value="all">全部</option>
                       <option value="instock">充足 (≥10ml)</option>
+                      <option value="positive">有库存 (&gt;0ml)</option>
                       <option value="low">偏低 (1-9ml)</option>
                       <option value="zero">售罄 (0ml)</option>
                     </select>
@@ -1302,6 +1331,7 @@ export default function AdminInventory() {
                 const meta = productMetaMap.get(s.product_id);
                 const isZero = s.current_stock_ml === 0;
                 const isLow = s.current_stock_ml > 0 && s.current_stock_ml < 10;
+                const isNeg = s.current_stock_ml < 0;
                 return (
                   <div
                     key={s.product_id}
@@ -1325,6 +1355,13 @@ export default function AdminInventory() {
                       }`}>
                         {s.current_stock_ml}ml
                       </span>
+                      {isNeg && (
+                        <Perm action="edit_inventory"><button
+                          onClick={() => handleStockZero(s.product_id, s.product_name, s.current_stock_ml)}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 hover:bg-rose-200 font-medium transition-colors shrink-0 ml-1"
+                          title="补录进货运单归零"
+                        >归零</button></Perm>
+                      )}
                     </div>
                     <div className="grid grid-cols-3 gap-2 pt-1 border-t border-[#E0ECE0]/50">
                       <div className="text-center">
@@ -2409,6 +2446,74 @@ export default function AdminInventory() {
           </div>
         </div>
       )}
+
+      {/* 利润明细弹窗 */}
+      {showProfitDetail && (() => {
+        const grossProfit = totalRevenueAll - totalCostAll;
+        const retainedProfit = (totalRevenueAll + totalOtherIncome) - (totalCostAll + totalOtherExpense);
+        return (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setShowProfitDetail(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-[95vw] max-w-md max-h-[85vh] flex flex-col border border-[#E0ECE0] overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#E0ECE0]">
+                <div className="flex items-center gap-2.5">
+                  <DollarSign size={20} className={retainedProfit >= 0 ? 'text-emerald-600' : 'text-red-500'} />
+                  <h3 className="font-bold text-[#1A2E1A] text-base">利润构成</h3>
+                </div>
+                <button onClick={() => setShowProfitDetail(false)} className="p-1.5 text-[#9AAA9A] hover:text-[#5C725C] rounded-lg hover:bg-[#F4F7F4]"><X size={18} /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-emerald-700 font-medium flex items-center gap-1.5"><TrendingUp size={15} /> 销售总收入</span>
+                    <span className="text-lg font-bold text-emerald-700">¥{totalRevenueAll.toLocaleString()}</span>
+                  </div>
+                  <button onClick={() => { setTab('sales'); setShowProfitDetail(false); }} className="text-xs text-emerald-600 hover:underline flex items-center gap-1">
+                    <ArrowDown size={10} className="rotate-[-90deg]" /> 查看销售明细列表
+                  </button>
+                </div>
+                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-amber-700 font-medium flex items-center gap-1.5"><DollarSign size={15} /> 其他收入</span>
+                    <span className="text-lg font-bold text-amber-700">¥{totalOtherIncome.toLocaleString()}</span>
+                  </div>
+                  <button onClick={() => { setTab('finance'); setFinFilterType('income'); setShowProfitDetail(false); }} className="text-xs text-amber-600 hover:underline flex items-center gap-1">
+                    <ArrowDown size={10} className="rotate-[-90deg]" /> 查看其他收入明细列表
+                  </button>
+                </div>
+                <div className="border-t border-dashed border-[#E0ECE0]" />
+                <div className="p-4 rounded-xl bg-red-50/50 border border-red-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-red-700 font-medium flex items-center gap-1.5"><TrendingDown size={15} /> 进货成本</span>
+                    <span className="text-lg font-bold text-red-700">¥{totalCostAll.toLocaleString()}</span>
+                  </div>
+                  <button onClick={() => { setTab('purchases'); setShowProfitDetail(false); }} className="text-xs text-red-600 hover:underline flex items-center gap-1">
+                    <ArrowDown size={10} className="rotate-[-90deg]" /> 查看进货明细列表
+                  </button>
+                </div>
+                <div className="p-4 rounded-xl bg-orange-50/50 border border-orange-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-orange-700 font-medium flex items-center gap-1.5"><DollarSign size={15} /> 其他支出</span>
+                    <span className="text-lg font-bold text-orange-700">¥{totalOtherExpense.toLocaleString()}</span>
+                  </div>
+                  <button onClick={() => { setTab('finance'); setFinFilterType('expense'); setShowProfitDetail(false); }} className="text-xs text-orange-600 hover:underline flex items-center gap-1">
+                    <ArrowDown size={10} className="rotate-[-90deg]" /> 查看其他支出明细列表
+                  </button>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-[#E0ECE0] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[#1A2E1A] font-bold">销售毛利（收入 - 成本）</span>
+                    <span className={`text-lg font-bold ${grossProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>¥{grossProfit.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-[#E0ECE0]">
+                    <span className="text-sm text-[#1A2E1A] font-bold">留存总利润（含其他收支）</span>
+                    <span className={`text-xl font-bold ${retainedProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>¥{retainedProfit.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -136,21 +136,21 @@ export default function ReviewManage() {
       {/* 顶部标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A2E1A] flex items-center gap-2">
+          <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent flex items-center gap-2">
             评价审核
             {pendingCount > 0 && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-[#D4AF3720] text-[#D4AF37]">
+              <span className="text-sm px-2.5 py-1 rounded-full font-bold bg-amber-100 text-amber-600">
                 {pendingCount} 待审核
               </span>
             )}
           </h2>
-          <p className="text-sm text-[#9AAA9A] mt-1">审核前台用户提交的评价，通过后将在产品页公开展示</p>
+          <p className="text-base text-slate-500 mt-1">审核前台用户提交的评价，通过后将在产品页公开展示</p>
         </div>
         <button
           onClick={fetchReviews}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-[#5C725C] border border-[#E0ECE0] hover:bg-[#F4F7F4] transition-colors"
+          className="flex items-center gap-1.5 px-5 py-3 rounded-xl text-base text-slate-600 border border-slate-200 hover:bg-slate-50 hover:shadow-sm transition-all duration-200"
         >
-          <RefreshCw size={14} />
+          <RefreshCw size={16} />
           刷新
         </button>
       </div>

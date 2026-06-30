@@ -682,27 +682,27 @@ export default function AdminProducts() {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A2E1A]">产品管理</h2>
-          <p className="text-sm text-[#6B856B] mt-1">
+          <h2 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">产品管理</h2>
+          <p className="text-base text-slate-500 mt-1">
             4大系列 · 13个子分类 · 共{stats.total}款产品（上架{stats.active} / 下架{stats.inactive}）
           </p>
         </div>
         <div className="flex items-center gap-2">
           {/* 利润报表按钮 */}
           <button onClick={() => setViewMode('report')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl font-medium text-sm transition-colors border border-emerald-500/20"
+            className="flex items-center gap-2 px-5 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 rounded-xl font-semibold text-base transition-all duration-200 border border-emerald-500/20 hover:shadow-md"
             title="查看利润报表">
-            <BarChart3 size={16} /><span className="hidden sm:inline">利润报表</span>
+            <BarChart3 size={18} /><span className="hidden sm:inline">利润报表</span>
           </button>
           <button onClick={() => setShowBatchImport(!showBatchImport)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#F2F7F3] hover:bg-[#E0ECE0] text-[#3D5C3D] rounded-xl font-medium text-sm transition-colors border border-[#D5E2D5]"
+            className="flex items-center gap-2 px-5 py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl font-medium text-base transition-all duration-200 border border-slate-200 hover:shadow-sm"
             title="批量导入">
-            <FileSpreadsheet size={16} /><span className="hidden sm:inline">批量导入</span>
+            <FileSpreadsheet size={18} /><span className="hidden sm:inline">批量导入</span>
           </button>
           {canEdit && (
             <Perm action="edit_products"><button onClick={startCreate}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#E8F3EC] hover:bg-[#D4EDDA] text-[#4A7C59] rounded-xl font-medium text-sm transition-colors border border-[#4A7C59]/20">
-              <Plus size={16} /> 添加新产品
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white rounded-xl font-semibold text-base transition-all duration-200 shadow-md hover:shadow-lg hover:shadow-emerald-500/25">
+              <Plus size={18} /> 添加新产品
             </button></Perm>
           )}
         </div>
