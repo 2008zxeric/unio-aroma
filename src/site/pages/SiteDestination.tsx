@@ -111,12 +111,14 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
     }));
   }, [country, products]);
 
-  // 杂志风相册：确保至少3张图
+  // 杂志风相册：确保至少3张图，优先 Unsplash
   const photos = useMemo(() => {
     const gallery = country?.gallery_urls || [];
     if (gallery.length >= 3) return gallery;
     const result = [...gallery];
-    while (result.length < 3) result.push(optimizeImage(country?.image_url || country?.scenery_url, { width: 600, quality: 75 }) || PLACEHOLDER_IMG);
+    // 优先用 scenery_url（通常是 Unsplash，更可靠），其次 image_url
+    const primaryFallback = optimizeImage(country?.scenery_url || country?.image_url, { width: 600, quality: 75 });
+    while (result.length < 3) result.push(primaryFallback || PLACEHOLDER_IMG);
     return result;
   }, [country]);
 
@@ -224,8 +226,13 @@ const SiteDestination: React.FC<SiteDestinationProps> = ({ countryId, onNavigate
 
       {/* ===== HERO ===== */}
       <div id="destination-hero" className="relative h-screen w-full overflow-hidden bg-stone-900">
-        <img decoding="async" src={optimizeImage(country.image_url || country.scenery_url, { width: 1200, quality: 80 }) || PLACEHOLDER_IMG}
+        <img decoding="async" 
+          src={optimizeImage(country.scenery_url || country.image_url, { width: 1200, quality: 80 }) || PLACEHOLDER_IMG}
           onLoad={() => setImgLoaded(true)}
+          onError={(e) => { 
+            const fallback = optimizeImage(country.image_url || country.scenery_url, { width: 1200, quality: 80 });
+            if (fallback && fallback !== e.currentTarget.src) e.currentTarget.src = fallback;
+          }}
           className={`w-full h-full object-cover transition-all duration-[2s] ease-out ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           alt={country.name_cn} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/30" />
