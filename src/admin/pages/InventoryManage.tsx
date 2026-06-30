@@ -23,6 +23,7 @@ export default function AdminInventory() {
   const { success, error, warning, info } = useToast();
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as 'overview' | 'purchases' | 'sales' | 'finance' | 'reimburse' | 'logs') || 'overview';
+  const initialFinType = (searchParams.get('type') as 'income' | 'expense') || 'expense';
   const [tab, setTab] = useState<'overview' | 'purchases' | 'sales' | 'finance' | 'reimburse' | 'logs'>(initialTab);
   const [summaries, setSummaries] = useState<ProductInventory[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -58,7 +59,7 @@ export default function AdminInventory() {
   const [salFilterWarehouse, setSalFilterWarehouse] = useState('');
 
   // ---- 其他收支筛选 ----
-  const [finFilterType, setFinFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [finFilterType, setFinFilterType] = useState<'all' | 'income' | 'expense'>(initialFinType as 'income' | 'expense');
   const [finFilterCategory, setFinFilterCategory] = useState('');
   const [finFilterHandler, setFinFilterHandler] = useState('');
   const [finFilterDateFrom, setFinFilterDateFrom] = useState('');
@@ -2025,6 +2026,30 @@ export default function AdminInventory() {
               )}
             </div>
           )}
+
+          {/* 收支子标签 */}
+          <div className="flex items-center gap-2 mb-1">
+            <button
+              onClick={() => setFinFilterType('income')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                finFilterType === 'income'
+                  ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-400 shadow-sm'
+                  : 'bg-white text-[#6B856B] border border-[#E0ECE0] hover:bg-emerald-50 hover:text-emerald-600'
+              }`}
+            >
+              <TrendingUp size={15} /> 💰 其他收入
+            </button>
+            <button
+              onClick={() => setFinFilterType('expense')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                finFilterType === 'expense'
+                  ? 'bg-rose-100 text-rose-700 border-2 border-rose-400 shadow-sm'
+                  : 'bg-white text-[#6B856B] border border-[#E0ECE0] hover:bg-rose-50 hover:text-rose-600'
+              }`}
+            >
+              <TrendingDown size={15} /> 💸 其他支出
+            </button>
+          </div>
 
           {/* 收支筛选栏 */}
           <div className="rounded-xl bg-white border border-[#E0ECE0] p-4">

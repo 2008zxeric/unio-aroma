@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import {
   Package, Globe, Image as ImageIcon, Eye,
   TrendingUp, TrendingDown, DollarSign,
   ArrowUpRight, RefreshCw, AlertCircle,
   MessageSquare, Plus, Minus, Search,
-  Save, X, Warehouse
+  Save, X, Warehouse,
+  Receipt, Coins, ShoppingCart, CreditCard, BarChart3, ArrowRight, ClipboardCheck
 } from 'lucide-react';
-import { productService, countryService, bannerService, inventoryService, purchaseService, salesService, reviewService } from '../../lib/dataService';
+import { productService, countryService, bannerService, inventoryService, purchaseService, salesService, reviewService, financeRecordService } from '../../lib/dataService';
 import type { Product } from '../../lib/database.types';
 import { SERIES_INFO } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
@@ -21,14 +22,29 @@ interface StatCard {
   color: string;
   bgColor: string;
   trend?: { value: string; up: boolean };
+  linkTo?: string;
+  detailType?: 'revenue' | 'expense' | 'stock';
+  badge?: string;
+  badgePulse?: boolean;
 }
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const { success, error, warning } = useToast();
   const [stats, setStats] = useState<StatCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [recentProducts, setRecentProducts] = useState<any[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  // ---- 财务摘要 ----
+  const [financeSummary, setFinanceSummary] = useState({
+    totalSales: 0, totalPurchases: 0,
+    totalOtherIncome: 0, totalOtherExpenses: 0,
+    pendingReimburse: 0, totalStockMl: 0, lowStockCount: 0,
+  });
+  // ---- 详情弹窗 ----
+  const [detailModal, setDetailModal] = useState<{ type: 'revenue' | 'expense' | 'stock' } | null>(null);
 
   // ---- 快速入库/出库共享模块 ----
   const [showQuickIn, setShowQuickIn] = useState(false);
@@ -67,6 +83,7 @@ export default function AdminDashboard() {
 
       // 库存预警（独立超时）
       let lowStockCount = 0;
+      let totalStockMl = 0;
       const inventoryPromise = inventoryService.getAllSummaries();
       const timeoutPromise = new Promise<'timeout'>((resolve) =>
         setTimeout(() => resolve('timeout'), 5000)
@@ -75,8 +92,30 @@ export default function AdminDashboard() {
         const result = await Promise.race([inventoryPromise, timeoutPromise]);
         if (result !== 'timeout') {
           lowStockCount = result.filter((s: any) => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
+          totalStockMl = result.reduce((s: number, r: any) => s + (Number(r.current_stock_ml) || 0), 0);
         }
       } catch {}
+
+      // 财务数据
+      let totalSales = 0, totalPurchases = 0, totalOtherIncome = 0, totalOtherExpenses = 0, pendingReimburse = 0;
+      try {
+        const [purchases, sales, finances] = await Promise.all([
+          purchaseService.getAll(), salesService.getAll(), financeRecordService.getAll(),
+        ]);
+        totalSales = sales.reduce((s: number, r: any) => s + (Number(r.total_amount) || 0), 0);
+        totalPurchases = purchases.reduce((s: number, r: any) => s + (Number(r.total_cost) || (Number(r.unit_cost) || 0) * (Number(r.volume_ml) || 0)), 0);
+        totalOtherIncome = finances.filter((r: any) => r.record_type === 'income' || r.record_type === 'other_income').reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+        totalOtherExpenses = finances.filter((r: any) => r.record_type !== 'income' && r.record_type !== 'other_income').reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+        pendingReimburse = [
+          ...purchases.filter((p: any) => !p.reimbursed),
+          ...finances.filter((f: any) => (f.record_type === 'expense' || f.record_type === 'other_expense') && !f.reimbursed),
+        ].length;
+      } catch {}
+
+      setFinanceSummary({ totalSales, totalPurchases, totalOtherIncome, totalOtherExpenses, pendingReimburse, totalStockMl, lowStockCount });
+
+      const totalRevenue = totalSales + totalOtherIncome;
+      const totalExpense = totalPurchases + totalOtherExpenses;
 
       setStats([
         {
@@ -117,6 +156,42 @@ export default function AdminDashboard() {
           icon: ImageIcon,
           color: '#7BA689',
           bgColor: 'rgba(123,166,137,0.15)',
+          linkTo: '/admin/banners',
+        },
+        {
+          title: '总收入',
+          value: `¥${totalRevenue.toLocaleString()}`,
+          icon: TrendingUp,
+          color: '#059669',
+          bgColor: 'rgba(5,150,105,0.1)',
+          trend: { value: `销售 ¥${totalSales.toLocaleString()}`, up: true },
+          badge: '点击看明细',
+        },
+        {
+          title: '总费用',
+          value: `¥${totalExpense.toLocaleString()}`,
+          icon: TrendingDown,
+          color: '#DC2626',
+          bgColor: 'rgba(220,38,38,0.08)',
+          trend: { value: `进货 ¥${totalPurchases.toLocaleString()}`, up: false },
+          badge: '点击看明细',
+        },
+        {
+          title: '剩余库存',
+          value: `${totalStockMl}ml`,
+          icon: Warehouse,
+          color: '#6366F1',
+          bgColor: 'rgba(99,102,241,0.1)',
+          trend: { value: `${lowStockCount} 低库存`, up: lowStockCount === 0 },
+        },
+        {
+          title: '待报销',
+          value: pendingReimburse,
+          icon: Receipt,
+          color: '#F59E0B',
+          bgColor: 'rgba(245,158,11,0.12)',
+          trend: pendingReimburse > 0 ? { value: `${pendingReimburse} 条记录`, up: false } : { value: '全部完成 ✓', up: true },
+          linkTo: '/admin/inventory?tab=reimburse',
         },
       ]);
 
@@ -224,6 +299,47 @@ export default function AdminDashboard() {
     setShowQuickIn(false);
     setShowQuickOut(false);
     resetQuickForm();
+  };
+
+  // ---- 处理卡片点击 ----
+  const handleCardClick = (stat: StatCard) => {
+    if (stat.title === '总收入') setDetailModal({ type: 'revenue' });
+    else if (stat.title === '总费用') setDetailModal({ type: 'expense' });
+    else if (stat.title === '剩余库存') setDetailModal({ type: 'stock' });
+    else if (stat.linkTo) navigate(stat.linkTo);
+  };
+
+  // ---- Detail Modal ----
+  const DetailModal = () => {
+    if (!detailModal) return null;
+    const { totalSales, totalPurchases, totalOtherIncome, totalOtherExpenses, totalStockMl, lowStockCount } = financeSummary;
+    const totalRevenue = totalSales + totalOtherIncome;
+    const totalExpense = totalPurchases + totalOtherExpenses;
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setDetailModal(null)}>
+        <div className="bg-white rounded-2xl shadow-2xl w-[95vw] max-w-md max-h-[85vh] flex flex-col border border-[#E0ECE0] overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E0ECE0]"><div className="flex items-center gap-2.5">{detailModal.type === 'revenue' ? <TrendingUp size={20} className="text-emerald-600" /> : detailModal.type === 'expense' ? <TrendingDown size={20} className="text-red-500" /> : <Warehouse size={20} className="text-indigo-500" />}<h3 className="font-bold text-[#1A2E1A] text-base">{detailModal.type === 'revenue' ? '总收构成' : detailModal.type === 'expense' ? '总费用构成' : '库存概况'}</h3></div><button onClick={() => setDetailModal(null)} className="p-1.5 text-[#9AAA9A] hover:text-[#5C725C] rounded-lg hover:bg-[#F4F7F4]"><X size={18} /></button></div>
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            {detailModal.type === 'revenue' && (<>
+              <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100"><div className="flex items-center justify-between mb-2"><span className="text-sm text-emerald-700 font-medium flex items-center gap-1.5"><ShoppingCart size={15} /> 销售收入</span><span className="text-lg font-bold text-emerald-700">¥{totalSales.toLocaleString()}</span></div><button onClick={() => { navigate('/admin/inventory?tab=sales'); setDetailModal(null); }} className="text-xs text-emerald-600 hover:underline flex items-center gap-1"><ArrowRight size={10} /> 查看销售明细</button></div>
+              <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100"><div className="flex items-center justify-between mb-2"><span className="text-sm text-amber-700 font-medium flex items-center gap-1.5"><Coins size={15} /> 其它收入</span><span className="text-lg font-bold text-amber-700">¥{totalOtherIncome.toLocaleString()}</span></div><button onClick={() => { navigate('/admin/inventory?tab=finance&type=income'); setDetailModal(null); }} className="text-xs text-amber-600 hover:underline flex items-center gap-1"><ArrowRight size={10} /> 查看其它收入明细</button></div>
+              <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]"><div className="flex items-center justify-between"><span className="text-sm text-[#1A2E1A] font-bold">合计总收入</span><span className="text-xl font-bold text-emerald-600">¥{totalRevenue.toLocaleString()}</span></div></div>
+            </>)}
+            {detailModal.type === 'expense' && (<>
+              <div className="p-4 rounded-xl bg-red-50/50 border border-red-100"><div className="flex items-center justify-between mb-2"><span className="text-sm text-red-700 font-medium flex items-center gap-1.5"><ShoppingCart size={15} /> 进货成本</span><span className="text-lg font-bold text-red-700">¥{totalPurchases.toLocaleString()}</span></div><button onClick={() => { navigate('/admin/inventory?tab=purchases'); setDetailModal(null); }} className="text-xs text-red-600 hover:underline flex items-center gap-1"><ArrowRight size={10} /> 查看进货明细</button></div>
+              <div className="p-4 rounded-xl bg-orange-50/50 border border-orange-100"><div className="flex items-center justify-between mb-2"><span className="text-sm text-orange-700 font-medium flex items-center gap-1.5"><CreditCard size={15} /> 其它支出</span><span className="text-lg font-bold text-orange-700">¥{totalOtherExpenses.toLocaleString()}</span></div><button onClick={() => { navigate('/admin/inventory?tab=finance&type=expense'); setDetailModal(null); }} className="text-xs text-orange-600 hover:underline flex items-center gap-1"><ArrowRight size={10} /> 查看其它支出明细</button></div>
+              <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]"><div className="flex items-center justify-between"><span className="text-sm text-[#1A2E1A] font-bold">合计总费用</span><span className="text-xl font-bold text-red-500">¥{totalExpense.toLocaleString()}</span></div></div>
+              <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]"><div className="flex items-center justify-between"><span className="text-sm text-[#1A2E1A] font-bold">毛利润</span><span className={`text-xl font-bold ${totalRevenue - totalExpense >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>¥{(totalRevenue - totalExpense).toLocaleString()}</span></div></div>
+            </>)}
+            {detailModal.type === 'stock' && (<>
+              <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100"><div className="flex items-center justify-between mb-2"><span className="text-sm text-indigo-700 font-medium flex items-center gap-1.5"><BarChart3 size={15} /> 总库存量</span><span className="text-lg font-bold text-indigo-700">{totalStockMl}ml</span></div></div>
+              <div className="p-4 rounded-xl bg-red-50/50 border border-red-100"><div className="flex items-center justify-between mb-2"><span className="text-sm text-red-700 font-medium flex items-center gap-1.5"><AlertCircle size={15} /> 低库存预警</span><span className="text-lg font-bold text-red-700">{lowStockCount} 个</span></div></div>
+              <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]"><div className="flex items-center justify-between mb-3"><span className="text-sm text-[#1A2E1A] font-bold">快捷操作</span></div><div className="grid grid-cols-2 gap-2"><button onClick={() => { navigate('/admin/inventory?tab=overview'); setDetailModal(null); }} className="py-2.5 px-3 rounded-xl bg-[#EEF4EF] text-sm text-[#4A7C59] font-medium hover:bg-[#E0ECE0] flex items-center justify-center gap-1.5"><BarChart3 size={14} /> 库存总览</button><button onClick={() => { navigate('/admin/products'); setDetailModal(null); }} className="py-2.5 px-3 rounded-xl bg-[#EEF4EF] text-sm text-[#4A7C59] font-medium hover:bg-[#E0ECE0] flex items-center justify-center gap-1.5"><Package size={14} /> 产品管理</button></div></div>
+            </>)}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // ---- Quick Modal (共享) ----
@@ -422,27 +538,42 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold text-[#1A2E1A]">控制台</h2>
           <p className="text-sm text-[#6B856B] mt-1">欢迎回来。这是你的 UNIO AROMA 数据概览。</p>
         </div>
+        <button onClick={loadStats} className="flex items-center gap-1.5 px-3 py-2 text-xs text-[#6B856B] hover:text-[#4A7C59] rounded-lg hover:bg-[#F4F7F4] transition-colors">
+          <RefreshCw size={13} /> 刷新
+        </button>
       </div>
 
-      {/* 统计卡片 — 6 张 (mobile: 1列宽大显示) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      {/* 统计卡片 — 响应式3列 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
+          const isClickable = stat.title === '总收入' || stat.title === '总费用' || stat.title === '剩余库存' || !!stat.linkTo;
           return (
             <div
               key={idx}
-              className="group p-4 rounded-2xl bg-white border border-[#E0ECE0] hover:border-[#D5E2D5] transition-all duration-300 max-sm:hover:scale-100 hover:scale-[1.02]"
+              onClick={() => isClickable && handleCardClick(stat)}
+              className={`group relative p-4 rounded-2xl bg-white border transition-all duration-300 ${
+                isClickable ? 'cursor-pointer hover:shadow-md hover:border-[#D5E2D5] hover:scale-[1.02]' : ''
+              } ${stat.title === '待报销' && financeSummary.pendingReimburse > 0 ? 'border-amber-300 ring-1 ring-amber-200' : 'border-[#E0ECE0]'}`}
             >
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[10px] font-medium text-[#7A967A] uppercase tracking-wider">{stat.title}</p>
-                  <p className="text-xl font-bold text-[#1A2E1A] mt-1">{stat.value}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[11px] font-semibold text-[#5C725C] uppercase tracking-wider">{stat.title}</p>
+                    {stat.badge && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#EEF4EF] text-[#4A7C59] font-medium">{stat.badge}</span>}
+                    {stat.title === '待报销' && financeSummary.pendingReimburse > 0 && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold animate-pulse">
+                        <ClipboardCheck size={10} /> 待处理
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-2xl font-bold text-[#1A2E1A] mt-1.5 leading-tight">{stat.value}</p>
                 </div>
                 <div 
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: stat.bgColor }}
                 >
-                  <Icon size={18} style={{ color: stat.color }} />
+                  <Icon size={20} style={{ color: stat.color }} />
                 </div>
               </div>
               {stat.trend && (
@@ -497,6 +628,7 @@ export default function AdminDashboard() {
               { label: '添加国家', desc: '新增国家/地区', to: '/admin/countries', color: '#1C39BB' },
               { label: '库存利润', desc: '完整进销存管理', to: '/admin/inventory', color: '#7BA689' },
               { label: '查看前台', desc: '前台首页', to: '/admin/images', color: '#7B9EA8' },
+              { label: '报销管理', desc: '审批报销记录', to: '/admin/inventory?tab=reimburse', color: '#F59E0B' },
             ].map((action, idx) => (
               <Link
                 key={idx}
@@ -554,6 +686,7 @@ export default function AdminDashboard() {
       {/* 快速入库/出库 Modal */}
       {showQuickIn && <QuickModal mode="in" />}
       {showQuickOut && <QuickModal mode="out" />}
+      {detailModal && <DetailModal />}
 
       {/* 移动端底部安全区域填充 */}
       <div className="mobile-bottom-pad" />
