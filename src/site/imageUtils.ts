@@ -71,11 +71,6 @@ export function optimizeImage(
 ): string | undefined {
   if (!url) return undefined;
 
-  // GitHub raw 自动修正：feature/supabase → main（旧分支已删除）
-  if (url.includes('raw.githubusercontent.com') && url.includes('feature/supabase')) {
-    url = url.replace('/feature/supabase/', '/main/');
-  }
-
   // Supabase Storage
   if (url.includes('supabase.co/storage/v1/object/public/')) {
     return optimizeSupabaseImage(url, options);
