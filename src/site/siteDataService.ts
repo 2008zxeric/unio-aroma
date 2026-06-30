@@ -20,7 +20,7 @@ const headers = {
 const cache = new Map<string, { data: any; ts: number }>();
 
 // localStorage 缓存 key
-const PERSIST_CACHE_KEY = 'unio_cache_v1';
+const PERSIST_CACHE_KEY = 'unio_cache_v2';
 const CACHE_TTL = 300_000; // 5分钟缓存（内存）
 const PERSIST_TTL = 3_600_000; // 1小时缓存（localStorage — 数据变化极慢）
 
