@@ -9,6 +9,7 @@ import {
   Package
 } from 'lucide-react';
 import { seriesService } from '../../lib/dataService';
+import { useToast } from '../components/Toast';
 import { useAuth, writeAuditLog } from '../../lib/auth';
 import { Perm } from '../components/PermissionGuard';
 import type { Series, SeriesCode } from '../../lib/database.types';
@@ -25,9 +26,10 @@ const SERIES_CODE_OPTIONS = [
 
 export default function SeriesManagement() {
   const { user } = useAuth();
+  const { success, error, warning, info } = useToast();
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [errMsg, setErrMsg] = useState('');
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -35,12 +37,12 @@ export default function SeriesManagement() {
 
   const loadSeries = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setErrMsg('');
     try {
       const data = await seriesService.getAllWithInactive();
       setSeries(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      setErrMsg(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -73,7 +75,7 @@ export default function SeriesManagement() {
   // 保存
   const handleSave = async () => {
     if (!form.code || !form.name_cn) {
-      alert('请填写系列代码和中英文名称');
+      warning('请填写系列代码和中英文名称');
       return;
     }
     setSaving(true);
@@ -88,7 +90,7 @@ export default function SeriesManagement() {
       setShowForm(false);
       await loadSeries();
     } catch (err: unknown) {
-      alert('保存失败：' + (err instanceof Error ? err.message : String(err)));
+      error('保存失败：' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSaving(false);
     }
@@ -101,7 +103,7 @@ export default function SeriesManagement() {
       await writeAuditLog(user!.id, 'update', 'series', s.id, { note: `${!s.is_active ? '上架' : '下架'}系列：${s.name_cn}` });
       await loadSeries();
     } catch (err: unknown) {
-      alert('操作失败：' + (err instanceof Error ? err.message : String(err)));
+      error('操作失败：' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -113,7 +115,7 @@ export default function SeriesManagement() {
       await writeAuditLog(user!.id, 'delete', 'series', s.id, { note: `删除系列：${s.name_cn}` });
       await loadSeries();
     } catch (err: unknown) {
-      alert('删除失败：' + (err instanceof Error ? err.message : String(err)));
+      error('删除失败：' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -130,7 +132,7 @@ export default function SeriesManagement() {
       await seriesService.update(swap.id, { sort_order: s.sort_order });
       await loadSeries();
     } catch (err: unknown) {
-      alert('排序失败：' + (err instanceof Error ? err.message : String(err)));
+      error('排序失败：' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -168,10 +170,10 @@ export default function SeriesManagement() {
       </div>
 
       {/* 错误提示 */}
-      {error && (
+      {errMsg && (
         <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
           <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
-          <span className="text-xs text-red-600 flex-1">{error}</span>
+          <span className="text-xs text-red-600 flex-1">{errMsg}</span>
         </div>
       )}
 

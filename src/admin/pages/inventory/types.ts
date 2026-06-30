@@ -1,0 +1,337 @@
+// Shared types for inventory tab components
+import type { Product, PurchaseRecord, SalesRecord, FinanceRecord, ProductInventory, DictItem, AuditLog } from '../../../lib/database.types';
+import type { SeriesCode } from '../../../lib/database.types';
+import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../../lib/database.types';
+import type { ReactNode, ComponentType } from 'react';
+
+// Re-export constants that tab components need
+export { SERIES_INFO, SUB_CATEGORY_LABELS };
+export type { SeriesCode };
+
+export interface ReimburseItem {
+  id: string;
+  source: '进货' | '支出';
+  sourceTable: string;
+  date: string;
+  description: string;
+  amount: number;
+  handler: string;
+  reimbursed: boolean;
+  reimbursed_date?: string;
+  reimburse_code?: string;
+  attachment_url?: string;
+  reimburse_notes?: string;
+}
+
+export interface OverviewSort {
+  field: string;
+  dir: 'asc' | 'desc';
+}
+
+export interface ProductMeta {
+  seriesCode: string;
+  seriesName: string;
+  category: string;
+  categoryName: string;
+}
+
+// Perm component type
+export type PermComponent = ComponentType<{ action: string; children: ReactNode }>;
+
+// ====== OverviewTab Props ======
+export interface OverviewTabProps {
+  showOverviewFilter: boolean;
+  setShowOverviewFilter: (v: boolean) => void;
+  filteredSummaries: ProductInventory[];
+  summariesCount: number;
+  exportCSV: (type: 'overview') => void;
+  resetOverviewFilters: () => void;
+  filterSeries: string;
+  setFilterSeries: (v: string) => void;
+  filterCategory: string;
+  setFilterCategory: (v: string) => void;
+  availableCategories: readonly (readonly [string, string])[];
+  filterStockStatus: 'all' | 'instock' | 'low' | 'zero';
+  setFilterStockStatus: (v: 'all' | 'instock' | 'low' | 'zero') => void;
+  filterKeyword: string;
+  setFilterKeyword: (v: string) => void;
+  selectCls: string;
+  inputCls: string;
+  sortedSummaries: ProductInventory[];
+  productMetaMap: Map<string, ProductMeta>;
+  overviewSort: OverviewSort;
+  setOverviewSort: (s: OverviewSort) => void;
+  Perm: PermComponent;
+}
+
+// ====== PurchasesTab Props ======
+export interface PurchasesTabProps {
+  defaultHandler: string;
+  selectCls: string;
+  inputCls: string;
+  Perm: PermComponent;
+  // Form state
+  showPurchaseForm: boolean;
+  showImportCsv: boolean;
+  setShowPurchaseForm: (v: boolean) => void;
+  setShowImportCsv: (v: boolean) => void;
+  purchaseForm: {
+    product_id: string;
+    purchase_date: string;
+    volume_ml: string;
+    unit_cost: string;
+    total_cost: string;
+    supplier_code: string;
+    handler: string;
+    warehouse: string;
+  };
+  setPurchaseForm: React.Dispatch<React.SetStateAction<{
+    product_id: string;
+    purchase_date: string;
+    volume_ml: string;
+    unit_cost: string;
+    total_cost: string;
+    supplier_code: string;
+    handler: string;
+    warehouse: string;
+  }>>;
+  editingPurchase: PurchaseRecord | null;
+  // Product search
+  products: Product[];
+  purSearchText: string;
+  setPurSearchText: (v: string) => void;
+  // Filter state
+  purFilterSeries: string;
+  setPurFilterSeries: (v: string) => void;
+  purFilterKeyword: string;
+  setPurFilterKeyword: (v: string) => void;
+  purFilterDateFrom: string;
+  setPurFilterDateFrom: (v: string) => void;
+  purFilterDateTo: string;
+  setPurFilterDateTo: (v: string) => void;
+  purFilterHandler: string;
+  setPurFilterHandler: (v: string) => void;
+  purFilterWarehouse: string;
+  setPurFilterWarehouse: (v: string) => void;
+  // Sort
+  purSortField: 'date' | 'amount';
+  setPurSortField: (f: 'date' | 'amount') => void;
+  purSortDir: 'asc' | 'desc';
+  // Dictionary data
+  handlerOptions: DictItem[];
+  supplierOptions: DictItem[];
+  warehouseOptions: DictItem[];
+  // Derived data
+  filteredPurchases: PurchaseRecord[];
+  purchasesCount: number;
+  productMetaMap: Map<string, ProductMeta>;
+  // CSV import
+  csvData: { product_name: string; volume_ml: string; unit_cost: string; supplier: string; warehouse: string; date: string }[];
+  clearCsvData: () => void;
+  csvImportDate: string;
+  setCsvImportDate: (v: string) => void;
+  csvImportHandler: string;
+  setCsvImportHandler: (v: string) => void;
+  csvImporting: boolean;
+  // Callbacks
+  exportCSV: (type: 'purchases') => void;
+  resetPurFilters: () => void;
+  cancelPurchaseForm: () => void;
+  handleAddPurchase: () => void;
+  startEditPurchase: (p: PurchaseRecord) => void;
+  handleDeletePurchase: (id: string) => void;
+  handleCsvFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  downloadCsvTemplate: () => void;
+  handleCsvImport: () => void;
+  cancelCsvImport: () => void;
+}
+
+// ====== SalesTab Props ======
+export interface SalesTabProps {
+  defaultHandler: string;
+  selectCls: string;
+  inputCls: string;
+  Perm: PermComponent;
+  // Form state
+  showSaleForm: boolean;
+  showSaleCsv: boolean;
+  setShowSaleForm: (v: boolean) => void;
+  setShowSaleCsv: (v: boolean) => void;
+  saleForm: {
+    product_id: string;
+    sale_date: string;
+    volume_ml: string;
+    total_amount: string;
+    handler: string;
+    warehouse: string;
+  };
+  setSaleForm: React.Dispatch<React.SetStateAction<{
+    product_id: string;
+    sale_date: string;
+    volume_ml: string;
+    total_amount: string;
+    handler: string;
+    warehouse: string;
+  }>>;
+  editingSale: SalesRecord | null;
+  // Product search
+  products: Product[];
+  salSearchText: string;
+  setSalSearchText: (v: string) => void;
+  // Filter state
+  salFilterSeries: string;
+  setSalFilterSeries: (v: string) => void;
+  salFilterKeyword: string;
+  setSalFilterKeyword: (v: string) => void;
+  salFilterDateFrom: string;
+  setSalFilterDateFrom: (v: string) => void;
+  salFilterDateTo: string;
+  setSalFilterDateTo: (v: string) => void;
+  salFilterHandler: string;
+  setSalFilterHandler: (v: string) => void;
+  salFilterWarehouse: string;
+  setSalFilterWarehouse: (v: string) => void;
+  // Sort
+  salSortField: 'date' | 'amount';
+  setSalSortField: (f: 'date' | 'amount') => void;
+  salSortDir: 'asc' | 'desc';
+  // Dictionary data
+  handlerOptions: DictItem[];
+  warehouseOptions: DictItem[];
+  // Derived data
+  filteredSales: SalesRecord[];
+  salesCount: number;
+  summaries: ProductInventory[];
+  productMetaMap: Map<string, ProductMeta>;
+  // CSV import
+  saleCsvData: { product_name: string; volume_ml: string; unit_price: string; warehouse: string; date: string }[];
+  clearSaleCsvData: () => void;
+  saleCsvDate: string;
+  setSaleCsvDate: (v: string) => void;
+  saleCsvHandler: string;
+  setSaleCsvHandler: (v: string) => void;
+  saleCsvImporting: boolean;
+  // Callbacks
+  exportCSV: (type: 'sales') => void;
+  resetSalFilters: () => void;
+  cancelSaleForm: () => void;
+  handleAddSale: () => void;
+  startEditSale: (s: SalesRecord) => void;
+  handleDeleteSale: (id: string) => void;
+  handleSaleCsvFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  downloadSaleCsvTemplate: () => void;
+  handleCsvSaleImport: () => void;
+  cancelSaleCsv: () => void;
+}
+
+// ====== FinanceTab Props ======
+export interface FinanceTabProps {
+  defaultHandler: string;
+  selectCls: string;
+  inputCls: string;
+  Perm: PermComponent;
+  // Form state
+  showFinanceForm: boolean;
+  showFinanceCsv: boolean;
+  setShowFinanceForm: (v: boolean) => void;
+  setShowFinanceCsv: (v: boolean) => void;
+  financeForm: {
+    record_date: string;
+    record_type: 'income' | 'expense';
+    category: string;
+    amount: string;
+    notes: string;
+    handler: string;
+    reimbursed: boolean;
+    reimbursed_date: string;
+    reimburse_notes: string;
+  };
+  setFinanceForm: React.Dispatch<React.SetStateAction<{
+    record_date: string;
+    record_type: 'income' | 'expense';
+    category: string;
+    amount: string;
+    notes: string;
+    handler: string;
+    reimbursed: boolean;
+    reimbursed_date: string;
+    reimburse_notes: string;
+  }>>;
+  editingFinance: FinanceRecord | null;
+  // Filter state
+  finFilterType: 'all' | 'income' | 'expense';
+  setFinFilterType: (v: 'all' | 'income' | 'expense') => void;
+  finFilterCategory: string;
+  setFinFilterCategory: (v: string) => void;
+  finFilterHandler: string;
+  setFinFilterHandler: (v: string) => void;
+  finFilterDateFrom: string;
+  setFinFilterDateFrom: (v: string) => void;
+  finFilterDateTo: string;
+  setFinFilterDateTo: (v: string) => void;
+  // Dictionary data
+  handlerOptions: DictItem[];
+  incomeOptions: DictItem[];
+  expenseOptions: DictItem[];
+  // Derived data
+  filteredFinanceRecords: FinanceRecord[];
+  financeRecordsCount: number;
+  totalOtherIncome: number;
+  totalOtherExpense: number;
+  // CSV import
+  financeCsvData: { record_type: string; category: string; amount: string; handler: string; notes: string; date: string }[];
+  clearFinanceCsvData: () => void;
+  financeCsvDate: string;
+  setFinanceCsvDate: (v: string) => void;
+  financeCsvImporting: boolean;
+  // Callbacks
+  exportFinanceCSV: () => void;
+  cancelFinanceForm: () => void;
+  handleAddFinance: () => void;
+  startEditFinance: (f: FinanceRecord) => void;
+  handleDeleteFinance: (id: string) => void;
+  handleFinanceCsvFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  downloadFinanceCsvTemplate: () => void;
+  handleCsvFinanceImport: () => void;
+}
+
+// ====== ReimburseTab Props ======
+export interface ReimburseTabProps {
+  selectCls: string;
+  inputCls: string;
+  Perm: PermComponent;
+  // Data
+  allReimburseItems: ReimburseItem[];
+  filteredReimburseItems: ReimburseItem[];
+  reimburseTotals: { total: number; pending: number; done: number };
+  // Filter
+  reimbFilterStatus: 'all' | 'pending' | 'done';
+  setReimbFilterStatus: (v: 'all' | 'pending' | 'done') => void;
+  reimbFilterHandler: string;
+  setReimbFilterHandler: (v: string) => void;
+  reimbFilterCode: string;
+  setReimbFilterCode: (v: string) => void;
+  // Check/select
+  checkedReimbIds: Set<string>;
+  batchReimbDate: string;
+  setBatchReimbDate: (v: string) => void;
+  uploadingAttachment: string | null;
+  // Dictionary
+  handlerOptions: DictItem[];
+  // Callbacks
+  selectAllPending: () => void;
+  batchReimburse: () => void;
+  generateMissingCodes: () => void;
+  toggleCheckReimburse: (id: string) => void;
+  toggleReimburse: (item: ReimburseItem) => void;
+  jumpToSource: (source: 'purchases' | 'finance') => void;
+  handleAttachmentUpload: (item: ReimburseItem, file: File) => void;
+  handleRemoveAttachment: (item: ReimburseItem) => void;
+}
+
+// ====== LogsTab Props ======
+export interface LogsTabProps {
+  auditLogs: AuditLog[];
+  logsLoading: boolean;
+  onRefresh: () => void;
+}

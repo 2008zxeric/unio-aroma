@@ -1,0 +1,206 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+/* CSS Variables */
+:root {
+  --moss-green: #2C3E28;
+  --terracotta: #D75437;
+  --stone-grey: #F5F5F5;
+  --azure-blue: #1C39BB;
+  --warm-amber: #D4AF37;
+  
+  /* Quiet Luxury 排版令牌 */
+  --heading-letter-spacing: 0.15em;
+  --heading-line-height: 1.15;
+  --body-line-height: 1.7;
+  --border-subtle: rgba(40, 40, 40, 0.12);
+  --border-light: rgba(40, 40, 40, 0.06);
+}
+
+body {
+  font-family: "Inter", "Noto Serif SC", sans-serif;
+  background-color: var(--stone-grey);
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+.font-cinzel { font-family: "Cinzel", serif; }
+.font-serif-zh { font-family: "Noto Serif SC", serif; }
+
+/* Animations */
+/* 骨架屏品牌色脉冲 */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.skeleton-brand {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(215,84,55,0.05));
+}
+@keyframes luxuryReveal {
+  0% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; transform: scale(1.1); }
+  100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
+}
+@keyframes luxuryMaskExit {
+  0% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+  100% { clip-path: inset(50% 0 50% 0); filter: blur(15px); opacity: 0; }
+}
+@keyframes textShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-luxury-reveal { animation: luxuryReveal 1.6s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-luxury-mask-exit { animation: luxuryMaskExit 1.0s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-slide-up { animation: slideUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+
+.shimmer-text {
+  background: linear-gradient(90deg, #2C3E28 0%, #D4AF37 45%, #D75437 55%, #2C3E28 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+/* ====== 后台移动端优化 ====== */
+
+/* 防止移动端表格溢出 */
+@media (max-width: 768px) {
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  .admin-table-wrap::-webkit-scrollbar { height: 2px; }
+  .admin-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+  
+  /* 移动端卡片式列表项触控优化 */
+  .mobile-card-tap {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .mobile-card-tap:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+}
+
+/* 安全区域适配（iPhone X+） */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* 统一触控尺寸 */
+.touch-btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 自定义 xs 断点 */
+@media (min-width: 480px) {
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* 移动端底部留白 */
+.mobile-bottom-pad {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.animate-breath { animation: logoPulse 4s ease-in-out infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+/* Story Finale - 背景呼吸脉动效果 */
+@keyframes softPulse {
+  0%, 100% { 
+    transform: scale(1.05);
+    filter: grayscale(0.3);
+  }
+  50% { 
+    transform: scale(1.12);
+    filter: grayscale(0);
+  }
+}
+.animate-soft-pulse {
+  animation: softPulse 6s ease-in-out infinite;
+}
+
+/* 给容器添加 subtle inner glow */
+.story-finale-box {
+  backdrop-filter: blur(2px);
+}
+
+/* ====== Quiet Luxury / 静奢风格 工具类 ====== */
+
+/* 大标题 — 加宽字距 */
+.heading-luxury {
+  font-family: 'Cinzel', 'Noto Serif SC', serif;
+  font-weight: 400;
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: var(--heading-line-height);
+}
+
+/* 静奢白底边框 */
+.border-subtle {
+  border-width: 1px;
+  border-color: var(--border-subtle);
+}
+.border-light {
+  border-width: 1px;
+  border-color: var(--border-light);
+}
+.hr-subtle {
+  border: none;
+  height: 1px;
+  background-color: var(--border-subtle);
+}
+
+/* 正文行高 */
+.body-luxury {
+  line-height: var(--body-line-height);
+}

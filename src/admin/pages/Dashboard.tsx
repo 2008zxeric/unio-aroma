@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 import {
   Package, Globe, Image as ImageIcon, Eye,
   TrendingUp, TrendingDown, DollarSign,
@@ -160,7 +161,7 @@ export default function AdminDashboard() {
 
   const handleQuickPurchase = async () => {
     if (!quickProductId || !quickSize || !quickCost) {
-      alert('请选择产品、规格和成本价！'); return;
+      warning('请选择产品、规格和成本价！'); return;
     }
     setQuickLoading(true);
     try {
@@ -172,12 +173,12 @@ export default function AdminDashboard() {
         unit_cost: parseFloat(quickCost),
         supplier_code: quickSupplier || null,
       });
-      alert('✅ 入库成功！');
+      success('✅ 入库成功！');
       setShowQuickIn(false);
       resetQuickForm();
       await loadStats();
     } catch (err: any) {
-      alert('入库失败：' + (err.message || err));
+      error('入库失败：' + (err.message || err));
     } finally {
       setQuickLoading(false);
     }
@@ -185,7 +186,7 @@ export default function AdminDashboard() {
 
   const handleQuickSale = async () => {
     if (!quickProductId || !quickSize || !quickAmount) {
-      alert('请选择产品、规格和售价！'); return;
+      warning('请选择产品、规格和售价！'); return;
     }
     setQuickLoading(true);
     try {
@@ -198,12 +199,12 @@ export default function AdminDashboard() {
         total_amount: total,
         sale_price: volMl > 0 ? total / volMl : total,
       });
-      alert('✅ 出库成功！');
+      success('✅ 出库成功！');
       setShowQuickOut(false);
       resetQuickForm();
       await loadStats();
     } catch (err: any) {
-      alert('出库失败：' + (err.message || err));
+      error('出库失败：' + (err.message || err));
     } finally {
       setQuickLoading(false);
     }

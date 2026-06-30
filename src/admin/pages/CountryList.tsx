@@ -6,6 +6,7 @@ import {
   AlertCircle, RefreshCw, Eye, ExternalLink, Save, Zap, Camera,
 } from 'lucide-react';
 import { countryService, productService, seriesService } from '../../lib/dataService';
+import { useToast } from '../components/Toast';
 import type { Country, Product, Series } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
 import ImageUploadField from '../components/ImageUploadField';
@@ -225,7 +226,7 @@ export default function AdminCountries() {
   };
 
   const handleSave = async () => {
-    if (!form.name_cn.trim()) { alert('请填写国家名称！'); return; }
+    if (!form.name_cn.trim()) { warning('请填写国家名称！'); return; }
     try {
       setSaving(true);
       const record = {
@@ -259,7 +260,7 @@ export default function AdminCountries() {
       // 编辑时停留在当前编辑页，不跳转回列表
       if (editingId) setViewMode('edit');
     } catch (err: any) {
-      alert('保存失败：' + err.message);
+      error('保存失败：' + err.message);
     } finally {
       setSaving(false);
     }
@@ -271,7 +272,7 @@ export default function AdminCountries() {
       await countryService.delete(id);
       await loadData();
     } catch (err: any) {
-      alert('删除失败：' + err.message);
+      error('删除失败：' + err.message);
     }
   };
 
@@ -280,7 +281,7 @@ export default function AdminCountries() {
       await countryService.update(country.id, { is_active: !country.is_active });
       await loadData();
     } catch (err: any) {
-      alert('操作失败：' + err.message);
+      error('操作失败：' + err.message);
     }
   };
 

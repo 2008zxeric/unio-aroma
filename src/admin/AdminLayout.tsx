@@ -31,6 +31,7 @@ import {
   Zap,
   ArrowUp,
   Play,
+  MoreHorizontal,
 } from 'lucide-react';
 
 // 菜单项定义 — 每项绑定权限
@@ -127,6 +128,7 @@ export default function AdminLayout() {
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [showFloatMenu, setShowFloatMenu] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showMoreDrawer, setShowMoreDrawer] = useState(false);
 
   // 监听滚动显示回到顶部按钮
   React.useEffect(() => {
@@ -410,15 +412,15 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* 内容区域 — 增加底部 padding 为浮动按钮留空间 */}
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto pb-20 lg:pb-8">
+        {/* 内容区域 — 增加底部 padding 为浮动按钮留空间 + 淡入动画 */}
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto pb-20 lg:pb-8 animate-fade-in">
           <Outlet />
         </main>
       </div>
 
       {/* ====== 全局浮动工具栏（右下角）— 仅首页，产品页/国家页有自己的浮动按钮 ====== */}
       {floatBtns.length > 0 && !['/admin/products', '/admin/countries'].includes(routeKey) && (
-        <div className="fixed right-3 bottom-16 lg:right-4 lg:bottom-4 z-40 flex flex-col items-end gap-2">
+        <div className="fixed right-3 bottom-20 lg:right-4 lg:bottom-4 z-40 flex flex-col items-end gap-2">
           {/* 浮动菜单展开项 */}
           {showFloatMenu && (
             <div className="flex flex-col items-end gap-1.5 mb-0.5">
@@ -462,54 +464,116 @@ export default function AdminLayout() {
         </div>
       )}
 
-      {/* ====== 移动端底部固定导航条 ====== */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E0ECE0] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
-        <div className="flex items-center justify-around h-14 px-2">
+      {/* ====== 移动端底部固定导航条（增强版） ====== */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E0ECE0] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="flex items-center justify-around h-14 px-1">
+          {/* 首页 */}
           <Link
             to="/admin"
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+            onClick={() => setShowMoreDrawer(false)}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors min-w-0 ${
               location.pathname === '/admin' ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
             }`}
           >
             <LayoutDashboard size={20} />
             <span className="text-[9px] font-medium">首页</span>
           </Link>
+          {/* 产品 */}
           <Link
             to="/admin/products"
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+            onClick={() => setShowMoreDrawer(false)}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors min-w-0 ${
               location.pathname.startsWith('/admin/products') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
             }`}
           >
             <Package size={20} />
             <span className="text-[9px] font-medium">产品</span>
           </Link>
+          {/* 库存 */}
           <Link
             to="/admin/inventory"
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+            onClick={() => setShowMoreDrawer(false)}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors min-w-0 ${
               location.pathname.startsWith('/admin/inventory') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
             }`}
           >
             <Warehouse size={20} />
             <span className="text-[9px] font-medium">库存</span>
           </Link>
+          {/* 评价 */}
           <Link
-            to="/admin/images"
-            className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
-              location.pathname.startsWith('/admin/images') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
+            to="/admin/reviews"
+            onClick={() => setShowMoreDrawer(false)}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors min-w-0 ${
+              location.pathname.startsWith('/admin/reviews') ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
             }`}
           >
-            <Image size={20} />
-            <span className="text-[9px] font-medium">图库</span>
+            <MessageSquare size={20} />
+            <span className="text-[9px] font-medium">评价</span>
           </Link>
+          {/* 更多 */}
           <button
-            onClick={() => setMobileOpen(true)}
-            className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[#9AAA9A]"
+            onClick={() => setShowMoreDrawer(!showMoreDrawer)}
+            className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors min-w-0 ${
+              showMoreDrawer ? 'text-[#4A7C59]' : 'text-[#9AAA9A]'
+            }`}
           >
-            <Menu size={20} />
-            <span className="text-[9px] font-medium">菜单</span>
+            <MoreHorizontal size={20} />
+            <span className="text-[9px] font-medium">更多</span>
           </button>
         </div>
       </div>
+
+      {/* ====== 更多抽屉面板（从底部滑出） ====== */}
+      {showMoreDrawer && (
+        <>
+          {/* 遮罩 */}
+          <div
+            className="fixed inset-0 z-30 lg:hidden bg-black/30 backdrop-blur-sm"
+            onClick={() => setShowMoreDrawer(false)}
+          />
+          {/* 抽屉内容 */}
+          <div
+            className="fixed bottom-0 left-0 right-0 z-35 lg:hidden bg-white rounded-t-2xl shadow-2xl max-h-[60vh] overflow-y-auto animate-slide-up"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 56px)' }}
+          >
+            {/* 拖拽指示条 */}
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-[#D5E2D5]" />
+            </div>
+            <div className="px-4 pt-2 pb-4">
+              <h3 className="text-xs font-bold text-[#9AAA9A] uppercase tracking-widest mb-3 px-1">全部功能</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {filteredMenuItems.map((item, idx) => {
+                  if ('type' in item && item.type === 'divider') return null;
+                  const Icon = ('icon' in item) ? item.icon : null;
+                  const path = 'path' in item ? item.path : '';
+                  const label = 'label' in item ? item.label : '';
+                  const isEnd = 'end' in item ? item.end : false;
+                  const active = isActive(path || '', isEnd);
+                  if (!path) return null;
+
+                  return (
+                    <Link
+                      key={idx}
+                      to={path}
+                      onClick={() => setShowMoreDrawer(false)}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
+                        active
+                          ? 'bg-[#E8F3EC] text-[#4A7C59]'
+                          : 'text-[#5C725C] hover:bg-[#F4F7F4]'
+                      }`}
+                    >
+                      {Icon && <Icon size={22} />}
+                      <span className="text-[10px] font-medium text-center leading-tight">{label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ====== 回到顶部按钮（桌面端） ====== */}
       {showScrollTop && (

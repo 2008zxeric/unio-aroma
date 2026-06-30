@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Type, X, Save, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Star } from 'lucide-react';
 import { siteTextService, bannerService, recommendService } from '../../lib/dataService';
+import { useToast } from '../components/Toast';
 import { Perm } from '../components/PermissionGuard';
 
 // 网站文字管理 — 管理各页面上的文字内容
@@ -95,7 +96,7 @@ export function AdminTexts() {
       await loadTexts();
       setEditingKey(null);
     } catch (err: any) {
-      alert('保存失败：' + err.message);
+      error('保存失败：' + err.message);
     } finally {
       setSaving(false);
     }
@@ -236,7 +237,7 @@ export function AdminRecommends() {
   };
 
   const handleSave = async () => {
-    if (!form.ref_id.trim()) { alert('请填写关联ID！'); return; }
+    if (!form.ref_id.trim()) { warning('请填写关联ID！'); return; }
     try {
       setSaving(true);
       if (editingId) {
@@ -247,7 +248,7 @@ export function AdminRecommends() {
       await loadData();
       resetForm();
     } catch (err: any) {
-      alert('保存失败：' + err.message);
+      error('保存失败：' + err.message);
     } finally {
       setSaving(false);
     }
@@ -259,7 +260,7 @@ export function AdminRecommends() {
       await recommendService.delete(id);
       await loadData();
     } catch (err: any) {
-      alert('删除失败：' + err.message);
+      error('删除失败：' + err.message);
     }
   };
 
@@ -268,7 +269,7 @@ export function AdminRecommends() {
       await recommendService.update(item.id, { is_active: !item.is_active });
       await loadData();
     } catch (err: any) {
-      alert('操作失败：' + err.message);
+      error('操作失败：' + err.message);
     }
   };
 

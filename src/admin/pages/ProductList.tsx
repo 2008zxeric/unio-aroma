@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 import {
   Plus, Search, Edit2, Trash2,
   Upload, ChevronDown, ChevronUp, ChevronRight,
@@ -237,6 +238,7 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 export default function AdminProducts() {
   const [searchParams] = useSearchParams();
   const { user, hasPermission } = useAuth();
+  const { success, error, warning, info } = useToast();
   const { setPreviewUrl } = useAdminPreview();
   const [products, setProducts] = useState<Product[]>([]);
   const [series, setSeries] = useState<Series[]>([]);
@@ -508,9 +510,9 @@ export default function AdminProducts() {
   }, []);
 
   const handleSave = async () => {
-    if (!form.name_cn.trim()) { alert('请填写产品名称！'); return; }
-    if (!form.display_name.trim()) { alert('请填写前台展示名称！'); return; }
-    if (!form.category) { alert('请选择子分类！'); return; }
+    if (!form.name_cn.trim()) { warning('请填写产品名称！'); return; }
+    if (!form.display_name.trim()) { warning('请填写前台展示名称！'); return; }
+    if (!form.category) { warning('请选择子分类！'); return; }
 
     try {
       setSaving(true);
@@ -605,7 +607,7 @@ export default function AdminProducts() {
         }
     } catch (err: any) {
       console.error('保存失败:', err);
-      alert('保存失败：' + (err.message || '未知错误'));
+      error('保存失败：' + (err.message || '未知错误'));
     } finally {
       setSaving(false);
     }
@@ -616,7 +618,7 @@ export default function AdminProducts() {
     try {
       await productService.delete(id);
       await loadData();
-    } catch (err: any) { alert('删除失败：' + err.message); }
+    } catch (err: any) { error('删除失败：' + err.message); }
   };
 
   const handleToggleActive = async (product: Product) => {
@@ -633,7 +635,7 @@ export default function AdminProducts() {
         });
       }
       await loadData();
-    } catch (err: any) { alert('操作失败：' + err.message); }
+    } catch (err: any) { error('操作失败：' + err.message); }
   };
 
   // ================================================================
@@ -716,7 +718,7 @@ export default function AdminProducts() {
               <p className="text-sm text-[#7A967A] mt-1">支持 CSV / JSON 格式</p></div>
             <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E8F3EC] hover:bg-[#D4EDDA] text-[#4A7C59] rounded-xl cursor-pointer text-sm font-medium">
               <Upload size={15} /> 选择文件导入
-              <input type="file" accept=".csv,.json" className="hidden" onChange={e => e.target.files?.[0] && alert(`导入功能开发中...已选: ${e.target.files[0].name}`)} />
+              <input type="file" accept=".csv,.json" className="hidden" onChange={e => e.target.files?.[0] && warning(`导入功能开发中...已选: ${e.target.files[0].name}`)} />
             </label>
           </div>
         </div>
@@ -1234,12 +1236,12 @@ function ProductEditFormV4({
     // 更新本地状态
     setForm(prev => ({ ...prev, inboundRecords: allRecords }));
     const t = calcTotals({ ...form, inboundRecords: allRecords });
-    alert(`✅ 入库记录已保存\n规格：${record.size} × ${record.qty}\n金额：¥${record.totalCost.toFixed(2)}\n剩余库存：${t.remaining}${unit}`);
+    warning(`✅ 入库记录已保存\n规格：${record.size} × ${record.qty}\n金额：¥${record.totalCost.toFixed(2)}\n剩余库存：${t.remaining}${unit}`);
   };
 
   const saveSingleSales = async (record: SalesEntry, allRecords: SalesEntry[]) => {
     setForm(prev => ({ ...prev, salesRecords: allRecords }));
-    alert(`✅ 销售记录已保存\n规格：${record.size} × ${record.qty}\n收入：¥${record.totalRevenue.toFixed(2)}`);
+    warning(`✅ 销售记录已保存\n规格：${record.size} × ${record.qty}\n收入：¥${record.totalRevenue.toFixed(2)}`);
   };
 
   return (

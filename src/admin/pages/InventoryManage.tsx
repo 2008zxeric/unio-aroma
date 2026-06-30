@@ -3,19 +3,27 @@ import {
   Warehouse, TrendingUp, TrendingDown,
   Plus, Trash2, Edit2, X, DollarSign,
   Package, Save, Download, Filter, Search, RotateCcw,
-  ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, Upload,
+  ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, Upload, CheckCircle,
+  Paperclip, Eye, Loader2,
 } from 'lucide-react';
-import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService, initDatabaseSchema } from '../../lib/dataService';
+import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService } from '../../lib/dataService';
 import { supabase } from '../../lib/supabase';
+
 import { auditLogService, useAuth } from '../../lib/auth';
 import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord, AuditLog } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
 
+import { useSearchParams } from 'react-router-dom';
+import { useToast } from '../components/Toast';
+
 export default function AdminInventory() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<'overview' | 'purchases' | 'sales' | 'finance' | 'logs'>('overview');
+  const { success, error, warning, info } = useToast();
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as 'overview' | 'purchases' | 'sales' | 'finance' | 'reimburse' | 'logs') || 'overview';
+  const [tab, setTab] = useState<'overview' | 'purchases' | 'sales' | 'finance' | 'reimburse' | 'logs'>(initialTab);
   const [summaries, setSummaries] = useState<ProductInventory[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
@@ -27,6 +35,8 @@ export default function AdminInventory() {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterKeyword, setFilterKeyword] = useState('');
   const [filterStockStatus, setFilterStockStatus] = useState<'all' | 'instock' | 'low' | 'zero'>('all');
+  const [showOverviewFilter, setShowOverviewFilter] = useState(false);
+  const [overviewSort, setOverviewSort] = useState<{ field: string; dir: 'asc' | 'desc' }>({ field: 'stock', dir: 'asc' });
 
   // 进货/销售记录筛选
   const [purFilterSeries, setPurFilterSeries] = useState('');
@@ -53,6 +63,147 @@ export default function AdminInventory() {
   const [finFilterHandler, setFinFilterHandler] = useState('');
   const [finFilterDateFrom, setFinFilterDateFrom] = useState('');
   const [finFilterDateTo, setFinFilterDateTo] = useState('');
+
+  // ---- 报销管理筛选 ----
+  const [reimbFilterStatus, setReimbFilterStatus] = useState<'all' | 'pending' | 'done'>('pending');
+  const [reimbFilterHandler, setReimbFilterHandler] = useState('');
+  const [reimbFilterCode, setReimbFilterCode] = useState('');
+  const [checkedReimbIds, setCheckedReimbIds] = useState<Set<string>>(new Set());
+  const [batchReimbDate, setBatchReimbDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // ---- 附件上传 ----
+  const [uploadingAttachment, setUploadingAttachment] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const handleAttachmentUpload = async (item: ReimburseItem, file: File) => {
+    if (file.size > 10 * 1024 * 1024) { warning('附件不能超过 10MB'); return; }
+    setUploadingAttachment(item.id);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const storagePath = `reimbursements/${item.sourceTable}/${item.id}_${Date.now()}.${ext}`;
+
+      // 1. 直传 Supabase Storage（绕过 Vercel 4.5MB body limit）
+      const { error: uploadErr } = await supabase.storage
+        .from('reimbursements')
+        .upload(storagePath, file, {
+          cacheControl: '31536000',
+          contentType: file.type || 'image/jpeg',
+        });
+      if (uploadErr) throw new Error(`存储上传失败：${uploadErr.message}`);
+
+      // 2. 获取公开 URL
+      const { data: urlData } = supabase.storage
+        .from('reimbursements')
+        .getPublicUrl(storagePath);
+      const publicUrl = urlData.publicUrl;
+
+      // 3. 通过 proxy 更新数据库（service key 绕过 RLS）
+      const resp = await fetch('/api/attachment-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: item.sourceTable, id: item.id, url: publicUrl }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || '数据库更新失败');
+
+      await loadTabData(tab, true);
+    } catch (err: any) {
+      error('上传失败：' + (err.message || err));
+    } finally {
+      setUploadingAttachment(null);
+    }
+  };  const handleRemoveAttachment = async (item: ReimburseItem) => {
+    if (!confirm('确认删除附件？')) return;
+    try {
+      const resp = await fetch('/api/attachment-proxy', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: item.sourceTable, id: item.id }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || 'Unknown error');
+      await loadTabData(tab, true);
+    } catch (err: any) {
+      error('删除失败：' + (err.message || err));
+    }
+  };const generateMissingCodes = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    let count = 0;
+    for (const item of allReimburseItems) {
+      if (item.reimburse_code) continue;
+      const date = item.date;
+      // 找当天已有编码的最大序号
+      const sameDateCodes = allReimburseItems
+        .filter(i => i.reimburse_code && i.reimburse_code.startsWith('BX-' + date))
+        .map(i => parseInt((i.reimburse_code || '').split('-').pop() || '0', 10));
+      const nextNum = (Math.max(0, ...sameDateCodes) + 1).toString().padStart(3, '0');
+      const code = `BX-${date}-${nextNum}`;
+      try {
+        if (item.sourceTable === 'purchase_records') {
+          await purchaseService.update(item.id, { reimburse_code: code } as any);
+        } else {
+          await financeRecordService.update(item.id, { reimburse_code: code } as any);
+        }
+        count++;
+      } catch (err: any) {
+        console.error('编码生成失败:', item.id, err);
+      }
+    }
+    if (count > 0) {
+      success(`已为 ${count} 条记录生成编码`);
+      await loadTabData(tab, true);
+    } else {
+      info('所有记录已有编码');
+    }
+  };
+
+  // 报销操作
+  const toggleReimburse = async (item: ReimburseItem) => {
+    const newReimbursed = !item.reimbursed;
+    const reimbDate = newReimbursed ? new Date().toISOString().split('T')[0] : null;
+    try {
+      if (item.sourceTable === 'purchase_records') {
+        await purchaseService.update(item.id, { reimbursed: newReimbursed, reimbursed_date: reimbDate || undefined });
+      } else {
+        await financeRecordService.update(item.id, { reimbursed: newReimbursed, reimbursed_date: reimbDate || undefined });
+      }
+      await loadTabData(tab, true);
+    } catch (err: any) { error('操作失败：' + err.message); }
+  };
+  const batchReimburse = async () => {
+    if (checkedReimbIds.size === 0) { warning('请选择要报销的记录'); return; }
+    if (!confirm(`确认将 ${checkedReimbIds.size} 条记录标记为已报销（日期：${batchReimbDate}）？`)) return;
+    try {
+      for (const id of checkedReimbIds) {
+        const item = allReimburseItems.find(i => i.id === id);
+        if (!item || item.reimbursed) continue;
+        if (item.sourceTable === 'purchase_records') {
+          await purchaseService.update(id, { reimbursed: true, reimbursed_date: batchReimbDate });
+        } else {
+          await financeRecordService.update(id, { reimbursed: true, reimbursed_date: batchReimbDate });
+        }
+      }
+      setCheckedReimbIds(new Set());
+      await loadTabData(tab, true);
+    } catch (err: any) { error('批量报销失败：' + err.message); }
+  };
+  const toggleCheckReimburse = (id: string) => {
+    setCheckedReimbIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const selectAllPending = () => {
+    const pendingIds = filteredReimburseItems.filter(i => !i.reimbursed).map(i => i.id);
+    setCheckedReimbIds(new Set(pendingIds));
+  };
+  const jumpToSource = (source: 'purchases' | 'finance') => {
+    setTab(source);
+    if (source === 'finance') {
+      setFinFilterType('expense');
+    }
+  };
 
   // 新增记录表单状态
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
@@ -101,8 +252,10 @@ export default function AdminInventory() {
   const [expenseOptions, setExpenseOptions] = useState<DictItem[]>([]);
   const [financeForm, setFinanceForm] = useState({
     record_date: new Date().toISOString().split('T')[0],
-    record_type: 'income' as 'income' | 'expense',
-    category: '', amount: '', notes: '', handler: '',
+    record_type: 'expense' as 'income' | 'expense',
+    category: '', amount: '', notes: '', handler: user?.display_name || user?.username || '',
+    reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0],
+    reimburse_notes: '',
   });
   // ---- 其他收支 CSV 导入状态 ----
   const [showFinanceCsv, setShowFinanceCsv] = useState(false);
@@ -121,7 +274,10 @@ export default function AdminInventory() {
   // 其他收支筛选后的数据
   const filteredFinanceRecords = useMemo(() => {
     return financeRecords.filter(r => {
-      if (finFilterType !== 'all' && r.record_type !== finFilterType) return false;
+      const isFinIncome = r.record_type === 'income' || r.record_type === 'other_income';
+      const isFinExpense = r.record_type === 'expense' || r.record_type === 'other_expense';
+      if (finFilterType === 'income' && !isFinIncome) return false;
+      if (finFilterType === 'expense' && !isFinExpense) return false;
       if (finFilterCategory && r.category !== finFilterCategory) return false;
       if (finFilterHandler && r.handler !== finFilterHandler) return false;
       if (finFilterDateFrom && r.record_date < finFilterDateFrom) return false;
@@ -129,6 +285,65 @@ export default function AdminInventory() {
       return true;
     });
   }, [financeRecords, finFilterType, finFilterCategory, finFilterHandler, finFilterDateFrom, finFilterDateTo]);
+
+  // ---- 报销管理：合并进货+其他收支 ----
+  type ReimburseItem = {
+    id: string; source: '进货' | '支出'; sourceTable: 'purchase_records' | 'finance_records';
+    date: string; description: string; amount: number; handler: string;
+    reimbursed: boolean; reimbursed_date?: string;
+    attachment_url?: string;
+    reimburse_code?: string;
+    reimburse_notes?: string;
+  };
+  const allReimburseItems = useMemo<ReimburseItem[]>(() => {
+    const items: ReimburseItem[] = [];
+    for (const p of purchases) {
+      const amount = p.total_cost || ((p.unit_cost || 0) * (p.volume_ml || 0));
+      if (amount > 0) {
+        const prod = products.find(pr => pr.id === p.product_id);
+        items.push({
+          id: p.id, source: '进货' as const, sourceTable: 'purchase_records',
+          date: p.purchase_date, description: prod?.name_cn || p.product_id,
+          amount, handler: p.handler || '',
+          reimbursed: p.reimbursed || false, reimbursed_date: p.reimbursed_date,
+          attachment_url: p.attachment_url,
+          reimburse_code: p.reimburse_code,
+          reimburse_notes: p.reimburse_notes,
+        });
+      }
+    }
+    for (const f of financeRecords) {
+      const isExpense = f.record_type === 'expense' || f.record_type === 'other_expense';
+      if (isExpense) {
+        const catLabel = expenseOptions.find(o => o.value === f.category)?.label || f.category;
+        items.push({
+          id: f.id, source: '支出' as const, sourceTable: 'finance_records',
+          date: f.record_date, description: catLabel,
+          amount: f.amount || 0, handler: f.handler || '',
+          reimbursed: f.reimbursed || false, reimbursed_date: f.reimbursed_date,
+          attachment_url: f.attachment_url,
+          reimburse_code: f.reimburse_code,
+          reimburse_notes: f.reimburse_notes,
+        });
+      }
+    }
+    items.sort((a, b) => b.date.localeCompare(a.date));
+    return items;
+  }, [purchases, financeRecords, products, expenseOptions]);
+  const filteredReimburseItems = useMemo(() => {
+    return allReimburseItems.filter(item => {
+      if (reimbFilterStatus === 'pending' && item.reimbursed) return false;
+      if (reimbFilterStatus === 'done' && !item.reimbursed) return false;
+      if (reimbFilterHandler && item.handler !== reimbFilterHandler) return false;
+      if (reimbFilterCode && !(item.reimburse_code || '').toLowerCase().includes(reimbFilterCode.toLowerCase())) return false;
+      return true;
+    });
+  }, [allReimburseItems, reimbFilterStatus, reimbFilterHandler, reimbFilterCode]);
+  const reimburseTotals = useMemo(() => ({
+    total: allReimburseItems.reduce((s, i) => s + i.amount, 0),
+    pending: allReimburseItems.filter(i => !i.reimbursed).reduce((s, i) => s + i.amount, 0),
+    done: allReimburseItems.filter(i => i.reimbursed).reduce((s, i) => s + i.amount, 0),
+  }), [allReimburseItems]);
 
   // ---- 操作日志状态 ----
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -145,13 +360,13 @@ export default function AdminInventory() {
   // 进货表单
   const [purchaseForm, setPurchaseForm] = useState({
     product_id: '', purchase_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', unit_cost: '',    supplier_code: '', handler: '', warehouse: '',
+    volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: user?.display_name || user?.username || '', warehouse: '',
   });
 
   // 销售表单
   const [saleForm, setSaleForm] = useState({
     product_id: '', sale_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', total_amount: '', handler: '', warehouse: '',
+    volume_ml: '', total_amount: '', handler: user?.display_name || user?.username || '', warehouse: '',
   });
 
   // 按 Tab 懒加载数据（带内存缓存，Tab切换时不重复请求）
@@ -171,7 +386,8 @@ export default function AdminInventory() {
       }
       if (loadedTabsRef.current.size === 0) {
         promises.push(productService.getAll().then(d => setProducts(d)));
-        promises.push(financeRecordService.getAll().catch(() => [] as FinanceRecord[]).then(d => setFinanceRecords(d)));
+        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+        // 其他数据按需加载，不在首屏预加载
       }
       
       // 库存概览 Tab
@@ -199,6 +415,14 @@ export default function AdminInventory() {
         promises.push(dictService.getByType('other_income').catch(() => []).then(d => setIncomeOptions(d)));
         promises.push(dictService.getByType('other_expense').catch(() => []).then(d => setExpenseOptions(d)));
       }
+      // 报销管理 Tab — 需要进货+收支数据
+      if (currentTab === 'reimburse') {
+        promises.push(purchaseService.getAll().then(d => setPurchases(d)));
+        const frPromise = financeRecordService.getAll().catch(() => [] as FinanceRecord[]);
+        promises.push(frPromise.then(d => setFinanceRecords(d)));
+        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
+        promises.push(dictService.getByType('other_expense').catch(() => []).then(d => setExpenseOptions(d)));
+      }
       // 操作日志 Tab
       if (currentTab === 'logs') {
         promises.push(auditLogService.getAll(200).then(d => setAuditLogs(d)));
@@ -214,7 +438,6 @@ export default function AdminInventory() {
   };
 
   useEffect(() => {
-    initDatabaseSchema();
     loadTabData(tab);
   }, [tab]);
 
@@ -258,6 +481,20 @@ export default function AdminInventory() {
       return true;
     });
   }, [summaries, filterSeries, filterCategory, filterStockStatus, filterKeyword, productMetaMap]);
+
+  const sortedSummaries = useMemo(() => {
+    return [...filteredSummaries].sort((a, b) => {
+      const dir = overviewSort.dir === 'asc' ? 1 : -1;
+      switch (overviewSort.field) {
+        case 'name': return a.product_name.localeCompare(b.product_name, 'zh') * dir;
+        case 'stock': return (a.current_stock_ml - b.current_stock_ml) * dir;
+        case 'profit': return (a.total_profit - b.total_profit) * dir;
+        case 'revenue': return (a.total_revenue - b.total_revenue) * dir;
+        case 'cost': return (a.total_cost - b.total_cost) * dir;
+        default: return 0;
+      }
+    });
+  }, [filteredSummaries, overviewSort]);
 
   const filteredPurchases = useMemo(() => {
     const result = purchases.filter(p => {
@@ -325,11 +562,16 @@ export default function AdminInventory() {
     return result;
   }, [sales, salFilterSeries, salFilterKeyword, salFilterDateFrom, salFilterDateTo, salFilterHandler, salFilterWarehouse, salSortField, salSortDir, productMetaMap, products]);
 
-  // 汇总统计（基于筛选后）
+  // 汇总统计（基于筛选后 — 用于表格和导出）
   const totalStock = filteredSummaries.reduce((s, item) => s + item.current_stock_ml, 0);
   const totalCost = filteredSummaries.reduce((s, item) => s + item.total_cost, 0);
   const totalRevenue = filteredSummaries.reduce((s, item) => s + item.total_revenue, 0);
   const totalProfit = filteredSummaries.reduce((s, item) => s + item.total_profit, 0);
+
+  // 全量汇总（不受筛选影响 — 用于顶部统计卡片）
+  const totalStockAll = summaries.reduce((s, item) => s + item.current_stock_ml, 0);
+  const totalCostAll = summaries.reduce((s, item) => s + item.total_cost, 0);
+  const totalRevenueAll = summaries.reduce((s, item) => s + item.total_revenue, 0);
 
   // ====== 导出 CSV ======
   const exportCSV = useCallback((type: 'overview' | 'purchases' | 'sales') => {
@@ -383,35 +625,43 @@ export default function AdminInventory() {
   // ---- 进货操作 ----
   const handleAddPurchase = async () => {
     if (!purchaseForm.product_id || !purchaseForm.volume_ml) {
-      alert('请选择产品和填写容量！'); return;
+      warning('请选择产品和填写容量！'); return;
     }
     try {
       if (editingPurchase) {
+        const computedUnitCost = (purchaseForm.total_cost && parseFloat(purchaseForm.volume_ml) > 0)
+          ? parseFloat(purchaseForm.total_cost) / parseFloat(purchaseForm.volume_ml)
+          : parseFloat(purchaseForm.unit_cost);
         await purchaseService.update(editingPurchase.id, {
           product_id: purchaseForm.product_id,
           purchase_date: purchaseForm.purchase_date,
           volume_ml: parseFloat(purchaseForm.volume_ml),
-          unit_cost: parseFloat(purchaseForm.unit_cost),
+          unit_cost: computedUnitCost,
+          total_cost: parseFloat(purchaseForm.total_cost) || computedUnitCost * parseFloat(purchaseForm.volume_ml),
           supplier_code: purchaseForm.supplier_code,
           warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
         setEditingPurchase(null);
       } else {
+        const computedUnitCost = (purchaseForm.total_cost && parseFloat(purchaseForm.volume_ml) > 0)
+          ? parseFloat(purchaseForm.total_cost) / parseFloat(purchaseForm.volume_ml)
+          : parseFloat(purchaseForm.unit_cost);
         await purchaseService.create({
           product_id: purchaseForm.product_id,
           purchase_date: purchaseForm.purchase_date,
           volume_ml: parseFloat(purchaseForm.volume_ml),
-          unit_cost: parseFloat(purchaseForm.unit_cost),
+          unit_cost: computedUnitCost,
+          total_cost: parseFloat(purchaseForm.total_cost) || computedUnitCost * parseFloat(purchaseForm.volume_ml),
           supplier_code: purchaseForm.supplier_code,
           warehouse: purchaseForm.warehouse || null,
           handler: purchaseForm.handler || null,
         });
       }
-      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '', warehouse: '' });
+      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: user?.display_name || user?.username || '', warehouse: '' });
       setShowPurchaseForm(false);
       await loadTabData(tab, true);
-    } catch (err: any) { alert(editingPurchase ? '修改失败：' + err.message : '添加失败：' + err.message); }
+    } catch (err: any) { error(editingPurchase ? '修改失败：' + err.message : '添加失败：' + err.message); }
   };
 
   const startEditPurchase = (p: PurchaseRecord) => {
@@ -423,6 +673,7 @@ export default function AdminInventory() {
       purchase_date: p.purchase_date,
       volume_ml: String(p.volume_ml),
       unit_cost: String(p.unit_cost),
+      total_cost: String((p.volume_ml || 0) * (p.unit_cost || 0)),
       supplier_code: p.supplier_code || '',
       handler: p.handler || '',
       warehouse: p.warehouse || '',
@@ -447,19 +698,32 @@ export default function AdminInventory() {
           detail: { product_id: rec.product_id, volume_ml: rec.volume_ml, unit_cost: rec.unit_cost, amount },
         });
       }
-    } catch (err: any) { alert('删除失败：' + err.message); }
+    } catch (err: any) { error('删除失败：' + err.message); }
   };
 
   const cancelPurchaseForm = () => {
     setShowPurchaseForm(false);
     setEditingPurchase(null);
-    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', supplier_code: '', handler: '', warehouse: '' });
+    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: user?.display_name || user?.username || '', warehouse: '' });
   };
 
   // ---- 销售操作 ----
   const handleAddSale = async () => {
     if (!saleForm.product_id || !saleForm.volume_ml) {
-      alert('请选择产品和填写容量！'); return;
+      warning('请选择产品和填写容量！'); return;
+    }
+    const saleVol = parseFloat(saleForm.volume_ml);
+    // 检查库存
+    const inv = summaries.find(s => s.product_id === saleForm.product_id);
+    if (inv) {
+      const availableStock = editingSale
+        ? inv.current_stock_ml + (editingSale.volume_ml || 0)
+        : inv.current_stock_ml;
+      if (saleVol > availableStock) {
+        const prodName = products.find(p => p.id === saleForm.product_id)?.name_cn || '该产品';
+        warning(`库存不足！${prodName} 当前库存仅 ${availableStock}ml，无法销售 ${saleVol}ml。`);
+        return;
+      }
     }
     try {
       if (editingSale) {
@@ -484,10 +748,10 @@ export default function AdminInventory() {
           handler: saleForm.handler || null,
         });
       }
-      setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: '' });
+      setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: user?.display_name || user?.username || '' });
       setShowSaleForm(false);
       await loadTabData(tab, true);
-    } catch (err: any) { alert(editingSale ? '修改失败：' + err.message : '添加失败：' + err.message); }
+    } catch (err: any) { error(editingSale ? '修改失败：' + err.message : '添加失败：' + err.message); }
   };
 
   const startEditSale = (s: SalesRecord) => {
@@ -518,20 +782,20 @@ export default function AdminInventory() {
           detail: { product_id: rec.product_id, volume_ml: rec.volume_ml, total_amount: rec.total_amount },
         });
       }
-    } catch (err: any) { alert('删除失败：' + err.message); }
+    } catch (err: any) { error('删除失败：' + err.message); }
   };
 
   const cancelSaleForm = () => {
     setShowSaleForm(false);
     setEditingSale(null);
-    setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: '' });
+    setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: user?.display_name || user?.username || '' });
   };
 
   // ---- 批量入库 ----
   // ---- CSV导入入库 ----
   const handleCsvImport = async () => {
-    if (csvData.length === 0) { alert('请先上传CSV文件！'); return; }
-    if (!csvImportHandler) { alert('请选择经手人！'); return; }
+    if (csvData.length === 0) { warning('请先上传CSV文件！'); return; }
+    if (!csvImportHandler) { warning('请选择经手人！'); return; }
     setCsvImporting(true);
     let successCount = 0;
     let failCount = 0;
@@ -558,10 +822,10 @@ export default function AdminInventory() {
       setCsvData([]);
       setShowImportCsv(false);
       setCsvImportHandler('');
-      if (errors.length > 0) { alert(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
-      else { alert(`成功导入 ${successCount} 条进货记录！`); }
+      if (errors.length > 0) { error(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
+      else { success(`成功导入 ${successCount} 条进货记录！`); }
       await loadTabData(tab, true);
-    } catch (err: any) { alert('导入失败：' + err.message); }
+    } catch (err: any) { error('导入失败：' + err.message); }
     finally { setCsvImporting(false); }
   };
 
@@ -572,7 +836,7 @@ export default function AdminInventory() {
     reader.onload = (evt) => {
       const text = evt.target?.result as string;
       const lines = text.split('\n').filter(l => l.trim());
-      if (lines.length < 2) { alert('CSV文件至少需要标题行+1行数据'); return; }
+      if (lines.length < 2) { warning('CSV文件至少需要标题行+1行数据'); return; }
       // 解析标题行，判断列顺序
       const header = lines[0].toLowerCase();
       const hasProductCol = header.includes('产品') || header.includes('product') || header.includes('名称');
@@ -580,7 +844,7 @@ export default function AdminInventory() {
       const hasCostCol = header.includes('单价') || header.includes('unit_cost') || header.includes('进价');
       const hasSupplierCol = header.includes('供货') || header.includes('supplier');
       const hasDateCol = header.includes('日期') || header.includes('date');
-      if (!hasProductCol || !hasVolumeCol) { alert('CSV格式错误：需要包含"产品名称"和"容量"列'); return; }
+      if (!hasProductCol || !hasVolumeCol) { warning('CSV格式错误：需要包含"产品名称"和"容量"列'); return; }
       const rows = lines.slice(1).map(l => {
         const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
         return {
@@ -619,8 +883,8 @@ export default function AdminInventory() {
 
   // ---- CSV导入出库 ----
   const handleCsvSaleImport = async () => {
-    if (saleCsvData.length === 0) { alert('请先上传CSV文件！'); return; }
-    if (!saleCsvHandler) { alert('请选择经手人！'); return; }
+    if (saleCsvData.length === 0) { warning('请先上传CSV文件！'); return; }
+    if (!saleCsvHandler) { warning('请选择经手人！'); return; }
     setSaleCsvImporting(true);
     let successCount = 0;
     let failCount = 0;
@@ -646,10 +910,10 @@ export default function AdminInventory() {
       setSaleCsvData([]);
       setShowSaleCsv(false);
       setSaleCsvHandler('');
-      if (errors.length > 0) { alert(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
-      else { alert(`成功导入 ${successCount} 条销售记录！`); }
+      if (errors.length > 0) { error(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
+      else { success(`成功导入 ${successCount} 条销售记录！`); }
       await loadTabData(tab, true);
-    } catch (err: any) { alert('导入失败：' + err.message); }
+    } catch (err: any) { error('导入失败：' + err.message); }
     finally { setSaleCsvImporting(false); }
   };
 
@@ -660,13 +924,13 @@ export default function AdminInventory() {
     reader.onload = (evt) => {
       const text = evt.target?.result as string;
       const lines = text.split('\n').filter(l => l.trim());
-      if (lines.length < 2) { alert('CSV文件至少需要标题行+1行数据'); return; }
+      if (lines.length < 2) { warning('CSV文件至少需要标题行+1行数据'); return; }
       const header = lines[0].toLowerCase();
       const hasProductCol = header.includes('产品') || header.includes('product') || header.includes('名称');
       const hasVolumeCol = header.includes('容量') || header.includes('volume') || header.includes('数量');
       const hasPriceCol = header.includes('单价') || header.includes('price') || header.includes('售价');
       const hasDateCol = header.includes('日期') || header.includes('date');
-      if (!hasProductCol || !hasVolumeCol) { alert('CSV格式错误：需要包含"产品名称"和"容量"列'); return; }
+      if (!hasProductCol || !hasVolumeCol) { warning('CSV格式错误：需要包含"产品名称"和"容量"列'); return; }
       const rows = lines.slice(1).map(l => {
         const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
         return {
@@ -704,7 +968,7 @@ export default function AdminInventory() {
   // ---- 其他收支操作 ----
   const handleAddFinance = async () => {
     if (!financeForm.category || !financeForm.amount) {
-      alert('请填写完整信息！'); return;
+      warning('请填写完整信息！'); return;
     }
     try {
       if (editingFinance) {
@@ -719,10 +983,10 @@ export default function AdminInventory() {
           amount: parseFloat(financeForm.amount),
         });
       }
-      setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'income', category: '', amount: '', notes: '', handler: '' });
+      setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'expense', category: '', amount: '', notes: '', handler: user?.display_name || user?.username || '', reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0], reimburse_notes: '' });
       setShowFinanceForm(false);
       await loadTabData(tab, true);
-    } catch (err: any) { alert(editingFinance ? '修改失败：' + err.message : '添加失败：' + err.message); }
+    } catch (err: any) { error(editingFinance ? '修改失败：' + err.message : '添加失败：' + err.message); }
   };
 
   const startEditFinance = (f: FinanceRecord) => {
@@ -734,6 +998,9 @@ export default function AdminInventory() {
       amount: String(f.amount),
       notes: f.notes || '',
       handler: f.handler || '',
+      reimbursed: f.reimbursed || false,
+      reimbursed_date: f.reimbursed_date || new Date().toISOString().split('T')[0],
+      reimburse_notes: f.reimburse_notes || '',
     });
     setShowFinanceForm(true);
   };
@@ -752,13 +1019,13 @@ export default function AdminInventory() {
           detail: { record_type: rec.record_type, category: rec.category, amount: rec.amount, notes: rec.notes },
         });
       }
-    } catch (err: any) { alert('删除失败：' + err.message); }
+    } catch (err: any) { error('删除失败：' + err.message); }
   };
 
   const cancelFinanceForm = () => {
     setShowFinanceForm(false);
     setEditingFinance(null);
-    setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'income', category: '', amount: '', notes: '', handler: '' });
+    setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'expense', category: '', amount: '', notes: '', handler: user?.display_name || user?.username || '', reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0], reimburse_notes: '' });
   };
 
   // ---- 其他收支 CSV 操作 ----
@@ -769,12 +1036,12 @@ export default function AdminInventory() {
     reader.onload = (evt) => {
       const text = evt.target?.result as string;
       const lines = text.split('\n').filter(l => l.trim());
-      if (lines.length < 2) { alert('CSV文件至少需要标题行+1行数据'); return; }
+      if (lines.length < 2) { warning('CSV文件至少需要标题行+1行数据'); return; }
       const header = lines[0].toLowerCase();
       const hasTypeCol = header.includes('类型') || header.includes('type');
       const hasCategoryCol = header.includes('分类') || header.includes('category');
       const hasAmountCol = header.includes('金额') || header.includes('amount');
-      if (!hasTypeCol || !hasAmountCol) { alert('CSV格式错误：需要包含"类型"和"金额"列'); return; }
+      if (!hasTypeCol || !hasAmountCol) { warning('CSV格式错误：需要包含"类型"和"金额"列'); return; }
       const rows = lines.slice(1).map(l => {
         const cols = l.split(',').map(c => c.trim().replace(/^\"|\"$/g, ''));
         return {
@@ -793,7 +1060,7 @@ export default function AdminInventory() {
   };
 
   const handleCsvFinanceImport = async () => {
-    if (financeCsvData.length === 0) { alert('没有待导入的数据'); return; }
+    if (financeCsvData.length === 0) { warning('没有待导入的数据'); return; }
     setFinanceCsvImporting(true);
     let successCount = 0, failCount = 0;
     const errors: string[] = [];
@@ -815,10 +1082,10 @@ export default function AdminInventory() {
       }
       setFinanceCsvData([]);
       setShowFinanceCsv(false);
-      if (errors.length > 0) { alert(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
-      else { alert(`成功导入 ${successCount} 条收支记录！`); }
+      if (errors.length > 0) { error(`已成功导入 ${successCount} 条，${failCount} 条失败：\n${errors.slice(0,10).join('\n')}${errors.length > 10 ? `\n...还有${errors.length - 10}条错误` : ''}`); }
+      else { success(`成功导入 ${successCount} 条收支记录！`); }
       await loadTabData(tab, true);
-    } catch (err: any) { alert('导入失败：' + err.message); }
+    } catch (err: any) { error('导入失败：' + err.message); }
     finally { setFinanceCsvImporting(false); }
   };
 
@@ -835,7 +1102,7 @@ export default function AdminInventory() {
   };
 
   const exportFinanceCSV = () => {
-    if (filteredFinanceRecords.length === 0) { alert('没有可导出的记录'); return; }
+    if (filteredFinanceRecords.length === 0) { warning('没有可导出的记录'); return; }
     const BOM = '\uFEFF';
     const header = '类型, 分类, 金额, 经手人, 备注, 日期\n';
     const rows = filteredFinanceRecords.map(r => {
@@ -896,111 +1163,141 @@ export default function AdminInventory() {
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {[
-          { label: '当前总库存', value: `${totalStock.toLocaleString()} ml`, icon: Package, color: '#7B9EA8', bg: 'rgba(123,158,168,0.1)' },
-          { label: '总进货成本', value: `¥${totalCost.toFixed(2)}`, icon: TrendingDown, color: '#E85D3B', bg: 'rgba(232,93,59,0.1)' },
-          { label: '总销售收入', value: `¥${totalRevenue.toFixed(2)}`, icon: TrendingUp, color: '#4A9D5C', bg: 'rgba(74,157,92,0.1)' },
-          { label: '其他收支', value: `+${totalOtherIncome.toFixed(0)} / -${totalOtherExpense.toFixed(0)}`, icon: DollarSign, color: '#7B9EA8', bg: 'rgba(123,158,168,0.1)' },
-          { label: '综合利润', value: `¥${(totalProfit + totalOtherIncome - totalOtherExpense).toFixed(2)}`, icon: DollarSign, color: totalProfit >= 0 ? '#7BA689' : '#EF4444', bg: totalProfit >= 0 ? 'rgba(212,175,55,0.1)' : 'rgba(239,68,68,0.1)' },
-        ].map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div key={i} className="p-5 rounded-xl bg-white border border-[#E0ECE0]">
-              <div className="flex items-center gap-2 mb-2"><Icon size={16} style={{ color: stat.color }} /><span className="text-xs text-[#8AA08A]">{stat.label}</span></div>
-              <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
-            </div>
-          );
-        })}
-      </div>
+      {/* 统计卡片：总收入、总费用、留存总利润、剩余库存 */}
+      {(() => {
+        const totalIncome = totalRevenueAll + totalOtherIncome;
+        const totalExpense = totalCostAll + totalOtherExpense;
+        const retainedProfit = totalIncome - totalExpense;
+        const lowStockCount = summaries.filter(s => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
+        const zeroStockCount = summaries.filter(s => s.current_stock_ml === 0).length;
+        return (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: '总收入', value: `¥${totalIncome.toFixed(0)}`, sub: `销售 ¥${totalRevenueAll.toFixed(0)} + 其他 ¥${totalOtherIncome.toFixed(0)}`, color: '#4A9D5C', bg: 'rgba(74,157,92,0.06)', icon: TrendingUp },
+              { label: '总费用', value: `¥${totalExpense.toFixed(0)}`, sub: `成本 ¥${totalCostAll.toFixed(0)} + 支出 ¥${totalOtherExpense.toFixed(0)}`, color: '#E85D3B', bg: 'rgba(232,93,59,0.06)', icon: TrendingDown },
+              { label: '留存总利润', value: `¥${retainedProfit.toFixed(0)}`, sub: retainedProfit >= 0 ? `利润率 ${totalIncome > 0 ? ((retainedProfit / totalIncome) * 100).toFixed(1) : 0}%` : '亏损', color: retainedProfit >= 0 ? '#7BA689' : '#EF4444', bg: retainedProfit >= 0 ? 'rgba(212,175,55,0.08)' : 'rgba(239,68,68,0.06)', icon: DollarSign },
+              { label: '剩余库存', value: `${totalStockAll.toLocaleString()} ml`, sub: zeroStockCount > 0 || lowStockCount > 0 ? `⚠️ 售罄${zeroStockCount} · 偏低${lowStockCount}` : `${summaries.length} 款产品在架`, color: '#7B9EA8', bg: 'rgba(123,158,168,0.06)', icon: Package },
+            ].map((card, i) => {
+              const Icon = card.icon;
+              return (
+                <div key={i} className="group p-4 rounded-xl bg-white border border-[#E0ECE0] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-1.5 rounded-lg transition-colors" style={{ backgroundColor: card.bg }}><Icon size={15} style={{ color: card.color }} /></div>
+                    <span className="text-[11px] font-medium text-[#8AA08A]">{card.label}</span>
+                  </div>
+                  <p className="text-xl font-bold" style={{ color: card.color }}>{card.value}</p>
+                  <p className="text-[10px] text-[#A8BAA8] mt-1 leading-tight">{card.sub}</p>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Tab 切换 */}
-      <div className="flex items-center gap-1 p-1 bg-white rounded-xl w-fit flex-wrap">
+      <div className="flex items-center gap-1 p-1 bg-white rounded-xl w-fit flex-wrap border border-[#E0ECE0]">
         {[
-          { key: 'overview' as const, label: '库存概览' },
-          { key: 'purchases' as const, label: '进货记录' },
-          { key: 'sales' as const, label: '销售记录' },
-          { key: 'finance' as const, label: '其他收支' },
-          { key: 'logs' as const, label: '操作日志' },
+          { key: 'overview' as const, label: '库存概览', count: summaries.length },
+          { key: 'purchases' as const, label: '进货记录', count: purchases.length },
+          { key: 'sales' as const, label: '销售记录', count: sales.length },
+          { key: 'finance' as const, label: '其他收支', count: financeRecords.length },
+          { key: 'reimburse' as const, label: '报销管理', count: allReimburseItems.length },
+          { key: 'logs' as const, label: '操作日志', count: auditLogs.length },
         ].map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-              tab === t.key ? 'bg-[#4A7C59] text-[#1A2E1A]' : 'text-[#5C725C] hover:text-[#1A2E1A]'
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-1.5 ${
+              tab === t.key
+                ? 'bg-[#1A2E1A] text-white shadow-sm'
+                : 'text-[#5C725C] hover:text-[#1A2E1A] hover:bg-[#F2F7F3]'
             }`}
-          >{t.label}</button>
+          >
+            {t.label}
+            {t.count > 0 && (
+              <span className={`text-[10px] px-1.5 py-px rounded-full font-medium ${
+                tab === t.key ? 'bg-white/20 text-white' : 'bg-[#E8F0EB] text-[#6B856B]'
+              }`}>{t.count}</span>
+            )}
+          </button>
         ))}
       </div>
 
       {/* ===================== 库存概览 Tab ===================== */}
       {tab === 'overview' && (
         <div className="space-y-4">
-          {/* 筛选栏 */}
-          <div className="rounded-xl bg-white border border-[#E0ECE0] p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-[#3D5C3D]">
+          {/* 筛选栏 - 可折叠 */}
+          <div className="rounded-xl bg-white border border-[#E0ECE0]">
+            <button
+              onClick={() => setShowOverviewFilter(!showOverviewFilter)}
+              className="w-full p-4 flex items-center justify-between text-sm font-medium text-[#3D5C3D] hover:bg-[#F2F7F3] rounded-xl transition-colors"
+            >
+              <div className="flex items-center gap-2">
                 <Filter size={14} /> 筛选条件
+                <span className="text-[10px] text-[#8AA08A] font-normal">（{filteredSummaries.length}/{summaries.length} 个产品）</span>
               </div>
               <div className="flex items-center gap-2">
-                <Perm action="export_data"><button onClick={() => exportCSV('overview')} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#4A7C59] hover:bg-[#EEF4EF] rounded-lg transition-colors border border-[#D5E2D5]">
-                  <Download size={12} /> 导出CSV
+                <Perm action="export_data"><button onClick={e => { e.stopPropagation(); exportCSV('overview'); }} className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-[#4A7C59] hover:bg-white rounded-lg transition-colors border border-[#D5E2D5]">
+                  <Download size={11} /> 导出
                 </button></Perm>
-                <button onClick={resetOverviewFilters} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8AA08A] hover:text-[#5C725C] rounded-lg transition-colors">
-                  <RotateCcw size={11} /> 重置
-                </button>
+                {showOverviewFilter && <button onClick={e => { e.stopPropagation(); resetOverviewFilters(); }} className="flex items-center gap-1 px-2 py-1 text-[10px] text-[#8AA08A] hover:text-[#5C725C] rounded-lg transition-colors">
+                  <RotateCcw size={10} /> 重置
+                </button>}
+                <span className="text-[10px] text-[#A8BAA8] transition-transform duration-200" style={{ transform: showOverviewFilter ? 'rotate(180deg)' : '' }}>▼</span>
               </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <div>
-                <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
-                <select value={filterSeries} onChange={e => { setFilterSeries(e.target.value); setFilterCategory(''); }} className={selectCls}>
-                  <option value="">全部系列</option>
-                  {Object.entries(SERIES_INFO).map(([code, info]) => (
-                    <option key={code} value={code}>{info.name_cn} · {info.slogan.split('/')[0]}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] text-[#8AA08A] mb-1">子分类</label>
-                <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={selectCls} disabled={!filterSeries}>
-                  <option value="">全部</option>
-                  {availableCategories.map(([code, label]) => (
-                    <option key={code} value={code}>{label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] text-[#8AA08A] mb-1">库存状态</label>
-                <select value={filterStockStatus} onChange={e => setFilterStockStatus(e.target.value as any)} className={`${selectCls} text-[10px] sm:text-sm`}>
-                  <option value="all">全部</option>
-                  <option value="instock">充足 (≥10ml)</option>
-                  <option value="low">偏低 (1-9ml)</option>
-                  <option value="zero">售罄 (0ml)</option>
-                </select>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-[10px] text-[#8AA08A] mb-1">搜索产品</label>
-                <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
-                  <input value={filterKeyword} onChange={e => setFilterKeyword(e.target.value)} placeholder="输入产品名称..." className={`${inputCls} pl-8`} />
+            </button>
+            {showOverviewFilter && (
+              <div className="px-4 pb-4 border-t border-[#E0ECE0] pt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-[#8AA08A] mb-1">系列</label>
+                    <select value={filterSeries} onChange={e => { setFilterSeries(e.target.value); setFilterCategory(''); }} className={selectCls}>
+                      <option value="">全部系列</option>
+                      {Object.entries(SERIES_INFO).map(([code, info]) => (
+                        <option key={code} value={code}>{info.name_cn} · {info.slogan.split('/')[0]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-[#8AA08A] mb-1">子分类</label>
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className={selectCls} disabled={!filterSeries}>
+                      <option value="">全部</option>
+                      {availableCategories.map(([code, label]) => (
+                        <option key={code} value={code}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-[#8AA08A] mb-1">库存状态</label>
+                    <select value={filterStockStatus} onChange={e => setFilterStockStatus(e.target.value as any)} className={`${selectCls} text-[10px] sm:text-sm`}>
+                      <option value="all">全部</option>
+                      <option value="instock">充足 (≥10ml)</option>
+                      <option value="low">偏低 (1-9ml)</option>
+                      <option value="zero">售罄 (0ml)</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] text-[#8AA08A] mb-1">搜索产品</label>
+                    <div className="relative">
+                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
+                      <input value={filterKeyword} onChange={e => setFilterKeyword(e.target.value)} placeholder="输入产品名称..." className={`${inputCls} pl-8`} />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <p className="text-[10px] text-[#A8BAA8]">当前显示 {filteredSummaries.length} / {summaries.length} 个产品</p>
+            )}
           </div>
 
           {/* 表格 */}
 
           {/* 移动端卡片视图 */}
           <div className="grid grid-cols-1 gap-3 md:hidden">
-            {filteredSummaries.length === 0 ? (
+            {sortedSummaries.length === 0 ? (
               <div className="rounded-xl bg-white border border-[#E0ECE0] p-8 text-center text-[#9AAA9A] text-sm">
                 {summaries.length === 0 ? '暂无库存数据，请先录入进货记录' : '没有符合筛选条件的产品'}
               </div>
             ) : (
-              filteredSummaries.map(s => {
+              sortedSummaries.map(s => {
                 const meta = productMetaMap.get(s.product_id);
                 const isZero = s.current_stock_ml === 0;
                 const isLow = s.current_stock_ml > 0 && s.current_stock_ml < 10;
@@ -1054,18 +1351,18 @@ export default function AdminInventory() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-[#D5E2D5]">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#8AA08A]">产品名称</th>
+                  <SortableTh field="name" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>产品名称</SortableTh>
                   <th className="text-left px-4 py-3 text-xs font-medium text-[#8AA08A]">系列</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-[#8AA08A]">子分类</th>
                   <th className="text-right px-4 py-3 text-xs font-medium text-[#8AA08A]">总进货(ml)</th>
                   <th className="text-right px-4 py-3 text-xs font-medium text-[#8AA08A]">总销售(ml)</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-[#8AA08A]">库存(ml)</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-[#8AA08A]">成本(¥)</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-[#8AA08A]">收入(¥)</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-[#8AA08A]">利润(¥)</th>
+                  <SortableTh field="stock" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>库存(ml)</SortableTh>
+                  <SortableTh field="cost" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>成本(¥)</SortableTh>
+                  <SortableTh field="revenue" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>收入(¥)</SortableTh>
+                  <SortableTh field="profit" currentField={overviewSort.field} currentDir={overviewSort.dir} onSort={(f: string) => setOverviewSort({ field: f, dir: overviewSort.field === f && overviewSort.dir === 'asc' ? 'desc' : 'asc' })}>利润(¥)</SortableTh>
                 </tr></thead>
                 <tbody>
-                  {filteredSummaries.map(s => {
+                  {sortedSummaries.map(s => {
                     const meta = productMetaMap.get(s.product_id);
                     return (
                       <tr key={s.product_id} className={`border-b border-[#D5E2D5]/[0.03] hover:bg-[#EEF4EF] ${
@@ -1087,7 +1384,7 @@ export default function AdminInventory() {
                       </tr>
                     );
                   })}
-                  {filteredSummaries.length === 0 && (
+                  {sortedSummaries.length === 0 && (
                     <tr><td colSpan={9} className="px-4 py-12 text-center text-[#9AAA9A]">
                       {summaries.length === 0 ? '暂无库存数据，请先录入进货记录' : '没有符合筛选条件的产品'}
                     </td></tr>
@@ -1176,30 +1473,30 @@ export default function AdminInventory() {
                 <div>
                   <label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label>
                   <div className="relative">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
-                    <input
-                      type="text"
-                      value={purSearchText}
-                      onChange={e => setPurSearchText(e.target.value)}
-                      placeholder="输入产品名称搜索..."
-                      className={`${inputCls} pl-8`}
-                    />
-                    {purSearchText && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).map(p => (
-                          <div
-                            key={p.id}
-                            onClick={() => { setPurchaseForm(f => ({ ...f, product_id: p.id })); setPurSearchText(p.name_cn); }}
-                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF] ${purchaseForm.product_id === p.id ? 'bg-[#EEF4EF] font-medium' : ''}`}
-                          >
-                            <span className="text-[#1A2E1A]">{p.name_cn}</span>
-                            <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
-                          </div>
-                        ))}
-                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).length === 0 && (
-                          <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
-                        )}
+                    {purchaseForm.product_id ? (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#D5E2D5] bg-[#EEF4EF]">
+                        <span className="text-sm text-[#1A2E1A]">{products.find(p => p.id === purchaseForm.product_id)?.name_cn || ''}</span>
+                        <span className="text-[10px] text-[#8AA08A]">{SERIES_INFO[products.find(p => p.id === purchaseForm.product_id)?.series_code as SeriesCode]?.name_cn || ''}</span>
+                        <button onClick={() => { setPurchaseForm(f => ({ ...f, product_id: '' })); setPurSearchText(''); }} className="ml-auto p-0.5 hover:bg-[#D5E2D5] rounded"><X size={14} /></button>
                       </div>
+                    ) : (
+                      <>
+                        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
+                        <input type="text" value={purSearchText} onChange={e => setPurSearchText(e.target.value)} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
+                        {purSearchText && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).map(p => (
+                              <div key={p.id} onClick={() => { setPurchaseForm(f => ({ ...f, product_id: p.id })); setPurSearchText(''); }} className="px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF]">
+                                <span className="text-[#1A2E1A]">{p.name_cn}</span>
+                                <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
+                              </div>
+                            ))}
+                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).length === 0 && (
+                              <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
+                            )}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -1208,7 +1505,13 @@ export default function AdminInventory() {
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" placeholder="例如: 100" value={purchaseForm.volume_ml} onChange={e => setPurchaseForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-xs text-[#6B856B] mb-1.5">进价(元/ml)</label><input type="number" step="0.01" placeholder="可填0" value={purchaseForm.unit_cost} onChange={e => setPurchaseForm(f => ({ ...f, unit_cost: e.target.value }))} className={inputCls} /></div>
+                  <div>
+                    <label className="block text-xs text-[#6B856B] mb-1.5">当次总进价(¥)</label>
+                    <input type="number" step="0.01" placeholder="可填0" value={purchaseForm.total_cost} onChange={e => setPurchaseForm(f => ({ ...f, total_cost: e.target.value, unit_cost: (e.target.value && f.volume_ml && Number(f.volume_ml) > 0) ? String(Number(e.target.value) / Number(f.volume_ml)) : f.unit_cost }))} className={inputCls} />
+                    {purchaseForm.volume_ml && purchaseForm.total_cost && Number(purchaseForm.volume_ml) > 0 && (
+                      <p className="text-[10px] text-[#8AA08A] mt-1">≈ {(Number(purchaseForm.total_cost) / Number(purchaseForm.volume_ml)).toFixed(2)} 元/ml</p>
+                    )}
+                  </div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">供货商</label>
                     <select value={purchaseForm.supplier_code} onChange={e => setPurchaseForm(f => ({ ...f, supplier_code: e.target.value }))} className={selectCls}>
                       <option value="">请选择</option>
@@ -1355,6 +1658,20 @@ export default function AdminInventory() {
               </tbody>
             </table>
           </div>
+          {filteredPurchases.length > 0 && (() => {
+            const totalVol = filteredPurchases.reduce((s, p) => s + (p.volume_ml || 0), 0);
+            const totalAmt = filteredPurchases.reduce((s, p) => s + (p.volume_ml || 0) * (p.unit_cost || 0), 0);
+            const totalCount = filteredPurchases.length;
+            return (
+              <div className="flex items-center gap-4 px-4 py-2.5 text-xs text-[#5C725C] bg-[#F5F8F5] rounded-xl border border-[#E0ECE0]">
+                <span>共 <strong>{totalCount}</strong> 条</span>
+                <span className="w-px h-4 bg-[#D5E2D5]" />
+                <span>总容量：<strong>{totalVol}</strong> ml</span>
+                <span className="w-px h-4 bg-[#D5E2D5]" />
+                <span>总金额：<strong>¥{totalAmt.toFixed(2)}</strong></span>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -1433,33 +1750,41 @@ export default function AdminInventory() {
               <div className="grid grid-cols-1 gap-4">
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">选择产品 *</label>
                   <div className="relative">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
-                    <input
-                      type="text"
-                      value={salSearchText}
-                      onChange={e => setSalSearchText(e.target.value)}
-                      placeholder="输入产品名称搜索..."
-                      className={`${inputCls} pl-8`}
-                    />
-                    {salSearchText && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).map(p => (
-                          <div
-                            key={p.id}
-                            onClick={() => { setSaleForm(f => ({ ...f, product_id: p.id })); setSalSearchText(p.name_cn); }}
-                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF] ${saleForm.product_id === p.id ? 'bg-[#EEF4EF] font-medium' : ''}`}
-                          >
-                            <span className="text-[#1A2E1A]">{p.name_cn}</span>
-                            <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
-                          </div>
-                        ))}
-                        {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).length === 0 && (
-                          <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
-                        )}
+                    {saleForm.product_id ? (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#D5E2D5] bg-[#EEF4EF]">
+                        <span className="text-sm text-[#1A2E1A]">{products.find(p => p.id === saleForm.product_id)?.name_cn || ''}</span>
+                        <span className="text-[10px] text-[#8AA08A]">{SERIES_INFO[products.find(p => p.id === saleForm.product_id)?.series_code as SeriesCode]?.name_cn || ''}</span>
+                        <button onClick={() => { setSaleForm(f => ({ ...f, product_id: '' })); setSalSearchText(''); }} className="ml-auto p-0.5 hover:bg-[#D5E2D5] rounded"><X size={14} /></button>
                       </div>
+                    ) : (
+                      <>
+                        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
+                        <input type="text" value={salSearchText} onChange={e => setSalSearchText(e.target.value)} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
+                        {salSearchText && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).map(p => (
+                              <div key={p.id} onClick={() => { setSaleForm(f => ({ ...f, product_id: p.id })); setSalSearchText(''); }} className="px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF]">
+                                <span className="text-[#1A2E1A]">{p.name_cn}</span>
+                                <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
+                              </div>
+                            ))}
+                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).length === 0 && (
+                              <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
+                            )}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
+                {(() => {
+                  const inv = summaries.find(s => s.product_id === saleForm.product_id);
+                  if (!inv) return null;
+                  const stock = editingSale ? inv.current_stock_ml + (editingSale.volume_ml || 0) : inv.current_stock_ml;
+                  if (stock <= 0) return <p className="text-xs text-red-500 flex items-center gap-1">⚠ 当前库存为 0，无法销售此产品</p>;
+                  if (stock < 10) return <p className="text-xs text-orange-500 flex items-center gap-1">⚠ 库存紧张，仅剩 <strong>{stock}ml</strong></p>;
+                  return <p className="text-xs text-green-600 flex items-center gap-1">✓ 当前库存：<strong>{stock}ml</strong></p>;
+                })()}
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">销售日期</label><input type="date" value={saleForm.sale_date} onChange={e => setSaleForm(f => ({ ...f, sale_date: e.target.value }))} className={inputCls} /></div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">容量(ml) *</label><input type="number" value={saleForm.volume_ml} onChange={e => setSaleForm(f => ({ ...f, volume_ml: e.target.value }))} className={inputCls} /></div>
@@ -1525,6 +1850,20 @@ export default function AdminInventory() {
               </tbody>
             </table>
           </div>
+          {filteredSales.length > 0 && (() => {
+            const totalVol = filteredSales.reduce((s, sal) => s + (sal.volume_ml || 0), 0);
+            const totalAmt = filteredSales.reduce((s, sal) => s + (sal.total_amount || 0), 0);
+            const totalCount = filteredSales.length;
+            return (
+              <div className="flex items-center gap-4 px-4 py-2.5 text-xs text-[#5C725C] bg-[#F5F8F5] rounded-xl border border-[#E0ECE0]">
+                <span>共 <strong>{totalCount}</strong> 条</span>
+                <span className="w-px h-4 bg-[#D5E2D5]" />
+                <span>总容量：<strong>{totalVol}</strong> ml</span>
+                <span className="w-px h-4 bg-[#D5E2D5]" />
+                <span>总金额：<strong>¥{totalAmt.toFixed(2)}</strong></span>
+              </div>
+            );
+          })()}
 
           {/* CSV导入出库表单 */}
           {showSaleCsv && (
@@ -1759,12 +2098,24 @@ export default function AdminInventory() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
-                    <select value={financeForm.handler} onChange={e => setFinanceForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
-                      <option value="">请选择</option>
-                      {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
-                    </select>
+                    <input type="text" list="handler-list" value={financeForm.handler} onChange={e => setFinanceForm(f => ({ ...f, handler: e.target.value }))} className={inputCls} placeholder="输入或选择经手人" />
+                    <datalist id="handler-list">
+                      {handlerOptions.map(h => <option key={h.id} value={h.value} />)}
+                    </datalist>
                   </div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">备注</label><input type="text" value={financeForm.notes} onChange={e => setFinanceForm(f => ({ ...f, notes: e.target.value }))} className={inputCls} placeholder="备注说明" /></div>
+                </div>
+                {/* 报销信息 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs text-[#6B856B] mb-1.5">报销完成</label>
+                    <select value={financeForm.reimbursed ? 'yes' : 'no'} onChange={e => setFinanceForm(f => ({ ...f, reimbursed: e.target.value === 'yes' }))} className={selectCls}>
+                      <option value="no">否</option>
+                      <option value="yes">是</option>
+                    </select>
+                  </div>
+                  {financeForm.reimbursed && (
+                    <div><label className="block text-xs text-[#6B856B] mb-1.5">报销日期</label><input type="date" value={financeForm.reimbursed_date} onChange={e => setFinanceForm(f => ({ ...f, reimbursed_date: e.target.value }))} className={inputCls} /></div>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end gap-3">
@@ -1785,6 +2136,7 @@ export default function AdminInventory() {
                 <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">金额(¥)</th>
                 <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
                 <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">备注</th>
+                <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A]">报销</th>
                 <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A] w-24">操作</th>
               </tr></thead>
               <tbody>
@@ -1799,6 +2151,7 @@ export default function AdminInventory() {
                       <td className={`px-4 py-2 text-right font-semibold ${fr.record_type === 'income' ? 'text-green-500' : 'text-red-400'}`}>{fr.record_type === 'income' ? '+' : '-'}¥{Number(fr.amount).toFixed(2)}</td>
                       <td className="px-4 py-2 text-[#6B856B]">{hLabel}</td>
                       <td className="px-4 py-2 text-xs text-[#8AA08A] max-w-[200px] truncate">{fr.notes || '-'}</td>
+                      <td className="px-4 py-2 text-center">{fr.reimbursed ? <span className="text-xs text-green-600">✓ {fr.reimbursed_date || ''}</span> : <span className="text-xs text-[#C0CCC0]">—</span>}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center justify-center gap-1">
                           <Perm action="edit_inventory"><button onClick={() => startEditFinance(fr)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#5C725C]" title="编辑"><Edit2 size={13} /></button></Perm>
@@ -1808,9 +2161,165 @@ export default function AdminInventory() {
                     </tr>
                   );
                 })}
-                {filteredFinanceRecords.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-[#9AAA9A]">暂无其他收支记录</td></tr>}
+                {filteredFinanceRecords.length === 0 && <tr><td colSpan={8} className="px-4 py-12 text-center text-[#9AAA9A]">暂无其他收支记录</td></tr>}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== 报销管理 Tab ===================== */}
+      {tab === 'reimburse' && (
+        <div className="space-y-4">
+          {/* 汇总卡片 */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]">
+              <p className="text-[10px] text-[#8AA08A] mb-1">总报销金额</p>
+              <p className="text-xl font-bold text-[#E85D3B]">¥{reimburseTotals.total.toFixed(0)}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]">
+              <p className="text-[10px] text-[#8AA08A] mb-1">待报销</p>
+              <p className="text-xl font-bold text-[#D75437]">¥{reimburseTotals.pending.toFixed(0)}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-white border border-[#E0ECE0]">
+              <p className="text-[10px] text-[#8AA08A] mb-1">已报销</p>
+              <p className="text-xl font-bold text-[#4A7C59]">¥{reimburseTotals.done.toFixed(0)}</p>
+            </div>
+          </div>
+
+          {/* 筛选 + 批量操作 */}
+          <div className="rounded-xl bg-white border border-[#E0ECE0] p-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-[#8AA08A]">状态</span>
+                <select value={reimbFilterStatus} onChange={e => { setReimbFilterStatus(e.target.value as any); setCheckedReimbIds(new Set()); }} className={selectCls}>
+                  <option value="all">全部</option>
+                  <option value="pending">待报销</option>
+                  <option value="done">已报销</option>
+                </select>
+                <span className="text-xs text-[#8AA08A] ml-2">经手人</span>
+                <select value={reimbFilterHandler} onChange={e => { setReimbFilterHandler(e.target.value); setCheckedReimbIds(new Set()); }} className={selectCls}>
+                  <option value="">全部</option>
+                  {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
+                </select>
+                <span className="text-xs text-[#8AA08A] ml-2">编码</span>
+                <input type="text" value={reimbFilterCode} onChange={e => setReimbFilterCode(e.target.value)} placeholder="BX-..." className="text-xs border border-[#D5E2D5] rounded-lg px-2 py-1.5 w-28 text-[#5C725C] placeholder:text-[#C0CCC0] outline-none focus:border-[#4A7C59]/50" />
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={selectAllPending} className="text-xs text-[#4A7C59] hover:underline">全选待报销</button>
+                <span className="text-[10px] text-[#C0CCC0]">|</span>
+                <input type="date" value={batchReimbDate} onChange={e => setBatchReimbDate(e.target.value)} className="text-xs border border-[#D5E2D5] rounded-lg px-2 py-1 text-[#5C725C]" />
+                <Perm action="edit_inventory"><button onClick={batchReimburse} className="px-3 py-1.5 bg-[#4A7C59] text-white rounded-lg text-xs flex items-center gap-1.5"><CheckCircle size={13} /> 批量报销 ({checkedReimbIds.size})</button></Perm>
+                <button onClick={generateMissingCodes} className="px-3 py-1.5 bg-[#F2F7F3] text-[#5C725C] border border-[#D5E2D5] rounded-lg text-xs hover:bg-[#E8F3EC] transition-colors">生成编码</button>
+              </div>
+            </div>
+          </div>
+
+          {/* 报销列表 */}
+          <div className="admin-table-wrap rounded-xl bg-white border border-[#E0ECE0] overflow-x-auto">
+            <p className="text-[10px] text-[#A8BAA8] px-4 pt-3">
+              当前显示 {filteredReimburseItems.length} / {allReimburseItems.length} 条
+              {reimbFilterStatus === 'pending' && <span className="ml-2 text-[#D75437]">（待报销：¥{reimburseTotals.pending.toFixed(0)}）</span>}
+            </p>
+            <table className="w-full text-sm min-w-[850px]">
+              <thead><tr className="border-b border-[#D5E2D5]">
+                <th className="text-center px-3 py-2.5 text-xs text-[#8AA08A] w-8"></th>
+                <th className="text-left px-3 py-2.5 text-xs text-[#8AA08A]">编码</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">来源</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">日期</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">内容</th>
+                <th className="text-right px-4 py-2.5 text-xs text-[#8AA08A]">金额(¥)</th>
+                <th className="text-left px-4 py-2.5 text-xs text-[#8AA08A]">经手人</th>
+                <th className="text-center px-4 py-2.5 text-xs text-[#8AA08A]">报销</th>
+                <th className="text-center px-2 py-2.5 text-xs text-[#8AA08A]">附件</th>
+              </tr></thead>
+              <tbody>
+                {filteredReimburseItems.map(item => {
+                  const hLabel = handlerOptions.find(ho => ho.value === item.handler)?.label || item.handler || '-';
+                  return (
+                    <tr key={item.sourceTable + '-' + item.id} className={`border-b border-[#D5E2D5]/[0.03] ${item.reimbursed ? 'opacity-60' : ''} hover:bg-[#EEF4EF]`}>
+                      <td className="px-3 py-2 text-center">
+                        {!item.reimbursed && <input type="checkbox" checked={checkedReimbIds.has(item.id)} onChange={() => toggleCheckReimburse(item.id)} className="w-3.5 h-3.5 accent-[#4A7C59]" />}
+                      </td>
+                      <td className="px-3 py-2 text-[#9AAA9A] text-[10px] font-mono whitespace-nowrap">{item.reimburse_code || '—'}</td>
+                      <td className="px-4 py-2">
+                        <button onClick={() => jumpToSource(item.source === '进货' ? 'purchases' : 'finance')} className={`px-2 py-0.5 rounded-full text-[10px] cursor-pointer hover:underline ${item.source === '进货' ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'}`} title={`点击跳转到${item.source === '进货' ? '进货记录' : '其他收支'}`}>
+                          {item.source}
+                        </button>
+                      </td>
+                      <td className="px-4 py-2 text-[#5C725C] text-xs">{item.date}</td>
+                      <td className="px-4 py-2">
+                        <div className="text-[#2D442D] font-medium text-xs max-w-[180px] truncate" title={item.description}>{item.description}</div>
+                        {item.reimburse_notes && (
+                          <div className="text-[#9AAA9A] text-[10px] mt-0.5 max-w-[180px] truncate" title={item.reimburse_notes}>📝 {item.reimburse_notes}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-right font-semibold text-[#E85D3B]">¥{item.amount.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-[#6B856B] text-xs">{hLabel}</td>
+                      <td className="px-4 py-2 text-center">
+                        <Perm action="edit_inventory"><button onClick={() => toggleReimburse(item)}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors ${
+                            item.reimbursed
+                              ? 'bg-green-50 text-green-600 hover:bg-red-50 hover:text-red-500'
+                              : 'bg-red-50 text-red-500 hover:bg-red-100'
+                          }`}
+                          title={item.reimbursed ? '点击撤销报销' : '点击标记报销'}
+                        >
+                          {item.reimbursed ? `✓ ${item.reimbursed_date || ''}` : '报销'}
+                        </button></Perm>
+                      </td>
+                      <td className="px-1 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {item.attachment_url && (
+                            <>
+                              <button onClick={() => setPreviewUrl(item.attachment_url!)} title="预览附件" className="text-[#4A7C59] hover:text-[#3D6B4A]"><Eye size={15} /></button>
+                              <button onClick={() => handleRemoveAttachment(item)} title="删除附件" className="text-[#9AAA9A] hover:text-red-400"><X size={13} /></button>
+                            </>
+                          )}
+                          <label className="cursor-pointer text-[#C0CCC0] hover:text-[#4A7C59] transition-colors" title={item.attachment_url ? '补充附件' : '上传附件'}>
+                            {uploadingAttachment === item.id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Paperclip size={14} />
+                            )}
+                            <input type="file" accept="image/*,.pdf" className="hidden"
+                              onChange={e => { const f = e.target.files?.[0]; if (f) handleAttachmentUpload(item, f); e.target.value = ''; }} />
+                          </label>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredReimburseItems.length === 0 && <tr><td colSpan={9} className="px-4 py-12 text-center text-[#9AAA9A]">
+                  {reimbFilterStatus === 'pending' ? '🎉 所有记录已报销完毕' : '暂无报销记录'}
+                </td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 附件预览弹窗 — 独立于 reimbursement tab 的条件渲染 */}
+      {tab === 'reimburse' && previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setPreviewUrl(null)}>
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#E0ECE0] shrink-0">
+              <span className="text-sm font-medium text-[#3D5C3D]">📎 附件预览</span>
+              <button onClick={() => setPreviewUrl(null)} className="p-1.5 hover:bg-[#EEF4EF] rounded-lg text-[#8AA08A]"><X size={16} /></button>
+            </div>
+            <div className="flex-1 min-h-0 flex items-center justify-center bg-[#F5F8F5] p-4">
+              <img src={`/api/view-attachment?url=${encodeURIComponent(previewUrl)}`} alt="附件预览" className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="text-[#9AAA9A] text-sm">⚠️ 无法预览，请下载查看</div>';
+                }} />
+            </div>
+            <div className="flex items-center justify-center gap-3 px-4 py-3 border-t border-[#E0ECE0] shrink-0">
+              <a href={previewUrl} download className="flex items-center gap-2 px-5 py-2 bg-[#4A7C59] hover:bg-[#3D6A4A] text-white rounded-xl text-sm font-medium transition-colors no-underline">
+                <Download size={14} /> 下载附件
+              </a>
+              <button onClick={() => setPreviewUrl(null)} className="px-4 py-2 text-sm text-[#6B856B] hover:bg-[#EEF4EF] rounded-xl">关闭</button>
+            </div>
           </div>
         </div>
       )}

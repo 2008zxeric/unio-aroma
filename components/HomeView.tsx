@@ -107,7 +107,7 @@ const HomeView: React.FC<{ setView: (v: ViewState) => void, setFilter: (f: Categ
               id: 'he', 
               title: '和 · 复方', 
               sub: 'Clinical Blends', 
-              desc: '廿载临床，频率科学重构。', 
+              desc: '廿三载临床，频率科学重构。', 
               img: ASSETS.hero_spary, 
               icon: <Droplets size={16} /> 
             },

@@ -8,6 +8,7 @@ import {
   List as ListIcon, Upload, FileImage, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../components/Toast';
 import imageCompression from 'browser-image-compression';
 import { Perm } from '../components/PermissionGuard';
 
@@ -35,7 +36,7 @@ export default function ImageLibrary() {
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [allFiles, setAllFiles] = useState<StorageFile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [errMsg, setErrMsg] = useState('');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export default function ImageLibrary() {
   // 加载文件
   const loadFiles = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setErrMsg('');
     try {
       const { data, error: listErr } = await supabase.storage
         .from(BUCKET)
@@ -88,7 +89,7 @@ export default function ImageLibrary() {
 
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setError('加载图片列表失败：' + msg);
+      setErrMsg('加载图片列表失败：' + msg);
     } finally {
       setLoading(false);
     }
@@ -241,7 +242,7 @@ export default function ImageLibrary() {
       setSelectedFiles(prev => { const n = new Set(prev); n.delete(fileName); return n; });
       setTotalCount(c => c - 1);
     } catch (err: unknown) {
-      alert('删除失败：' + (err instanceof Error ? err.message : String(err)));
+      error('删除失败：' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setDeleting(null);
     }
@@ -261,7 +262,7 @@ export default function ImageLibrary() {
       setSelectedFiles(new Set());
       setTotalCount(c => c - arr.length);
     } catch (err: unknown) {
-      alert('批量删除失败：' + (err instanceof Error ? err.message : String(err)));
+      error('批量删除失败：' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setDeleting(null);
     }
@@ -461,10 +462,10 @@ export default function ImageLibrary() {
       )}
 
       {/* 错误提示 */}
-      {error && (
+      {errMsg && (
         <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
           <AlertTriangle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
-          <span className="text-xs text-red-600 flex-1">{error}</span>
+          <span className="text-xs text-red-600 flex-1">{errMsg}</span>
         </div>
       )}
 

@@ -100,6 +100,7 @@ export interface Product {
   group_name?: string;          // 归类子组（如"元·金木水火土"）
   short_desc?: string;          // 短描述（特点提炼）
   description?: string;         // 详细描述/叙事
+  detail_intro?: string;        // 详细介绍（从知识库提炼的完整产品介绍）
   benefits?: string[];          // 参考功效
   usage?: string;               // 使用说明
   origin?: string;              // 产地
@@ -152,6 +153,11 @@ export interface PurchaseRecord {
   warehouse?: string;          // 仓库代码（A/B/C/D）
   handler?: string;           // 经手人
   notes?: string;
+  reimbursed?: boolean;       // 报销完成
+  reimbursed_date?: string;   // 报销日期
+  attachment_url?: string;    // 报销附件（Supabase Storage URL）
+  reimburse_code?: string;    // 报销编码（BX-YYYYMMDD-NNN）
+  reimburse_notes?: string;   // 报销备注
   created_at: string;
 }
 
@@ -178,6 +184,11 @@ export interface FinanceRecord {
   amount: number;             // 金额
   notes?: string;
   handler?: string;           // 经手人
+  reimbursed?: boolean;       // 报销完成
+  reimbursed_date?: string;   // 报销日期
+  attachment_url?: string;    // 报销附件（Supabase Storage URL）
+  reimburse_code?: string;    // 报销编码（BX-YYYYMMDD-NNN）
+  reimburse_notes?: string;   // 报销备注
   created_at: string;
 }
 

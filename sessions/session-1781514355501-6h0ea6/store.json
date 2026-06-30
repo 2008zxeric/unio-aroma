@@ -1,0 +1,25 @@
+{
+  "id": "session-1781514355501-6h0ea6",
+  "name": "启动OpenCut",
+  "status": "active",
+  "createdAt": "2026-06-15T09:08:22.276Z",
+  "updatedAt": "2026-06-15T09:23:16.166Z",
+  "agents": [
+    {
+      "id": "agent_oycbl7un",
+      "name": "agent-abc78e3e",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-06-15T09:08:22.276Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_xnklu1aa",
+    "title": "启动OpenCut",
+    "createdAt": "2026-06-15T09:08:22.276Z",
+    "file": "summary_xnklu1aa.md"
+  },
+  "lastMessageCount": 138
+}

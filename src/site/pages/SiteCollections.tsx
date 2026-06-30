@@ -51,7 +51,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
       style={{ animationDelay: `${idx * 50}ms` }}
     >
       <div
-        className="relative aspect-[4/5] rounded-2xl sm:rounded-[4rem] overflow-hidden bg-white border border-black/[0.03] shadow-sm group-hover:shadow-xl group-hover:border-[#D75437]/15 transition-all duration-700 cursor-pointer"
+        className="relative aspect-[4/5] rounded-2xl sm:rounded-[4rem] overflow-hidden bg-white ring-1 ring-black/[0.04] shadow-[0_2px_16px_rgba(0,0,0,0.03)] group-hover:shadow-[0_8px_40px_-8px_rgba(0,0,0,0.12)] group-hover:ring-[#D75437]/15 transition-all duration-700 cursor-pointer"
         onClick={() => onSelect(item.code)}
       >
         <img
@@ -86,23 +86,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ item, idx, onSelect, onZoom }
       </div>
 
       <div className="mt-2 sm:mt-6 px-0.5 text-center sm:text-left space-y-0.5 sm:space-y-2 cursor-pointer" onClick={() => onSelect(item.code)}>
-        <h4 className="text-[9px] sm:text-2xl lg:text-3xl font-bold tracking-wide sm:tracking-widest text-[#1A1A1A]/80 sm:text-black/80 group-hover:text-[#D75437] transition-colors line-clamp-2 leading-tight sm:leading-normal">
+        <h4 className="text-[9px] sm:text-2xl lg:text-3xl font-bold tracking-wide sm:tracking-widest text-[#1A1A1A]/85 sm:text-black/85 group-hover:text-[#D75437] transition-colors line-clamp-2 leading-tight sm:leading-normal">
           {item.name_cn}
         </h4>
         {item.name_en && (
-          <span className="text-[5px] sm:text-[10px] tracking-wider opacity-18 font-bold uppercase block truncate">{item.name_en}</span>
+          <span className="text-[5px] sm:text-[10px] tracking-wider opacity-25 font-bold uppercase block truncate">{item.name_en}</span>
         )}
         {/* 产地 + 最低价格 */}
         <div className="flex items-center gap-1.5 justify-center sm:justify-start flex-wrap">
           {item.origin && (
-            <span className="flex items-center gap-0.5 text-[7px] sm:text-[10px] text-black/28 font-medium">
-              <MapPin size={7} className="text-[#D75437]/45 sm:w-3 sm:h-3" />
+            <span className="flex items-center gap-0.5 text-[7px] sm:text-[10px] text-black/35 font-medium">
+              <MapPin size={7} className="text-[#D75437]/50 sm:w-3 sm:h-3" />
               {item.origin.split('/')[0].trim()}
             </span>
           )}
-          {item.origin && minPrice && <span className="black/13 text-[7px] sm:text-[10px]">·</span>}
+          {item.origin && minPrice && <span className="text-black/18 text-[7px] sm:text-[10px]">·</span>}
           {minPrice && (
-            <span className="text-[9px] sm:text-xs text-[#D75437] font-medium">
+            <span className="text-[9px] sm:text-xs text-[#D75437] font-semibold">
               ¥{minPrice}{maxPrice && maxPrice !== minPrice ? `起` : ''}
             </span>
           )}
@@ -137,7 +137,7 @@ const SearchResultCard: React.FC<{ item: Product; onSelect: (code: string) => vo
 
   return (
     <div
-      className="flex flex-col sm:flex-row gap-3 sm:gap-6 p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/70 hover:bg-white border border-black/[0.04] hover:border-[#D75437]/12 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+      className="flex flex-col sm:flex-row gap-3 sm:gap-6 p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 hover:bg-white border border-black/[0.04] hover:border-[#D75437]/12 shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_28px_-8px_rgba(0,0,0,0.08)] transition-all duration-300 cursor-pointer group"
       onClick={() => onSelect(item.code)}
     >
       {/* 图片区 — 移动端小方图，PC端大方图 */}
@@ -164,27 +164,27 @@ const SearchResultCard: React.FC<{ item: Product; onSelect: (code: string) => vo
 
       {/* 信息区 */}
       <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5 sm:gap-2">
-        {/* 名称行 */}
+        {/* 名称行 — 移动端更大一号 */}
         <div>
-          <h4 className="text-sm sm:text-xl font-bold tracking-wide text-[#1A1A1A]/85 group-hover:text-[#D75437] transition-colors">
+          <h4 className="text-sm sm:text-xl font-bold tracking-wide text-[#1A1A1A]/90 group-hover:text-[#D75437] transition-colors">
             {item.name_cn}
           </h4>
           {item.name_en && (
-            <span className="text-[9px] sm:text-xs tracking-widest opacity-25 font-bold uppercase block truncate">{item.name_en}</span>
+            <span className="text-[9px] sm:text-xs tracking-widest opacity-30 font-bold uppercase block truncate">{item.name_en}</span>
           )}
           {item.scientific_name && (
-            <span className="text-[8px] sm:text-[11px] italic opacity-20 block mt-0.5">{item.scientific_name}</span>
+            <span className="text-[8px] sm:text-[11px] italic opacity-25 block mt-0.5">{item.scientific_name}</span>
           )}
         </div>
 
         {/* 描述摘要 — PC端展示更多内容 */}
         {item.short_desc && (
-          <p className="text-[10px] sm:text-sm leading-relaxed opacity-45 line-clamp-2 sm:line-clamp-3">
+          <p className="text-[10px] sm:text-sm leading-relaxed opacity-55 line-clamp-2 sm:line-clamp-3">
             {item.short_desc}
           </p>
         )}
         {!item.short_desc && item.description && (
-          <p className="text-[10px] sm:text-sm leading-relaxed opacity-35 line-clamp-2 sm:line-clamp-3">
+          <p className="text-[10px] sm:text-sm leading-relaxed opacity-45 line-clamp-2 sm:line-clamp-3">
             {item.description}
           </p>
         )}
@@ -192,16 +192,16 @@ const SearchResultCard: React.FC<{ item: Product; onSelect: (code: string) => vo
         {/* 规格信息行 */}
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[9px] sm:text-xs">
           {item.origin && (
-            <span className="flex items-center gap-0.5 text-black/35 font-medium">
-              <MapPin size={8} smSize={10} className="text-[#D75437]/40" />
+            <span className="flex items-center gap-0.5 text-black/40 font-medium">
+              <MapPin size={8} smSize={10} className="text-[#D75437]/45" />
               <span className="truncate max-w-[120px] sm:max-w-[200px]">{item.origin.split('/')[0].trim()}</span>
             </span>
           )}
           {item.extraction_method && (
-            <span className="text-black/25">· {item.extraction_method}</span>
+            <span className="text-black/30">· {item.extraction_method}</span>
           )}
           {item.extraction_site && (
-            <span className="text-black/25">· {item.extraction_site}</span>
+            <span className="text-black/30">· {item.extraction_site}</span>
           )}
           {minPrice && (
             <span className="ml-auto text-[11px] sm:text-base font-bold text-[#D75437]">
@@ -212,11 +212,11 @@ const SearchResultCard: React.FC<{ item: Product; onSelect: (code: string) => vo
 
         {/* 产品编码 + 系列标签 */}
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[6px] sm:text-[8px] tracking-[0.2em] font-mono opacity-18 text-black/30">
+          <span className="text-[6px] sm:text-[8px] tracking-[0.2em] font-mono opacity-30">
             {item.code}
           </span>
           {item.series_code && (
-            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-black/[0.03] text-[7px] sm:text-[9px] font-bold tracking-wider opacity-30">
+            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-black/[0.03] text-[7px] sm:text-[9px] font-bold tracking-wider opacity-40">
               {item.series_code.toUpperCase()}
             </span>
           )}
@@ -230,10 +230,10 @@ const COLLECT_IMG_KEYS = ['collections_ad_yuan', 'collections_ad_he', 'collectio
 // 四张产品广告图：四个系列各配一张独立banner
 // 后台可替换，key对应: collections_ad_yuan / he / sheng / jing
 const BANNER_ADS: Record<string, string> = {
-  yuan:  '/assets/banner/banner-ad-1.webp',
-  he:    '/assets/banner/banner-ad-2.webp',
-  sheng: '/assets/banner/banner-ad-3.webp',
-  jing:  '/assets/banner/banner-ad-4.webp',
+  yuan:  '/assets/banner/banner-ad-1.webp?v=20260614b',
+  he:    '/assets/banner/banner-ad-2.webp?v=20260614b',
+  sheng: '/assets/banner/banner-ad-3.webp?v=20260614b',
+  jing:  '/assets/banner/banner-ad-4.webp?v=20260614b',
 };
 
 // 系列展示主题
@@ -262,7 +262,7 @@ const CategoryHeaderCard: React.FC<{ category: string; label: string; theme: typ
   const gradient = gradientMap[`yuan_${category}`] || `from-[${theme.color}]/8 to-[${theme.color}]/4`;
 
   return (
-    <div className={`col-span-1 bg-gradient-to-br ${gradient} rounded-2xl sm:rounded-[3rem] p-3 sm:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-square`}>
+    <div className={`col-span-1 bg-gradient-to-br ${gradient} rounded-2xl sm:rounded-[3rem] p-3 sm:p-10 lg:p-14 flex flex-col justify-between border border-black/[0.03] relative overflow-hidden group shadow-sm aspect-square sm:aspect-auto sm:min-h-[180px] lg:min-h-[240px]`}>
       {/* 装饰性背景元素 */}
       <div className="absolute top-0 right-0 w-24 h-24 opacity-[0.03]">
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -276,7 +276,7 @@ const CategoryHeaderCard: React.FC<{ category: string; label: string; theme: typ
           <span className="text-[7px] sm:text-xl font-bold text-[#D4AF37]/40">{label.charAt(0)}</span>
         </div>
         <div className="space-y-0.5 sm:space-y-8">
-          <h3 className="text-[10px] sm:text-5xl lg:text-6xl font-bold tracking-wide sm:tracking-widest text-[#1A1A1A]/80 sm:text-black/80 leading-tight">
+          <h3 className="text-[10px] sm:text-3xl lg:text-4xl 2xl:text-5xl font-bold tracking-wide sm:tracking-widest text-[#1A1A1A]/80 sm:text-black/80 leading-tight break-words">
             {label}
           </h3>
           <div className="flex items-center gap-0.5 sm:gap-4">
@@ -559,9 +559,7 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
             <div className="relative w-full aspect-[2/1] sm:aspect-[3/1] rounded-2xl sm:rounded-[3rem] overflow-hidden group shadow-lg sm:shadow-2xl">
               <img
                 src={collectionBanners['collections_ad_' + filter] || BANNER_ADS[filter]}
-                className={`w-full h-full object-cover transition-all duration-[2s] group-hover:scale-105 ${
-                  filter === 'yuan' || filter === 'sheng' ? 'object-bottom' : 'object-center'
-                }`}
+                className={`w-full h-full object-cover object-top transition-all duration-[2s] group-hover:scale-105`}
                 alt={`UNIO AROMA 产品广告 - ${theme.fullLabel}`}
                 loading="lazy"
               />

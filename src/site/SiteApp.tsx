@@ -188,6 +188,9 @@ const SiteApp: React.FC = () => {
     setNavParams(p);
     setNavStack([{ view: 'home', params: {} }, { view: v, params: p }]);
 
+    // 确保页面始终从顶部开始，避免浏览器恢复滚动位置导致顶部空白
+    window.scrollTo(0, 0);
+
     const timer = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => setShowSplash(false), 800);
@@ -422,8 +425,8 @@ const SiteApp: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col items-center space-y-0.5 sm:space-y-1">
-            <span className="text-base sm:text-2xl font-bold tracking-[0.25em] sm:tracking-[0.3em] leading-none text-[#1A1A1A] group-hover:text-[#D75437] transition-colors">元香 UNIO</span>
-            <span className="text-[7px] sm:text-[10px] font-bold text-[#1A1A1A]/28 tracking-[0.45em] sm:tracking-[0.5em] uppercase">UNIO LIFE</span>
+            <span className={`text-base sm:text-2xl font-bold tracking-[0.25em] sm:tracking-[0.3em] leading-none transition-colors ${view === 'home' ? 'text-white/80 group-hover:text-white' : 'text-[#1A1A1A] group-hover:text-[#D75437]'}`}>元香 UNIO</span>
+            <span className={`text-[7px] sm:text-[10px] font-bold tracking-[0.45em] sm:tracking-[0.5em] uppercase ${view === 'home' ? 'text-white/40' : 'text-[#1A1A1A]/28'}`}>UNIO LIFE</span>
           </div>
         </div>
 

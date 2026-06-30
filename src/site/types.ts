@@ -30,6 +30,7 @@ export interface Product {
   category?: string;
   group_name?: string;
   description?: string;
+  detail_intro?: string;        // 详细介绍（从知识库提炼）
   benefits?: string[];
   usage?: string;
   price_5ml?: number;

@@ -16,3 +16,6 @@ createRoot(rootEl).render(
     </HashRouter>
   </StrictMode>
 );
+
+// 挂载后隐藏预加载遮罩（prelude overlay）
+rootEl.classList.add('app-loaded');

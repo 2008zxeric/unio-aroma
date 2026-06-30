@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unio 元香 UNIO | 从极境中撷取宁静</title>
+    <meta name="description" content="UNIO 元香 — 从极境中撷取宁静。全球寻香，自然精粹，芳香生活。" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Preconnect for product images -->
+    <link rel="preconnect" href="https://xuicjydgtoltdhkbqoju.supabase.co" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <!-- 预加载首页关键资源 -->
+    <link rel="preload" href="/logo.svg" as="image" />
+<style>
+  /* 初始氛围层 — JS加载前就有呼吸感 */
+  @keyframes prelude-breathe {
+    0%,100% { opacity:0.65; background-position:50% 30%; }
+    50%     { opacity:0.85; background-position:50% 70%; }
+  }
+  #root::before {
+    content:'';
+    position:fixed;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, #1a1a1a 0%, #0a0a0a 50%, #000 100%),
+      radial-gradient(circle 300px at 30% 70%, rgba(212,175,55,.04) 0%, transparent 70%),
+      radial-gradient(circle 200px at 70% 30%, rgba(212,175,55,.03) 0%, transparent 70%);
+    animation:prelude-breathe 8s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes s-pulse { 0%,100%{opacity:.25} 50%{opacity:.6} }
+  .s-s{animation:s-pulse 2s ease-in-out infinite;background:linear-gradient(135deg,#D4AF3718,#D7543710);}
+  .s-cir{border-radius:999px;}.s-bar{border-radius:6px;}
+  .s-loader{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;
+    display:flex;flex-direction:column;align-items:center;gap:24px;}
+</style>
+</head>
+<body class="bg-black">
+    <div id="root">
+      <div class="s-loader">
+        <div class="s-s s-cir" style="width:64px;height:64px;"></div>
+        <div class="s-s s-bar" style="width:120px;height:3px;"></div>
+      </div>
+    </div>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>

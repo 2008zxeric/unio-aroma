@@ -199,8 +199,8 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
     <div className={`flex items-center gap-3 px-5 py-3.5 bg-white ${colSpan ? 'col-span-2 md:col-span-3' : ''}`}>
       <Icon size={13} className="flex-shrink-0" style={{ color: C.red }} />
       <div>
-        <span className="block text-[9px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}28` }}>{label}</span>
-        <span className="text-sm font-medium" style={{ color: `${C.dark}75` }}>{value}</span>
+        <span className="block text-[9px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}45` }}>{label}</span>
+        <span className="text-sm font-medium" style={{ color: `${C.dark}85` }}>{value}</span>
       </div>
     </div>
   );
@@ -300,22 +300,22 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
           {/* 标签行 */}
           <div className="flex items-center gap-2 pt-6 flex-wrap">
             <span className="px-3 py-1 text-[10px] font-bold tracking-widest rounded-full" style={{ color: C.red, backgroundColor: `${C.red}08` }}>{seriesConfig?.fullName_cn}</span>
-            {categoryLabel && <span className="px-3 py-1 text-[10px] font-bold tracking-widest rounded-full" style={{ color: `${C.dark}55`, backgroundColor: `${C.dark}05` }}>{categoryLabel}</span>}
-            {product.element && <span className="px-3 py-1 text-[10px] font-medium tracking-wider rounded-full" style={{ color: `${C.dark}45`, backgroundColor: `${C.dark}04` }}>{product.element}</span>}
+            {categoryLabel && <span className="px-3 py-1 text-[10px] font-bold tracking-widest rounded-full" style={{ color: `${C.dark}65`, backgroundColor: `${C.dark}05` }}>{categoryLabel}</span>}
+            {product.element && <span className="px-3 py-1 text-[10px] font-medium tracking-wider rounded-full" style={{ color: `${C.dark}60`, backgroundColor: `${C.dark}04` }}>{product.element}</span>}
           </div>
 
           {/* 标题 */}
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-wide" style={{ color: C.dark }}>{product.name_cn}</h1>
-            {product.name_en && <p className="text-sm tracking-widest uppercase" style={{ color: `${C.dark}35` }}>{product.name_en}</p>}
+            {product.name_en && <p className="text-sm tracking-widest uppercase" style={{ color: `${C.dark}58` }}>{product.name_en}</p>}
           </div>
 
           {/* 产地 */}
           {product.origin && (
             <div className="inline-flex items-center gap-2 rounded-lg px-4 py-2" style={{ backgroundColor: C.warm }}>
               <MapPin size={12} style={{ color: C.red }} />
-              <span className="text-xs font-medium" style={{ color: `${C.dark}60` }}>{product.origin}</span>
-              {product.extraction_site && <><span style={{ color: `${C.dark}15` }}>·</span><span className="text-xs" style={{ color: `${C.dark}40` }}>{product.extraction_site}</span></>}
+              <span className="text-xs font-medium" style={{ color: `${C.dark}70` }}>{product.origin}</span>
+              {product.extraction_site && <><span style={{ color: `${C.dark}25` }}>·</span><span className="text-xs" style={{ color: `${C.dark}55` }}>{product.extraction_site}</span></>}
             </div>
           )}
 
@@ -327,7 +327,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                 {priceOptions.map((o, i) => (
                   <div key={i} className={`p-3 rounded-xl border ${o.popular ? '' : 'border-black/5 bg-white'}`} style={o.popular ? { borderColor: `${C.red}20`, backgroundColor: `${C.red}03` } : {}}>
                     <span className="block text-lg font-bold" style={{ color: C.red }}>¥{o.price}</span>
-                    <span className="text-[10px]" style={{ color: `${C.dark}30` }}>{o.size}</span>
+                    <span className="text-[10px]" style={{ color: `${C.dark}45` }}>{o.size}</span>
                   </div>
                 ))}
               </div>
@@ -351,21 +351,22 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
               <div className="flex items-center gap-2" style={{ color: '#1C39BB' }}>
                 <div className="w-5 h-px bg-[#1C39BB]" /><Beaker size={13} /><span className="text-[10px] font-bold tracking-widest">ALICE LAB</span>
               </div>
-              <p className="text-sm leading-relaxed" style={{ color: `${C.dark}70` }}>{product.alice_lab}</p>
+              <p className="text-sm leading-relaxed" style={{ color: `${C.dark}78` }}>{product.alice_lab}</p>
             </div>
           )}
 
-          {product.description && (<div className="space-y-1.5"><h3 className="text-[10px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}32` }}>简介</h3><p className="text-sm leading-relaxed" style={{ color: `${C.dark}58` }}>{product.description}</p></div>)}
-          {product.usage && (<div className="space-y-1.5"><h3 className="text-[10px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}32` }}>使用方法</h3><p className="text-sm leading-relaxed" style={{ color: `${C.dark}58` }}>{product.usage}</p></div>)}
+          {product.description && (<div className="space-y-1.5"><h3 className="text-[10px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}50` }}>简介</h3><p className="text-sm leading-relaxed" style={{ color: `${C.dark}72` }}>{product.description}</p></div>)}
+          {product.detail_intro && (<div className="space-y-1.5"><h3 className="text-[10px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}50` }}>产品详解</h3><div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: `${C.dark}70` }}>{product.detail_intro}</div></div>)}
+          {product.usage && (<div className="space-y-1.5"><h3 className="text-[10px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}50` }}>使用方法</h3><p className="text-sm leading-relaxed" style={{ color: `${C.dark}72` }}>{product.usage}</p></div>)}
 
           {/* 规格表 */}
           <div className="rounded-2xl overflow-hidden border" style={{ borderColor: C.line }}>
-            {product.origin && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><MapPin size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}35` }}>产地</span><span className="text-xs font-medium" style={{ color: `${C.dark}65` }}>{product.origin}</span></div>)}
-            {product.extraction_method && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Beaker size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}35` }}>提炼</span><span className="text-xs font-medium" style={{ color: `${C.dark}65` }}>{product.extraction_method}</span></div>)}
-            {product.extraction_site && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Leaf size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}35` }}>部位</span><span className="text-xs font-medium" style={{ color: `${C.dark}65` }}>{product.extraction_site}</span></div>)}
-            {product.fragrance_notes && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Wind size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}35` }}>香调</span><span className="text-xs font-medium" style={{ color: `${C.dark}65` }}>{product.fragrance_notes}</span></div>)}
-            {product.shelf_life && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Clock size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}35` }}>保质期</span><span className="text-xs font-medium" style={{ color: `${C.dark}65` }}>{product.shelf_life}</span></div>)}
-            <div className="flex items-center gap-3 px-4 py-2.5"><Star size={12} className="text-black/15" /><span className="text-xs w-14" style={{ color: `${C.dark}28` }}>编号</span><span className="text-xs font-mono" style={{ color: `${C.dark}38` }}>{product.code}</span></div>
+            {product.origin && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><MapPin size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}55` }}>产地</span><span className="text-xs font-medium" style={{ color: `${C.dark}80` }}>{product.origin}</span></div>)}
+            {product.extraction_method && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Beaker size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}55` }}>提炼</span><span className="text-xs font-medium" style={{ color: `${C.dark}80` }}>{product.extraction_method}</span></div>)}
+            {product.extraction_site && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Leaf size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}55` }}>部位</span><span className="text-xs font-medium" style={{ color: `${C.dark}80` }}>{product.extraction_site}</span></div>)}
+            {product.fragrance_notes && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Wind size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}55` }}>香调</span><span className="text-xs font-medium" style={{ color: `${C.dark}80` }}>{product.fragrance_notes}</span></div>)}
+            {product.shelf_life && (<div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: C.line }}><Clock size={12} style={{ color: C.red }} /><span className="text-xs w-14" style={{ color: `${C.dark}55` }}>保质期</span><span className="text-xs font-medium" style={{ color: `${C.dark}80` }}>{product.shelf_life}</span></div>)}
+            <div className="flex items-center gap-3 px-4 py-2.5"><Star size={12} className="text-black/25" /><span className="text-xs w-14" style={{ color: `${C.dark}50` }}>编号</span><span className="text-xs font-mono" style={{ color: `${C.dark}60` }}>{product.code}</span></div>
           </div>
         </div>
 
@@ -376,7 +377,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
               <div key={gi}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2"><Sparkles size={13} style={{ color: C.gold }} /><h2 className="text-sm font-bold" style={{ color: C.dark }}>{g.label}</h2></div>
-                  <button onClick={() => onNavigate('collections', { series: g.series !== 'other' ? g.series : undefined })} className="text-xs flex items-center gap-0.5" style={{ color: `${C.dark}35` }}>更多<ArrowLeft size={10} className="rotate-180" /></button>
+                  <button onClick={() => onNavigate('collections', { series: g.series !== 'other' ? g.series : undefined })} className="text-xs flex items-center gap-0.5" style={{ color: `${C.dark}50` }}>更多<ArrowLeft size={10} className="rotate-180" /></button>
                 </div>
                 <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-1">
                   {g.items.map(p => (
@@ -384,7 +385,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                       <div className="aspect-square rounded-2xl overflow-hidden mb-1.5 group-hover:shadow-lg transition-all duration-500" style={{ background: `linear-gradient(145deg,${C.cram},${C.cream})`, border: `1px solid ${C.line}` }}>
                         <img src={optimizeProductThumb(p.image_url) || LOGO_PLACEHOLDER} alt={p.name_cn} className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" onError={e => { e.currentTarget.src = LOGO_PLACEHOLDER; }} loading="lazy" decoding="async" />
                       </div>
-                      <h3 className="text-xs font-bold truncate group-hover:transition-colors" style={{ color: `${C.dark}60` }} onMouseEnter={e => e.currentTarget.style.color = C.red} onMouseLeave={e => e.currentTarget.style.color = `${C.dark}60`}>{p.name_cn}</h3>
+                      <h3 className="text-xs font-bold truncate group-hover:transition-colors" style={{ color: `${C.dark}72` }} onMouseEnter={e => e.currentTarget.style.color = C.red} onMouseLeave={e => e.currentTarget.style.color = `${C.dark}72`}>{p.name_cn}</h3>
                       {p.price_10ml && <p className="text-[10px]" style={{ color: C.gold }}>¥{p.price_10ml}</p>}
                     </div>
                   ))}
@@ -498,14 +499,14 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                 {/* 标题组 */}
                 <div className="space-y-2">
                   <h1 className="text-3xl xl:text-4xl font-semibold tracking-wide leading-tight" style={{ color: C.dark }}>{product.name_cn}</h1>
-                  {product.name_en && <p className="text-base tracking-[0.25em] uppercase font-light" style={{ color: `${C.dark}35` }}>{product.name_en}</p>}
-                  {product.scientific_name && <p className="text-sm italic" style={{ color: `${C.dark}28` }}>{product.scientific_name}</p>}
+                  {product.name_en && <p className="text-base tracking-[0.25em] uppercase font-light" style={{ color: `${C.dark}55` }}>{product.name_en}</p>}
+                  {product.scientific_name && <p className="text-sm italic" style={{ color: `${C.dark}45` }}>{product.scientific_name}</p>}
                 </div>
 
                 {/* 编号 + 复制 */}
                 <div className="flex items-center gap-2.5 pb-4 border-b" style={{ borderColor: C.line }}>
-                  <span className="text-xs font-mono" style={{ color: `${C.dark}30` }}>{product.code}</span>
-                  <button onClick={handleCopyLink} className="p-1 rounded hover:text-red-500 transition-colors" style={{ color: `${C.dark}20` }}>{copied ? <Check size={12} /> : <Copy size={12} />}</button>
+                  <span className="text-xs font-mono" style={{ color: `${C.dark}45` }}>{product.code}</span>
+                  <button onClick={handleCopyLink} className="p-1 rounded hover:text-red-500 transition-colors" style={{ color: `${C.dark}35` }}>{copied ? <Check size={12} /> : <Copy size={12} />}</button>
                 </div>
 
                 {/* 价格 */}
@@ -517,7 +518,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                         <div key={i} className={`p-3 rounded-xl text-center border transition-all ${o.popular ? '' : 'border-transparent bg-white'}`}
                           style={o.popular ? { borderColor: `${C.red}20`, backgroundColor: `${C.red}04` } : {}}>
                           <span className="block text-xl font-bold" style={{ color: C.red }}>¥{o.price}</span>
-                          <span className="text-[10px]" style={{ color: `${C.dark}28` }}>{o.size}</span>
+                          <span className="text-[10px]" style={{ color: `${C.dark}45` }}>{o.size}</span>
                         </div>
                       ))}
                     </div>
@@ -530,7 +531,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                   style={{ background: `linear-gradient(135deg, ${C.red}, #E85A3F)`, boxShadow: `0 6px 20px ${C.red}28` }}>
                   <ShoppingBag size={17} /><span>前往小红书购买</span><ExternalLink size={14} className="opacity-50" />
                 </a>
-                <p className="text-center text-[9px] tracking-widest" style={{ color: `${C.dark}18` }}>点击跳转小红书查看详情及优惠</p>
+                <p className="text-center text-[9px] tracking-widest" style={{ color: `${C.dark}35` }}>点击跳转小红书查看详情及优惠</p>
 
                 {/* 特别提醒 */}
                 <div className="rounded-xl p-4 space-y-2" style={{ backgroundColor: '#FFFCF7', border: '1px solid rgba(217,153,68,0.15)' }}>
@@ -545,10 +546,10 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
 
                 {/* 收藏分享 */}
                 <div className="flex items-center justify-center gap-6 pt-2">
-                  <button className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: `${C.dark}22` }}
-                    onMouseEnter={e => e.currentTarget.style.color = C.red} onMouseLeave={e => e.currentTarget.style.color = `${C.dark}22`}><Heart size={16} /><span>收藏</span></button>
-                  <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: `${C.dark}22` }}
-                    onMouseEnter={e => e.currentTarget.style.color = C.red} onMouseLeave={e => e.currentTarget.style.color = `${C.dark}22`}><Share2 size={16} /><span>分享</span></button>
+                  <button className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: `${C.dark}40` }}
+                    onMouseEnter={e => e.currentTarget.style.color = C.red} onMouseLeave={e => e.currentTarget.style.color = `${C.dark}40`}><Heart size={16} /><span>收藏</span></button>
+                  <button onClick={() => setShowShare(true)} className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: `${C.dark}40` }}
+                    onMouseEnter={e => e.currentTarget.style.color = C.red} onMouseLeave={e => e.currentTarget.style.color = `${C.dark}40`}><Share2 size={16} /><span>分享</span></button>
                 </div>
 
               </div>
@@ -585,23 +586,29 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
               <div className="flex items-center gap-3 mb-5" style={{ color: '#1C39BB' }}>
                 <div className="w-7 h-px bg-[#1C39BB]" /><Beaker size={14} /><span className="text-[10px] font-bold tracking-[0.25em] uppercase">ALICE LAB 日记</span>
               </div>
-              <p className="text-base leading-relaxed max-w-2xl" style={{ color: `${C.dark}70` }}>{product.alice_lab}</p>
+              <p className="text-base leading-relaxed max-w-2xl" style={{ color: `${C.dark}78` }}>{product.alice_lab}</p>
             </div>
           )}
 
           {/* ── 描述 & 使用方法 ── */}
-          {(product.description || product.usage) && (
+          {(product.description || product.detail_intro || product.usage) && (
             <div className="space-y-10">
               {product.description && (
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}28` }}>简介 / Description</h3>
-                  <p className="text-base leading-relaxed max-w-2xl" style={{ color: `${C.dark}55` }}>{product.description}</p>
+                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}50` }}>简介 / Description</h3>
+                  <p className="text-base leading-relaxed max-w-2xl" style={{ color: `${C.dark}65` }}>{product.description}</p>
+                </div>
+              )}
+              {product.detail_intro && (
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}50` }}>产品详解 / Details</h3>
+                  <div className="text-base leading-relaxed max-w-2xl whitespace-pre-line" style={{ color: `${C.dark}65` }}>{product.detail_intro}</div>
                 </div>
               )}
               {product.usage && (
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}28` }}>使用方法 / How to Use</h3>
-                  <p className="text-base leading-relaxed max-w-2xl" style={{ color: `${C.dark}55` }}>{product.usage}</p>
+                  <h3 className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}50` }}>使用方法 / How to Use</h3>
+                  <p className="text-base leading-relaxed max-w-2xl" style={{ color: `${C.dark}65` }}>{product.usage}</p>
                 </div>
               )}
             </div>
@@ -611,7 +618,7 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
           {(product.origin || product.extraction_method || product.specification) && (
             <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${C.line}` }}>
               <div className="px-6 py-4 border-b" style={{ borderColor: C.line }}>
-                <span className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}25` }}>产品档案 / Product Profile</span>
+                <span className="text-[10px] font-bold tracking-[0.25em] uppercase" style={{ color: `${C.dark}45` }}>产品档案 / Product Profile</span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x" style={{ [`&>*`]: { borderColor: C.line } }}>
                 {product.origin && <ProfileCell icon={MapPin} label="产地 Origin" value={product.origin} />}
@@ -624,9 +631,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                 {product.usage_scenarios && <ProfileCell icon={Sparkles} label="适用场景 Scenarios" value={product.usage_scenarios} colSpan />}
               </div>
               <div className="flex items-center gap-3 px-6 py-3 border-t" style={{ borderColor: C.line, backgroundColor: `${C.warm}` }}>
-                <Star size={12} style={{ color: `${C.dark}15` }} />
-                <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}22` }}>编号 Code</span>
-                <span className="text-xs font-mono ml-auto" style={{ color: `${C.dark}38` }}>{product.code}</span>
+                <Star size={12} style={{ color: `${C.dark}30` }} />
+                <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: `${C.dark}40` }}>编号 Code</span>
+                <span className="text-xs font-mono ml-auto" style={{ color: `${C.dark}55` }}>{product.code}</span>
               </div>
             </div>
           )}
@@ -645,9 +652,9 @@ const SiteProductDetail: React.FC<SiteProductDetailProps> = ({ productCode, prod
                   </div>
                   <button onClick={() => onNavigate('collections', { series: g.series !== 'other' ? g.series : undefined })}
                     className="flex items-center gap-2 text-xs tracking-wider transition-colors group"
-                    style={{ color: `${C.dark}30` }}
+                    style={{ color: `${C.dark}50` }}
                     onMouseEnter={e => e.currentTarget.style.color = C.red}
-                    onMouseLeave={e => e.currentTarget.style.color = `${C.dark}30`}>
+                    onMouseLeave={e => e.currentTarget.style.color = `${C.dark}50`}>
                     查看更多<ArrowLeft size={12} className="rotate-180 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>

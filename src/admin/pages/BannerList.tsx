@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Plus, Edit2, Trash2, Image as ImageIcon, X, Loader2, Home, BookOpen, LayoutGrid, Save } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../components/Toast';
 import { bannerService } from '../../lib/dataService';
 import type { Banner } from '../../lib/database.types';
 
@@ -103,7 +104,7 @@ export default function AdminBanners() {
       setEditingKey(null);
       setEditUrl('');
     } catch (err: any) {
-      alert('保存失败: ' + err.message);
+      error('保存失败: ' + err.message);
     }
   };
 

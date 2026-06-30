@@ -1,8 +1,10 @@
 @import "tailwindcss";
 @import "./fonts.css";
 
+/* 字体加载优化：消除不可见文字等待时间（FOIT，Flash of Invisible Text） */
 /* CSS Variables */
 :root {
+  --fontsource-display: swap;
   --moss-green: #2C3E28;
   --terracotta: #D75437;
   --stone-grey: #F5F5F5;
@@ -203,4 +205,155 @@ html {
 /* 正文行高 */
 .body-luxury {
   line-height: var(--body-line-height);
+}
+
+/* ====== Scroll-Reveal 滚动动效系统 (Quiet Luxury) ====== */
+
+/* 基础隐藏状态 — 静奢上滑效果 */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 从左侧进入 */
+.scroll-reveal-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal-left.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 从右侧进入 */
+.scroll-reveal-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal-right.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 子元素 staggered 级联动画 */
+.scroll-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 0.9s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal-stagger > *:nth-child(1) { transition-delay: 0.05s; }
+.scroll-reveal-stagger > *:nth-child(2) { transition-delay: 0.18s; }
+.scroll-reveal-stagger > *:nth-child(3) { transition-delay: 0.31s; }
+.scroll-reveal-stagger > *:nth-child(4) { transition-delay: 0.44s; }
+.scroll-reveal-stagger > *:nth-child(5) { transition-delay: 0.57s; }
+.scroll-reveal-stagger > *:nth-child(6) { transition-delay: 0.70s; }
+.scroll-reveal-stagger.revealed > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 芳香分子粒子浮动动画 */
+@keyframes particle-float {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.25; }
+  20%  { transform: translateY(-18px) translateX(8px) rotate(72deg); opacity: 0.35; }
+  40%  { transform: translateY(-8px) translateX(-6px) rotate(144deg); opacity: 0.2; }
+  60%  { transform: translateY(-24px) translateX(12px) rotate(216deg); opacity: 0.3; }
+  80%  { transform: translateY(-6px) translateX(-10px) rotate(288deg); opacity: 0.15; }
+  100% { transform: translateY(0) translateX(0) rotate(360deg); opacity: 0.25; }
+}
+
+.animate-particle {
+  animation: particle-float var(--particle-duration, 18s) ease-in-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+
+/* 精油分子凝聚/消散 */
+@keyframes molecule-breathe {
+  0%, 100% { opacity: 0.08; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.2; transform: scale(1.15) rotate(180deg); }
+}
+.animate-molecule {
+  animation: molecule-breathe 8s ease-in-out infinite;
+  animation-delay: var(--molecule-delay, 0s);
+}
+
+/* 装饰竖线渐显 */
+@keyframes line-grow {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+.animate-line-grow {
+  animation: line-grow 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+/* Hero 呼吸光扫 */
+@keyframes light-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  20% { opacity: 0.12; }
+  50% { opacity: 0.08; }
+  80% { opacity: 0.12; }
+  100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+}
+.animate-light-sweep {
+  animation: light-sweep 12s ease-in-out infinite;
+}
+
+/* Hero 呼吸暗角脉冲 */
+@keyframes vignette-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.50; }
+}
+.animate-vignette-breathe {
+  animation: vignette-breathe 6s ease-in-out infinite;
+}
+
+/* 大型光斑浮动 */
+@keyframes orb-float {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0.03; }
+  25% { transform: translate(30px, -20px) scale(1.1); opacity: 0.06; }
+  50% { transform: translate(-20px, -40px) scale(0.9); opacity: 0.04; }
+  75% { transform: translate(-30px, 10px) scale(1.2); opacity: 0.07; }
+  100% { transform: translate(0, 0) scale(0.8); opacity: 0.03; }
+}
+.animate-orb-float {
+  animation: orb-float var(--orb-duration, 20s) ease-in-out infinite;
+  animation-delay: var(--orb-delay, 0s);
+}
+
+/* 光丝飘动 */
+@keyframes light-wisp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.02; }
+  33% { transform: translateY(-15px) rotate(3deg); opacity: 0.06; }
+  66% { transform: translateY(10px) rotate(-2deg); opacity: 0.03; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 0.02; }
+}
+.animate-light-wisp {
+  animation: light-wisp 8s ease-in-out infinite;
+  animation-delay: var(--wisp-delay, 0s);
+}
+
+/* Hero 呼吸明暗轮回 — 艺术级 v3 */
+@keyframes hero-breathe-glow {
+  0%   { filter: brightness(0.40) contrast(1.30) saturate(0.7) sepia(0.3) hue-rotate(-5deg); transform: scale(1.000); }
+  18%  { filter: brightness(0.65) contrast(1.18) saturate(0.85) sepia(0.15) hue-rotate(-2deg); transform: scale(1.004); }
+  35%  { filter: brightness(1.05) contrast(0.98) saturate(1.05) sepia(0) hue-rotate(0deg); transform: scale(1.010); }
+  48%  { filter: brightness(1.30) contrast(0.85) saturate(1.20) sepia(0) hue-rotate(3deg); transform: scale(1.018); }
+  55%  { filter: brightness(1.35) contrast(0.80) saturate(1.25) sepia(0) hue-rotate(5deg); transform: scale(1.020); }
+  68%  { filter: brightness(1.08) contrast(0.92) saturate(1.10) sepia(0.05) hue-rotate(2deg); transform: scale(1.012); }
+  82%  { filter: brightness(0.62) contrast(1.22) saturate(0.78) sepia(0.20) hue-rotate(-3deg); transform: scale(1.004); }
+  100% { filter: brightness(0.40) contrast(1.30) saturate(0.7) sepia(0.3) hue-rotate(-5deg); transform: scale(1.000); }
+}
+.animate-hero-breathe-glow {
+  animation: hero-breathe-glow 13s cubic-bezier(0.42, 0.0, 0.28, 1.0) infinite;
 }

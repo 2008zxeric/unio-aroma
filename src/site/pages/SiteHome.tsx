@@ -15,6 +15,7 @@ import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartP
 import { Series, Product, SERIES_CONFIG } from '../types';
 import { getBannerUrls, getSeries, getProducts, getCountries } from '../siteDataService';
 import { siteTextService } from '../../lib/dataService';
+import { optimizeHeroImage, optimizeImage } from '../imageUtils';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
@@ -25,10 +26,10 @@ const LOGO_IMG = '/logo.svg';
 // 系列图片默认值，后台可覆盖
 const HOME_IMG_KEYS = ['home_hero', 'home_series_yuan', 'home_series_he', 'home_series_sheng', 'home_series_jing'];
 const SERIES_IMG_DEFAULTS: Record<string, string> = {
-  yuan: '/assets/products/water/Patchouli Nocturne.webp',
-  he: '/assets/brand/spary.webp',
-  sheng: '/assets/brand/see.webp',
-  jing: '/assets/brand/brand.webp',
+  yuan: 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/home-series-yuan-20260619v2.png',
+  he: 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/home-series-he-20260619v2.png',
+  sheng: 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/home-series-sheng-20260619v2.png',
+  jing: 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/home-series-jing-20260619v2.png',
 };
 
 const SeriesIcon: React.FC<{ icon: string; className?: string }> = ({ icon, className = '' }) => {
@@ -73,16 +74,106 @@ function useCountUp(target: number, duration: number = 2000) {
   return { count };
 }
 
+// ====== 滚动触发动画组件（IntersectionObserver）======
+function ScrollReveal({ 
+  children, 
+  className = '', 
+  direction = 'up',
+  stagger = false,
+  delay = 0
+}: {
+  children: React.ReactNode;
+  className?: string;
+  direction?: 'up' | 'left' | 'right';
+  stagger?: boolean;
+  delay?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const timer = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setRevealed(true);
+            observer.unobserve(el);
+          }
+        },
+        { threshold: 0.08, rootMargin: '0px 0px -50px 0px' }
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  const dirClass = direction === 'left' ? 'scroll-reveal-left' 
+    : direction === 'right' ? 'scroll-reveal-right' 
+    : 'scroll-reveal';
+
+  return (
+    <div 
+      ref={ref} 
+      className={`${dirClass} ${revealed ? 'revealed' : ''} ${stagger && revealed ? 'scroll-reveal-stagger' : ''} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ====== 芳香分子浮动粒子背景 ======
+function AmbientParticles({ count = 8 }: { count?: number }) {
+  const particles = Array.from({ length: count }, (_, i) => ({
+    id: i,
+    size: 2 + (i % 3) * 2,
+    left: `${10 + (i * 13) % 80}%`,
+    top: `${5 + (i * 17) % 85}%`,
+    duration: 14 + (i % 5) * 4,
+    delay: (i * 2.3) % 12,
+  }));
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-[1]" aria-hidden="true">
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="absolute rounded-full bg-[#D4AF37] animate-particle"
+          style={{
+            width: p.size,
+            height: p.size,
+            left: p.left,
+            top: p.top,
+            '--particle-duration': `${p.duration}s`,
+            '--particle-delay': `${p.delay}s`,
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
+}
+
 const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const [series, setSeries] = useState<Series[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [countryCount, setCountryCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [homeImages, setHomeImages] = useState<Record<string, string>>({});
+  const [heroReady, setHeroReady] = useState(false);
   const [welcomeVideo, setWelcomeVideo] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeMuted, setWelcomeMuted] = useState(true);
   const welcomeVideoRef = useRef<HTMLVideoElement>(null);
+  
+  // 页面滚动位置（用于视差效果）
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // 动态统计：全部基于实际数据
   const originStats = useCountUp(countryCount, 2200);
@@ -116,7 +207,8 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           setWelcomeVideo(text.value);
           const lastPlayed = localStorage.getItem('unio_welcome_video_played_date');
           const bjDate = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
-          if (lastPlayed !== bjDate) setShowWelcome(true);
+          // 🔇 欢迎视频已禁用（2026-06-17）：Supabase Storage 非CDN，首屏缓冲 8-10s
+          // if (lastPlayed !== bjDate) setShowWelcome(true);
         }
       } catch {}
     }
@@ -142,21 +234,76 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   }
 
   return (
-    <div className="w-full bg-white overflow-x-hidden selection:bg-[#D75437] selection:text-white">
+    <div className="w-full bg-black overflow-x-hidden selection:bg-[#D75437] selection:text-white">
 
       {/* ============ HERO SECTION ============ */}
       <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
-        {/* 背景图 — 从数据库动态读取，无数据则用硬编码备选 */}
+        {/* 背景图 — 先展示原图，再渐入暗色效果 + 呼吸轮回 */}
         <div className="absolute inset-0">
-          <img src={homeImages['home_hero'] || '/assets/brand/brand.webp'} className="w-full h-full object-cover scale-100 animate-[breath_60s_ease-in-out_infinite]" alt="UNIO" />
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
+          <img 
+            src={optimizeHeroImage(homeImages['home_hero'] || 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/home-hero-20260619.png')} 
+            className={`w-full h-full object-cover transition-all duration-[2000ms] ${heroReady ? 'animate-hero-breathe-glow' : ''}`}
+            alt="UNIO"
+            fetchpriority="high"
+            onLoad={() => { setTimeout(() => setHeroReady(true), 600); }}
+          />
+          <div className={`absolute inset-0 transition-opacity duration-[2000ms] ${heroReady ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/20 to-black/70" />
+          </div>
         </div>
+
+        {/* 芳香分子浮动粒子 */}
+        <AmbientParticles count={12} />
 
         {/* 装饰分子环 */}
         <div className="absolute top-1/4 left-1/4 w-64 h-64 border border-[#D4AF37]/5 rounded-full animate-[spin-slow_80s_linear_infinite]" />
         <div className="absolute top-1/3 right-1/4 w-96 h-96 border border-[#D4AF37]/3 rounded-full animate-[spin-slow_120s_linear_infinite_reverse]" />
         <div className="absolute bottom-1/3 left-1/3 w-48 h-48 border border-white/[0.02] rounded-full animate-[spin-slow_60s_linear_infinite]" />
+
+        {/* 呼吸光扫 — 横穿画面 */}  
+        <div className="absolute inset-0 z-[2] pointer-events-none overflow-hidden">
+          <div className="absolute top-1/3 -left-1/2 w-1/3 h-[60%] bg-gradient-to-r from-transparent via-[#D4AF37]/[0.06] to-transparent animate-light-sweep" />
+        </div>
+
+        {/* 呼吸暗角脉冲 */}
+        <div className="absolute inset-0 z-[1] pointer-events-none animate-vignette-breathe" 
+          style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)' }} />
+
+        {/* 大型光斑 — 浮动呼吸 */}
+        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+          {[
+            { w: 300, h: 300, left: '15%', top: '20%', dur: '22s', delay: '0s', color: '#D4AF37' },
+            { w: 200, h: 200, left: '70%', top: '50%', dur: '18s', delay: '-5s', color: '#E8C56D' },
+            { w: 250, h: 250, left: '40%', top: '70%', dur: '26s', delay: '-10s', color: '#C9A84C' },
+            { w: 180, h: 180, left: '80%', top: '15%', dur: '20s', delay: '-15s', color: '#D4AF37' },
+          ].map((o, i) => (
+            <div key={`orb-${i}`}
+              className="absolute rounded-full blur-3xl animate-orb-float"
+              style={{
+                width: o.w, height: o.h, left: o.left, top: o.top,
+                background: `radial-gradient(circle, ${o.color}33 0%, transparent 70%)`,
+                '--orb-duration': o.dur, '--orb-delay': o.delay,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+
+        {/* 光丝飘动 — 如烟雾般轻柔 */}
+        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={`wisp-${i}`}
+              className="absolute h-px animate-light-wisp"
+              style={{
+                left: `${10 + i * 16}%`,
+                top: `${20 + (i * 13) % 60}%`,
+                width: `${60 + i * 20}px`,
+                background: `linear-gradient(90deg, transparent, ${i % 2 === 0 ? '#D4AF37' : '#E8C56D'}22, transparent)`,
+                '--wisp-delay': `${-i * 1.5}s`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
 
         {/* Hero 内容 */}
         <div className="relative z-10 text-center px-6 space-y-8 sm:space-y-12">
@@ -214,7 +361,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
         {/* 滚动提示 */}
         <button
           onClick={() => document.getElementById('heritage-section')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-4 opacity-25 sm:opacity-30 hover:opacity-60 transition-opacity"
+          className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-4 opacity-30 sm:opacity-30 hover:opacity-60 transition-opacity"
         >
           <span className="text-[7px] sm:text-[8px] tracking-[0.4em] sm:tracking-[0.5em] uppercase font-bold text-white">Scroll</span>
           <ChevronDown size={16} smSize={20} className="animate-bounce" />
@@ -222,14 +369,19 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       </section>
 
       {/* ============ 数据亮点条 ============ */}
+      <ScrollReveal>
       <section className="bg-[#1A1A1A] py-6 sm:py-12">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-3 gap-3 sm:gap-12">
           {[
-            { num: originStats.count, suffix: '+', label: '极境坐标', sub: 'Global Origins' },
-            { num: productStats.count, suffix: '+', label: '馆藏精品', sub: 'Collection' },
+            { num: originStats.count, suffix: '+', label: '极境坐标', sub: 'Global Origins', onClick: () => onNavigate('atlas') },
+            { num: productStats.count, suffix: '+', label: '馆藏精品', sub: 'Collection', onClick: () => onNavigate('collections') },
             { num: yearStats.count, suffix: 'Y', label: '专业积淀', sub: 'Expertise' },
           ].map((item, i) => (
-            <div key={i} className="text-center group">
+            <div
+              key={i}
+              className={`text-center group ${item.onClick ? 'cursor-pointer' : ''}`}
+              onClick={item.onClick}
+            >
               <div className="text-xl sm:text-5xl font-bold text-white tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {item.num}<span className="text-[#D4AF37]/60 text-xs sm:text-lg ml-0.5">{item.suffix}</span>
               </div>
@@ -239,8 +391,10 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           ))}
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ============ 品牌积淀 ============ */}
+      <ScrollReveal>
       <section id="heritage-section" className="py-16 sm:py-40 px-6 bg-[#FAFAF8]">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 md:gap-28 lg:gap-40">
           <div className="flex-1 space-y-6 sm:space-y-10 md:space-y-12 text-center lg:text-left">
@@ -252,8 +406,11 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
               始于神州西南，<br />
               <span className="text-black/15 sm:text-black/20">足履全球，萃炼自然。</span>
             </h2>
-            <p className="text-sm sm:text-2xl text-black/40 leading-relaxed sm:leading-loose max-w-2xl mx-auto lg:mx-0">
+            <p className="text-sm sm:text-2xl text-black/45 leading-relaxed sm:leading-loose max-w-2xl mx-auto lg:mx-0">
               元香 UNIO 将 Alice 深厚的芳疗临床底蕴与 Eric 在全球极境感知的生存原力相融合，转化为精准的现代身心愈合艺术。
+            </p>
+            <p className="text-[9px] sm:text-sm text-black/25 tracking-[0.08em] sm:tracking-[0.12em] mt-2 sm:mt-4 max-w-2xl mx-auto lg:mx-0">
+              「<span className="text-[#D75437]/40 sm:text-[#D75437]/45 font-bold tracking-widest">元</span>」取自 Alice 名中一字。这个名字，是 Eric 与 Amanda 约定的起点——他们以此为名，把 Alice 的芳香带到更远的地方。
             </p>
             <button
               onClick={() => onNavigate('story')}
@@ -278,9 +435,10 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ============ 四大核心馆藏 ============ */}
-      <section className="py-16 sm:py-48 px-3 sm:px-12 max-w-[2560px] mx-auto">
+      <section className="py-16 sm:py-48 px-3 sm:px-12 max-w-[2560px] mx-auto bg-white">
         {/* Section header */}
         <div className="text-center mb-12 sm:mb-28 space-y-3 sm:space-y-4">
           <div className="flex items-center justify-center gap-4">
@@ -307,7 +465,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate('collections', { series: s.code })}
                 className="group relative aspect-[3/5] sm:aspect-[4/5] rounded-xl sm:rounded-[3rem] lg:rounded-[4rem] overflow-hidden cursor-pointer shadow-lg sm:shadow-2xl transition-all duration-1000 hover:scale-[1.02] sm:hover:scale-[1.01]"
               >
-                <img src={bgImage} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] group-hover:scale-110" alt={config.fullName_cn} />
+                <img src={optimizeImage(bgImage, { width: 600, quality: 75 })} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] group-hover:scale-110" alt={config.fullName_cn} loading="lazy" decoding="async" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/95 via-black/30 to-transparent opacity-100 group-hover:opacity-60 transition-all" />
 
                 {/* 编号 */}
@@ -326,11 +484,11 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                     <span className="block sm:inline">{config.name_cn} ·</span>
                     <span className="block sm:inline sm:ml-2 lg:ml-3">{config.fullName_cn.split('·')[1]?.trim()}</span>
                   </h3>
-                  <p className="hidden lg:block text-white/45 text-sm leading-relaxed transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
+                  <p className="text-white/45 text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-none transform translate-y-4 opacity-0 sm:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
                     {config.description}
                   </p>
                   <div className="mt-2.5 sm:mt-3 flex items-center justify-between">
-                    <span className="text-white/25 text-[10px] sm:text-[10px] lg:text-xs tracking-widest">{productCount} 款产品</span>
+                    <span className="text-white/35 text-[10px] sm:text-[10px] lg:text-xs tracking-widest">{productCount} 款产品</span>
                     <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/8 sm:bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-3 sm:translate-x-4 group-hover:translate-x-0">
                       <ArrowRight size={11} smSize={13} className="text-white" />
                     </div>
@@ -343,6 +501,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       </section>
 
       {/* ============ 专业保障 ============ */}
+      <ScrollReveal>
       <section className="py-16 sm:py-36 px-6 bg-[#FAFAF8]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 sm:mb-28">
@@ -367,15 +526,17 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                   </div>
                   <h3 className="text-base sm:text-2xl heading-luxury tracking-[0.15em] sm:tracking-[0.2em] text-[#1A1A1A]/80 sm:text-black/75 mb-1.5 sm:mb-2">{item.title}</h3>
                   <p className="text-[7px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] text-black/18 sm:text-black/20 uppercase font-bold mb-4 sm:mb-6">{item.sub}</p>
-                  <p className="text-xs sm:text-base text-black/35 sm:text-black/40 leading-relaxed">{item.desc}</p>
+                  <p className="text-xs sm:text-base text-black/40 sm:text-black/45 leading-relaxed">{item.desc}</p>
                 </div>
               );
             })}
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ============ 导航入口 ============ */}
+      <ScrollReveal>
       <section className="py-16 sm:py-36 px-6 bg-stone-50/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12 sm:mb-24 sm:mb-32">
@@ -400,16 +561,18 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
                   <div className={`p-3 sm:p-6 rounded-full ${item.color} text-white group-hover:scale-110 transition-transform duration-500`}>
                     <Icon size={20} smSize={24} className="sm:w-8 sm:h-8" />
                   </div>
-                  <span className="text-base sm:text-3xl font-bold text-[#1A1A1A]/85 sm:text-black/80 tracking-wide sm:tracking-wider">{item.label}</span>
-                  <span className="text-[8px] sm:text-xs tracking-[0.2em] sm:tracking-[0.3em] text-black/25 sm:text-black/30 uppercase">{item.sub}</span>
+                  <span className="text-base sm:text-3xl font-bold text-[#1A1A1A]/85 sm:text-black/85 tracking-wide sm:tracking-wider">{item.label}</span>
+                  <span className="text-[8px] sm:text-xs tracking-[0.2em] sm:tracking-[0.3em] text-black/30 sm:text-black/35 uppercase">{item.sub}</span>
                 </button>
               );
             })}
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* ============ 品牌页脚 ============ */}
+      <ScrollReveal>
       <footer className="bg-[#FAFAF8] border-t border-black/4 pt-16 sm:pt-52 pb-16 sm:pb-40 px-6 sm:px-24">
         <div className="max-w-[2560px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-24 lg:gap-32">
           <div className="space-y-6 sm:space-y-10">
@@ -418,7 +581,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
               <h4 className="text-xl sm:text-5xl font-bold text-[#1A1A1A]/85 sm:text-black/80 tracking-wide sm:tracking-wider">元香 UNIO</h4>
             </div>
             <div className="h-px w-12 sm:w-16 bg-[#D75437]/18" />
-            <p className="text-xs sm:text-2xl text-black/35 sm:text-black/40 leading-relaxed sm:leading-loose">
+            <p className="text-xs sm:text-2xl text-black/40 sm:text-black/45 leading-relaxed sm:leading-loose">
               始于 2003，从西南神州开启寻香之旅。我们坚持极境溯源与廿三载临床实证，只为呈现生命最本原的静谧频率。
             </p>
           </div>
@@ -504,6 +667,7 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           </div>
         </div>
       </footer>
+      </ScrollReveal>
 
       {/* ============ 欢迎视频浮层（首次访问全屏播放一次） ============ */}
       {showWelcome && welcomeVideo && createPortal(

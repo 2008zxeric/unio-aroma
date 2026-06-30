@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store } from 'lucide-react';
+import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store, X } from 'lucide-react';
 import { optimizeHeroImage } from '../imageUtils';
 import { getBannerUrls } from '../siteDataService';
 
@@ -12,7 +12,9 @@ import { getBannerUrls } from '../siteDataService';
 const DEFAULT_ASSETS: Record<string, string> = {
   story_prologue: optimizeHeroImage('https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=1920'),
   story_map: optimizeHeroImage('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1920'),
-  story_expert_alice: optimizeHeroImage('https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920'),
+  story_expert_alice: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1920',
+  story_alice_portrait: 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/alice_tribute_20260610.png',
+  story_amanda: '/assets/brand/story_amanda.webp',
   story_finale: '/story-finale-banner.webp',
 };
 
@@ -24,7 +26,7 @@ const STORE_IMAGES: Record<string, string> = {
 };
 
 const IMAGE_KEYS = [
-  'story_prologue', 'story_map', 'story_expert_alice',
+  'story_prologue', 'story_map', 'story_expert_alice', 'story_alice_portrait', 'story_amanda',
   'story_store_chengdu', 'story_store_ningbo', 'story_store_pattaya',
   'story_finale',
 ];
@@ -36,12 +38,20 @@ interface SiteStoryProps {
 const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
   const finaleRef = useRef<HTMLDivElement>(null);
   const [images, setImages] = useState<Record<string, string>>({});
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     // 从数据库批量获取所有品牌叙事页图片
     getBannerUrls(IMAGE_KEYS).then(data => {
       setImages(data);
     }).catch(() => {});
+  }, []);
+
+  // Escape 关闭灯箱
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxSrc(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   // 获取图片：数据库 > 默认值
@@ -103,15 +113,18 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
               始于西南，<br />廿载寻香之路。
             </h2>
             
-            <div className="space-y-8 sm:space-y-12 text-black/50 sm:text-black/60 text-sm sm:text-lg md:text-2xl leading-relaxed sm:leading-loose max-w-3xl sm:max-w-4xl">
+            <div className="space-y-8 sm:space-y-12 text-black/55 sm:text-black/65 text-sm sm:text-lg md:text-2xl leading-relaxed sm:leading-loose max-w-3xl sm:max-w-4xl">
               <p>
                 在神州西南这片丰饶且神秘的土地，元香开启了漫长的芳疗实践。二十多年间，我们的创始团队深耕专业临床领域，不仅是为了复刻本草的香气，更是为了找寻通往身心平衡的密钥。
               </p>
               <div className="flex gap-6 sm:gap-8 items-start bg-[#FAFAF8] p-6 sm:p-10 rounded-2xl sm:rounded-[3rem] border border-black/[0.03] sm:border-black/5">
                 <Quote size={36} className="sm:w-12 sm:h-12 text-[#D75437]/20 flex-shrink-0" />
-                <p className="italic text-[#D75437] text-sm sm:text-base md:text-lg font-medium">
-                  &ldquo;真正的奢侈并非价格，而是香气背后那份跨越极境、未经干扰的生命原力。我们要做的是将这份觉知，传播给追求内心宁静的人。&rdquo;
-                </p>
+                <div>
+                  <p className="italic text-[#D75437] text-sm sm:text-base md:text-lg font-medium leading-relaxed">
+                    &ldquo;每一滴精油背后都有一片土地、一群人、一个故事。能遇见它们，是我的福气。&rdquo;
+                  </p>
+                  <p className="text-black/25 text-[10px] sm:text-xs mt-2 sm:mt-3 not-italic tracking-[0.2em]">— Alice</p>
+                </div>
               </div>
             </div>
           </div>
@@ -134,56 +147,70 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* ===== 3. 人物 - 行者 Eric & 专家 Alice ===== */}
+      {/* ===== 3. 人物 - 三角结构：Alice / Eric & Amanda ===== */}
       <section className="py-20 sm:py-48 md:py-64 px-6 sm:px-16 md:px-24 bg-[#FAFAF8]">
         <div className="max-w-[1920px] mx-auto space-y-28 sm:space-y-56 md:space-y-80">
-          
-          {/* 行者 Eric */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-28 md:gap-48 items-center">
-            <div className="order-2 lg:order-1 relative group">
-              <div className="aspect-[4/5] rounded-2xl sm:rounded-[6rem] overflow-hidden shadow-xl sm:shadow-2xl p-2.5 sm:p-4 bg-white">
-                <img decoding="async"
-                  src={img('story_prologue')}
-                  className="w-full h-full object-cover rounded-xl sm:rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
-                  alt="Eric - The Explorer"
-                />
-              </div>
-              <div className="absolute -bottom-10 sm:-bottom-16 -right-10 sm:-right-16 w-52 h-52 sm:w-72 sm:h-72 bg-[#1a1a1a] rounded-full p-8 sm:p-12 shadow-2xl sm:shadow-3xl flex flex-col items-center justify-center text-center border-3 sm:border-4 border-white z-20 group-hover:scale-105 transition-transform duration-700">
-                <Compass className="text-[#D75437] mb-2 sm:mb-4 sm:w-12 sm:h-12" size={36} />
-                <span className="text-[9px] sm:text-xs font-bold tracking-[0.25em] sm:tracking-[0.3em] uppercase text-white/35 sm:text-white/40 mb-1 sm:mb-2">Chief Explorer</span>
-                <span className="text-2xl sm:text-3xl font-bold text-white tracking-widest">Eric</span>
-              </div>
-            </div>
 
-            <div className="order-1 lg:order-2 space-y-6 sm:space-y-10 md:space-y-12">
-              <div className="flex items-center gap-3 sm:gap-4"><div className="h-px w-10 sm:w-12 bg-[#D75437]" /><span className="text-[10px] sm:text-xs tracking-[0.4em] sm:tracking-[0.5em] text-[#D75437] font-bold uppercase">The Perceiver / 感知者</span></div>
-              <h3 className="text-3xl sm:text-6xl md:text-8xl font-bold text-[#1A1A1A] leading-tight">在行走中感知，<br />追寻本源。</h3>
-              <p className="text-base sm:text-xl md:text-3xl text-black/55 sm:text-black/60 leading-relaxed italic border-l-6 sm:border-l-8 border-black/4 sm:border-black/5 pl-6 sm:pl-10 py-3 sm:py-4">
-                &ldquo;我在全球 85 个极境行走，只为在稀薄的空气中，捕捉那一抹未被现代工业驯化的野性香气。&rdquo;
-              </p>
-              <p className="text-sm sm:text-base md:text-xl text-black/33 sm:text-black/40 tracking-[0.15em] sm:tracking-widest max-w-2xl sm:max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-2 sm:pt-4">
-                作为首席行者，Eric 相信香气的灵魂生长在极限环境。无论是阿尔卑斯的冷冽、多法尔沙漠的炙热，还是神州红土的湿润，他坚持亲身抵达，以&ldquo;感知者&rdquo;的身份将大地的语言翻译给世界。
-              </p>
-            </div>
-          </div>
+          {/* ─── Alice 大区块（中心，最重）─── */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-12 lg:gap-16 items-start">
 
-          {/* 专家 Alice */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-28 md:gap-48 items-center">
-            <div className="space-y-6 sm:space-y-10 md:space-y-12">
-              <div className="flex items-center gap-3 sm:gap-4"><div className="h-px w-10 sm:w-12 bg-[#1C39BB]" /><span className="text-[10px] sm:text-xs tracking-[0.4em] sm:tracking-[0.5em] text-[#1C39BB] font-bold uppercase">The Curator / 传播者</span></div>
+            {/* 左：致敬肖像 + 标题 + 引言 + 故事（融为一体） */}
+            <div className="lg:col-span-3 space-y-6 sm:space-y-10 md:space-y-12">
+              {/* 肖像与标签行内排列 */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 flex-shrink-0 group cursor-pointer" onClick={() => setLightboxSrc(img('story_alice_portrait'))}>
+                  <div className="w-full h-full rounded-full overflow-hidden shadow-lg sm:shadow-xl p-1.5 sm:p-2 bg-white">
+                    <img decoding="async"
+                      src={img('story_alice_portrait')}
+                      className="w-full h-full object-cover rounded-full grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
+                      alt="Alice Portrait"
+                    />
+                  </div>
+                  <div className="absolute -bottom-1 sm:-bottom-2 -right-1 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 bg-[#1C39BB] rounded-full flex items-center justify-center shadow-md border-2 border-white z-10">
+                    <FlaskConical className="text-white w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                  </div>
+                </div>
+                <div className="text-center sm:text-left pt-0 sm:pt-2">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 mb-1 sm:mb-2">
+                    <div className="h-px w-6 sm:w-8 bg-[#1C39BB]" />
+                    <span className="text-[9px] sm:text-[10px] tracking-[0.4em] sm:tracking-[0.5em] text-[#1C39BB] font-bold uppercase">The Curator / 传播者</span>
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] tracking-[0.3em] text-black/30 uppercase font-bold">Chief Expert</span>
+                  <span className="text-xl sm:text-2xl font-bold text-black tracking-widest ml-1">Alice</span>
+                </div>
+              </div>
+
               <h3 className="text-3xl sm:text-6xl md:text-8xl font-bold text-[#1C39BB] leading-tight">将极境美学，<br />融入日常呼吸。</h3>
               <p className="text-base sm:text-xl md:text-3xl text-black/55 sm:text-black/60 leading-relaxed italic border-l-6 sm:border-l-8 border-black/4 sm:border-black/5 pl-6 sm:pl-10 py-3 sm:py-4">
-                &ldquo;Alice 将 Eric 带回的原始能量，转化为能治愈现代焦虑的生活艺术，让呼吸成为一种美学。&rdquo;
+                &ldquo;Alice 将原始能量转化为能治愈现代焦虑的生活艺术，让呼吸成为一种美学。&rdquo;
               </p>
-              <p className="text-sm sm:text-base md:text-xl text-black/33 sm:text-black/40 tracking-[0.15em] sm:tracking-widest max-w-2xl sm:max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-2 sm:pt-4">
+              <p className="text-sm sm:text-base md:text-xl text-black/40 sm:text-black/45 tracking-[0.15em] sm:tracking-widest max-w-2xl sm:max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-2 sm:pt-4">
                 首席专家 Alice 廿载深耕芳疗临床，她致力于将这份极致的芳香传播给更多追求觉知的人。她将极境的单方原力进行科学频率重构，打造出属于现代人的&ldquo;宁静避难所&rdquo;。这是专业积淀与分享精神的完美交响。
               </p>
-              <p className="text-sm sm:text-base md:text-xl text-black/33 sm:text-black/40 tracking-[0.15em] sm:tracking-widest max-w-2xl sm:max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-3 sm:pt-5 border-t border-black/5 sm:border-black/6">
-                合伙人 Amanda 同样是深耕芳疗领域多年的资深专家，她继承并壮大了这份芳香事业。凭借深厚的专业功底与对品质的极致追求，Amanda 为 UNIO 品牌的每一款产品注入严苛的品控标准，成为元香品质与专业最坚实的保障。
-              </p>
+
+              {/* 真实故事区块 — 温和小灰底 + 左竖线 */}
+              <div className="bg-[#F2F0EC]/60 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 border-l-4 sm:border-l-8 border-[#D75437]/15 sm:border-[#D75437]/20">
+                <div className="space-y-4 sm:space-y-5">
+                  <p className="text-xs sm:text-sm md:text-lg text-black/45 leading-relaxed">
+                    22岁那年，Alice 被确诊心肌炎，医生告诉她需要换心才能存活。她选择了一条更温和的路——让植物陪伴自己。
+                  </p>
+                  <p className="text-xs sm:text-sm md:text-lg text-black/45 leading-relaxed">
+                    后来的每一天，她都当作额外的礼物。她崇尚自然与静心，身边的朋友都知道，她是一个随时会赞美别人、感恩生活的人。她叫自己&ldquo;绿野芳踪&rdquo;——她自己，就是一片让人安静下来的绿色原野。
+                  </p>
+                  <p className="text-xs sm:text-sm md:text-lg text-black/45 leading-relaxed">
+                    她用精油陪伴了自己三十年，直到52岁离世。比医生预判的，多活了近三十年。
+                  </p>
+                  <div className="pt-2 sm:pt-3 border-t border-black/5 sm:border-black/6">
+                    <p className="text-[10px] sm:text-sm md:text-base text-black/35 tracking-[0.05em] leading-relaxed">
+                      「<span className="font-bold text-[#D75437]/45 sm:text-[#D75437]/55">元</span>」取自 Alice 名中一字。这个名字，是 Eric 与 Amanda 约定的起点——他们以此为名，把 Alice 的芳香带到更远的地方。
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="relative group">
+            {/* 右：呼吸感大图 — 拉满右侧，平行整个段落 */}
+            <div className="lg:col-span-2 relative group lg:sticky lg:top-8">
               <div className="aspect-[4/5] rounded-2xl sm:rounded-[6rem] overflow-hidden shadow-xl sm:shadow-2xl p-2.5 sm:p-4 bg-white">
                 <img decoding="async"
                   src={img('story_expert_alice')}
@@ -197,6 +224,67 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
                 <span className="text-2xl sm:text-3xl font-bold text-black tracking-widest">Alice</span>
               </div>
             </div>
+
+          </div>
+
+          {/* ─── Eric + Amanda 左右双列 ─── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 md:gap-20">
+            
+            {/* Eric */}
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8 md:gap-10">
+              <div className="relative group flex-shrink-0 w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 cursor-pointer" onClick={() => setLightboxSrc(img('story_prologue'))}>
+                <div className="w-full h-full rounded-full overflow-hidden shadow-lg sm:shadow-xl p-1.5 sm:p-2.5 bg-white">
+                  <img decoding="async"
+                    src={img('story_prologue')}
+                    className="w-full h-full object-cover rounded-full grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
+                    alt="Eric - The Explorer"
+                  />
+                </div>
+                <div className="absolute -bottom-3 sm:-bottom-4 -right-3 sm:-right-4 w-12 h-12 sm:w-16 sm:h-16 bg-[#1a1a1a] rounded-full flex items-center justify-center shadow-lg border-2 sm:border-3 border-white z-10">
+                  <Compass className="text-[#D75437] w-5 h-5 sm:w-7 sm:h-7" />
+                </div>
+              </div>
+              <div className="text-center md:text-left space-y-3 sm:space-y-4 md:space-y-5 flex-1 pt-0 md:pt-4">
+                <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3">
+                  <div className="h-px w-6 sm:w-8 bg-[#D75437]" />
+                  <span className="text-[9px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.4em] text-[#D75437] font-bold uppercase">The Perceiver / 守护者</span>
+                </div>
+                <h4 className="text-xl sm:text-3xl md:text-4xl font-bold text-[#1A1A1A] tracking-wide">Eric</h4>
+                <p className="text-xs sm:text-sm md:text-base text-black/40 leading-relaxed">
+                  首席行者。Alice的弟弟，当年从世界各地为她带回最好的精油。Alice离世后，他与Amanda约定——共同重拾元香，将其发扬壮大。
+                </p>
+                <p className="text-xs sm:text-sm md:text-base text-black/30 leading-relaxed italic border-l-3 sm:border-l-4 border-black/4 pl-3 sm:pl-4">
+                  &ldquo;我在全球 85 个极境行走，只为捕捉那一抹未被现代工业驯化的野性香气。&rdquo;
+                </p>
+              </div>
+            </div>
+
+            {/* Amanda */}
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8 md:gap-10">
+              <div className="relative group flex-shrink-0 w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 cursor-pointer" onClick={() => setLightboxSrc(img('story_amanda'))}>
+                <div className="w-full h-full rounded-full overflow-hidden shadow-lg sm:shadow-xl p-1.5 sm:p-2.5 bg-white">
+                  <img decoding="async"
+                    src={img('story_amanda')}
+                    className="w-full h-full object-cover rounded-full grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
+                    alt="Amanda - The Guardian"
+                  />
+                </div>
+                <div className="absolute -bottom-3 sm:-bottom-4 -left-3 sm:-left-4 w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-2 sm:border-3 border-[#D4AF37]/10 z-10">
+                  <Users className="text-[#D4AF37] w-5 h-5 sm:w-7 sm:h-7" />
+                </div>
+              </div>
+              <div className="text-center md:text-left space-y-3 sm:space-y-4 md:space-y-5 flex-1 pt-0 md:pt-4">
+                <div className="flex items-center justify-center md:justify-start gap-2 sm:gap-3">
+                  <div className="h-px w-6 sm:w-8 bg-[#D4AF37]/50" />
+                  <span className="text-[9px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.4em] text-[#D4AF37] font-bold uppercase">The Guardian / 传承者</span>
+                </div>
+                <h4 className="text-xl sm:text-3xl md:text-4xl font-bold text-[#1A1A1A] tracking-wide">Amanda</h4>
+                <p className="text-xs sm:text-sm md:text-base text-black/40 leading-relaxed">
+                  Alice的闺蜜。在 Eric 的提议下，两人约定共同将 Alice 的芳香事业传承下去。Amanda 为此专程考取了芳疗师资格，决心将芳疗的路走得更远。她继承了 Alice 对植物的信任与爱，为品牌注入了专业的品控与品质保障。如果说 Alice 是品牌的灵魂，那 Amanda 就是品牌最坚实的守护者。
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
@@ -322,6 +410,28 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+
+      {/* 灯箱弹窗 — 点击头像放大 */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center p-4 sm:p-8 animate-[fadeIn_0.2s_ease-out]"
+          style={{ backgroundColor: 'rgba(0,0,0,0.96)' }}
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
+            onClick={() => setLightboxSrc(null)}
+          >
+            <X className="text-white w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+          <img
+            src={lightboxSrc}
+            className="block max-w-[min(90vw,100%)] max-h-[min(90vh,100%)] w-auto h-auto object-contain rounded-lg shadow-2xl"
+            alt="Enlarged portrait"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };

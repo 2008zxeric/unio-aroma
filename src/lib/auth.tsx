@@ -337,7 +337,7 @@ export async function writeAuditLog(
       target_type: targetType,
       target_id: targetId,
       detail: detail || null,
-      ip: typeof window !== 'undefined' ? (await fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip).catch(() => null)) : null,
+      ip: null, // ipify.org unreachable; IP logging disabled
       user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
     });
   } catch (err) {

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../../lib/auth';
+import { useToast } from '../components/Toast';
 
 // ⚠️ 后台用 service_role 绕过 RLS
 const adminSupabase = createClient(
@@ -46,6 +47,7 @@ function formatDate(d: string) {
 
 export default function ReviewManage() {
   const { user } = useAuth();
+  const { success, error, warning, info } = useToast();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterStatus>('pending');
@@ -104,7 +106,7 @@ export default function ReviewManage() {
       if (error) throw error;
       await fetchReviews();
     } catch (err: any) {
-      alert('操作失败：' + (err.message || '未知错误'));
+      error('操作失败：' + (err.message || '未知错误'));
     } finally {
       setActionLoading(null);
     }

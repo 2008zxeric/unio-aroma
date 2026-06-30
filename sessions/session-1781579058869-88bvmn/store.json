@@ -1,0 +1,25 @@
+{
+  "id": "session-1781579058869-88bvmn",
+  "name": "ppt-master部署",
+  "status": "active",
+  "createdAt": "2026-06-16T05:26:58.603Z",
+  "updatedAt": "2026-06-16T05:26:58.603Z",
+  "agents": [
+    {
+      "id": "agent_m6mgdo61",
+      "name": "agent-abc78e3e",
+      "role": "assistant",
+      "status": "idle",
+      "createdAt": "2026-06-16T05:26:58.603Z",
+      "model": "unknown",
+      "systemPrompt": ""
+    }
+  ],
+  "summary": {
+    "id": "summary_svka8fah",
+    "title": "ppt-master部署",
+    "createdAt": "2026-06-16T05:26:58.603Z",
+    "file": "summary_svka8fah.md"
+  },
+  "lastMessageCount": 85
+}

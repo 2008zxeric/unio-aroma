@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Plus, Trash2, X, BookText, Edit2, Users, Save, ChevronRight, ChevronDown, Layers, Settings2, AlertCircle, KeyRound } from 'lucide-react';
 import { Perm } from '../components/PermissionGuard';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../components/Toast';
 import { dictService, userService, seriesService } from '../../lib/dataService';
 import { useAuth, updateUserPassword } from '../../lib/auth';
 import type { DictItem, AdminUser, Series } from '../../lib/database.types';
@@ -192,13 +193,13 @@ function TaxonomyView() {
         const { error: err3 } = await supabase.from('dict_items').insert(rows);
         if (err3) {
           console.error('批量插入子分类失败:', err3.message);
-          alert('初始化失败：' + err3.message);
+          error('初始化失败：' + err3.message);
         }
       }
 
       await loadData();
     } catch (err: any) {
-      alert('初始化失败：' + err.message);
+      error('初始化失败：' + err.message);
     } finally {
       setIniting(false);
     }
@@ -222,8 +223,8 @@ function TaxonomyView() {
 
   // 保存子分类
   const handleSaveSub = async () => {
-    if (!subForm.label.trim()) { alert('请填写分类名称！'); return; }
-    if (!subForm.value.trim()) { alert('请填写英文标识！'); return; }
+    if (!subForm.label.trim()) { warning('请填写分类名称！'); return; }
+    if (!subForm.value.trim()) { warning('请填写英文标识！'); return; }
     try {
       if (editingSub) {
         await dictService.update(editingSub.id, {
@@ -244,7 +245,7 @@ function TaxonomyView() {
       setShowSubForm(false);
       await loadData();
     } catch (err: any) {
-      alert('保存失败：' + err.message);
+      error('保存失败：' + err.message);
     }
   };
 
@@ -255,7 +256,7 @@ function TaxonomyView() {
       await dictService.delete(id);
       await loadData();
     } catch (err: any) {
-      alert('删除失败：' + err.message);
+      error('删除失败：' + err.message);
     }
   };
 
@@ -534,7 +535,7 @@ function GeneralDictView() {
 
   const handleSave = async () => {
     if (!form.label.trim() || !form.value.trim()) {
-      alert('请填写完整信息！'); return;
+      warning('请填写完整信息！'); return;
     }
     try {
       if (editingId) {
@@ -555,7 +556,7 @@ function GeneralDictView() {
       cancelForm();
       await loadItems();
     } catch (err: any) {
-      alert('保存失败：' + err.message);
+      error('保存失败：' + err.message);
     }
   };
 
@@ -565,7 +566,7 @@ function GeneralDictView() {
       await dictService.delete(id);
       await loadItems();
     } catch (err: any) {
-      alert('删除失败：' + err.message);
+      error('删除失败：' + err.message);
     }
   };
 
@@ -704,6 +705,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string; desc: string }
 
 export function AdminUsers() {
   const { user: currentUser, hasPermission } = useAuth();
+  const { success, error, warning, info } = useToast();
   const isSuperAdmin = currentUser?.role === 'super_admin';
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -736,7 +738,7 @@ export function AdminUsers() {
 
   const handleSave = async () => {
     if (!form.username || !form.display_name) {
-      alert('用户名和显示名称不能为空！'); return;
+      warning('用户名和显示名称不能为空！'); return;
     }
     setSaving(true);
     try {
@@ -758,7 +760,7 @@ export function AdminUsers() {
       setShowForm(false);
       resetForm();
     } catch (err: any) {
-      alert('保存失败：' + err.message);
+      error('保存失败：' + err.message);
     } finally {
       setSaving(false);
     }
@@ -770,7 +772,7 @@ export function AdminUsers() {
       await userService.delete(id);
       setUsers(prev => prev.filter(u => u.id !== id));
     } catch (err: any) {
-      alert('删除失败：' + err.message);
+      error('删除失败：' + err.message);
     }
   };
 
@@ -784,20 +786,20 @@ export function AdminUsers() {
   const handlePasswordSave = async () => {
     if (!pwdModal || !currentUser) return;
     if (newPwd.length < 4) {
-      alert('密码至少4个字符'); return;
+      warning('密码至少4个字符'); return;
     }
     setSavingPwd(true);
     try {
       const result = await updateUserPassword(currentUser.id, pwdModal.username, newPwd);
       if (result.success) {
-        alert(`${pwdModal.displayName} 的密码已修改成功`);
+        success(`${pwdModal.displayName} 的密码已修改成功`);
         setPwdModal(null);
         setNewPwd('');
       } else {
-        alert(result.error || '修改失败');
+        error(result.error || '修改失败');
       }
     } catch (err: any) {
-      alert('修改失败：' + err.message);
+      error('修改失败：' + err.message);
     } finally {
       setSavingPwd(false);
     }

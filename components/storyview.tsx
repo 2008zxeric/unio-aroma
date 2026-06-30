@@ -48,7 +48,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
               <h3 className="text-xs md:text-sm tracking-[0.5em] uppercase font-bold">The Partnership / 创始搭档</h3>
             </div>
             <h2 className="text-5xl md:text-8xl font-serif-zh font-bold text-[#2C3E28] leading-tight tracking-tighter">
-              始于西南，<br />专业深耕廿载。
+              始于西南，<br />专业深耕廿三载。
             </h2>
             <div className="space-y-12 text-black/60 text-lg md:text-3xl font-serif-zh leading-loose">
               <p>
@@ -112,7 +112,7 @@ const StoryView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) =
                 “Alice 将芳香融入日常传播，让呼吸成为一种治愈生活的艺术。”
               </p>
               <p className="text-base md:text-2xl font-serif-zh text-black/40 leading-loose">
-                首席专家 Alice 廿载深耕临床芳疗。她将 Eric 感知而来的原始能量，转化为适合现代生活的“元 · 单方”。这是专业与传播的共鸣，亦是对宁静美学的深情分享。
+                首席专家 Alice 廿三载深耕临床芳疗。她将 Eric 感知而来的原始能量，转化为适合现代生活的“元 · 单方”。这是专业与传播的共鸣，亦是对宁静美学的深情分享。
               </p>
             </div>
             <div className="relative group">

@@ -1,0 +1,357 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+/* CSS Variables */
+:root {
+  --moss-green: #2C3E28;
+  --terracotta: #D75437;
+  --stone-grey: #F5F5F5;
+  --azure-blue: #1C39BB;
+  --warm-amber: #D4AF37;
+  
+  /* Quiet Luxury 排版令牌 */
+  --heading-letter-spacing: 0.15em;
+  --heading-line-height: 1.15;
+  --body-line-height: 1.7;
+  --border-subtle: rgba(40, 40, 40, 0.12);
+  --border-light: rgba(40, 40, 40, 0.06);
+}
+
+body {
+  font-family: "Inter", "Noto Serif SC", sans-serif;
+  background-color: var(--stone-grey);
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+.font-cinzel { font-family: "Cinzel", serif; }
+.font-serif-zh { font-family: "Noto Serif SC", serif; }
+
+/* Animations */
+/* 骨架屏品牌色脉冲 */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.skeleton-brand {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(215,84,55,0.05));
+}
+@keyframes luxuryReveal {
+  0% { clip-path: inset(50% 0 50% 0); filter: blur(20px); opacity: 0; transform: scale(1.1); }
+  100% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; transform: scale(1); }
+}
+@keyframes luxuryMaskExit {
+  0% { clip-path: inset(0 0 0 0); filter: blur(0); opacity: 1; }
+  100% { clip-path: inset(50% 0 50% 0); filter: blur(15px); opacity: 0; }
+}
+@keyframes textShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-luxury-reveal { animation: luxuryReveal 1.6s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-luxury-mask-exit { animation: luxuryMaskExit 1.0s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-slide-up { animation: slideUp 1s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+
+.shimmer-text {
+  background: linear-gradient(90deg, #2C3E28 0%, #D4AF37 45%, #D75437 55%, #2C3E28 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+/* ====== 后台移动端优化 ====== */
+
+/* 防止移动端表格溢出 */
+@media (max-width: 768px) {
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  .admin-table-wrap::-webkit-scrollbar { height: 2px; }
+  .admin-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+  
+  /* 移动端卡片式列表项触控优化 */
+  .mobile-card-tap {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .mobile-card-tap:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+}
+
+/* 安全区域适配（iPhone X+） */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* 统一触控尺寸 */
+.touch-btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 自定义 xs 断点 */
+@media (min-width: 480px) {
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* 移动端底部留白 */
+.mobile-bottom-pad {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.animate-breath { animation: logoPulse 4s ease-in-out infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+/* Story Finale - 背景呼吸脉动效果 */
+@keyframes softPulse {
+  0%, 100% { 
+    transform: scale(1.05);
+    filter: grayscale(0.3);
+  }
+  50% { 
+    transform: scale(1.12);
+    filter: grayscale(0);
+  }
+}
+.animate-soft-pulse {
+  animation: softPulse 6s ease-in-out infinite;
+}
+
+/* 给容器添加 subtle inner glow */
+.story-finale-box {
+  backdrop-filter: blur(2px);
+}
+
+/* ====== Quiet Luxury / 静奢风格 工具类 ====== */
+
+/* 大标题 — 加宽字距 */
+.heading-luxury {
+  font-family: 'Cinzel', 'Noto Serif SC', serif;
+  font-weight: 400;
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: var(--heading-line-height);
+}
+
+/* 静奢白底边框 */
+.border-subtle {
+  border-width: 1px;
+  border-color: var(--border-subtle);
+}
+.border-light {
+  border-width: 1px;
+  border-color: var(--border-light);
+}
+.hr-subtle {
+  border: none;
+  height: 1px;
+  background-color: var(--border-subtle);
+}
+
+/* 正文行高 */
+.body-luxury {
+  line-height: var(--body-line-height);
+}
+
+/* ====== Scroll-Reveal 滚动动效系统 (Quiet Luxury) ====== */
+
+/* 基础隐藏状态 — 静奢上滑效果 */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 从左侧进入 */
+.scroll-reveal-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal-left.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 从右侧进入 */
+.scroll-reveal-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 1.2s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal-right.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 子元素 staggered 级联动画 */
+.scroll-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(0.19, 1, 0.22, 1),
+              transform 0.9s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.scroll-reveal-stagger > *:nth-child(1) { transition-delay: 0.05s; }
+.scroll-reveal-stagger > *:nth-child(2) { transition-delay: 0.18s; }
+.scroll-reveal-stagger > *:nth-child(3) { transition-delay: 0.31s; }
+.scroll-reveal-stagger > *:nth-child(4) { transition-delay: 0.44s; }
+.scroll-reveal-stagger > *:nth-child(5) { transition-delay: 0.57s; }
+.scroll-reveal-stagger > *:nth-child(6) { transition-delay: 0.70s; }
+.scroll-reveal-stagger.revealed > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 芳香分子粒子浮动动画 */
+@keyframes particle-float {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.25; }
+  20%  { transform: translateY(-18px) translateX(8px) rotate(72deg); opacity: 0.35; }
+  40%  { transform: translateY(-8px) translateX(-6px) rotate(144deg); opacity: 0.2; }
+  60%  { transform: translateY(-24px) translateX(12px) rotate(216deg); opacity: 0.3; }
+  80%  { transform: translateY(-6px) translateX(-10px) rotate(288deg); opacity: 0.15; }
+  100% { transform: translateY(0) translateX(0) rotate(360deg); opacity: 0.25; }
+}
+
+.animate-particle {
+  animation: particle-float var(--particle-duration, 18s) ease-in-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+}
+
+/* 精油分子凝聚/消散 */
+@keyframes molecule-breathe {
+  0%, 100% { opacity: 0.08; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.2; transform: scale(1.15) rotate(180deg); }
+}
+.animate-molecule {
+  animation: molecule-breathe 8s ease-in-out infinite;
+  animation-delay: var(--molecule-delay, 0s);
+}
+
+/* 装饰竖线渐显 */
+@keyframes line-grow {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+.animate-line-grow {
+  animation: line-grow 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+/* Hero 呼吸光扫 */
+@keyframes light-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  20% { opacity: 0.12; }
+  50% { opacity: 0.08; }
+  80% { opacity: 0.12; }
+  100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+}
+.animate-light-sweep {
+  animation: light-sweep 12s ease-in-out infinite;
+}
+
+/* Hero 呼吸暗角脉冲 */
+@keyframes vignette-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.50; }
+}
+.animate-vignette-breathe {
+  animation: vignette-breathe 6s ease-in-out infinite;
+}
+
+/* 大型光斑浮动 */
+@keyframes orb-float {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0.03; }
+  25% { transform: translate(30px, -20px) scale(1.1); opacity: 0.06; }
+  50% { transform: translate(-20px, -40px) scale(0.9); opacity: 0.04; }
+  75% { transform: translate(-30px, 10px) scale(1.2); opacity: 0.07; }
+  100% { transform: translate(0, 0) scale(0.8); opacity: 0.03; }
+}
+.animate-orb-float {
+  animation: orb-float var(--orb-duration, 20s) ease-in-out infinite;
+  animation-delay: var(--orb-delay, 0s);
+}
+
+/* 光丝飘动 */
+@keyframes light-wisp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.02; }
+  33% { transform: translateY(-15px) rotate(3deg); opacity: 0.06; }
+  66% { transform: translateY(10px) rotate(-2deg); opacity: 0.03; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 0.02; }
+}
+.animate-light-wisp {
+  animation: light-wisp 8s ease-in-out infinite;
+  animation-delay: var(--wisp-delay, 0s);
+}
+
+/* Hero 呼吸明暗轮回 — 艺术级 v3 */
+@keyframes hero-breathe-glow {
+  0%   { filter: brightness(0.40) contrast(1.30) saturate(0.7) sepia(0.3) hue-rotate(-5deg); transform: scale(1.000); }
+  18%  { filter: brightness(0.65) contrast(1.18) saturate(0.85) sepia(0.15) hue-rotate(-2deg); transform: scale(1.004); }
+  35%  { filter: brightness(1.05) contrast(0.98) saturate(1.05) sepia(0) hue-rotate(0deg); transform: scale(1.010); }
+  48%  { filter: brightness(1.30) contrast(0.85) saturate(1.20) sepia(0) hue-rotate(3deg); transform: scale(1.018); }
+  55%  { filter: brightness(1.35) contrast(0.80) saturate(1.25) sepia(0) hue-rotate(5deg); transform: scale(1.020); }
+  68%  { filter: brightness(1.08) contrast(0.92) saturate(1.10) sepia(0.05) hue-rotate(2deg); transform: scale(1.012); }
+  82%  { filter: brightness(0.62) contrast(1.22) saturate(0.78) sepia(0.20) hue-rotate(-3deg); transform: scale(1.004); }
+  100% { filter: brightness(0.40) contrast(1.30) saturate(0.7) sepia(0.3) hue-rotate(-5deg); transform: scale(1.000); }
+}
+.animate-hero-breathe-glow {
+  animation: hero-breathe-glow 13s cubic-bezier(0.42, 0.0, 0.28, 1.0) infinite;
+}
