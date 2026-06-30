@@ -232,6 +232,15 @@ export default function AdminInventory() {
     return nameMatch?.value || '';
   }, [user, handlerOptions]);
 
+  // 当经手人字典加载后，自动将当前用户设为默认经手人
+  useEffect(() => {
+    if (defaultHandler) {
+      setPurchaseForm(f => (f.handler ? f : { ...f, handler: defaultHandler }));
+      setSaleForm(f => (f.handler ? f : { ...f, handler: defaultHandler }));
+      setFinanceForm(f => (f.handler ? f : { ...f, handler: defaultHandler }));
+    }
+  }, [defaultHandler]);
+
   // ---- 导入CSV入库状态 ----
   const [showImportCsv, setShowImportCsv] = useState(false);
   const [csvData, setCsvData] = useState<{ product_name: string; volume_ml: string; unit_cost: string; supplier: string; warehouse: string; date: string }[]>([]);
@@ -255,7 +264,7 @@ export default function AdminInventory() {
   const [financeForm, setFinanceForm] = useState({
     record_date: new Date().toISOString().split('T')[0],
     record_type: 'expense' as 'income' | 'expense',
-    category: '', amount: '', notes: '', handler: user?.display_name || user?.username || '',
+    category: '', amount: '', notes: '', handler: '',
     reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0],
     reimburse_notes: '',
   });
@@ -362,13 +371,13 @@ export default function AdminInventory() {
   // 进货表单
   const [purchaseForm, setPurchaseForm] = useState({
     product_id: '', purchase_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: user?.display_name || user?.username || '', warehouse: '',
+    volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: '', warehouse: '',
   });
 
   // 销售表单
   const [saleForm, setSaleForm] = useState({
     product_id: '', sale_date: new Date().toISOString().split('T')[0],
-    volume_ml: '', total_amount: '', handler: user?.display_name || user?.username || '', warehouse: '',
+    volume_ml: '', total_amount: '', handler: '', warehouse: '',
   });
 
   // 按 Tab 懒加载数据（带内存缓存，Tab切换时不重复请求）
@@ -681,7 +690,7 @@ export default function AdminInventory() {
           handler: purchaseForm.handler || null,
         });
       }
-      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: user?.display_name || user?.username || '', warehouse: '' });
+      setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: defaultHandler, warehouse: '' });
       setShowPurchaseForm(false);
       await loadTabData(tab, true);
     } catch (err: any) { error(editingPurchase ? '修改失败：' + err.message : '添加失败：' + err.message); }
@@ -727,7 +736,7 @@ export default function AdminInventory() {
   const cancelPurchaseForm = () => {
     setShowPurchaseForm(false);
     setEditingPurchase(null);
-    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: user?.display_name || user?.username || '', warehouse: '' });
+    setPurchaseForm({ product_id: '', purchase_date: new Date().toISOString().split('T')[0], volume_ml: '', unit_cost: '', total_cost: '', supplier_code: '', handler: defaultHandler, warehouse: '' });
   };
 
   // ---- 销售操作 ----
@@ -771,7 +780,7 @@ export default function AdminInventory() {
           handler: saleForm.handler || null,
         });
       }
-      setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: user?.display_name || user?.username || '' });
+      setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: defaultHandler, warehouse: '' });
       setShowSaleForm(false);
       await loadTabData(tab, true);
     } catch (err: any) { error(editingSale ? '修改失败：' + err.message : '添加失败：' + err.message); }
@@ -811,7 +820,7 @@ export default function AdminInventory() {
   const cancelSaleForm = () => {
     setShowSaleForm(false);
     setEditingSale(null);
-    setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: user?.display_name || user?.username || '' });
+    setSaleForm({ product_id: '', sale_date: new Date().toISOString().split('T')[0], volume_ml: '', total_amount: '', handler: defaultHandler, warehouse: '' });
   };
 
   // ---- 批量入库 ----
@@ -1006,7 +1015,7 @@ export default function AdminInventory() {
           amount: parseFloat(financeForm.amount),
         });
       }
-      setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'expense', category: '', amount: '', notes: '', handler: user?.display_name || user?.username || '', reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0], reimburse_notes: '' });
+      setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'expense', category: '', amount: '', notes: '', handler: defaultHandler, reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0], reimburse_notes: '' });
       setShowFinanceForm(false);
       await loadTabData(tab, true);
     } catch (err: any) { error(editingFinance ? '修改失败：' + err.message : '添加失败：' + err.message); }
@@ -1048,7 +1057,7 @@ export default function AdminInventory() {
   const cancelFinanceForm = () => {
     setShowFinanceForm(false);
     setEditingFinance(null);
-    setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'expense', category: '', amount: '', notes: '', handler: user?.display_name || user?.username || '', reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0], reimburse_notes: '' });
+    setFinanceForm({ record_date: new Date().toISOString().split('T')[0], record_type: 'expense', category: '', amount: '', notes: '', handler: defaultHandler, reimbursed: false, reimbursed_date: new Date().toISOString().split('T')[0], reimburse_notes: '' });
   };
 
   // ---- 其他收支 CSV 操作 ----
