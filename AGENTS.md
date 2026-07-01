@@ -23,8 +23,26 @@ You wake up fresh each session. These files are your continuity:
 
 - **Daily notes:** `memory/YYYY-MM-DD.md` (create `memory/` if needed) — raw logs of what happened
 - **Long-term:** `MEMORY.md` — your curated memories, like a human's long-term memory
+- **Shared activity log:** `.hermes/activity-log.ndjson` — one JSON object per line for machine-readable cross-agent sync
 
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
+
+### Shared Log Protocol (Codex + Hermes)
+
+Codex and Hermes share this same workspace. They must sync through files, not assumptions.
+
+- **Both agents must read on startup:** `AGENTS.md`, `memory/YYYY-MM-DD.md` for today, `memory/YYYY-MM-DD.md` for yesterday if it exists, and `.hermes/activity-log.ndjson` if it exists.
+- **Both agents must append after meaningful work:** add a short human-readable note to `memory/YYYY-MM-DD.md`.
+- **Both agents should also append one JSON line** to `.hermes/activity-log.ndjson` for actions that matter across tools: deploys, major edits, production changes, schema changes, plans, automation changes, or anything the other agent should notice fast.
+- **Daily note format:** timestamp, agent name, action summary, touched files, next step if relevant.
+- **NDJSON format:** one object per line with keys like `ts`, `agent`, `action`, `summary`, `files`, `project`, `next`.
+- **No silent side effects:** if you change production, bindings, memory rules, automation, or project structure, write it down before ending the session.
+
+Example NDJSON line:
+
+```json
+{"ts":"2026-06-30T19:40:00+08:00","agent":"codex","action":"deploy","summary":"Promoted latest homepage to production and rebound apex/www domains.","files":["src/site/pages/SiteHome.tsx","src/index.css","MEMORY.md"],"project":"unio-aroma-site","next":"Verify apex and www serve latest assets."}
+```
 
 ### 🧠 MEMORY.md - Your Long-Term Memory
 
@@ -41,6 +59,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - **Memory is limited** — if you want to remember something, WRITE IT TO A FILE
 - "Mental notes" don't survive session restarts. Files do.
 - When someone says "remember this" → update `memory/YYYY-MM-DD.md` or relevant file
+- When work affects another agent → also append `.hermes/activity-log.ndjson`
 - When you learn a lesson → update AGENTS.md, TOOLS.md, or the relevant skill
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝

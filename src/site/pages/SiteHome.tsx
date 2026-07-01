@@ -9,19 +9,22 @@
  * - 微交互增强：卡片悬停、CTA按钮、滚动提示
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Sparkles, ArrowRight, Shield, Droplets, Wind, Globe, Microscope, HeartPulse, Share2, GraduationCap, Box, Map as MapIcon, BookOpen, Activity, ChevronDown, Star, Hexagon, Play, ExternalLink, Video, X } from 'lucide-react';
 import { Series, Product, SERIES_CONFIG } from '../types';
 import { getBannerUrls, getSeries, getProducts, getCountries } from '../siteDataService';
 import { siteTextService } from '../../lib/dataService';
 import { optimizeHeroImage, optimizeImage } from '../imageUtils';
+import BlurText from '../components/BlurText';
+import FloatingParticles from '../components/FloatingParticles';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
 }
 
 const LOGO_IMG = '/logo.svg';
+const HOME_HERO_IMAGE = '/assets/banner/home-hero-editorial.webp';
 
 // 系列图片默认值，后台可覆盖
 const HOME_IMG_KEYS = ['home_hero', 'home_series_yuan', 'home_series_he', 'home_series_sheng', 'home_series_jing'];
@@ -124,6 +127,374 @@ function ScrollReveal({
   );
 }
 
+// ====== Magic Bento 风格玻璃拟态卡片（光标追踪光晕 + 边框辉光）======
+function BentoCard({
+  children,
+  className = '',
+  glowColor = '212, 175, 55',
+  enableGlow = true,
+  enableTilt = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  glowColor?: string;
+  enableGlow?: boolean;
+  enableTilt?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    ref.current.style.setProperty('--mx', `${x}%`);
+    ref.current.style.setProperty('--my', `${y}%`);
+    if (enableTilt) {
+      const tiltX = (y - 50) * 0.08;
+      const tiltY = (50 - x) * 0.08;
+      ref.current.style.transform = `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.02)`;
+    }
+  }, [enableTilt]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!ref.current) return;
+    ref.current.style.setProperty('--mx', '50%');
+    ref.current.style.setProperty('--my', '50%');
+    if (enableTilt) {
+      ref.current.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
+    }
+  }, [enableTilt]);
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={`bento-card group relative ${className}`}
+      style={{
+        '--glow-rgb': glowColor,
+        '--mx': '50%',
+        '--my': '50%',
+      } as React.CSSProperties}
+    >
+      {/* 光晕追踪层 */}
+      {enableGlow && (
+        <div
+          className="pointer-events-none absolute inset-0 z-0 rounded-inherit opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(500px circle at var(--mx) var(--my), rgba(var(--glow-rgb), 0.1), transparent 50%)`,
+            borderRadius: 'inherit',
+          }}
+        />
+      )}
+      {/* 边框辉光 */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-inherit opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(700px circle at var(--mx) var(--my), rgba(var(--glow-rgb), 0.06), transparent 60%)`,
+          borderRadius: 'inherit',
+          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          maskComposite: 'exclude',
+          WebkitMaskComposite: 'xor',
+          padding: '1px',
+        }}
+      />
+      {/* 内容 */}
+      <div className="relative z-10 h-full">{children}</div>
+    </div>
+  );
+}
+
+type SeriesMenuItem = {
+  id: string;
+  code: string;
+  config: typeof SERIES_CONFIG[keyof typeof SERIES_CONFIG];
+  productCount: number;
+  image: string;
+};
+
+const SERIES_ACCENT_MAP: Record<string, string> = {
+  yuan: '74, 124, 89',
+  he: '28, 57, 187',
+  sheng: '123, 166, 137',
+  jing: '212, 175, 55',
+};
+
+// ====== ReactBits Infinite Menu 灵感：惯性拖拽媒体菜单 ======
+function InfiniteSeriesMenu({
+  items,
+  onSelect,
+}: {
+  items: SeriesMenuItem[];
+  onSelect: (code: string) => void;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const dragStartX = useRef<number | null>(null);
+  const wheelLockRef = useRef<number | null>(null);
+  const activeItem = items[activeIndex] || items[0];
+  const previousIndex = (activeIndex - 1 + items.length) % items.length;
+  const nextIndex = (activeIndex + 1) % items.length;
+
+  useEffect(() => {
+    if (!items.length || isDragging) return;
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % items.length);
+    }, 5200);
+    return () => window.clearInterval(timer);
+  }, [items.length, isDragging]);
+
+  useEffect(() => () => {
+    if (wheelLockRef.current) window.clearTimeout(wheelLockRef.current);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const updateViewport = () => setIsMobile(media.matches);
+    updateViewport();
+    media.addEventListener('change', updateViewport);
+    return () => media.removeEventListener('change', updateViewport);
+  }, []);
+
+  const goToIndex = (next: number) => {
+    setActiveIndex((next + items.length) % items.length);
+  };
+
+  const shiftIndex = (direction: 1 | -1) => {
+    setActiveIndex((prev) => (prev + direction + items.length) % items.length);
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    dragStartX.current = event.clientX;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || dragStartX.current === null) return;
+    const delta = event.clientX - dragStartX.current;
+    if (Math.abs(delta) > 64) {
+      shiftIndex(delta < 0 ? 1 : -1);
+      dragStartX.current = event.clientX;
+    }
+  };
+
+  const finishDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    dragStartX.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (Math.abs(event.deltaY) < 12 && Math.abs(event.deltaX) < 12) return;
+    if (wheelLockRef.current) return;
+    shiftIndex(event.deltaY > 0 || event.deltaX > 0 ? 1 : -1);
+    wheelLockRef.current = window.setTimeout(() => {
+      wheelLockRef.current = null;
+    }, 420);
+  };
+
+  if (!items.length) return null;
+
+  return (
+    <div className="relative min-h-[680px] sm:min-h-[760px] overflow-hidden rounded-[1.5rem] sm:rounded-[4rem] bg-[#080807] text-white shadow-[0_28px_70px_rgba(0,0,0,0.22)] sm:shadow-[0_60px_140px_rgba(0,0,0,0.35)]">
+      <div className="absolute inset-0">
+        {items.map((item, idx) => (
+          <img
+            key={item.id}
+            src={optimizeImage(item.image, { width: 1400, quality: 78 })}
+            alt={item.config.fullName_cn}
+            className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1400ms] ease-out ${idx === activeIndex ? 'opacity-80 scale-105 blur-0' : 'opacity-0 scale-100 blur-sm'}`}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+        ))}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(212,175,55,0.20),transparent_34%),linear-gradient(90deg,rgba(0,0,0,0.86),rgba(0,0,0,0.20)_46%,rgba(0,0,0,0.82))]" />
+        <div className="absolute inset-0 opacity-30 mix-blend-screen infinite-menu-scan" />
+      </div>
+
+      <div className="relative z-10 grid min-h-[680px] sm:min-h-[760px] grid-cols-1 lg:grid-cols-[0.9fr_1.45fr]">
+        <div className="flex flex-col justify-between p-4 sm:p-12 lg:p-16">
+          <div className="space-y-5">
+            <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
+              <Sparkles size={14} className="text-[#D4AF37]" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.42em] text-white/50">Curated Stage / 四维剧场</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#D4AF37]/70">
+                {String(activeIndex + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')}
+              </p>
+              <h3 className="mt-4 text-4xl font-semibold tracking-[0.14em] text-white sm:text-7xl lg:text-8xl">
+                {activeItem.config.name_cn}
+              </h3>
+              <p className="mt-4 max-w-md text-xs uppercase tracking-[0.38em] text-white/32 sm:text-sm">
+                {activeItem.config.fullName_en}
+              </p>
+            </div>
+          </div>
+
+          <div className="max-w-xl space-y-4 sm:space-y-7">
+            <p className="text-[13px] leading-6 text-white/58 sm:text-lg sm:leading-loose">
+              {activeItem.config.description}
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => onSelect(activeItem.code)}
+                className="group inline-flex items-center gap-4 rounded-full bg-white px-6 py-3 text-[10px] font-bold uppercase tracking-[0.32em] text-black transition-all duration-500 hover:bg-[#D4AF37]"
+              >
+                进入此维度
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1.5" />
+              </button>
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 text-[10px] font-bold tracking-[0.28em] text-white/38">
+                {activeItem.productCount} 款产品
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-6 max-w-[420px]">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="h-px w-8 bg-white/12" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.38em] text-white/34">四维总览</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {items.map((item, idx) => {
+                const isCurrent = idx === activeIndex;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => goToIndex(idx)}
+                    className={`series-mini-grid group relative overflow-hidden rounded-xl sm:rounded-2xl border p-3 sm:p-4 text-left transition-all duration-500 ${isCurrent ? 'border-white/20 bg-white/[0.10]' : 'border-white/8 bg-white/[0.04] hover:bg-white/[0.07]'}`}
+                    style={{
+                      '--series-accent': SERIES_ACCENT_MAP[item.code] || '212, 175, 55',
+                    } as React.CSSProperties}
+                  >
+                    <div className="relative z-10 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[8px] font-bold uppercase tracking-[0.28em] text-white/28">
+                          {String(idx + 1).padStart(2, '0')}
+                        </p>
+                        <h4 className={`mt-1.5 text-sm sm:text-lg font-semibold tracking-[0.12em] ${isCurrent ? 'text-white' : 'text-white/74'}`}>
+                          {item.config.name_cn}
+                        </h4>
+                        <p className="mt-1 text-[8px] sm:text-[9px] uppercase tracking-[0.18em] sm:tracking-[0.24em] text-white/24">
+                          {item.config.fullName_en}
+                        </p>
+                      </div>
+                      <div className={`grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-full border transition-all ${isCurrent ? 'border-white/20 bg-white/12 text-white' : 'border-white/8 bg-black/10 text-white/38 group-hover:text-white/70'}`}>
+                        <ArrowRight size={12} />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="relative flex min-h-[320px] sm:min-h-[520px] select-none items-center justify-center overflow-hidden px-2 py-4 sm:px-8 sm:py-10 lg:px-0 lg:py-0"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+          onWheel={handleWheel}
+        >
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#080807] to-transparent lg:w-40" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#080807] to-transparent lg:w-40" />
+
+          <button
+            type="button"
+            aria-label="上一张"
+            className="infinite-stage-side absolute left-2 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border border-white/10 bg-black/25 p-3 text-white/60 backdrop-blur-md transition-all hover:border-white/20 hover:text-white lg:flex"
+            onClick={() => shiftIndex(-1)}
+          >
+            <ArrowRight size={16} className="rotate-180" />
+          </button>
+
+          <div className="relative flex h-full w-full items-center justify-center">
+            {[items[previousIndex], activeItem, items[nextIndex]].map((item, stageIndex) => {
+              const isCenter = stageIndex === 1;
+              const isLeft = stageIndex === 0;
+              const translateClass = isMobile
+                ? isCenter
+                  ? 'translate-x-0 scale-100 opacity-100'
+                  : isLeft
+                    ? '-translate-x-[28%] scale-[0.72] opacity-18'
+                    : 'translate-x-[28%] scale-[0.72] opacity-18'
+                : isCenter
+                  ? 'translate-x-0 scale-100 opacity-100'
+                  : isLeft
+                    ? '-translate-x-[22%] scale-[0.78] opacity-45'
+                    : 'translate-x-[22%] scale-[0.78] opacity-45';
+              const zClass = isCenter ? 'z-20' : 'z-10';
+
+              return (
+                <button
+                  key={`${item.id}-${stageIndex}-${activeIndex}`}
+                  type="button"
+                  onClick={() => isCenter ? onSelect(item.code) : goToIndex(isLeft ? previousIndex : nextIndex)}
+                  className={`infinite-stage-card ${zClass} ${translateClass} group absolute h-[250px] w-[164px] overflow-hidden rounded-[1.2rem] border text-left transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-[480px] sm:w-[300px] sm:rounded-[1.75rem] lg:h-[560px] lg:w-[360px] ${isCenter ? 'border-white/25 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:shadow-[0_40px_120px_rgba(0,0,0,0.58)]' : 'border-white/8'}`}
+                  style={{ transformOrigin: isLeft ? 'right center' : isCenter ? 'center center' : 'left center' }}
+                >
+                  <img
+                    src={optimizeImage(item.image, { width: 900, quality: 78 })}
+                    alt={item.config.fullName_cn}
+                    className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1300ms] ${isCenter ? 'scale-100 grayscale-0' : 'scale-105 grayscale'}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className={`absolute inset-0 ${isCenter ? 'bg-gradient-to-t from-black/88 via-black/20 to-transparent' : 'bg-gradient-to-t from-black/92 via-black/35 to-black/10'}`} />
+                  <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[9px] font-mono tracking-[0.24em] text-white/45 backdrop-blur-md">
+                    {String((isLeft ? previousIndex : isCenter ? activeIndex : nextIndex) + 1).padStart(2, '0')}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-7">
+                    <p className="mb-1.5 text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.24em] sm:tracking-[0.34em] text-[#D4AF37]/60">
+                      {item.config.fullName_en}
+                    </p>
+                    <h4 className={`${isCenter ? 'text-lg sm:text-4xl' : 'text-base sm:text-2xl'} font-semibold tracking-[0.08em] sm:tracking-[0.12em] text-white`}>
+                      {item.config.name_cn}
+                    </h4>
+                    <div className="mt-2 sm:mt-4 flex items-center justify-between text-[8px] sm:text-[10px] font-bold tracking-[0.14em] sm:tracking-[0.22em] text-white/36">
+                      <span>{item.productCount} ITEMS</span>
+                      <ArrowRight size={13} className={`transition-all ${isCenter ? 'opacity-100 translate-x-0' : 'opacity-0 group-hover:opacity-100 group-hover:translate-x-1'}`} />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            aria-label="下一张"
+            className="infinite-stage-side absolute right-2 top-1/2 z-20 hidden -translate-y-1/2 rounded-full border border-white/10 bg-black/25 p-3 text-white/60 backdrop-blur-md transition-all hover:border-white/20 hover:text-white lg:flex"
+            onClick={() => shiftIndex(1)}
+          >
+            <ArrowRight size={16} />
+          </button>
+        </div>
+
+        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 sm:bottom-8">
+          {items.map((item, idx) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-label={`切换到 ${item.config.fullName_cn}`}
+              onClick={() => goToIndex(idx)}
+              className={`h-2 rounded-full transition-all duration-500 ${idx === activeIndex ? 'w-10 bg-[#D4AF37]' : 'w-2 bg-white/25 hover:bg-white/50'}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ====== 芳香分子浮动粒子背景 ======
 function AmbientParticles({ count = 8 }: { count?: number }) {
   const particles = Array.from({ length: count }, (_, i) => ({
@@ -166,6 +537,9 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeMuted, setWelcomeMuted] = useState(true);
   const welcomeVideoRef = useRef<HTMLVideoElement>(null);
+  const heroSectionRef = useRef<HTMLElement>(null);
+  const autoScrollTriggeredRef = useRef(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   
   // 页面滚动位置（用于视差效果）
   const [scrollY, setScrollY] = useState(0);
@@ -173,6 +547,14 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const updateViewport = () => setIsMobileViewport(media.matches);
+    updateViewport();
+    media.addEventListener('change', updateViewport);
+    return () => media.removeEventListener('change', updateViewport);
   }, []);
   
   // 动态统计：全部基于实际数据
@@ -221,6 +603,28 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
   }, []);
 
   const getSeriesStats = (code: string) => products.filter(p => p.series_code === code).length;
+  const seriesMenuItems: SeriesMenuItem[] = series
+    .filter((s) => Boolean(SERIES_CONFIG[s.code]))
+    .map((s) => ({
+      id: s.id,
+      code: s.code,
+      config: SERIES_CONFIG[s.code],
+      productCount: getSeriesStats(s.code),
+      image: homeImages['home_series_' + s.code] || SERIES_IMG_DEFAULTS[s.code] || '/assets/brand/brand.webp',
+    }));
+
+  useEffect(() => {
+    if (!isMobileViewport || autoScrollTriggeredRef.current) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+    const timer = window.setTimeout(() => {
+      if (window.scrollY > 8) return;
+      const heroHeight = heroSectionRef.current?.offsetHeight ?? window.innerHeight;
+      window.scrollTo({ top: Math.max(0, heroHeight - 72), behavior: 'smooth' });
+      autoScrollTriggeredRef.current = true;
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [isMobileViewport]);
 
   if (loading) {
     return (
@@ -237,131 +641,91 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
     <div className="w-full bg-black overflow-x-hidden selection:bg-[#D75437] selection:text-white">
 
       {/* ============ HERO SECTION ============ */}
-      <section className="h-[100dvh] relative flex flex-col items-center justify-center overflow-hidden">
-        {/* 背景图 — 先展示原图，再渐入暗色效果 + 呼吸轮回 */}
+      <section ref={heroSectionRef} className="relative flex min-h-[92dvh] flex-col items-center justify-center overflow-hidden sm:h-[100dvh]">
         <div className="absolute inset-0">
           <img 
-            src={optimizeHeroImage(homeImages['home_hero'] || 'https://xuicjydgtoltdhkbqoju.supabase.co/storage/v1/object/public/product-images/uploads/home-hero-20260619.png')} 
-            className={`w-full h-full object-cover transition-all duration-[2000ms] ${heroReady ? 'animate-hero-breathe-glow' : ''}`}
+            src={optimizeHeroImage(HOME_HERO_IMAGE)} 
+            className={`h-full w-full object-cover object-[54%_18%] sm:object-[56%_16%] transition-all duration-[1800ms] ${heroReady ? 'animate-hero-breathe-glow' : 'scale-[1.015] translate-y-[0.5%]'}`}
             alt="UNIO"
             fetchpriority="high"
             onLoad={() => { setTimeout(() => setHeroReady(true), 600); }}
           />
           <div className={`absolute inset-0 transition-opacity duration-[2000ms] ${heroReady ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/20 to-black/70" />
+            <div className="absolute inset-0 bg-[#050505]/54" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(212,175,55,0.18),transparent_24%),radial-gradient(circle_at_86%_15%,rgba(196,129,111,0.18),transparent_22%),linear-gradient(180deg,rgba(0,0,0,0.52)_0%,rgba(0,0,0,0.20)_34%,rgba(0,0,0,0.70)_100%)]" />
           </div>
+          {/* 浮动粒子：芳香分子 */}  
+          <FloatingParticles color="212,175,55" density={22000} maxSize={1.8} maxOpacity={0.45} speed={0.25} />
         </div>
 
-        {/* 芳香分子浮动粒子 */}
-        <AmbientParticles count={12} />
+        <div className="hero-ambient-glow absolute -left-[12%] top-[18%] h-52 w-52 rounded-full md:h-72 md:w-72" />
+        <div className="hero-ambient-glow hero-ambient-glow--warm absolute bottom-[12%] right-[-10%] h-56 w-56 rounded-full md:h-80 md:w-80" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-        {/* 装饰分子环 */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 border border-[#D4AF37]/5 rounded-full animate-[spin-slow_80s_linear_infinite]" />
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 border border-[#D4AF37]/3 rounded-full animate-[spin-slow_120s_linear_infinite_reverse]" />
-        <div className="absolute bottom-1/3 left-1/3 w-48 h-48 border border-white/[0.02] rounded-full animate-[spin-slow_60s_linear_infinite]" />
+        <div className="relative z-10 flex min-h-[92dvh] w-full items-end px-4 pb-20 pt-28 sm:min-h-[100dvh] sm:px-6 sm:pb-24 sm:pt-24 lg:px-10">
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="hero-story-panel relative ml-auto w-full max-w-[42rem] overflow-hidden rounded-[2rem] px-5 py-6 text-center text-white shadow-[0_32px_120px_rgba(0,0,0,0.45)] sm:rounded-[2.5rem] sm:px-8 sm:py-8 sm:text-left lg:px-10 lg:py-10">
+              <div className="hero-story-panel__iridescence absolute inset-0 opacity-70" />
+              <div className="hero-story-panel__noise absolute inset-0 opacity-30" />
+              <div className="relative z-10 space-y-6 sm:space-y-7">
+                <div className="flex items-center justify-center gap-4 sm:justify-start">
+                  <div className="h-px w-10 bg-[#D4AF37]/35 sm:w-14" />
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.42em] text-[#E4C97A]/78">Since 2003</span>
+                  <div className="h-px w-10 bg-[#D4AF37]/35 sm:w-14" />
+                </div>
 
-        {/* 呼吸光扫 — 横穿画面 */}  
-        <div className="absolute inset-0 z-[2] pointer-events-none overflow-hidden">
-          <div className="absolute top-1/3 -left-1/2 w-1/3 h-[60%] bg-gradient-to-r from-transparent via-[#D4AF37]/[0.06] to-transparent animate-light-sweep" />
-        </div>
+                <div className="space-y-3 sm:space-y-4">
+                  <p className="text-[10px] uppercase tracking-[0.46em] text-white/55 sm:text-xs">UNIO AROMA</p>
+                  <h1 className="heading-luxury text-[clamp(2.4rem,8vw,5.6rem)] leading-[0.96] tracking-[0.12em] text-white">
+                    <BlurText text="元香 UNIO" staggerMs={60} blurAmount={12} translateY={50} durationMs={800} />
+                  </h1>
+                  <div className="h-px w-20 bg-white/16 sm:w-28" />
+                  <p className="max-w-2xl text-[1.05rem] leading-relaxed text-white/88 sm:text-[1.35rem] sm:leading-relaxed">
+                    从极境撷取芳香，因世界元于一息。
+                  </p>
+                  <p className="max-w-xl text-[10px] uppercase tracking-[0.34em] text-white/42 sm:text-xs sm:tracking-[0.46em]">
+                    Original Harmony Sanctuary · 廿三载寻香，始于觉知
+                  </p>
+                </div>
 
-        {/* 呼吸暗角脉冲 */}
-        <div className="absolute inset-0 z-[1] pointer-events-none animate-vignette-breathe" 
-          style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)' }} />
+                <div className="grid gap-3 text-left text-white/72 sm:grid-cols-3 sm:gap-4">
+                  {[
+                    { label: 'Craft', value: '23 Years' },
+                    { label: 'Collections', value: '4 Curated Series' },
+                    { label: 'Origins', value: 'Global Botanicals' },
+                  ].map((item) => (
+                    <div key={item.label} className="liquid-glass-strong rounded-2xl px-4 py-3">
+                      <p className="text-[9px] uppercase tracking-[0.34em] text-white/38">{item.label}</p>
+                      <p className="mt-2 text-sm font-medium tracking-[0.08em] text-white/88 sm:text-base">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
 
-        {/* 大型光斑 — 浮动呼吸 */}
-        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-          {[
-            { w: 300, h: 300, left: '15%', top: '20%', dur: '22s', delay: '0s', color: '#D4AF37' },
-            { w: 200, h: 200, left: '70%', top: '50%', dur: '18s', delay: '-5s', color: '#E8C56D' },
-            { w: 250, h: 250, left: '40%', top: '70%', dur: '26s', delay: '-10s', color: '#C9A84C' },
-            { w: 180, h: 180, left: '80%', top: '15%', dur: '20s', delay: '-15s', color: '#D4AF37' },
-          ].map((o, i) => (
-            <div key={`orb-${i}`}
-              className="absolute rounded-full blur-3xl animate-orb-float"
-              style={{
-                width: o.w, height: o.h, left: o.left, top: o.top,
-                background: `radial-gradient(circle, ${o.color}33 0%, transparent 70%)`,
-                '--orb-duration': o.dur, '--orb-delay': o.delay,
-              } as React.CSSProperties}
-            />
-          ))}
-        </div>
-
-        {/* 光丝飘动 — 如烟雾般轻柔 */}
-        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-          {Array.from({ length: 6 }, (_, i) => (
-            <div key={`wisp-${i}`}
-              className="absolute h-px animate-light-wisp"
-              style={{
-                left: `${10 + i * 16}%`,
-                top: `${20 + (i * 13) % 60}%`,
-                width: `${60 + i * 20}px`,
-                background: `linear-gradient(90deg, transparent, ${i % 2 === 0 ? '#D4AF37' : '#E8C56D'}22, transparent)`,
-                '--wisp-delay': `${-i * 1.5}s`,
-              } as React.CSSProperties}
-            />
-          ))}
-        </div>
-
-        {/* Hero 内容 */}
-        <div className="relative z-10 text-center px-6 space-y-8 sm:space-y-12">
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            {/* Since 标签 */}
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="w-10 sm:w-12 h-px bg-[#D4AF37]/30" />
-              <span className="text-[9px] sm:text-[11px] tracking-[0.5em] sm:tracking-[0.6em] text-[#D4AF37]/60 font-bold uppercase">Since 2003</span>
-              <div className="w-10 sm:w-12 h-px bg-[#D4AF37]/30" />
+                <div className="flex flex-col items-stretch justify-center gap-3 pt-1 sm:flex-row sm:justify-start sm:gap-4">
+                  <button
+                    onClick={() => onNavigate('collections')}
+                    className="group flex min-h-[50px] items-center justify-center gap-3 rounded-full border border-white/30 bg-white/12 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.34em] text-white backdrop-blur-xl transition-all duration-500 hover:bg-white hover:text-black sm:px-7"
+                  >
+                    <span>探索馆藏</span>
+                    <ArrowRight className="transition-transform group-hover:translate-x-1.5" size={14} smSize={16} />
+                  </button>
+                  <button
+                    onClick={() => onNavigate('atlas')}
+                    className="group flex min-h-[50px] items-center justify-center gap-3 rounded-full border border-white/12 bg-black/10 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.34em] text-white/72 transition-all duration-500 hover:border-white/28 hover:bg-white/8 hover:text-white sm:px-7"
+                  >
+                    <Play size={12} smSize={14} />
+                    <span>寻香地图</span>
+                  </button>
+                </div>
+              </div>
             </div>
-
-            {/* 主标题 — 静奢风格：Light 字重 + 宽字距 */}
-            <h1 className="text-[8vw] sm:text-[12rem] heading-luxury tracking-[0.15em] sm:tracking-[0.2em] text-white leading-none drop-shadow-2xl flex items-center justify-center">
-              <span className="text-white">元香</span>
-              <span className="text-[0.32em] sm:text-[0.38em] ml-1.5 sm:ml-6 tracking-tight text-white/80 opacity-90 italic drop-shadow-lg">UNIO</span>
-            </h1>
-
-            <div className="h-px w-20 sm:w-96 bg-white/20 mx-auto" />
-            
-            {/* 英文副标 — 移动端缩小 */}
-            <p className="text-[6px] sm:text-xl tracking-[0.6em] sm:tracking-[1.8em] uppercase font-bold text-white/40 leading-none">
-              Original Harmony Sanctuary
-            </p>
-          </div>
-
-          {/* 中文 Slogan — 移动端缩小 */}
-          <div className="space-y-3 sm:space-y-6 max-w-5xl mx-auto px-2 sm:px-4">
-            <p className="text-base sm:text-5xl text-white tracking-[0.15em] sm:tracking-[0.25em] font-medium drop-shadow-lg whitespace-nowrap leading-tight sm:leading-normal">
-              从极境撷取芳香，因世界元于一息。
-            </p>
-            <p className="text-[8px] sm:text-lg text-white/25 tracking-[0.3em] sm:tracking-[0.45em] uppercase font-bold">
-              廿三载寻香 · 始于觉知
-            </p>
-          </div>
-
-          {/* CTA 按钮组 */}
-          <div className="flex items-center justify-center gap-3 sm:gap-6 pt-2 sm:pt-4">
-            <button
-              onClick={() => onNavigate('collections')}
-              className="group flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-bold text-[9px] sm:text-xs tracking-[0.35em] sm:tracking-[0.4em] uppercase hover:bg-white hover:text-black transition-all duration-700"
-            >
-              <span>探索馆藏</span>
-              <ArrowRight className="group-hover:translate-x-1.5 sm:group-hover:translate-x-2 transition-transform" size={14} smSize={16} />
-            </button>
-            <button
-              onClick={() => onNavigate('atlas')}
-              className="group flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-4 text-white/50 sm:text-white/60 font-bold text-[9px] sm:text-xs tracking-[0.35em] sm:tracking-[0.4em] uppercase hover:text-white transition-all duration-500"
-            >
-              <Play size={12} smSize={14} />
-              <span>寻香地图</span>
-            </button>
           </div>
         </div>
 
         {/* 滚动提示 */}
         <button
           onClick={() => document.getElementById('heritage-section')?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-4 opacity-30 sm:opacity-30 hover:opacity-60 transition-opacity"
+          className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 opacity-50 transition-opacity hover:opacity-70 sm:bottom-12 sm:gap-4"
         >
           <span className="text-[7px] sm:text-[8px] tracking-[0.4em] sm:tracking-[0.5em] uppercase font-bold text-white">Scroll</span>
           <ChevronDown size={16} smSize={20} className="animate-bounce" />
@@ -437,9 +801,11 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       </section>
       </ScrollReveal>
 
-      {/* ============ 四大核心馆藏 ============ */}
-      <section className="py-16 sm:py-48 px-3 sm:px-12 max-w-[2560px] mx-auto bg-white">
-        {/* Section header */}
+      {/* ============ 四大核心馆藏 — Infinite Menu 风格 ============ */}
+      <section className="relative overflow-hidden bg-white px-3 py-16 sm:px-12 sm:py-48">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[linear-gradient(180deg,#FAFAF8,rgba(255,255,255,0))]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(115deg,transparent_0%,transparent_46%,rgba(212,175,55,0.12)_46.2%,transparent_47%),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] [background-size:100%_100%,96px_96px]" />
+        <div className="relative mx-auto max-w-[2560px]">
         <div className="text-center mb-12 sm:mb-28 space-y-3 sm:space-y-4">
           <div className="flex items-center justify-center gap-4">
             <div className="w-10 sm:w-12 h-px bg-[#D4AF37]/30" />
@@ -454,49 +820,37 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-8 lg:gap-10">
-          {series.map((s, idx) => {
-            const config = SERIES_CONFIG[s.code];
-            const productCount = getSeriesStats(s.code);
-            const bgImage = homeImages['home_series_' + s.code] || SERIES_IMG_DEFAULTS[s.code] || '/assets/brand/brand.webp';
-            return (
-              <div
-                key={s.id}
-                onClick={() => onNavigate('collections', { series: s.code })}
-                className="group relative aspect-[3/5] sm:aspect-[4/5] rounded-xl sm:rounded-[3rem] lg:rounded-[4rem] overflow-hidden cursor-pointer shadow-lg sm:shadow-2xl transition-all duration-1000 hover:scale-[1.02] sm:hover:scale-[1.01]"
+        <InfiniteSeriesMenu
+          items={seriesMenuItems}
+          onSelect={(code) => onNavigate('collections', { series: code })}
+        />
+
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-10 lg:grid-cols-4">
+          {seriesMenuItems.map((item, idx) => (
+            <BentoCard
+              key={item.id}
+              glowColor={idx === 0 ? '74, 124, 89' : idx === 1 ? '28, 57, 187' : idx === 2 ? '123, 166, 137' : '212, 175, 55'}
+              className="rounded-2xl border border-black/[0.04] bg-[#FAFAF8] p-4 transition-all duration-500 hover:-translate-y-1 hover:bg-white sm:p-6"
+            >
+              <button
+                onClick={() => onNavigate('collections', { series: item.code })}
+                className="flex w-full items-center justify-between gap-4 text-left"
               >
-                <img src={optimizeImage(bgImage, { width: 600, quality: 75 })} className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[2s] group-hover:scale-110" alt={config.fullName_cn} loading="lazy" decoding="async" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/95 via-black/30 to-transparent opacity-100 group-hover:opacity-60 transition-all" />
-
-                {/* 编号 */}
-                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/15 sm:text-white/20 text-[8px] sm:text-xs font-bold tracking-widest font-mono">
-                  {String(idx + 1).padStart(2, '0')}
-                </div>
-
-                <div className="absolute inset-0 p-2.5 sm:p-10 lg:p-12 flex flex-col justify-end">
-                  <div className="flex items-center gap-1.5 sm:gap-3 mb-2.5 sm:mb-4 opacity-50 sm:opacity-60">
-                    <div className="p-1 sm:p-2 bg-white/18 rounded-full text-white scale-[0.85] sm:scale-100">
-                      <SeriesIcon icon={config.icon} />
-                    </div>
-                    <span className="text-[5px] sm:text-[9px] lg:text-[10px] text-white font-bold tracking-[0.2em] sm:tracking-[0.3em] uppercase whitespace-nowrap truncate">{config.fullName_en}</span>
-                  </div>
-                  <h3 className="text-xl sm:text-5xl lg:text-6xl text-white font-bold tracking-[0.03em] sm:tracking-[0.08em] mb-1.5 sm:mb-4 lg:mb-6 leading-[1.15] sm:leading-[1.1] lg:leading-none whitespace-nowrap">
-                    <span className="block sm:inline">{config.name_cn} ·</span>
-                    <span className="block sm:inline sm:ml-2 lg:ml-3">{config.fullName_cn.split('·')[1]?.trim()}</span>
-                  </h3>
-                  <p className="text-white/45 text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-none transform translate-y-4 opacity-0 sm:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
-                    {config.description}
+                <div className="min-w-0">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.34em] text-black/25">
+                    {String(idx + 1).padStart(2, '0')} / {item.config.fullName_en}
                   </p>
-                  <div className="mt-2.5 sm:mt-3 flex items-center justify-between">
-                    <span className="text-white/35 text-[10px] sm:text-[10px] lg:text-xs tracking-widest">{productCount} 款产品</span>
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/8 sm:bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-3 sm:translate-x-4 group-hover:translate-x-0">
-                      <ArrowRight size={11} smSize={13} className="text-white" />
-                    </div>
-                  </div>
+                  <h3 className="mt-2 truncate text-lg font-bold tracking-[0.14em] text-[#1A1A1A]/80 sm:text-2xl">
+                    {item.config.name_cn} · {item.config.fullName_cn.split('·')[1]?.trim()}
+                  </h3>
                 </div>
-              </div>
-            );
-          })}
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-black/[0.04] text-black/35 transition-colors group-hover:bg-[#D75437] group-hover:text-white">
+                  <ArrowRight size={14} />
+                </div>
+              </button>
+            </BentoCard>
+          ))}
+        </div>
         </div>
       </section>
 

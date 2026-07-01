@@ -154,6 +154,72 @@ html {
   border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
+/* ====== 液态玻璃边框效果（xuanxuan-prompts: Liquid Glass Agency）======
+   核心技法：::before 伪元素 + mask-composite: exclude
+   生成两端亮、中间渐隐的发光渐变边框 */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.15) 80%,
+    rgba(255, 255, 255, 0.45) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* 强效版 — 用于 CTA 按钮等需要更明显边框的地方 */
+.liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  border: none;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass-strong::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.2) 80%,
+    rgba(255, 255, 255, 0.5) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
@@ -345,15 +411,196 @@ html {
 
 /* Hero 呼吸明暗轮回 — 艺术级 v3 */
 @keyframes hero-breathe-glow {
-  0%   { filter: brightness(0.40) contrast(1.30) saturate(0.7) sepia(0.3) hue-rotate(-5deg); transform: scale(1.000); }
-  18%  { filter: brightness(0.65) contrast(1.18) saturate(0.85) sepia(0.15) hue-rotate(-2deg); transform: scale(1.004); }
-  35%  { filter: brightness(1.05) contrast(0.98) saturate(1.05) sepia(0) hue-rotate(0deg); transform: scale(1.010); }
-  48%  { filter: brightness(1.30) contrast(0.85) saturate(1.20) sepia(0) hue-rotate(3deg); transform: scale(1.018); }
-  55%  { filter: brightness(1.35) contrast(0.80) saturate(1.25) sepia(0) hue-rotate(5deg); transform: scale(1.020); }
-  68%  { filter: brightness(1.08) contrast(0.92) saturate(1.10) sepia(0.05) hue-rotate(2deg); transform: scale(1.012); }
-  82%  { filter: brightness(0.62) contrast(1.22) saturate(0.78) sepia(0.20) hue-rotate(-3deg); transform: scale(1.004); }
-  100% { filter: brightness(0.40) contrast(1.30) saturate(0.7) sepia(0.3) hue-rotate(-5deg); transform: scale(1.000); }
+  0%   { filter: brightness(0.72) contrast(1.08) saturate(0.92); transform: scale(1.015) translate3d(0, 0.6%, 0); }
+  50%  { filter: brightness(0.82) contrast(1.03) saturate(1.00); transform: scale(1.03) translate3d(0, -0.4%, 0); }
+  100% { filter: brightness(0.72) contrast(1.08) saturate(0.92); transform: scale(1.015) translate3d(0, 0.6%, 0); }
 }
 .animate-hero-breathe-glow {
-  animation: hero-breathe-glow 13s cubic-bezier(0.42, 0.0, 0.28, 1.0) infinite;
+  animation: hero-breathe-glow 18s cubic-bezier(0.42, 0.0, 0.28, 1.0) infinite;
+  will-change: transform, filter;
+}
+
+.hero-story-panel {
+  background:
+    linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 46%, rgba(255,255,255,0.04) 100%),
+    linear-gradient(180deg, rgba(13,11,14,0.64) 0%, rgba(12,10,13,0.72) 100%);
+  border: 1px solid rgba(255,255,255,0.16);
+  backdrop-filter: blur(24px) saturate(132%);
+  -webkit-backdrop-filter: blur(24px) saturate(132%);
+}
+
+.hero-story-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.02) 35%, rgba(212,175,55,0.24) 72%, rgba(213,84,55,0.16));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.88;
+}
+
+.hero-story-panel__iridescence {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(212,175,55,0.18), transparent 32%),
+    radial-gradient(circle at 88% 16%, rgba(215,84,55,0.14), transparent 26%),
+    radial-gradient(circle at 50% 100%, rgba(132,109,193,0.14), transparent 42%);
+  mix-blend-mode: screen;
+  filter: blur(16px);
+}
+
+.hero-story-panel__noise {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.75), transparent 110%);
+}
+
+.hero-ambient-glow {
+  background: radial-gradient(circle, rgba(112,84,168,0.18) 0%, rgba(112,84,168,0.04) 45%, transparent 74%);
+  filter: blur(28px);
+  opacity: 0.78;
+}
+
+.hero-ambient-glow--warm {
+  background: radial-gradient(circle, rgba(212,175,55,0.16) 0%, rgba(215,84,55,0.08) 42%, transparent 72%);
+}
+
+/* 首页四维馆藏 Infinite Menu */
+@keyframes menu-scan {
+  0% { transform: translateX(-35%); opacity: 0.16; }
+  50% { opacity: 0.38; }
+  100% { transform: translateX(35%); opacity: 0.16; }
+}
+
+.infinite-menu-scan {
+  background:
+    linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.08) 48%, transparent 56%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 9px);
+  animation: menu-scan 9s ease-in-out infinite alternate;
+}
+
+.infinite-menu-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.16) 44%, transparent 55%);
+  transform: translateX(-140%);
+  transition: transform 0.9s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.infinite-menu-card:hover::before,
+.infinite-menu-card:focus-visible::before {
+  transform: translateX(140%);
+}
+
+.infinite-menu-card:focus-visible {
+  outline: 2px solid rgba(212, 175, 55, 0.75);
+  outline-offset: 4px;
+}
+
+.infinite-stage-card {
+  will-change: transform, opacity;
+}
+
+.infinite-stage-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(125deg, rgba(255,255,255,0.14), transparent 34%, transparent 70%, rgba(255,255,255,0.08));
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.infinite-stage-card:hover::after,
+.infinite-stage-card:focus-visible::after {
+  opacity: 1;
+}
+
+.infinite-stage-side {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+}
+
+.series-mini-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(145deg, rgba(var(--series-accent), 0.18), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(var(--series-accent), 0.20), transparent 40%);
+  opacity: 0.55;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.series-mini-grid:hover::before,
+.series-mini-grid:focus-visible::before {
+  opacity: 0.9;
+  transform: scale(1.04);
+}
+
+@media (max-width: 640px) {
+  .hero-story-panel {
+    backdrop-filter: blur(18px) saturate(124%);
+    -webkit-backdrop-filter: blur(18px) saturate(124%);
+  }
+
+  .hero-story-panel__iridescence {
+    filter: blur(10px);
+    opacity: 0.58;
+  }
+
+  .hero-ambient-glow {
+    opacity: 0.52;
+    filter: blur(18px);
+  }
+
+  .infinite-menu-card {
+    height: 340px !important;
+    width: 210px !important;
+  }
+
+  .infinite-stage-card {
+    width: 220px !important;
+    height: 360px !important;
+  }
+
+  .infinite-menu-scan {
+    opacity: 0.14;
+    animation-duration: 14s;
+  }
+
+  .series-mini-grid::before {
+    opacity: 0.4;
+  }
+
+  .infinite-stage-card::after {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .infinite-menu-scan,
+  .animate-hero-breathe-glow,
+  .animate-orb-float,
+  .animate-light-wisp,
+  .animate-light-sweep,
+  .animate-particle {
+    animation: none !important;
+  }
+
+  .infinite-menu-card,
+  .infinite-menu-card *,
+  .scroll-reveal,
+  .scroll-reveal-left,
+  .scroll-reveal-right {
+    transition-duration: 0.01ms !important;
+  }
 }
