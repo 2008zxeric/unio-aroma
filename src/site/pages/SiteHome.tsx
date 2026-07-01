@@ -18,6 +18,7 @@ import { siteTextService } from '../../lib/dataService';
 import { optimizeHeroImage, optimizeImage } from '../imageUtils';
 import BlurText from '../components/BlurText';
 import FloatingParticles from '../components/FloatingParticles';
+import CursorSpotlight from '../components/CursorSpotlight';
 
 interface SiteHomeProps {
   onNavigate: (view: string, params?: Record<string, string>) => void;
@@ -643,13 +644,15 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
       {/* ============ HERO SECTION ============ */}
       <section ref={heroSectionRef} className="relative flex min-h-[92dvh] flex-col items-center justify-center overflow-hidden sm:h-[100dvh]">
         <div className="absolute inset-0">
-          <img 
-            src={optimizeHeroImage(HOME_HERO_IMAGE)} 
-            className={`h-full w-full object-cover object-[54%_18%] sm:object-[56%_16%] transition-all duration-[1800ms] ${heroReady ? 'animate-hero-breathe-glow' : 'scale-[1.015] translate-y-[0.5%]'}`}
-            alt="UNIO"
-            fetchpriority="high"
-            onLoad={() => { setTimeout(() => setHeroReady(true), 600); }}
-          />
+          <CursorSpotlight>
+            <img 
+              src={optimizeHeroImage(HOME_HERO_IMAGE)} 
+              className={`h-full w-full object-cover object-[54%_18%] sm:object-[56%_16%] transition-all duration-[1800ms] ${heroReady ? 'animate-hero-breathe-glow' : 'scale-[1.015] translate-y-[0.5%]'}`}
+              alt="UNIO"
+              fetchpriority="high"
+              onLoad={() => { setTimeout(() => setHeroReady(true), 600); }}
+            />
+          </CursorSpotlight>
           <div className={`absolute inset-0 transition-opacity duration-[2000ms] ${heroReady ? 'opacity-100' : 'opacity-0'}`}>
             <div className="absolute inset-0 bg-[#050505] animate-hero-overlay-breathe pointer-events-none" />
             <div className="absolute inset-0 pointer-events-none" 
