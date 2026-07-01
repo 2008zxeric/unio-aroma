@@ -401,7 +401,11 @@ export default function AdminInventory() {
         // 其他数据按需加载，不在首屏预加载
       }
       
-      // 库存概览 Tab — 首屏需要 summaries + financeRecords（看板卡片用到其他收支）\n      if (currentTab === 'overview') {\n        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));\n        promises.push(financeRecordService.getAll().catch(() => []).then(d => setFinanceRecords(d as any)));\n      }
+      // 库存概览 Tab — 首屏需要 summaries + financeRecords（看板卡片用到其他收支）
+      if (currentTab === 'overview') {
+        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+        promises.push(financeRecordService.getAll().catch(() => []).then(d => setFinanceRecords(d as any)));
+      }
       // 进货记录 Tab
       if (currentTab === 'purchases') {
         promises.push(purchaseService.getAll().then(d => setPurchases(d)));
