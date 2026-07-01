@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
-import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle, Copy, Check } from 'lucide-react';
+import { Home, Map as MapIcon, Box, Activity, BookOpen, Share2, ArrowUp, ArrowLeft, ExternalLink, Menu, X, ChevronUp, MessageCircle, Copy, Check, QrCode, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // 懒加载页面组件 — 首屏只加载 SiteHome，其余按需
@@ -79,6 +79,29 @@ const SiteApp: React.FC = () => {
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showWechatQR, setShowWechatQR] = useState(false);
+  const [wechatTab, setWechatTab] = useState<'service' | 'miniapp' | 'pub'>('service');
+  const [miniCopied, setMiniCopied] = useState(false);
+  const MINIAPP_LINK = '#小程序://元香/gJeHyWtNHIIWSGb';
+
+  const handleCopyMiniLink = async () => {
+    try {
+      await navigator.clipboard.writeText(MINIAPP_LINK);
+      setMiniCopied(true);
+      setTimeout(() => setMiniCopied(false), 2000);
+    } catch {
+      // fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = MINIAPP_LINK;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setMiniCopied(true);
+      setTimeout(() => setMiniCopied(false), 2000);
+    }
+  };
 
   // 页面切换动画状态
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -188,9 +211,6 @@ const SiteApp: React.FC = () => {
     setNavParams(p);
     setNavStack([{ view: 'home', params: {} }, { view: v, params: p }]);
 
-    // 确保页面始终从顶部开始，避免浏览器恢复滚动位置导致顶部空白
-    window.scrollTo(0, 0);
-
     const timer = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => setShowSplash(false), 800);
@@ -271,7 +291,7 @@ const SiteApp: React.FC = () => {
       case 'china-atlas': return <SiteChinaAtlas onNavigate={handleNavigate} />;
       case 'destination': return navParams.countryId ? <SiteDestination countryId={navParams.countryId} onNavigate={handleNavigate} /> : <SiteAtlas onNavigate={handleNavigate} />;
       case 'story': return <SiteStory onNavigate={handleNavigate} />;
-      case 'oracle': return <SiteOracle onNavigate={handleNavigate} onShowWechat={() => setShowWechatQR(true)} />;
+      case 'oracle': return <SiteOracle onNavigate={handleNavigate} />;
       default: return <SiteHome onNavigate={handleNavigate} />;
     }
   };
@@ -299,7 +319,7 @@ const SiteApp: React.FC = () => {
               <div className="w-full h-full border border-[#D75437]/10 rounded-full animate-[spin-slow_40s_linear_infinite]" 
                 style={{ clipPath: 'inset(0 50% 50% 0)' }} />
             </div>
-            {/* 合·绿环 */}
+            {/* 恒·绿环 */}
             <div className="absolute w-80 h-80 sm:w-[28rem] sm:h-[28rem]" style={{
               top: '50%', left: '50%',
               transform: `translate(-50%, -50%) ${isExiting ? 'scale(1.6)' : 'scale(0.9)'}`,
@@ -345,7 +365,7 @@ const SiteApp: React.FC = () => {
               transform: isExiting ? 'translateY(10px)' : 'translateY(0)',
               transitionDelay: '0.6s'
             }}>
-              <h2 className="text-3xl sm:text-5xl heading-luxury tracking-[0.25em] sm:tracking-[0.3em] text-[#1A1A1A]">
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-[0.25em] sm:tracking-[0.3em] text-[#1A1A1A]">
                 元香 UNIO
               </h2>
               <div className="h-px w-16 sm:w-20 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
@@ -379,7 +399,7 @@ const SiteApp: React.FC = () => {
             <img src={LOGO_IMG} className="w-16 h-16 sm:w-24 sm:h-24 mx-auto drop-shadow-lg" 
               style={{ animation: 'breath 2.5s ease-in-out infinite' }} alt="元香 UNIO" />
             <div className="space-y-1.5">
-              <h2 className="text-2xl sm:text-4xl heading-luxury tracking-[0.25em] text-[#1A1A1A]">元香 UNIO</h2>
+              <h2 className="text-2xl sm:text-4xl font-bold tracking-[0.25em] text-[#1A1A1A]">元香 UNIO</h2>
               <div className="h-px w-12 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
               <p className="text-[8px] sm:text-[10px] tracking-[0.35em] text-black/20 uppercase font-bold">
                 Original · Harmony · Sanctuary
@@ -420,13 +440,13 @@ const SiteApp: React.FC = () => {
                 </svg>
               </div>
             )}
-            <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-white/65 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-2.5 sm:p-2.5 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-[360deg] ${isLongPressComplete ? 'scale-90 bg-[#D75437]/10 border-[#D75437]/30' : longPressProgress > 0 ? 'scale-95' : ''}`}>
+            <div className={`w-12 h-12 sm:w-20 sm:h-20 bg-white/65 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-center p-2.5 sm:p-3 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-[360deg] ${isLongPressComplete ? 'scale-90 bg-[#D75437]/10 border-[#D75437]/30' : longPressProgress > 0 ? 'scale-95' : ''}`}>
               <img src={LOGO_IMG} className="w-full object-contain" alt="Logo" />
             </div>
           </div>
           <div className="flex flex-col items-center space-y-0.5 sm:space-y-1">
-            <span className={`text-base sm:text-2xl font-bold tracking-[0.25em] sm:tracking-[0.3em] leading-none transition-colors ${view === 'home' ? 'text-white/80 group-hover:text-white' : 'text-[#1A1A1A] group-hover:text-[#D75437]'}`}>元香 UNIO</span>
-            <span className={`text-[7px] sm:text-[10px] font-bold tracking-[0.45em] sm:tracking-[0.5em] uppercase ${view === 'home' ? 'text-white/40' : 'text-[#1A1A1A]/28'}`}>UNIO LIFE</span>
+            <span className="text-base sm:text-2xl font-bold tracking-[0.25em] sm:tracking-[0.3em] leading-none text-[#1A1A1A] group-hover:text-[#D75437] transition-colors">元香 UNIO</span>
+            <span className="text-[7px] sm:text-[10px] font-bold text-[#1A1A1A]/28 tracking-[0.45em] sm:tracking-[0.5em] uppercase">UNIO LIFE</span>
           </div>
         </div>
 
@@ -497,14 +517,8 @@ const SiteApp: React.FC = () => {
         }`}
       >
         <Suspense fallback={
-          <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-8">
-            {/* Logo 骨架圆 */}
-            <div className="w-20 h-20 rounded-full skeleton-brand" />
-            {/* 标题骨架 */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-[200px] h-4 rounded-md skeleton-brand" />
-              <div className="w-[120px] h-2.5 rounded-md skeleton-brand" />
-            </div>
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 border-3 border-[#D4AF37]/18 border-t-[#D4AF37] rounded-full animate-spin" />
           </div>
         }>
           {renderView()}
@@ -645,8 +659,8 @@ const SiteApp: React.FC = () => {
       {!hideBottomNav && (
         <div className="fixed bottom-0 sm:bottom-8 left-0 w-full flex flex-col items-center z-[999] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="pointer-events-auto w-full max-w-[680px] px-2 sm:px-4 pb-2 sm:pb-0">
-            {/* 桌面端底部导航 — 深色温感玻璃 */}
-            <div className="hidden sm:flex items-center justify-center gap-1 px-2 py-2.5 rounded-full border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.25),0_0_0_1px_rgba(212,175,55,0.08),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl bg-[#141210]/85">
+            {/* 桌面端底部导航 */}
+            <div className="hidden sm:flex items-center justify-around px-1 sm:px-4 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_-8px_36px_-8px_rgba(0,0,0,0.1),0_24px_60px_-12px_rgba(0,0,0,0.22)] backdrop-blur-3xl bg-white/88">
               {[
                 { id: 'home', icon: Home, label: '首页' },
                 { id: 'story', icon: BookOpen, label: '叙事' },
@@ -657,63 +671,78 @@ const SiteApp: React.FC = () => {
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id || (item.id === 'atlas' && (view === 'atlas' || view === 'china-atlas'));
+                const accentColor = viewAccentColors[item.id] || '#D75437';
+                
                 return (
                   <button key={item.id} onClick={() => {
                     if (item.isExternal) window.open('https://xhslink.com/m/AcZDZuYhsVd', '_blank');
                     else handleNavigate(item.id);
-                  }} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-500 group ${
-                    isActive 
-                      ? 'bg-[#D4AF37]/12 text-[#D4AF37]' 
-                      : item.isExternal
-                        ? 'text-white/30 hover:text-[#D4AF37]/70 hover:bg-white/[0.04]'
-                        : 'text-white/35 hover:text-white/65 hover:bg-white/[0.04]'
-                  }`}>
-                    <div className={`relative transition-all duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
-                      <Icon size={19} />
-                      {isActive && (
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#D4AF37] shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
-                      )}
+                  }} className="flex-1 min-w-0 flex flex-col items-center gap-0.5 sm:gap-1 group py-2">
+                    <div 
+                      className={`p-4 sm:p-5 rounded-full transition-all duration-300 flex items-center gap-1 ${
+                        item.isExternal 
+                          ? 'text-[#D75437] hover:bg-[#D75437] hover:text-white' 
+                          : isActive 
+                            ? 'shadow-lg' 
+                            : 'text-black/28 hover:text-black/70'
+                      }`}
+                      style={isActive && !item.isExternal ? {
+                        backgroundColor: accentColor,
+                        color: 'white'
+                      } : {}}
+                    >
+                      <Icon size={20} smSize={22} />
+                      {item.isExternal && <ExternalLink size={9} smSize={10} className="opacity-55" />}
                     </div>
-                    <span className={`text-[10px] font-semibold tracking-[0.12em] transition-all duration-500 ${
-                      isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-60 max-w-0 group-hover:max-w-[4rem] overflow-hidden'
-                    }`}>
-                      {item.label}
-                    </span>
-                    {item.isExternal && (
-                      <ExternalLink size={9} className={`-ml-1 transition-all duration-500 ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`} />
-                    )}
+                    <span className={`text-[8px] sm:text-[9px] font-bold tracking-widest text-center transition-all whitespace-nowrap ${isActive && !item.isExternal ? 'opacity-70' : 'opacity-0 group-hover:opacity-35'}`} style={
+                      isActive && !item.isExternal ? { color: accentColor } : {}
+                    }>{item.label}</span>
                   </button>
                 );
               })}
             </div>
 
-            {/* 移动端底部栏 — 深色温感玻璃 */}
-            <div className="sm:hidden flex items-center justify-around py-2.5 bg-[#141210]/93 backdrop-blur-xl border-t border-white/[0.06] rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
+            {/* 移动端底部栏 — 补全「祭司」入口 */}
+            <div className="sm:hidden flex items-center justify-around py-2.5 bg-white/[0.93] backdrop-blur-xl border-t border-black/[0.025] rounded-t-xl">
               {[
                 { id: 'home', icon: Home, label: '首页' },
                 { id: 'story', icon: BookOpen, label: '叙事' },
                 { id: 'atlas', icon: MapIcon, label: '寻香' },
                 { id: 'collections', icon: Box, label: '馆藏' },
-                { id: 'oracle', icon: Activity, label: '祭司' },
+                { id: 'oracle', icon: Activity, label: '祭司' },  // ✅ 新增！
                 { id: 'xhs', icon: Share2, label: '灵感', isExternal: true },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id || (item.id === 'atlas' && (view === 'atlas' || view === 'china-atlas'));
+                const accentColor = viewAccentColors[item.id] || '#D75437';
+                
                 return (
                   <button key={item.id} onClick={() => {
                     if (item.isExternal) window.open('https://xhslink.com/m/AcZDZuYhsVd', '_blank');
                     else handleNavigate(item.id);
-                  }} className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-0.5">
-                    <div className={`relative transition-all duration-400 ${isActive ? 'scale-110' : ''}`}>
-                      <Icon size={15} className={isActive ? 'text-[#D4AF37]' : 'text-white/25'} />
-                      {isActive && (
-                        <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#D4AF37] shadow-[0_0_4px_rgba(212,175,55,0.5)]" />
-                      )}
-                      {item.isExternal && (
-                        <ExternalLink size={7} className={`absolute -top-0.5 -right-1.5 ${isActive ? 'text-[#D4AF37]/60' : 'text-white/15'}`} />
-                      )}
+                  }} className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-1">
+                    <div 
+                      className={`p-1.5 rounded-full transition-all duration-300 flex items-center gap-0.5 ${
+                        item.isExternal 
+                          ? 'text-[#D75437]' 
+                          : isActive 
+                            ? '' 
+                            : 'text-black/22'
+                      }`}
+                      style={isActive && !item.isExternal ? {
+                        backgroundColor: accentColor,
+                        color: 'white'
+                      } : {}}
+                    >
+                      <Icon size={15} smSize={16} />
+                      {item.isExternal && <ExternalLink size={7} smSize={8} className="opacity-55" />}
                     </div>
-                    <span className={`text-[6px] font-semibold tracking-wider ${isActive ? 'text-[#D4AF37]' : 'text-white/18'}`}>{item.label}</span>
+                    <span 
+                      className={`text-[6px] font-bold tracking-wider ${
+                        isActive && !item.isExternal ? 'text-black/45' : 'text-black/18'
+                      }`}
+                      style={isActive && !item.isExternal ? { color: accentColor } : {}}
+                    >{item.label}</span>
                   </button>
                 );
               })}
@@ -748,58 +777,100 @@ const SiteApp: React.FC = () => {
         .page-transition-active { opacity: 1; transform: translateY(0); transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1); }
       `}</style>
 
-      {/* ===== 微信客服二维码弹窗 ===== */}
+      {/* ===== 微信三合一弹窗：客服 · 小程序 · 公众号 ===== */}
       {showWechatQR && (
         <div
           className="fixed inset-0 z-[2000] bg-black/45 backdrop-blur-sm flex items-center justify-center"
-          onClick={() => setShowWechatQR(false)}
+          onClick={() => { setShowWechatQR(false); setWechatTab('service'); }}
         >
           <div
-            className="relative bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-xs w-full mx-4 text-center animate-[scaleIn_0.2s_ease]"
+            className="relative bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 max-w-sm w-full mx-4 text-center animate-[scaleIn_0.2s_ease]"
             onClick={e => e.stopPropagation()}
           >
             <button
-              onClick={() => setShowWechatQR(false)}
+              onClick={() => { setShowWechatQR(false); setWechatTab('service'); }}
               className="absolute top-3 sm:top-4 right-3 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/4 flex items-center justify-center text-black/38 hover:text-black hover:bg-black/8 transition-colors"
             >
-              <X size={14} smSize={16} />
+              <X size={14} />
             </button>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#07C160] flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <MessageCircle size={20} smSize={22} className="text-white" />
+
+            {/* ── 三标签 ── */}
+            <div className="flex gap-1 mb-5 sm:mb-6 bg-[#F5F3ED] rounded-xl p-1">
+              {([
+                { key: 'service', label: '客服', Icon: MessageCircle },
+                { key: 'miniapp', label: '小程序', Icon: Smartphone },
+                { key: 'pub', label: '公众号', Icon: QrCode },
+              ] as const).map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setWechatTab(tab.key)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
+                    wechatTab === tab.key
+                      ? 'bg-white text-[#1A1A1A] shadow-sm'
+                      : 'text-black/35 hover:text-black/55'
+                  }`}
+                >
+                  <tab.Icon size={14} />
+                  {tab.label}
+                </button>
+              ))}
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-1">微信客服</h3>
-            <p className="text-[10px] sm:text-xs text-black/38 mb-4 sm:mb-5 tracking-wider">扫码或复制微信号添加客服咨询</p>
-            <div className="bg-[#FAFAF8] rounded-xl sm:rounded-2xl p-2.5 sm:p-3 inline-block">
-              <img src="/wechat-qr.png" alt="微信客服二维码" className="w-40 h-40 sm:w-48 sm:h-48 object-contain" />
-            </div>
-            {/* 微信号 + 复制 */}
-            <div className="mt-3 sm:mt-4 flex items-center justify-center gap-2 bg-[#FAFAF8] rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5">
-              <span className="text-xs sm:text-sm font-medium text-[#1A1A1A] tracking-wider">微信号：</span>
-              <span className="text-xs sm:text-sm font-bold text-[#1A1A1A] select-all">jiruilan</span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText('jiruilan');
-                  alert('微信号已复制，请打开微信搜索添加');
-                }}
-                className="ml-1 p-1.5 rounded-lg bg-[#07C160]/10 text-[#07C160] hover:bg-[#07C160]/20 transition-colors"
-                title="复制微信号"
-              >
-                <Copy size={14} />
-              </button>
-            </div>
-            {/* 去微信添加按钮 */}
-            <button
-              onClick={() => {
-                window.location.href = 'weixin://';
-                // fallback: 如果微信未唤起，提示用户
-                setTimeout(() => {
-                  // 不是真报错，只是引导
-                }, 500);
-              }}
-              className="mt-3 sm:mt-4 w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-[#07C160] text-white font-bold text-xs sm:text-sm tracking-wider hover:bg-[#06AD56] transition-colors active:scale-[0.98]"
-            >
-              打开微信添加
-            </button>
+
+            {/* ── 客服 ── */}
+            {wechatTab === 'service' && (
+              <>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#07C160] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <MessageCircle size={20} className="text-white" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-1">微信客服</h3>
+                <p className="text-[10px] sm:text-xs text-black/38 mb-4 sm:mb-5 tracking-wider">扫码添加客服咨询</p>
+                <div className="bg-[#FAFAF8] rounded-xl sm:rounded-2xl p-2.5 sm:p-3 inline-block">
+                  <img src="/wechat-qr.png" alt="微信客服二维码" className="w-40 h-40 sm:w-48 sm:h-48 object-contain" />
+                </div>
+              </>
+            )}
+
+            {/* ── 小程序 ── */}
+            {wechatTab === 'miniapp' && (
+              <>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#D4AF37] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Smartphone size={20} className="text-white" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-1">元香小程序</h3>
+                <p className="text-[10px] sm:text-xs text-black/38 mb-4 sm:mb-5 tracking-wider">复制链接，微信内打开即可进入</p>
+                <div className="bg-[#FAFAF8] rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-3">
+                  <p className="text-[11px] sm:text-xs text-black/45 break-all leading-relaxed select-all font-mono">
+                    {MINIAPP_LINK}
+                  </p>
+                </div>
+                <button
+                  onClick={handleCopyMiniLink}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                    miniCopied
+                      ? 'bg-[#07C160] text-white'
+                      : 'bg-[#D4AF37] text-white hover:bg-[#C49A2E] active:scale-95'
+                  }`}
+                >
+                  {miniCopied ? <Check size={16} /> : <Copy size={16} />}
+                  {miniCopied ? '已复制' : '一键复制链接'}
+                </button>
+              </>
+            )}
+
+            {/* ── 公众号 ── */}
+            {wechatTab === 'pub' && (
+              <>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#1AAD19] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <QrCode size={20} className="text-white" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-[#1A1A1A] mb-1">微信公众号</h3>
+                <p className="text-[10px] sm:text-xs text-black/38 mb-4 sm:mb-5 tracking-wider">关注公众号，获取最新资讯</p>
+                <div className="bg-[#FAFAF8] rounded-xl sm:rounded-2xl p-2.5 sm:p-3 inline-block">
+                  <img src="/wechat-pub.webp" alt="微信公众号二维码" className="w-40 h-40 sm:w-48 sm:h-48 object-contain" />
+                </div>
+              </>
+            )}
+
             <p className="text-[9px] sm:text-[10px] text-black/22 mt-3 sm:mt-4 tracking-wider">UNIO AROMA · 元香</p>
           </div>
         </div>
