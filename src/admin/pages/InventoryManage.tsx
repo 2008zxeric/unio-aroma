@@ -422,8 +422,9 @@ export default function AdminInventory() {
       
       // 首屏加载：产品列表 + 库存汇总（按产品分组的利润数据）
       if (isFirstLoad) {
-        promises.push(productService.getAll().then(d => setProducts(d)));
-        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+        const prodPromise = productService.getAll().then(d => { setProducts(d); return d; });
+        promises.push(prodPromise);
+        promises.push(prodPromise.then(d => inventoryService.getAllSummaries(d).then(s => setSummaries(s))));
       }
       
       // 库存概览 Tab — 只需要轻量其他收支数据（看板统计卡片）

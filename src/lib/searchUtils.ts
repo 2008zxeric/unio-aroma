@@ -15,9 +15,9 @@ import { pinyin } from 'pinyin-pro';
 
 /** 产品搜索匹配接口 */
 interface Searchable {
-  name_cn?: string;
-  name_en?: string;
-  code?: string;
+  name_cn?: string | null;
+  name_en?: string | null;
+  code?: string | null;
 }
 
 /**
@@ -27,6 +27,8 @@ interface Searchable {
 const pinyinCache = new Map<string, { full: string; initials: string }>();
 
 function getPinyin(text: string): { full: string; initials: string } {
+  if (!text) return { full: '', initials: '' };
+
   const cached = pinyinCache.get(text);
   if (cached) return cached;
 
@@ -36,58 +38,54 @@ function getPinyin(text: string): { full: string; initials: string } {
     const result = { full, initials };
     pinyinCache.set(text, result);
     return result;
-  } catch (e) {
-    // pinyin-pro 加载失败时返回空，走直接包含匹配
-    console.warn('pinyin matching unavailable:', e);
+  } catch {
     const result = { full: '', initials: '' };
     pinyinCache.set(text, result);
     return result;
   }
 }
 
+/** 安全转小写并检查包含（处理 null/undefined） */
+function safeIncludes(text: string | null | undefined, keyword: string): boolean {
+  return (text || '').toLowerCase().includes(keyword);
+}
+
 /**
  * 检查 product 是否匹配 keyword
- * - keyword 为空 → 匹配（调用方自行处理 "显示全部"）
- * - keyword 为中文 → 中文名/编码包含匹配
- * - keyword 为拉丁字母 → 拼音 + 英文名 + 编码匹配
  */
 export function matchProduct(product: Searchable, keyword: string): boolean {
   if (!keyword) return true;
 
   const kw = keyword.toLowerCase().trim();
+  if (!kw) return true;
 
   // 1. 中文名直接包含
-  if (product.name_cn?.toLowerCase().includes(kw)) return true;
+  if (safeIncludes(product.name_cn, kw)) return true;
   // 2. 英文名包含
-  if (product.name_en?.toLowerCase().includes(kw)) return true;
+  if (safeIncludes(product.name_en, kw)) return true;
   // 3. 编码包含
-  if (product.code?.toLowerCase().includes(kw)) return true;
+  if (safeIncludes(product.code, kw)) return true;
 
   // 4. 拼音匹配（仅拉丁字符输入）
-  const isLatin = /^[a-z]+$/i.test(kw);
-  if (!isLatin) return false;
+  if (!/^[a-z]+$/i.test(kw)) return false;
 
   try {
     const py = getPinyin(product.name_cn || '');
 
-    // 4a. 全拼匹配：keyword 作为拼音序列的前缀
-    //     去掉空格后检查 startsWith
+    // 4a. 全拼匹配
     const fullNoSpace = py.full.replace(/\s/g, '');
-    if (fullNoSpace.startsWith(kw.replace(/\s/g, ''))) return true;
+    if (fullNoSpace && fullNoSpace.startsWith(kw.replace(/\s/g, ''))) return true;
 
-    // 4b. 首字母匹配：keyword 是首字母序列的前缀
-    //     "薰衣草" → initials "xyc"
-    if (py.initials.startsWith(kw)) return true;
+    // 4b. 首字母匹配
+    if (py.initials && py.initials.startsWith(kw)) return true;
 
-    // 4c. 拼音单词级前缀匹配：keyword 匹配任意字的拼音前缀
-    const words = py.full.split(' ');
-    for (const w of words) {
-      if (w.startsWith(kw)) return true;
+    // 4c. 拼音单词级前缀匹配
+    for (const w of py.full.split(' ')) {
+      if (w && w.startsWith(kw)) return true;
     }
 
     return false;
-  } catch (e) {
-    // 拼音匹配失败时，退化到基础匹配（已在前三步检查过，这里必定不匹配）
+  } catch {
     return false;
   }
 }

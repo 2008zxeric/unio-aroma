@@ -148,7 +148,15 @@ export default function AdminDashboard() {
   const filteredQuickProds = useMemo(() => {
     if (!quickKeyword) return allProducts.slice(0, 10);
     if (isComposing) return allProducts.slice(0, 10);
-    return allProducts.filter(p => matchProduct(p, quickKeyword)).slice(0, 8);
+    const kw = quickKeyword.toLowerCase().trim();
+    console.debug('[search] keyword:', kw, 'products:', allProducts.length, 'isComposing:', isComposing);
+    const result = allProducts.filter(p => {
+      const m = matchProduct(p, kw);
+      if (m) console.debug('[search] match:', p.name_cn, '←', kw);
+      return m;
+    }).slice(0, 8);
+    console.debug('[search] results:', result.length);
+    return result;
   }, [allProducts, quickKeyword, isComposing]);
 
   const selectQuickProduct = (p: Product) => {

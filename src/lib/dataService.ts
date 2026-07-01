@@ -410,10 +410,10 @@ export const inventoryService = {
     };
   },
 
-  getAllSummaries: async (): Promise<ProductInventory[]> => {
-    // 批量查询：一次拿所有产品和进货/销售记录，内存汇总（避免 N×3 次请求）
-    const [products, purchasesRes, salesRes] = await Promise.all([
-      productService.getAll(),
+  getAllSummaries: async (products?: Product[]): Promise<ProductInventory[]> => {
+    // 接受已有产品列表（调用方已获取），避免重复 productService.getAll()
+    const prods = products || await productService.getAll();
+    const [purchasesRes, salesRes] = await Promise.all([
       supabase.from('purchase_records').select('product_id, volume_ml, unit_cost'),
       supabase.from('sales_records').select('product_id, volume_ml, sale_price, total_amount'),
     ]);
@@ -440,7 +440,7 @@ export const inventoryService = {
       entry.totalRevenue += Number(r.total_amount) || 0;
     }
 
-    return products.map(p => {
+    return prods.map(p => {
       const pur = purchaseMap.get(p.id) || { totalMl: 0, totalCost: 0 };
       const sal = salesMap.get(p.id) || { totalMl: 0, totalRevenue: 0 };
       return {
