@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import {
@@ -141,6 +141,7 @@ export default function AdminDashboard() {
   }, []);
 
   // 快速操作框 — 搜索产品
+  const composingRef = useRef(false);
   const filteredQuickProds = useMemo(() => {
     if (!quickKeyword) return allProducts.slice(0, 10);
     const kw = quickKeyword.toLowerCase();
@@ -304,7 +305,9 @@ export default function AdminDashboard() {
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
                     <input
                       value={quickKeyword}
-                      onChange={e => setQuickKeyword(e.target.value)}
+                      onChange={(e) => { if (!composingRef.current) setQuickKeyword(e.target.value); }}
+                      onCompositionStart={() => { composingRef.current = true; }}
+                      onCompositionEnd={(e) => { composingRef.current = false; setQuickKeyword(e.currentTarget.value); }}
                       placeholder="搜索产品名称或代码..."
                       className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] outline-none focus:border-[color] touch-btn"
                       autoFocus
