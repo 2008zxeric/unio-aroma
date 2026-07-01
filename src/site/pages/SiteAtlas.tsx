@@ -221,15 +221,20 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
 
         {/* ===== Header ===== */}
         <header className="pt-28 md:pt-44 px-6 md:px-16 pb-8 md:pb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-[#D75437]">
-              <Globe size={14} />
-              <span className="text-[9px] tracking-[0.6em] font-extrabold uppercase opacity-40">The Global Archive</span>
+          <div className="space-y-3 md:space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="h-px w-8 bg-[#D4AF37]/40" />
+              <span className="text-[9px] tracking-[0.5em] font-bold uppercase text-[#D4AF37]/70">世界寻香 · Global Atlas</span>
             </div>
-            <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-[#1A1A1A] leading-none">
-              <BlurText text="寻香" staggerMs={55} blurAmount={14} translateY={45} durationMs={800} />
-              <span className="text-black/10">坐标</span>
-            </h2>
+            <div>
+              <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-[#1A1A1A] leading-none">
+                <BlurText text="寻香" staggerMs={55} blurAmount={14} translateY={45} durationMs={800} />
+                <span className="text-black/10">坐标</span>
+              </h2>
+              <p className="text-sm md:text-xl text-black/20 tracking-[0.25em] md:tracking-[0.3em] font-medium mt-2 md:mt-4 pl-1 border-l-2 border-[#D4AF37]/20 py-1">
+                世界寻香，元于纯粹。
+              </p>
+            </div>
           </div>
           <div className="flex items-end gap-8">
             <div className="text-right">
@@ -394,8 +399,8 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                   : 'bg-black/5 text-black/40 hover:bg-black/10 hover:text-black/70'
               }`}
             >
-              <span className="text-xs font-bold tracking-wider">全部档案</span>
-              <span className="text-[9px] opacity-50 tracking-widest uppercase">All</span>
+              <span className="text-xs font-bold tracking-wider">全域寻香</span>
+              <span className="text-[9px] opacity-50 tracking-widest uppercase">Worldwide</span>
             </button>
 
             {CONTINENTS.map((c) => {
