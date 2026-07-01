@@ -14,6 +14,7 @@ import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, 
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
+import ComboBoxInput from '../components/ComboBoxInput';
 
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from '../components/Toast';
@@ -1585,10 +1586,14 @@ export default function AdminInventory() {
                   </div>
                 </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
-                  <select value={purchaseForm.handler} onChange={e => setPurchaseForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
-                    <option value="">请选择</option>
-                    {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
-                  </select>
+                  <ComboBoxInput
+                    value={purchaseForm.handler}
+                    onChange={v => setPurchaseForm(f => ({ ...f, handler: v }))}
+                    options={handlerOptions.map(h => ({ label: h.label, value: h.value }))}
+                    placeholder="选择或输入经手人"
+                    className={inputCls}
+                    defaultHighlight={defaultHandler}
+                  />
                 </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">仓库</label>
                   <select value={purchaseForm.warehouse} onChange={e => setPurchaseForm(f => ({ ...f, warehouse: e.target.value }))} className={selectCls}>
@@ -1856,10 +1861,14 @@ export default function AdminInventory() {
                 </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">销售金额(¥)</label><input type="number" step="0.01" placeholder="可填0" value={saleForm.total_amount} onChange={e => setSaleForm(f => ({ ...f, total_amount: e.target.value }))} className={inputCls} /></div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
-                  <select value={saleForm.handler} onChange={e => setSaleForm(f => ({ ...f, handler: e.target.value }))} className={selectCls}>
-                    <option value="">请选择</option>
-                    {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
-                  </select>
+                  <ComboBoxInput
+                    value={saleForm.handler}
+                    onChange={v => setSaleForm(f => ({ ...f, handler: v }))}
+                    options={handlerOptions.map(h => ({ label: h.label, value: h.value }))}
+                    placeholder="选择或输入经手人"
+                    className={inputCls}
+                    defaultHighlight={defaultHandler}
+                  />
                 </div>
                 <div><label className="block text-xs text-[#6B856B] mb-1.5">仓库</label>
                   <select value={saleForm.warehouse} onChange={e => setSaleForm(f => ({ ...f, warehouse: e.target.value }))} className={selectCls}>
@@ -2187,10 +2196,14 @@ export default function AdminInventory() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">经手人</label>
-                    <input type="text" list="handler-list" value={financeForm.handler} onChange={e => setFinanceForm(f => ({ ...f, handler: e.target.value }))} className={inputCls} placeholder="输入或选择经手人" />
-                    <datalist id="handler-list">
-                      {handlerOptions.map(h => <option key={h.id} value={h.value} />)}
-                    </datalist>
+                    <ComboBoxInput
+                      value={financeForm.handler}
+                      onChange={v => setFinanceForm(f => ({ ...f, handler: v }))}
+                      options={handlerOptions.map(h => ({ label: h.label, value: h.value }))}
+                      placeholder="选择或输入经手人"
+                      className={inputCls}
+                      defaultHighlight={defaultHandler}
+                    />
                   </div>
                   <div><label className="block text-xs text-[#6B856B] mb-1.5">备注</label><input type="text" value={financeForm.notes} onChange={e => setFinanceForm(f => ({ ...f, notes: e.target.value }))} className={inputCls} placeholder="备注说明" /></div>
                 </div>
