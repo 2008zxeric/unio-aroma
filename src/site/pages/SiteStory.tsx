@@ -85,7 +85,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
 
         <div className="relative z-10 space-y-6 sm:space-y-8 md:space-y-12 max-w-5xl">
           <div className="inline-block px-6 sm:px-8 py-2 sm:py-2.5 border border-[#D4AF37]/25 sm:border-[#D4AF37]/30 rounded-full mb-4 sm:mb-6 backdrop-blur-sm bg-white/5">
-            <span className="text-[9px] sm:text-[10px] tracking-[0.5em] sm:tracking-[0.6em] text-[#D4AF37] uppercase font-bold">Original Harmony · 廿载寻香志</span>
+            <span className="text-[9px] sm:text-[10px] tracking-[0.5em] sm:tracking-[0.6em] text-[#D4AF37] uppercase font-bold">Original Harmony · 廿载寻香志 · Breathing Edition</span>
           </div>
           
           <h1 className="text-4xl sm:text-7xl md:text-[10rem] font-bold text-white tracking-[0.08em] sm:tracking-[0.1em] leading-none">
