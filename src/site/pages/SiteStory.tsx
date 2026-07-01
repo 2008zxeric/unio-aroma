@@ -61,45 +61,54 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
   const store = (key: string): string => images[key] || STORE_IMAGES[key.replace('story_store_', '')];
 
   return (
-    <div className="min-h-screen bg-white selection:bg-[#D75437] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F3ED] selection:bg-[#D75437] selection:text-white overflow-x-hidden">
 
       {/* ===== 1. 序幕 - 极境愿景 ===== */}
-      <section className="h-screen relative flex flex-col items-center justify-center text-center px-6">
-        <div className="absolute inset-0 overflow-hidden">
+      <section className="h-screen relative flex flex-col items-center justify-center text-center px-6 overflow-hidden bg-[#080604]">
+        {/* 背景图 — 呼吸明暗轮回（复用首页 hero-breathe-glow 动画） */}
+        <div className="absolute inset-0">
           <img decoding="async"
             src={img('story_prologue')}
-            className="w-full h-full object-cover scale-105 animate-slow-zoom grayscale opacity-30"
+            className="w-full h-full object-cover animate-hero-breathe-glow"
             alt="Hero Background"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-stone-100/95 via-stone-100/70 to-white" />
+          {/* 多层氛围渐变 — 仿首页 Hero 风格 */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(212,175,55,0.12),transparent_30%),radial-gradient(circle_at_18%_82%,rgba(215,84,55,0.10),transparent_26%),linear-gradient(180deg,rgba(0,0,0,0.48)_0%,rgba(0,0,0,0.28)_38%,rgba(0,0,0,0.55)_100%)]" />
+          {/* 金色浮动粒子 */}
+          <FloatingParticles color="212,175,55" density={20000} maxSize={1.5} maxOpacity={0.35} speed={0.2} />
         </div>
+        {/* 氛围光斑 — 呼吸式明暗 */}
+        <div className="absolute left-[5%] top-[12%] h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.14),transparent_70%)] blur-3xl opacity-70 pointer-events-none" />
+        <div className="absolute bottom-[8%] right-[-5%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(215,84,55,0.10),transparent_70%)] blur-3xl opacity-60 pointer-events-none" />
+        {/* 底部过渡：深色 → #F5F3ED 渐变 */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#F5F3ED] via-[#0A0806]/60 to-transparent pointer-events-none" />
 
         <div className="relative z-10 space-y-6 sm:space-y-8 md:space-y-12 max-w-5xl">
-          <div className="inline-block px-6 sm:px-8 py-2 sm:py-2.5 border border-[#D4AF37]/25 sm:border-[#D4AF37]/30 rounded-full mb-4 sm:mb-6 bg-white/55 sm:bg-white/50 backdrop-blur-md">
-            <span className="text-[9px] sm:text-[10px] tracking-[0.5em] sm:tracking-[0.6em] text-[#D4AF37] uppercase font-extrabold">Original Harmony / 廿载寻香志</span>
+          <div className="inline-block px-6 sm:px-8 py-2 sm:py-2.5 border border-[#D4AF37]/25 sm:border-[#D4AF37]/30 rounded-full mb-4 sm:mb-6 backdrop-blur-sm bg-white/5">
+            <span className="text-[9px] sm:text-[10px] tracking-[0.5em] sm:tracking-[0.6em] text-[#D4AF37] uppercase font-bold">Original Harmony · 廿载寻香志</span>
           </div>
           
-          <h1 className="text-4xl sm:text-7xl md:text-[10rem] font-bold text-[#1A1A1A] tracking-[0.08em] sm:tracking-[0.1em] leading-none">
+          <h1 className="text-4xl sm:text-7xl md:text-[10rem] font-bold text-white tracking-[0.08em] sm:tracking-[0.1em] leading-none">
             <BlurText text="廿载寻香" staggerMs={70} blurAmount={12} translateY={40} durationMs={800} />
             <br /><BlurText text="元于一息" staggerMs={70} blurAmount={12} translateY={40} durationMs={800} />
           </h1>
           
-          <div className="h-px w-24 sm:w-32 bg-black/8 sm:bg-black/10 mx-auto my-4 sm:my-6 md:my-10" />
+          <div className="h-px w-24 sm:w-32 bg-white/15 sm:bg-white/20 mx-auto my-4 sm:my-6 md:my-10" />
           
           <div className="overflow-visible px-4">
-            <p className="text-base sm:text-xl md:text-4xl text-[#1A1A1A]/75 sm:text-black/80 tracking-[0.15em] sm:tracking-[0.2em] max-w-full mx-auto font-medium whitespace-nowrap leading-tight sm:leading-normal">
+            <p className="text-base sm:text-xl md:text-4xl text-white/80 tracking-[0.15em] sm:tracking-[0.2em] max-w-full mx-auto font-medium whitespace-nowrap leading-tight sm:leading-normal">
               从极境撷取芳香，因世界元于一息。
             </p>
           </div>
           
-          <p className="text-xs sm:text-sm md:text-xl text-black/35 sm:text-black/40 tracking-[0.15em] sm:tracking-widest max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-2 sm:pt-4">
+          <p className="text-xs sm:text-sm md:text-xl text-white/40 tracking-[0.15em] sm:tracking-widest max-w-3xl mx-auto leading-relaxed sm:leading-loose pt-2 sm:pt-4">
             元香 UNIO 的故事，起始于对纯净品质的执着，<br />终结于对极限生命的敬畏与分享。
           </p>
         </div>
 
-        <div className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-4 text-[#D75437]/35 sm:text-[#D75437]/40">
+        <div className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 sm:gap-4 text-[#D4AF37]/40">
           <span className="text-[7px] sm:text-[8px] tracking-[0.4em] sm:tracking-[0.5em] uppercase font-bold">Scroll to Explore</span>
-          <ArrowRight className="animate-bounce rotate-90" size={16} />
+          <ArrowRight className="animate-bounce rotate-90 text-[#D4AF37]/50" size={16} />
         </div>
       </section>
 
@@ -141,7 +150,6 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A]/10 to-transparent" />
             </div>
-            <div className="absolute -inset-6 sm:-inset-10 bg-[#D4AF37]/4 rounded-[3rem] sm:rounded-[6rem] -rotate-6 -z-10 group-hover:rotate-0 transition-transform duration-1000" />
             <div className="absolute -bottom-8 sm:-bottom-12 -right-8 sm:-right-12 w-36 h-36 sm:w-48 sm:h-48 bg-white rounded-full shadow-xl sm:shadow-2xl flex flex-col items-center justify-center p-5 sm:p-8 border border-black/[0.04] sm:border-black/5 z-20">
               <Globe size={32} className="sm:w-10 sm:h-10 text-[#D4AF37] mb-1.5 sm:mb-2" />
               <span className="text-[8px] sm:text-[10px] font-bold text-black/25 sm:text-black/30 tracking-widest uppercase">85+ Origins</span>
@@ -151,8 +159,9 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
       </section>
 
       {/* ===== 3. 人物 - 三角结构：Alice / Eric & Amanda ===== */}
-      <section className="py-20 sm:py-48 md:py-64 px-6 sm:px-16 md:px-24 bg-[#FAFAF8]">
-        <div className="max-w-[1920px] mx-auto space-y-28 sm:space-y-56 md:space-y-80">
+      <section className="py-20 sm:py-48 md:py-64 px-6 sm:px-16 md:px-24 relative">
+        <FloatingParticles color="180,175,165" density={35000} maxSize={1} maxOpacity={0.18} speed={0.12} />
+        <div className="max-w-[1920px] mx-auto space-y-28 sm:space-y-48 md:space-y-64 relative z-10">
 
           {/* ─── Alice 大区块（中心，最重）─── */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-12 lg:gap-16 items-start">
@@ -220,11 +229,6 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
                   className="w-full h-full object-cover rounded-xl sm:rounded-[5rem] grayscale group-hover:grayscale-0 transition-all duration-[1.5s]"
                   alt="Alice - The Expert"
                 />
-              </div>
-              <div className="absolute -top-10 sm:-top-16 -left-10 sm:-left-16 w-52 h-52 sm:w-72 sm:h-72 bg-white rounded-full p-8 sm:p-12 shadow-xl sm:shadow-3xl flex flex-col items-center justify-center text-center border-3 sm:border-4 border-[#1C39BB]/10 z-20 group-hover:scale-105 transition-transform duration-700">
-                <FlaskConical className="text-[#1C39BB] mb-2 sm:mb-4 sm:w-12 sm:h-12" size={36} />
-                <span className="text-[9px] sm:text-xs font-bold tracking-[0.25em] sm:tracking-[0.3em] uppercase text-black/35 sm:text-black/40 mb-1 sm:mb-2">Chief Expert</span>
-                <span className="text-2xl sm:text-3xl font-bold text-black tracking-widest">Alice</span>
               </div>
             </div>
 
