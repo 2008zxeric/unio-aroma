@@ -585,7 +585,7 @@ const SiteApp: React.FC = () => {
               </button>
             </div>
 
-            {/* 版权 */
+            {/* 版权 */}
             <p className="text-center text-[9px] sm:text-[10px] text-[#141210]/25 tracking-wider mt-7 sm:mt-9">
               © 2026 元合生香 · UNIO AROMA
             </p>
