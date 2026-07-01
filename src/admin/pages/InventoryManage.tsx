@@ -6,11 +6,11 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown, ClipboardList, Upload, CheckCircle,
   Paperclip, Eye, Loader2,
 } from 'lucide-react';
-import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService } from '../../lib/dataService';
+import { productService, inventoryService, purchaseService, salesService, dictService, financeRecordService, userService } from '../../lib/dataService';
 import { supabase } from '../../lib/supabase';
 
 import { auditLogService, useAuth } from '../../lib/auth';
-import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord, AuditLog } from '../../lib/database.types';
+import type { Product, PurchaseRecord, SalesRecord, ProductInventory, DictItem, FinanceRecord, AuditLog, AdminUser } from '../../lib/database.types';
 import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
@@ -410,31 +410,47 @@ export default function AdminInventory() {
       // 进货记录 Tab
       if (currentTab === 'purchases') {
         promises.push(purchaseService.getAll().then(d => setPurchases(d)));
-        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
         promises.push(dictService.getByType('supplier').catch(() => []).then(d => setSupplierOptions(d)));
         promises.push(dictService.getByType('warehouse').catch(() => []).then(d => setWarehouseOptions(d)));
+        promises.push(
+          userService.getAll().catch(() => [] as AdminUser[]).then(users =>
+            setHandlerOptions(users.map(u => ({ id: u.id, value: u.display_name || u.username, label: u.display_name || u.username, type: 'handler' })))
+          )
+        );
       }
       // 销售记录 Tab
       if (currentTab === 'sales') {
         promises.push(salesService.getAll().then(d => setSales(d)));
-        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
         promises.push(dictService.getByType('warehouse').catch(() => []).then(d => setWarehouseOptions(d)));
+        promises.push(
+          userService.getAll().catch(() => [] as AdminUser[]).then(users =>
+            setHandlerOptions(users.map(u => ({ id: u.id, value: u.display_name || u.username, label: u.display_name || u.username, type: 'handler' })))
+          )
+        );
       }
       // 其他收支 Tab
       if (currentTab === 'finance') {
         const frPromise = financeRecordService.getAll().catch(() => [] as FinanceRecord[]);
         promises.push(frPromise.then(d => setFinanceRecords(d)));
-        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
         promises.push(dictService.getByType('other_income').catch(() => []).then(d => setIncomeOptions(d)));
         promises.push(dictService.getByType('other_expense').catch(() => []).then(d => setExpenseOptions(d)));
+        promises.push(
+          userService.getAll().catch(() => [] as AdminUser[]).then(users =>
+            setHandlerOptions(users.map(u => ({ id: u.id, value: u.display_name || u.username, label: u.display_name || u.username, type: 'handler' })))
+          )
+        );
       }
       // 报销管理 Tab — 需要进货+收支数据
       if (currentTab === 'reimburse') {
         promises.push(purchaseService.getAll().then(d => setPurchases(d)));
         const frPromise = financeRecordService.getAll().catch(() => [] as FinanceRecord[]);
         promises.push(frPromise.then(d => setFinanceRecords(d)));
-        promises.push(dictService.getByType('handler').catch(() => []).then(d => setHandlerOptions(d)));
         promises.push(dictService.getByType('other_expense').catch(() => []).then(d => setExpenseOptions(d)));
+        promises.push(
+          userService.getAll().catch(() => [] as AdminUser[]).then(users =>
+            setHandlerOptions(users.map(u => ({ id: u.id, value: u.display_name || u.username, label: u.display_name || u.username, type: 'handler' })))
+          )
+        );
       }
       // 操作日志 Tab
       if (currentTab === 'logs') {
