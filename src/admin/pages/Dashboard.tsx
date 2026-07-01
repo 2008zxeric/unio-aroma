@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   const [quickSupplier, setQuickSupplier] = useState('');
   const [quickLoading, setQuickLoading] = useState(false);
   const [quickKeyword, setQuickKeyword] = useState('');
-  // 组字状态（useState 会触发重渲染 → useMemo 能正确响应）
+  // IME 组字状态：true 时输入框变为非受控（浏览器完全控制），防止 React 与 IME 冲突导致乱码
   const [isComposing, setIsComposing] = useState(false);
 
   const loadStats = async () => {
@@ -143,20 +143,13 @@ export default function AdminDashboard() {
     loadStats();
   }, []);
 
-  // 快速操作框 — 搜索产品
-  // isComposing 为 true 时不触发拼音过滤（避免 IME 中间态干扰）
+  // 快速操作框 — 搜索产品（matchProduct 自动处理中英文+拼音）
+  // 组字期间显示全部产品（不过滤），组字完成后正常过滤
   const filteredQuickProds = useMemo(() => {
-    if (!quickKeyword) return allProducts.slice(0, 10);
-    if (isComposing) return allProducts.slice(0, 10);
+    if (!quickKeyword || isComposing) return allProducts.slice(0, 10);
     const kw = quickKeyword.toLowerCase().trim();
-    console.debug('[search] keyword:', kw, 'products:', allProducts.length, 'isComposing:', isComposing);
-    const result = allProducts.filter(p => {
-      const m = matchProduct(p, kw);
-      if (m) console.debug('[search] match:', p.name_cn, '←', kw);
-      return m;
-    }).slice(0, 8);
-    console.debug('[search] results:', result.length);
-    return result;
+    if (!kw) return allProducts.slice(0, 10);
+    return allProducts.filter(p => matchProduct(p, kw)).slice(0, 8);
   }, [allProducts, quickKeyword, isComposing]);
 
   const selectQuickProduct = (p: Product) => {
@@ -311,8 +304,8 @@ export default function AdminDashboard() {
                   <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
                     <input
-                      value={quickKeyword}
-                      onChange={(e) => setQuickKeyword(e.target.value)}
+                      value={isComposing ? undefined : quickKeyword}
+                      onChange={(e) => { if (!isComposing) setQuickKeyword(e.target.value); }}
                       onCompositionStart={() => setIsComposing(true)}
                       onCompositionEnd={(e) => { setIsComposing(false); setQuickKeyword(e.currentTarget.value); }}
                       placeholder="搜索产品名称或代码..."
@@ -335,6 +328,7 @@ export default function AdminDashboard() {
                     {filteredQuickProds.length === 0 && (
                       <p className="text-xs text-[#9AAA9A] text-center py-4">未找到匹配产品</p>
                     )}
+
                   </div>
                 </div>
               ) : (
