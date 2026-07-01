@@ -645,8 +645,8 @@ const SiteApp: React.FC = () => {
       {!hideBottomNav && (
         <div className="fixed bottom-0 sm:bottom-8 left-0 w-full flex flex-col items-center z-[999] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="pointer-events-auto w-full max-w-[680px] px-2 sm:px-4 pb-2 sm:pb-0">
-            {/* 桌面端底部导航 */}
-            <div className="hidden sm:flex items-center justify-around px-1 sm:px-4 py-2 sm:py-4 rounded-full border border-white/60 shadow-[0_-8px_36px_-8px_rgba(0,0,0,0.1),0_24px_60px_-12px_rgba(0,0,0,0.22)] backdrop-blur-3xl bg-white/88">
+            {/* 桌面端底部导航 — 深色温感玻璃 */}
+            <div className="hidden sm:flex items-center justify-center gap-1 px-2 py-2.5 rounded-full border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.25),0_0_0_1px_rgba(212,175,55,0.08),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl bg-[#141210]/85">
               {[
                 { id: 'home', icon: Home, label: '首页' },
                 { id: 'story', icon: BookOpen, label: '叙事' },
@@ -657,78 +657,63 @@ const SiteApp: React.FC = () => {
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id || (item.id === 'atlas' && (view === 'atlas' || view === 'china-atlas'));
-                const accentColor = viewAccentColors[item.id] || '#D75437';
-                
                 return (
                   <button key={item.id} onClick={() => {
                     if (item.isExternal) window.open('https://xhslink.com/m/AcZDZuYhsVd', '_blank');
                     else handleNavigate(item.id);
-                  }} className="flex-1 min-w-0 flex flex-col items-center gap-0.5 sm:gap-1 group py-2">
-                    <div 
-                      className={`p-4 sm:p-5 rounded-full transition-all duration-300 flex items-center gap-1 ${
-                        item.isExternal 
-                          ? 'text-[#D75437] hover:bg-[#D75437] hover:text-white' 
-                          : isActive 
-                            ? 'shadow-lg' 
-                            : 'text-black/28 hover:text-black/70'
-                      }`}
-                      style={isActive && !item.isExternal ? {
-                        backgroundColor: accentColor,
-                        color: 'white'
-                      } : {}}
-                    >
-                      <Icon size={20} smSize={22} />
-                      {item.isExternal && <ExternalLink size={9} smSize={10} className="opacity-55" />}
+                  }} className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-500 group ${
+                    isActive 
+                      ? 'bg-[#D4AF37]/12 text-[#D4AF37]' 
+                      : item.isExternal
+                        ? 'text-white/30 hover:text-[#D4AF37]/70 hover:bg-white/[0.04]'
+                        : 'text-white/35 hover:text-white/65 hover:bg-white/[0.04]'
+                  }`}>
+                    <div className={`relative transition-all duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
+                      <Icon size={19} />
+                      {isActive && (
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#D4AF37] shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
+                      )}
                     </div>
-                    <span className={`text-[8px] sm:text-[9px] font-bold tracking-widest text-center transition-all whitespace-nowrap ${isActive && !item.isExternal ? 'opacity-70' : 'opacity-0 group-hover:opacity-35'}`} style={
-                      isActive && !item.isExternal ? { color: accentColor } : {}
-                    }>{item.label}</span>
+                    <span className={`text-[10px] font-semibold tracking-[0.12em] transition-all duration-500 ${
+                      isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-60 max-w-0 group-hover:max-w-[4rem] overflow-hidden'
+                    }`}>
+                      {item.label}
+                    </span>
+                    {item.isExternal && (
+                      <ExternalLink size={9} className={`-ml-1 transition-all duration-500 ${isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'}`} />
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            {/* 移动端底部栏 — 补全「祭司」入口 */}
-            <div className="sm:hidden flex items-center justify-around py-2.5 bg-white/[0.93] backdrop-blur-xl border-t border-black/[0.025] rounded-t-xl">
+            {/* 移动端底部栏 — 深色温感玻璃 */}
+            <div className="sm:hidden flex items-center justify-around py-2.5 bg-[#141210]/93 backdrop-blur-xl border-t border-white/[0.06] rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
               {[
                 { id: 'home', icon: Home, label: '首页' },
                 { id: 'story', icon: BookOpen, label: '叙事' },
                 { id: 'atlas', icon: MapIcon, label: '寻香' },
                 { id: 'collections', icon: Box, label: '馆藏' },
-                { id: 'oracle', icon: Activity, label: '祭司' },  // ✅ 新增！
+                { id: 'oracle', icon: Activity, label: '祭司' },
                 { id: 'xhs', icon: Share2, label: '灵感', isExternal: true },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id || (item.id === 'atlas' && (view === 'atlas' || view === 'china-atlas'));
-                const accentColor = viewAccentColors[item.id] || '#D75437';
-                
                 return (
                   <button key={item.id} onClick={() => {
                     if (item.isExternal) window.open('https://xhslink.com/m/AcZDZuYhsVd', '_blank');
                     else handleNavigate(item.id);
-                  }} className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-1">
-                    <div 
-                      className={`p-1.5 rounded-full transition-all duration-300 flex items-center gap-0.5 ${
-                        item.isExternal 
-                          ? 'text-[#D75437]' 
-                          : isActive 
-                            ? '' 
-                            : 'text-black/22'
-                      }`}
-                      style={isActive && !item.isExternal ? {
-                        backgroundColor: accentColor,
-                        color: 'white'
-                      } : {}}
-                    >
-                      <Icon size={15} smSize={16} />
-                      {item.isExternal && <ExternalLink size={7} smSize={8} className="opacity-55" />}
+                  }} className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-0.5">
+                    <div className={`relative transition-all duration-400 ${isActive ? 'scale-110' : ''}`}>
+                      <Icon size={15} className={isActive ? 'text-[#D4AF37]' : 'text-white/25'} />
+                      {isActive && (
+                        <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#D4AF37] shadow-[0_0_4px_rgba(212,175,55,0.5)]" />
+                      )}
+                      {item.isExternal && (
+                        <ExternalLink size={7} className={`absolute -top-0.5 -right-1.5 ${isActive ? 'text-[#D4AF37]/60' : 'text-white/15'}`} />
+                      )}
                     </div>
-                    <span 
-                      className={`text-[6px] font-bold tracking-wider ${
-                        isActive && !item.isExternal ? 'text-black/45' : 'text-black/18'
-                      }`}
-                      style={isActive && !item.isExternal ? { color: accentColor } : {}}
-                    >{item.label}</span>
+                    <span className={`text-[6px] font-semibold tracking-wider ${isActive ? 'text-[#D4AF37]' : 'text-white/18'}`}>{item.label}</span>
                   </button>
                 );
               })}
