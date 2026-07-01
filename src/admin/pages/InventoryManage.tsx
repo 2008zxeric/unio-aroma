@@ -2300,10 +2300,13 @@ export default function AdminInventory() {
                   <option value="done">已报销</option>
                 </select>
                 <span className="text-xs text-[#8AA08A] ml-2">经手人</span>
-                <select value={reimbFilterHandler} onChange={e => { setReimbFilterHandler(e.target.value); setCheckedReimbIds(new Set()); }} className={selectCls}>
-                  <option value="">全部</option>
-                  {handlerOptions.map(h => <option key={h.id} value={h.value}>{h.label}</option>)}
-                </select>
+                <ComboBoxInput
+                  value={reimbFilterHandler}
+                  onChange={v => { setReimbFilterHandler(v); setCheckedReimbIds(new Set()); }}
+                  options={handlerOptions.map(h => ({ label: h.label, value: h.value }))}
+                  placeholder="全部"
+                  className="text-xs border border-[#D5E2D5] rounded-lg px-2 py-1.5 w-36 text-[#5C725C]"
+                />
                 <span className="text-xs text-[#8AA08A] ml-2">编码</span>
                 <input type="text" value={reimbFilterCode} onChange={e => setReimbFilterCode(e.target.value)} placeholder="BX-..." className="text-xs border border-[#D5E2D5] rounded-lg px-2 py-1.5 w-28 text-[#5C725C] placeholder:text-[#C0CCC0] outline-none focus:border-[#4A7C59]/50" />
               </div>
