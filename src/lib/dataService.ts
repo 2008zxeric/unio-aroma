@@ -334,8 +334,10 @@ export const purchaseService = {
     if (error) throw error;
     let totalCost = 0, pendingReimburse = 0;
     for (const r of (data || [])) {
-      totalCost += (Number(r.volume_ml) || 0) * (Number(r.unit_cost) || 0);
-      if (!r.reimbursed) pendingReimburse++;
+      const cost = (Number(r.volume_ml) || 0) * (Number(r.unit_cost) || 0);
+      totalCost += cost;
+      // 与报销页保持一致：金额为 0 的记录不计入待报销
+      if (!r.reimbursed && cost > 0) pendingReimburse++;
     }
     return { totalCost, pendingReimburse };
   },
