@@ -16,6 +16,8 @@ import * as topojson from 'topojson-client';
 import { Country } from '../types';
 import { getGlobalCountries } from '../siteDataService';
 import { optimizeImage } from '../imageUtils';
+import BlurText from '../components/BlurText';
+import FloatingParticles from '../components/FloatingParticles';
 
 // TopoJSON 世界地图数据
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -225,7 +227,8 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
               <span className="text-[9px] tracking-[0.6em] font-extrabold uppercase opacity-40">The Global Archive</span>
             </div>
             <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-black/90 leading-none">
-              寻香<span className="text-black/8">坐标</span>
+              <BlurText text="寻香" staggerMs={55} blurAmount={14} translateY={45} durationMs={800} />
+              <span className="text-black/8">坐标</span>
             </h2>
           </div>
           <div className="flex items-end gap-8">
@@ -249,6 +252,8 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
           {/* 外框：浅色地图 */}
           <div className="relative w-full h-[42vh] md:h-[55vh] rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden border border-black/5 shadow-lg"
             style={{ background: '#F5F3EF' }}>
+            {/* 浮动粒子 —— 寻香氛围感 */}
+            <FloatingParticles color="212,175,55" density={28000} maxSize={1.5} maxOpacity={0.25} speed={0.2} />
 
             {geoData ? (
               <ComposableMap
@@ -377,7 +382,8 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
         </section>
 
         {/* ===== 大洲筛选标签 ===== */}
-        <nav className="sticky top-20 z-40 bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-black/5 mx-4 md:mx-10 rounded-b-2xl">
+        <nav className="sticky top-20 z-40 bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-black/5 mx-4 md:mx-10 rounded-b-2xl relative overflow-hidden">
+          <FloatingParticles color="180,180,160" density={35000} maxSize={1.2} maxOpacity={0.25} speed={0.15} />
           <div className="flex items-center gap-1 overflow-x-auto py-4 px-2">
             {/* 全部 */}
             <button
@@ -483,12 +489,20 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                   <div
                     key={dest.id}
                     onClick={() => onNavigate('destination', { countryId: dest.id })}
-                    onMouseEnter={() => setHoveredCountry(dest)}
-                    onMouseLeave={() => setHoveredCountry(null)}
-                    className={`group cursor-pointer rounded-2xl md:rounded-[1.5rem] overflow-hidden border transition-all duration-500 ${
+                    onMouseEnter={(e) => {
+                      setHoveredCountry(dest);
+                      if (!isHighlighted && cont) {
+                        (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 40px ${cont.color}15, 0 0 0 1px ${cont.color}30`;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      setHoveredCountry(null);
+                      (e.currentTarget as HTMLElement).style.boxShadow = '';
+                    }}
+                    className={`group cursor-pointer rounded-2xl md:rounded-[1.5rem] overflow-hidden border transition-all duration-500 bg-white ${
                       isHighlighted
                         ? 'border-[#D4AF37]/40 -translate-y-1 shadow-lg shadow-[#D4AF37]/10'
-                        : 'border-black/5 hover:border-black/10 hover:-translate-y-1 hover:shadow-md'
+                        : 'border-black/5 hover:-translate-y-1.5 hover:shadow-xl'
                     }`}
                     style={{
                       animation: `fadeInUp 0.4s ease ${Math.min(idx, 20) * 30}ms both`,

@@ -7,6 +7,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Users, Compass, FlaskConical, Quote, Globe, MapPin, Store, X } from 'lucide-react';
 import { optimizeHeroImage } from '../imageUtils';
 import { getBannerUrls } from '../siteDataService';
+import BlurText from '../components/BlurText';
+import FloatingParticles from '../components/FloatingParticles';
 
 // 默认备用图片（当数据库无数据时使用）
 const DEFAULT_ASSETS: Record<string, string> = {
@@ -78,7 +80,8 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           </div>
           
           <h1 className="text-4xl sm:text-7xl md:text-[10rem] font-bold text-[#1A1A1A] tracking-[0.08em] sm:tracking-[0.1em] leading-none">
-            廿载寻香<br /><span className="text-black/15 sm:text-black/20">元于一息</span>
+            <BlurText text="廿载寻香" staggerMs={70} blurAmount={12} translateY={40} durationMs={800} />
+            <br /><BlurText text="元于一息" staggerMs={70} blurAmount={12} translateY={40} durationMs={800} />
           </h1>
           
           <div className="h-px w-24 sm:w-32 bg-black/8 sm:bg-black/10 mx-auto my-4 sm:my-6 md:my-10" />
@@ -117,11 +120,11 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
               <p>
                 在神州西南这片丰饶且神秘的土地，元香开启了漫长的芳疗实践。二十多年间，我们的创始团队深耕专业临床领域，不仅是为了复刻本草的香气，更是为了找寻通往身心平衡的密钥。
               </p>
-              <div className="flex gap-6 sm:gap-8 items-start bg-[#FAFAF8] p-6 sm:p-10 rounded-2xl sm:rounded-[3rem] border border-black/[0.03] sm:border-black/5">
+              <div className="flex gap-6 sm:gap-8 items-start liquid-glass p-6 sm:p-10 rounded-2xl sm:rounded-[3rem]">
                 <Quote size={36} className="sm:w-12 sm:h-12 text-[#D75437]/20 flex-shrink-0" />
                 <div>
                   <p className="italic text-[#D75437] text-sm sm:text-base md:text-lg font-medium leading-relaxed">
-                    &ldquo;每一滴精油背后都有一片土地、一群人、一个故事。能遇见它们，是我的福气。&rdquo;
+                    <BlurText text="&ldquo;每一滴精油背后都有一片土地、一群人、一个故事。能遇见它们，是我的福气。&rdquo;" staggerMs={40} blurAmount={8} translateY={20} durationMs={600} />
                   </p>
                   <p className="text-black/25 text-[10px] sm:text-xs mt-2 sm:mt-3 not-italic tracking-[0.2em]">— Alice</p>
                 </div>
@@ -189,7 +192,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
               </p>
 
               {/* 真实故事区块 — 温和小灰底 + 左竖线 */}
-              <div className="bg-[#F2F0EC]/60 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 border-l-4 sm:border-l-8 border-[#D75437]/15 sm:border-[#D75437]/20">
+              <div className="bg-[#F2F0EC]/60 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 border-l-4 sm:border-l-8 border-[#D75437]/15 sm:border-[#D75437]/20 border border-black/[0.03] shadow-[0_0_40px_rgba(212,175,55,0.04)]">
                 <div className="space-y-4 sm:space-y-5">
                   <p className="text-xs sm:text-sm md:text-lg text-black/45 leading-relaxed">
                     22岁那年，Alice 被确诊心肌炎，医生告诉她需要换心才能存活。她选择了一条更温和的路——让植物陪伴自己。
@@ -309,7 +312,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
 
             {/* 成都 */}
             <div className="group relative">
-              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
+              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2 group-hover:ring-1 group-hover:ring-[#D4AF37]/20">
                 <img decoding="async"
                   src={store('story_store_chengdu')}
                   className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
@@ -329,7 +332,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
 
             {/* 宁波 */}
             <div className="group relative">
-              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
+              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2 group-hover:ring-1 group-hover:ring-[#D4AF37]/20">
                 <img decoding="async"
                   src={store('story_store_ningbo')}
                   className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
@@ -349,7 +352,7 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
 
             {/* 芭提雅 */}
             <div className="group relative">
-              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2">
+              <div className="aspect-[3/4] rounded-2xl sm:rounded-[3rem] overflow-hidden shadow-lg sm:shadow-xl transition-all duration-[1.5s] group-hover:shadow-2xl group-hover:-translate-y-2 group-hover:ring-1 group-hover:ring-[#D4AF37]/20">
                 <img decoding="async"
                   src={store('story_store_pattaya')}
                   className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.5s]"
@@ -394,6 +397,8 @@ const SiteStory: React.FC<SiteStoryProps> = ({ onNavigate }) => {
           </div>
           {/* 暗色遮罩 - 确保文字可读 */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#D75437]/10 via-black/40 to-black/60" />
+          {/* 浮动粒子 —— 终章氛围 */}
+          <FloatingParticles color="212,175,55" density={22000} maxSize={1.8} maxOpacity={0.35} speed={0.2} />
 
           <div className="relative z-10 space-y-10 sm:space-y-14 md:space-y-16 p-12 sm:p-16 md:p-24 text-center">
             <Quote size={56} className="sm:w-20 sm:h-20 mx-auto text-[#D4AF37] opacity-50 sm:opacity-60" />
