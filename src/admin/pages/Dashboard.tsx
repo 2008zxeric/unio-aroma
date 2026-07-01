@@ -96,20 +96,19 @@ export default function AdminDashboard() {
         }
       } catch {}
 
-      // 财务数据
+      // 财务数据（轻量查询：只选必要列，不拉全量表数据）
       let totalSales = 0, totalPurchases = 0, totalOtherIncome = 0, totalOtherExpenses = 0, pendingReimburse = 0;
       try {
-        const [purchases, sales, finances] = await Promise.all([
-          purchaseService.getAll(), salesService.getAll(), financeRecordService.getAll(),
+        const [pStats, sStats, fStats] = await Promise.all([
+          purchaseService.getDashboardStats(),
+          salesService.getDashboardStats(),
+          financeRecordService.getDashboardStats(),
         ]);
-        totalSales = sales.reduce((s: number, r: any) => s + (Number(r.total_amount) || 0), 0);
-        totalPurchases = purchases.reduce((s: number, r: any) => s + (Number(r.total_cost) || (Number(r.unit_cost) || 0) * (Number(r.volume_ml) || 0)), 0);
-        totalOtherIncome = finances.filter((r: any) => r.record_type === 'income' || r.record_type === 'other_income').reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
-        totalOtherExpenses = finances.filter((r: any) => r.record_type !== 'income' && r.record_type !== 'other_income').reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
-        pendingReimburse = [
-          ...purchases.filter((p: any) => !p.reimbursed),
-          ...finances.filter((f: any) => (f.record_type === 'expense' || f.record_type === 'other_expense') && !f.reimbursed),
-        ].length;
+        totalSales = sStats.totalRevenue;
+        totalPurchases = pStats.totalCost;
+        totalOtherIncome = fStats.totalIncome;
+        totalOtherExpenses = fStats.totalExpense;
+        pendingReimburse = pStats.pendingReimburse + fStats.pendingReimburse;
       } catch {}
 
       setFinanceSummary({ totalSales, totalPurchases, totalOtherIncome, totalOtherExpenses, pendingReimburse, totalStockMl, lowStockCount });

@@ -325,6 +325,20 @@ export const purchaseService = {
   create: (record: Partial<PurchaseRecord>) => create<PurchaseRecord>('purchase_records', record),
   update: (id: string, record: Partial<PurchaseRecord>) => update<PurchaseRecord>('purchase_records', id, record),
   delete: (id: string) => remove('purchase_records', id),
+
+  /** Dashboard 专用：只查 3 列算总成本和待报销数，不拉全量 */
+  getDashboardStats: async (): Promise<{ totalCost: number; pendingReimburse: number }> => {
+    const { data, error } = await supabase
+      .from('purchase_records')
+      .select('volume_ml, unit_cost, reimbursed');
+    if (error) throw error;
+    let totalCost = 0, pendingReimburse = 0;
+    for (const r of (data || [])) {
+      totalCost += (Number(r.volume_ml) || 0) * (Number(r.unit_cost) || 0);
+      if (!r.reimbursed) pendingReimburse++;
+    }
+    return { totalCost, pendingReimburse };
+  },
 };
 
 export const salesService = {
@@ -336,6 +350,16 @@ export const salesService = {
   create: (record: Partial<SalesRecord>) => create<SalesRecord>('sales_records', record),
   update: (id: string, record: Partial<SalesRecord>) => update<SalesRecord>('sales_records', id, record),
   delete: (id: string) => remove('sales_records', id),
+
+  /** Dashboard 专用：只查 total_amount 列算总销售额 */
+  getDashboardStats: async (): Promise<{ totalRevenue: number }> => {
+    const { data, error } = await supabase
+      .from('sales_records')
+      .select('total_amount');
+    if (error) throw error;
+    const totalRevenue = (data || []).reduce((s: number, r: any) => s + (Number(r.total_amount) || 0), 0);
+    return { totalRevenue };
+  },
 };
 
 // ============================================
@@ -591,6 +615,27 @@ export const financeRecordService = {
   create: (record: Partial<FinanceRecord>) => create<FinanceRecord>('finance_records', record),
   update: (id: string, record: Partial<FinanceRecord>) => update<FinanceRecord>('finance_records', id, record),
   delete: (id: string) => remove('finance_records', id),
+
+  /** Dashboard 专用：只查 3 列算收支汇总和待报销数 */
+  getDashboardStats: async (): Promise<{
+    totalIncome: number; totalExpense: number; pendingReimburse: number;
+  }> => {
+    const { data, error } = await supabase
+      .from('finance_records')
+      .select('record_type, amount, reimbursed');
+    if (error) throw error;
+    let totalIncome = 0, totalExpense = 0, pendingReimburse = 0;
+    for (const r of (data || [])) {
+      const amt = Number(r.amount) || 0;
+      if (r.record_type === 'income' || r.record_type === 'other_income') {
+        totalIncome += amt;
+      } else {
+        totalExpense += amt;
+        if (!r.reimbursed) pendingReimburse++;
+      }
+    }
+    return { totalIncome, totalExpense, pendingReimburse };
+  },
 };
 
 // ============================================
