@@ -651,8 +651,9 @@ const SiteHome: React.FC<SiteHomeProps> = ({ onNavigate }) => {
             onLoad={() => { setTimeout(() => setHeroReady(true), 600); }}
           />
           <div className={`absolute inset-0 transition-opacity duration-[2000ms] ${heroReady ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="absolute inset-0 bg-[#050505] animate-hero-overlay-breathe" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(212,175,55,0.18),transparent_24%),radial-gradient(circle_at_86%_15%,rgba(196,129,111,0.18),transparent_22%),linear-gradient(180deg,rgba(0,0,0,0.52)_0%,rgba(0,0,0,0.20)_34%,rgba(0,0,0,0.70)_100%)]" />
+            <div className="absolute inset-0 bg-[#050505] animate-hero-overlay-breathe pointer-events-none" />
+            <div className="absolute inset-0 pointer-events-none" 
+              style={{ background: 'radial-gradient(circle at 50% 22%, rgba(212,175,55,0.18), transparent 24%), radial-gradient(circle at 86% 15%, rgba(196,129,111,0.18), transparent 22%)' }} />
           </div>
           {/* 浮动粒子：芳香分子 */}  
           <FloatingParticles color="212,175,55" density={22000} maxSize={1.8} maxOpacity={0.45} speed={0.25} />

@@ -422,15 +422,15 @@ html {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
-/* 呼吸遮罩 — 暗时加厚、亮时减薄，放大对比 */
+/* 呼吸遮罩 — 大幅摆动：暗→亮→暗，亮时几乎透明 */
 @keyframes hero-overlay-breathe {
-  0%   { opacity: 0.64; }
-  30%  { opacity: 0.32; }
-  60%  { opacity: 0.48; }
-  100% { opacity: 0.64; }
+  0%   { opacity: 0.65; }
+  35%  { opacity: 0.20; }
+  70%  { opacity: 0.45; }
+  100% { opacity: 0.65; }
 }
 .animate-hero-overlay-breathe {
-  animation: hero-overlay-breathe 12s ease-in-out infinite;
+  animation: hero-overlay-breathe 10s ease-in-out infinite;
 }
 
 .hero-story-panel {
