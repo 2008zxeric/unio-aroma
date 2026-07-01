@@ -10,7 +10,6 @@ import {
   Receipt, Coins, ShoppingCart, CreditCard, BarChart3, ArrowRight, ClipboardCheck
 } from 'lucide-react';
 import { productService, countryService, bannerService, inventoryService, purchaseService, salesService, reviewService, financeRecordService } from '../../lib/dataService';
-import { supabase } from '../../lib/supabase';
 import type { Product } from '../../lib/database.types';
 import { SERIES_INFO } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
@@ -85,7 +84,6 @@ export default function AdminDashboard() {
       // 库存预警（独立超时）
       let lowStockCount = 0;
       let totalStockMl = 0;
-      let totalSalesFromInventory = 0, totalPurchasesFromInventory = 0;
       const inventoryPromise = inventoryService.getAllSummaries();
       const timeoutPromise = new Promise<'timeout'>((resolve) =>
         setTimeout(() => resolve('timeout'), 5000)
@@ -95,46 +93,23 @@ export default function AdminDashboard() {
         if (result !== 'timeout') {
           lowStockCount = result.filter((s: any) => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
           totalStockMl = result.reduce((s: number, r: any) => s + (Number(r.current_stock_ml) || 0), 0);
-          totalSalesFromInventory = result.reduce((s: number, r: any) => s + (Number(r.total_revenue) || 0), 0);
-          totalPurchasesFromInventory = result.reduce((s: number, r: any) => s + (Number(r.total_cost) || 0), 0);
         }
       } catch {}
 
-      // 财务数据 — 用轻量聚合查询，不拉全量行
-      let totalSales = totalSalesFromInventory;
-      let totalPurchases = totalPurchasesFromInventory;
-      let totalOtherIncome = 0, totalOtherExpenses = 0, pendingReimburse = 0;
+      // 财务数据
+      let totalSales = 0, totalPurchases = 0, totalOtherIncome = 0, totalOtherExpenses = 0, pendingReimburse = 0;
       try {
-        // 并行请求：收支汇总 + 待报销计数（只查 count，不拉数据行）
-        const [
-          finIncomeRes, finExpenseRes,
-          purUnreimbRes, finUnreimbRes,
-        ] = await Promise.all([
-          // 其他收入总额 — 用 Supabase 聚合（只返回数字）
-          supabase.from('finance_records')
-            .select('amount', { count: 'exact', head: false })
-            .in('record_type', ['income', 'other_income'])
-            .then(({ data }) => ({ total: (data || []).reduce((s, r) => s + (Number(r.amount) || 0), 0) })),
-          // 其他支出总额
-          supabase.from('finance_records')
-            .select('amount', { count: 'exact', head: false })
-            .not('record_type', 'in', '("income","other_income")')
-            .then(({ data }) => ({ total: (data || []).reduce((s, r) => s + (Number(r.amount) || 0), 0) })),
-          // 进货待报销数 — head:true 只返回 count，零数据行
-          supabase.from('purchase_records')
-            .select('id', { count: 'exact', head: true })
-            .eq('reimbursed', false)
-            .then(({ count }) => count || 0),
-          // 支出待报销数
-          supabase.from('finance_records')
-            .select('id', { count: 'exact', head: true })
-            .in('record_type', ['expense', 'other_expense'])
-            .eq('reimbursed', false)
-            .then(({ count }) => count || 0),
+        const [purchases, sales, finances] = await Promise.all([
+          purchaseService.getAll(), salesService.getAll(), financeRecordService.getAll(),
         ]);
-        totalOtherIncome = finIncomeRes.total;
-        totalOtherExpenses = finExpenseRes.total;
-        pendingReimburse = purUnreimbRes + finUnreimbRes;
+        totalSales = sales.reduce((s: number, r: any) => s + (Number(r.total_amount) || 0), 0);
+        totalPurchases = purchases.reduce((s: number, r: any) => s + (Number(r.total_cost) || (Number(r.unit_cost) || 0) * (Number(r.volume_ml) || 0)), 0);
+        totalOtherIncome = finances.filter((r: any) => r.record_type === 'income' || r.record_type === 'other_income').reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+        totalOtherExpenses = finances.filter((r: any) => r.record_type !== 'income' && r.record_type !== 'other_income').reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+        pendingReimburse = [
+          ...purchases.filter((p: any) => !p.reimbursed),
+          ...finances.filter((f: any) => (f.record_type === 'expense' || f.record_type === 'other_expense') && !f.reimbursed),
+        ].length;
       } catch {}
 
       setFinanceSummary({ totalSales, totalPurchases, totalOtherIncome, totalOtherExpenses, pendingReimburse, totalStockMl, lowStockCount });
