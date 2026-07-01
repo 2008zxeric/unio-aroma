@@ -594,7 +594,7 @@ const SiteCollections: React.FC<SiteCollectionsProps> = ({ initialSeries, onNavi
             ) : (
               groups.map(({ category, label, items }) => (
                 <section key={category} className="space-y-4 sm:space-y-20">
-                  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-12 lg:gap-20">
+                  <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-12 lg:gap-20">
                     <CategoryHeaderCard category={category} label={label} theme={theme} />
                     {items.map((item, idx) => (
                       <ProductCard
