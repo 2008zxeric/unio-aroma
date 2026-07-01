@@ -142,9 +142,12 @@ export default function AdminDashboard() {
   }, []);
 
   // 快速操作框 — 搜索产品
+  // composingRef 仅用于展示控制（组字时不刷列表），不阻塞 onChange
   const composingRef = useRef(false);
   const filteredQuickProds = useMemo(() => {
     if (!quickKeyword) return allProducts.slice(0, 10);
+    // 组字期间不触发过滤，避免中间拼音结果闪烁
+    if (composingRef.current) return allProducts.slice(0, 10);
     return allProducts.filter(p => matchProduct(p, quickKeyword)).slice(0, 8);
   }, [allProducts, quickKeyword]);
 
@@ -301,9 +304,9 @@ export default function AdminDashboard() {
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
                     <input
                       value={quickKeyword}
-                      onChange={(e) => { if (!composingRef.current) setQuickKeyword(e.target.value); }}
+                      onChange={(e) => setQuickKeyword(e.target.value)}
                       onCompositionStart={() => { composingRef.current = true; }}
-                      onCompositionEnd={(e) => { composingRef.current = false; setQuickKeyword(e.currentTarget.value); }}
+                      onCompositionEnd={() => { composingRef.current = false; }}
                       placeholder="搜索产品名称或代码..."
                       className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] outline-none focus:border-[color] touch-btn"
                       autoFocus
