@@ -525,6 +525,74 @@ const SiteApp: React.FC = () => {
         </Suspense>
       </main>
 
+      {/* ===== 统一 Footer：公司名 + 联系入口（所有频道） ===== */}
+      {!['product', 'destination'].includes(view) && (
+        <footer className="relative z-10 bg-[#F5F3ED] border-t border-[#D4AF37]/15">
+          <div className="max-w-[2560px] mx-auto px-6 sm:px-16 py-8 sm:py-12">
+            {/* 金色饰线 */}
+            <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent max-w-[120px]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/30" />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent max-w-[120px]" />
+            </div>
+
+            {/* 公司名 */}
+            <p className="text-center text-[11px] sm:text-sm font-medium tracking-[0.15em] text-[#141210]/60 mb-6 sm:mb-8">
+              元合生香生物科技有限公司
+            </p>
+
+            {/* 三个入口图标 */}
+            <div className="flex items-center justify-center gap-4 sm:gap-8">
+              {/* 微信客服 */}
+              <button
+                onClick={() => { setShowWechatQR(true); setWechatTab('service'); }}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/80 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] group-hover:bg-[#D4AF37] group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md">
+                  <MessageCircle size={17} />
+                </div>
+                <span className="text-[9px] sm:text-[10px] tracking-widest text-[#141210]/40 group-hover:text-[#D4AF37] transition-colors font-medium">
+                  微信客服
+                </span>
+              </button>
+
+              {/* 小红书 */}
+              <a
+                href="https://xhslink.com/m/AcZDZuYhsVd"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/80 border border-[#D75437]/20 flex items-center justify-center text-[#D75437] group-hover:bg-[#D75437] group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md">
+                  <Share2 size={17} />
+                </div>
+                <span className="text-[9px] sm:text-[10px] tracking-widest text-[#141210]/40 group-hover:text-[#D75437] transition-colors font-medium">
+                  小红书
+                </span>
+              </a>
+
+              {/* 公众号 */}
+              <button
+                onClick={() => { setShowWechatQR(true); setWechatTab('pub'); }}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/80 border border-[#1AAD19]/20 flex items-center justify-center text-[#1AAD19] group-hover:bg-[#1AAD19] group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-md">
+                  <QrCode size={17} />
+                </div>
+                <span className="text-[9px] sm:text-[10px] tracking-widest text-[#141210]/40 group-hover:text-[#1AAD19] transition-colors font-medium">
+                  公众号
+                </span>
+              </button>
+            </div>
+
+            {/* 版权 */
+            <p className="text-center text-[9px] sm:text-[10px] text-[#141210]/25 tracking-wider mt-7 sm:mt-9">
+              © 2026 元合生香 · UNIO AROMA
+            </p>
+          </div>
+        </footer>
+      )}
+
       {/* ===== 右侧浮动按钮组（桌面端）===== */}
       {!hideBottomNav && (
       <div className="hidden sm:flex fixed right-7 sm:right-8 top-1/2 -translate-y-1/2 z-[998] flex-col items-center gap-2.5">
