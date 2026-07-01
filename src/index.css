@@ -409,28 +409,28 @@ html {
   animation-delay: var(--wisp-delay, 0s);
 }
 
-/* Hero 呼吸明暗轮回 — 增强版 v4 */
+/* Hero 呼吸明暗轮回 — 增强版 v5：暗→明→暗 大摆幅 */
 @keyframes hero-breathe-glow {
-  0%   { filter: brightness(0.55) contrast(1.10) saturate(0.88); transform: scale(1.012) translate3d(0, 0.8%, 0); }
-  35%  { filter: brightness(0.88) contrast(1.02) saturate(1.05); transform: scale(1.035) translate3d(0, -0.6%, 0); }
-  65%  { filter: brightness(0.72) contrast(1.06) saturate(0.95); transform: scale(1.02) translate3d(0, 0.3%, 0); }
-  100% { filter: brightness(0.55) contrast(1.10) saturate(0.88); transform: scale(1.012) translate3d(0, 0.8%, 0); }
+  0%   { filter: brightness(0.42) contrast(1.12) saturate(0.82); transform: scale(1.01) translate3d(0, 1.0%, 0); }
+  30%  { filter: brightness(1.02) contrast(0.98) saturate(1.08); transform: scale(1.04) translate3d(0, -0.8%, 0); }
+  60%  { filter: brightness(0.65) contrast(1.05) saturate(0.92); transform: scale(1.02) translate3d(0, 0.4%, 0); }
+  100% { filter: brightness(0.42) contrast(1.12) saturate(0.82); transform: scale(1.01) translate3d(0, 1.0%, 0); }
 }
 .animate-hero-breathe-glow {
-  animation: hero-breathe-glow 10s ease-in-out infinite;
+  animation: hero-breathe-glow 12s ease-in-out infinite;
   will-change: filter;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
-/* 呼吸遮罩 — 与背景图同步明暗 */
+/* 呼吸遮罩 — 暗时加厚、亮时减薄，放大对比 */
 @keyframes hero-overlay-breathe {
-  0%   { opacity: 0.58; }
-  35%  { opacity: 0.42; }
-  65%  { opacity: 0.50; }
-  100% { opacity: 0.58; }
+  0%   { opacity: 0.64; }
+  30%  { opacity: 0.32; }
+  60%  { opacity: 0.48; }
+  100% { opacity: 0.64; }
 }
 .animate-hero-overlay-breathe {
-  animation: hero-overlay-breathe 10s ease-in-out infinite;
+  animation: hero-overlay-breathe 12s ease-in-out infinite;
 }
 
 .hero-story-panel {
