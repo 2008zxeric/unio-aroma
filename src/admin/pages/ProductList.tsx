@@ -289,7 +289,7 @@ export default function AdminProducts() {
 
       // 🎯 核心：产品列表（独立加载）
       try {
-        const productsData = await productService.getAll();
+        const productsData = await productService.getAllFull();
         setProducts(productsData);
       } catch (pErr) {
         console.error('产品加载失败:', pErr);

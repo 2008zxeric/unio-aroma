@@ -184,8 +184,22 @@ export const productService = {
     return transformProducts(data || []);
   },
 
-  // 后台用：全部产品（含下架）
+  // 后台用：全部产品（含下架）— 轻量版（仅取仪表盘/库存管理需要的列，跳过 description/narrative 等大文本）
   getAll: async (): Promise<Product[]> => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, code, name_cn, name_en, image_url, is_active, series_id, sort_order, series(code, name_cn), price_10ml, price_30ml, price_50ml, price_100ml, price_piece, price_5ml, price_15ml, category, supplier_code, element, short_desc')
+      .order('sort_order');
+    if (error) throw error;
+    return (data || []).map(row => ({
+      ...row,
+      series_code: row.series?.code || undefined,
+      series: row.series || undefined,
+    }));
+  },
+
+  // 全量版（含 description/narrative 等大文本）— 仅产品编辑/详情页使用
+  getAllFull: async (): Promise<Product[]> => {
     const { data, error } = await supabase
       .from('products')
       .select('*, series(*)')   // ⚠️ country_id 已废弃，不再 join countries
@@ -484,7 +498,17 @@ export const dictService = {
 // ============================================
 
 export const userService = {
-  getAll: () => getAll<AdminUser>('admin_users', { orderBy: { column: 'created_at', ascending: false } }),
+  _cache: null as { data: AdminUser[]; ts: number } | null,
+  getAll: async () => {
+    // 5 分钟内存缓存 — InventoryManage 多个 Tab 重复调用时可复用
+    const now = Date.now();
+    if (userService._cache && (now - userService._cache.ts) < 5 * 60 * 1000) {
+      return userService._cache.data;
+    }
+    const data = await getAll<AdminUser>('admin_users', { orderBy: { column: 'created_at', ascending: false } });
+    userService._cache = { data, ts: now };
+    return data;
+  },
   getById: (id: string) => getById<AdminUser>('admin_users', id),
   create: (record: Partial<AdminUser>) => create<AdminUser>('admin_users', record),
   update: (id: string, record: Partial<AdminUser>) => update<AdminUser>('admin_users', id, record),
