@@ -200,7 +200,7 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F5F3ED]">
         <div className="text-center space-y-4">
           <div className="w-14 h-14 mx-auto border-4 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin" />
           <p className="text-[#2C3E28]/40 text-xs tracking-widest">正在加载寻香坐标...</p>
@@ -215,7 +215,7 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
   return (
     <div
       ref={mapRef}
-      className="min-h-screen bg-[#FAF9F6] selection:bg-[#D75437] selection:text-white"
+      className="min-h-screen bg-[#F5F3ED] selection:bg-[#D75437] selection:text-white"
     >
       <div className="max-w-[1600px] mx-auto">
 
@@ -226,9 +226,9 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
               <Globe size={14} />
               <span className="text-[9px] tracking-[0.6em] font-extrabold uppercase opacity-40">The Global Archive</span>
             </div>
-            <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-black/90 leading-none">
+            <h2 className="text-5xl md:text-[7rem] font-bold tracking-tight text-[#1A1A1A] leading-none">
               <BlurText text="寻香" staggerMs={55} blurAmount={14} translateY={45} durationMs={800} />
-              <span className="text-black/8">坐标</span>
+              <span className="text-black/10">坐标</span>
             </h2>
           </div>
           <div className="flex items-end gap-8">
@@ -382,7 +382,7 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
         </section>
 
         {/* ===== 大洲筛选标签 ===== */}
-        <nav className="sticky top-20 z-40 bg-[#FAF9F6]/90 backdrop-blur-xl border-b border-black/5 mx-4 md:mx-10 rounded-b-2xl relative overflow-hidden">
+        <nav className="sticky top-20 z-40 mx-4 md:mx-10 rounded-2xl overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.12),0_0_0_1px_rgba(212,175,55,0.06)]" style={{ background: "rgba(20,18,16,0.92)", backdropFilter: "blur(24px)" }}>
           <FloatingParticles color="180,180,160" density={35000} maxSize={1.2} maxOpacity={0.25} speed={0.15} />
           <div className="flex items-center gap-1 overflow-x-auto py-4 px-2">
             {/* 全部 */}
@@ -501,8 +501,8 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
                     }}
                     className={`group cursor-pointer rounded-2xl md:rounded-[1.5rem] overflow-hidden border transition-all duration-500 bg-white ${
                       isHighlighted
-                        ? 'border-[#D4AF37]/40 -translate-y-1 shadow-lg shadow-[#D4AF37]/10'
-                        : 'border-black/5 hover:-translate-y-1.5 hover:shadow-xl'
+                        ? 'border-[#D4AF37]/30 -translate-y-1 shadow-[0_8px_40px_rgba(212,175,55,0.12),0_0_0_1px_rgba(212,175,55,0.15)]'
+                        : 'border-black/[0.04] hover:-translate-y-1.5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08),0_0_0_1px_rgba(212,175,55,0.08)]'
                     }`}
                     style={{
                       animation: `fadeInUp 0.4s ease ${Math.min(idx, 20) * 30}ms both`,
@@ -589,14 +589,14 @@ export default function SiteAtlas({ onNavigate }: SiteAtlasProps) {
         </section>
 
         {/* Footer */}
-        <footer className="py-32 text-center space-y-8 border-t border-black/5 mx-4 md:mx-10">
+        <footer className="py-32 text-center space-y-8 border-t border-[#D4AF37]/8 mx-4 md:mx-10">
           <div className="space-y-3">
-            <h5 className="text-3xl md:text-5xl font-bold text-black/8">元于一息</h5>
+            <h5 className="text-3xl md:text-5xl font-bold text-[#D4AF37]/30 tracking-wider">元于一息</h5>
             <p className="text-[9px] md:text-xs text-black/25 tracking-[0.4em] uppercase font-bold">Origin · Sanctuary · Breath</p>
           </div>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-[9px] tracking-[0.6em] font-extrabold text-[#D75437] uppercase border-b border-transparent hover:border-[#D75437] transition-all pb-0.5"
+            className="text-[9px] tracking-[0.5em] font-bold text-black/25 uppercase hover:text-[#D4AF37] transition-all pb-1 border-b border-transparent hover:border-[#D4AF37]/30"
           >
             回到原点
           </button>
