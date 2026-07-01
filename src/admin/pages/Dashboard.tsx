@@ -62,143 +62,72 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setLoadError(null);
-      const [products, countries, banners] = await Promise.all([
+
+      // === 快速查询（并行，不阻塞） ===
+      const [products, countries, banners, reviewResult, pStats, sStats, fStats] = await Promise.all([
         productService.getAll(),
         countryService.getAll(),
         bannerService.getAll(),
+        reviewService.getAll().catch(() => ({ data: [], total: 0 })),
+        purchaseService.getDashboardStats(),
+        salesService.getDashboardStats(),
+        financeRecordService.getDashboardStats(),
       ]);
       setAllProducts(products);
 
       const activeProducts = products.filter(p => p.is_active).length;
       const activeCountries = countries.filter(c => c.is_active).length;
+      const totalReviews = reviewResult.total;
+      const pendingReviews = (reviewResult.data || []).filter((r: any) => !r.is_approved).length;
 
-      // 评价统计
-      let pendingReviews = 0;
-      let totalReviews = 0;
-      try {
-        const result = await reviewService.getAll();
-        totalReviews = result.total;
-        pendingReviews = result.data.filter((r: any) => !r.is_approved).length;
-      } catch {}
+      const totalSales = sStats.totalRevenue;
+      const totalPurchases = pStats.totalCost;
+      const totalOtherIncome = fStats.totalIncome;
+      const totalOtherExpenses = fStats.totalExpense;
+      const pendingReimburse = pStats.pendingReimburse + fStats.pendingReimburse;
 
-      // 库存预警（独立超时）
-      let lowStockCount = 0;
-      let totalStockMl = 0;
-      const inventoryPromise = inventoryService.getAllSummaries();
-      const timeoutPromise = new Promise<'timeout'>((resolve) =>
-        setTimeout(() => resolve('timeout'), 5000)
-      );
-      try {
-        const result = await Promise.race([inventoryPromise, timeoutPromise]);
-        if (result !== 'timeout') {
-          lowStockCount = result.filter((s: any) => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
-          totalStockMl = result.reduce((s: number, r: any) => s + (Number(r.current_stock_ml) || 0), 0);
-        }
-      } catch {}
-
-      // 财务数据（轻量查询：只选必要列，不拉全量表数据）
-      let totalSales = 0, totalPurchases = 0, totalOtherIncome = 0, totalOtherExpenses = 0, pendingReimburse = 0;
-      try {
-        const [pStats, sStats, fStats] = await Promise.all([
-          purchaseService.getDashboardStats(),
-          salesService.getDashboardStats(),
-          financeRecordService.getDashboardStats(),
-        ]);
-        totalSales = sStats.totalRevenue;
-        totalPurchases = pStats.totalCost;
-        totalOtherIncome = fStats.totalIncome;
-        totalOtherExpenses = fStats.totalExpense;
-        pendingReimburse = pStats.pendingReimburse + fStats.pendingReimburse;
-      } catch {}
-
-      setFinanceSummary({ totalSales, totalPurchases, totalOtherIncome, totalOtherExpenses, pendingReimburse, totalStockMl, lowStockCount });
+      // 先渲染（库存显示"加载中"）
+      setFinanceSummary({ totalSales, totalPurchases, totalOtherIncome, totalOtherExpenses, pendingReimburse, totalStockMl: -1, lowStockCount: -1 });
 
       const totalRevenue = totalSales + totalOtherIncome;
       const totalExpense = totalPurchases + totalOtherExpenses;
 
       setStats([
-        {
-          title: '总产品数',
-          value: products.length,
-          icon: Package,
-          color: '#4A7C59',
-          bgColor: 'rgba(74,124,89,0.12)',
-          trend: { value: `${activeProducts} 上架`, up: true },
-          linkTo: '/admin/products',
-        },
-        {
-          title: '国家/地区',
-          value: countries.length,
-          icon: Globe,
-          color: '#1C39BB',
-          bgColor: 'rgba(28,57,187,0.1)',
-          trend: { value: `${activeCountries} 激活`, up: true },
-          linkTo: '/admin/countries',
-        },
-        {
-          title: '评价审核',
-          value: `${pendingReviews} 待审`,
-          icon: MessageSquare,
-          color: '#D4AF37',
-          bgColor: 'rgba(212,175,55,0.12)',
-          trend: { value: `共 ${totalReviews} 条`, up: true },
-          linkTo: '/admin/reviews',
-        },
-        {
-          title: '库存预警',
-          value: lowStockCount,
-          icon: AlertCircle,
-          color: '#E85D3B',
-          bgColor: 'rgba(232,93,59,0.1)',
-          trend: lowStockCount > 0 ? { value: `${lowStockCount} 个产品`, up: false } : undefined,
-          linkTo: '/admin/inventory?tab=overview',
-        },
-        {
-          title: '海报/Banner',
-          value: banners.length,
-          icon: ImageIcon,
-          color: '#7BA689',
-          bgColor: 'rgba(123,166,137,0.15)',
-          linkTo: '/admin/banners',
-        },
-        {
-          title: '总收入',
-          value: `¥${totalRevenue.toLocaleString()}`,
-          icon: TrendingUp,
-          color: '#059669',
-          bgColor: 'rgba(5,150,105,0.1)',
-          trend: { value: `销售 ¥${totalSales.toLocaleString()}`, up: true },
-          badge: '点击看明细',
-        },
-        {
-          title: '总费用',
-          value: `¥${totalExpense.toLocaleString()}`,
-          icon: TrendingDown,
-          color: '#DC2626',
-          bgColor: 'rgba(220,38,38,0.08)',
-          trend: { value: `进货 ¥${totalPurchases.toLocaleString()}`, up: false },
-          badge: '点击看明细',
-        },
-        {
-          title: '剩余库存',
-          value: `${totalStockMl}ml`,
-          icon: Warehouse,
-          color: '#6366F1',
-          bgColor: 'rgba(99,102,241,0.1)',
-          trend: { value: `${lowStockCount} 低库存`, up: lowStockCount === 0 },
-        },
-        {
-          title: '待报销',
-          value: pendingReimburse,
-          icon: Receipt,
-          color: '#F59E0B',
-          bgColor: 'rgba(245,158,11,0.12)',
-          trend: pendingReimburse > 0 ? { value: `${pendingReimburse} 条记录`, up: false } : { value: '全部完成 ✓', up: true },
-          linkTo: '/admin/inventory?tab=reimburse',
-        },
+        { title: '总产品数', value: products.length, icon: Package, color: '#4A7C59', bgColor: 'rgba(74,124,89,0.12)', trend: { value: `${activeProducts} 上架`, up: true }, linkTo: '/admin/products' },
+        { title: '国家/地区', value: countries.length, icon: Globe, color: '#1C39BB', bgColor: 'rgba(28,57,187,0.1)', trend: { value: `${activeCountries} 激活`, up: true }, linkTo: '/admin/countries' },
+        { title: '评价审核', value: `${pendingReviews} 待审`, icon: MessageSquare, color: '#D4AF37', bgColor: 'rgba(212,175,55,0.12)', trend: { value: `共 ${totalReviews} 条`, up: true }, linkTo: '/admin/reviews' },
+        { title: '库存预警', value: '加载中…', icon: AlertCircle, color: '#E85D3B', bgColor: 'rgba(232,93,59,0.1)', linkTo: '/admin/inventory?tab=overview' },
+        { title: '海报/Banner', value: banners.length, icon: ImageIcon, color: '#7BA689', bgColor: 'rgba(123,166,137,0.15)', linkTo: '/admin/banners' },
+        { title: '总收入', value: `¥${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: '#059669', bgColor: 'rgba(5,150,105,0.1)', trend: { value: `销售 ¥${totalSales.toLocaleString()}`, up: true }, badge: '点击看明细' },
+        { title: '总费用', value: `¥${totalExpense.toLocaleString()}`, icon: TrendingDown, color: '#DC2626', bgColor: 'rgba(220,38,38,0.08)', trend: { value: `进货 ¥${totalPurchases.toLocaleString()}`, up: false }, badge: '点击看明细' },
+        { title: '剩余库存', value: '加载中…', icon: Warehouse, color: '#6366F1', bgColor: 'rgba(99,102,241,0.1)' },
+        { title: '待报销', value: pendingReimburse, icon: Receipt, color: '#F59E0B', bgColor: 'rgba(245,158,11,0.12)', trend: pendingReimburse > 0 ? { value: `${pendingReimburse} 条记录`, up: false } : { value: '全部完成 ✓', up: true }, linkTo: '/admin/inventory?tab=reimburse' },
       ]);
 
       setRecentProducts(products.slice(-5).reverse());
+      setLoading(false);
+
+      // === 后台异步：库存数据（慢查询不阻塞页面渲染） ===
+      inventoryService.getAllSummaries()
+        .then(result => {
+          const lowStockCount = result.filter((s: any) => s.current_stock_ml > 0 && s.current_stock_ml < 10).length;
+          const totalStockMl = result.reduce((s: number, r: any) => s + (Number(r.current_stock_ml) || 0), 0);
+          setFinanceSummary(prev => ({ ...prev, totalStockMl, lowStockCount }));
+          setStats(prev => prev.map(stat => {
+            if (stat.title === '库存预警') return {
+              ...stat, value: lowStockCount,
+              trend: lowStockCount > 0 ? { value: `${lowStockCount} 个产品`, up: false } : undefined,
+            };
+            if (stat.title === '剩余库存') return {
+              ...stat, value: `${totalStockMl}ml`,
+              trend: { value: `${lowStockCount} 低库存`, up: lowStockCount === 0 },
+            };
+            return stat;
+          }));
+        })
+        .catch(() => {
+          setFinanceSummary(prev => ({ ...prev, totalStockMl: 0, lowStockCount: 0 }));
+        });
     } catch (err) {
       console.error('加载仪表盘数据失败:', err);
       setLoadError((err as Error).message || '加载失败');
