@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../components/Toast';
 import {
@@ -58,6 +58,8 @@ export default function AdminDashboard() {
   const [quickSupplier, setQuickSupplier] = useState('');
   const [quickLoading, setQuickLoading] = useState(false);
   const [quickKeyword, setQuickKeyword] = useState('');
+  // 组字状态（useState 会触发重渲染 → useMemo 能正确响应）
+  const [isComposing, setIsComposing] = useState(false);
 
   const loadStats = async () => {
     try {
@@ -142,14 +144,12 @@ export default function AdminDashboard() {
   }, []);
 
   // 快速操作框 — 搜索产品
-  // composingRef 仅用于展示控制（组字时不刷列表），不阻塞 onChange
-  const composingRef = useRef(false);
+  // isComposing 为 true 时不触发拼音过滤（避免 IME 中间态干扰）
   const filteredQuickProds = useMemo(() => {
     if (!quickKeyword) return allProducts.slice(0, 10);
-    // 组字期间不触发过滤，避免中间拼音结果闪烁
-    if (composingRef.current) return allProducts.slice(0, 10);
+    if (isComposing) return allProducts.slice(0, 10);
     return allProducts.filter(p => matchProduct(p, quickKeyword)).slice(0, 8);
-  }, [allProducts, quickKeyword]);
+  }, [allProducts, quickKeyword, isComposing]);
 
   const selectQuickProduct = (p: Product) => {
     setQuickProductId(p.id);
@@ -305,8 +305,8 @@ export default function AdminDashboard() {
                     <input
                       value={quickKeyword}
                       onChange={(e) => setQuickKeyword(e.target.value)}
-                      onCompositionStart={() => { composingRef.current = true; }}
-                      onCompositionEnd={() => { composingRef.current = false; }}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={(e) => { setIsComposing(false); setQuickKeyword(e.currentTarget.value); }}
                       placeholder="搜索产品名称或代码..."
                       className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAF8] border border-[#D5E2D5] rounded-lg text-sm text-[#1A2E1A] placeholder:text-[#9AAA9A] outline-none focus:border-[color] touch-btn"
                       autoFocus

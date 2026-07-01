@@ -372,16 +372,17 @@ export default function AdminInventory() {
   // 产品搜索文字（进/销表单）
   const [purSearchText, setPurSearchText] = useState('');
   const [salSearchText, setSalSearchText] = useState('');
-  const purComposingRef = useRef(false);
-  const salComposingRef = useRef(false);
+  // 组字状态（useState 触发重渲染 → useMemo 正确响应）
+  const [purComposing, setPurComposing] = useState(false);
+  const [salComposing, setSalComposing] = useState(false);
 
   // 拼音模糊搜索缓存（避免 JSX 中重复 filter）
   const filteredPurProducts = useMemo(
-    () => purSearchText && !purComposingRef.current ? products.filter(p => p.is_active !== false && matchProduct(p, purSearchText)) : [],
+    () => purSearchText && !purComposing ? products.filter(p => p.is_active !== false && matchProduct(p, purSearchText)) : [],
     [products, purSearchText]
   );
   const filteredSalProducts = useMemo(
-    () => salSearchText && !salComposingRef.current ? products.filter(p => p.is_active !== false && matchProduct(p, salSearchText)) : [],
+    () => salSearchText && !salComposing ? products.filter(p => p.is_active !== false && matchProduct(p, salSearchText)) : [],
     [products, salSearchText]
   );
 
@@ -1593,7 +1594,7 @@ export default function AdminInventory() {
                     ) : (
                       <>
                         <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
-                        <input type="text" value={purSearchText} onChange={(e) => setPurSearchText(e.target.value)} onCompositionStart={() => { purComposingRef.current = true; }} onCompositionEnd={() => { purComposingRef.current = false; }} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
+                        <input type="text" value={purSearchText} onChange={(e) => setPurSearchText(e.target.value)} onCompositionStart={() => setPurComposing(true)} onCompositionEnd={(e) => { setPurComposing(false); setPurSearchText(e.currentTarget.value); }} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
                         {purSearchText && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
                             {filteredPurProducts.map(p => (
@@ -1874,7 +1875,7 @@ export default function AdminInventory() {
                     ) : (
                       <>
                         <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9AAA9A]" />
-                        <input type="text" value={salSearchText} onChange={(e) => setSalSearchText(e.target.value)} onCompositionStart={() => { salComposingRef.current = true; }} onCompositionEnd={() => { salComposingRef.current = false; }} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
+                        <input type="text" value={salSearchText} onChange={(e) => setSalSearchText(e.target.value)} onCompositionStart={() => setSalComposing(true)} onCompositionEnd={(e) => { setSalComposing(false); setSalSearchText(e.currentTarget.value); }} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
                         {salSearchText && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
                             {filteredSalProducts.map(p => (
