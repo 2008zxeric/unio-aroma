@@ -15,6 +15,7 @@ import { SERIES_INFO, SUB_CATEGORY_LABELS } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { Perm } from '../components/PermissionGuard';
 import ComboBoxInput from '../components/ComboBoxInput';
+import { matchProduct } from '../../lib/searchUtils';
 
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from '../components/Toast';
@@ -373,6 +374,16 @@ export default function AdminInventory() {
   const [salSearchText, setSalSearchText] = useState('');
   const purComposingRef = useRef(false);
   const salComposingRef = useRef(false);
+
+  // 拼音模糊搜索缓存（避免 JSX 中重复 filter）
+  const filteredPurProducts = useMemo(
+    () => purSearchText ? products.filter(p => p.is_active !== false && matchProduct(p, purSearchText)) : [],
+    [products, purSearchText]
+  );
+  const filteredSalProducts = useMemo(
+    () => salSearchText ? products.filter(p => p.is_active !== false && matchProduct(p, salSearchText)) : [],
+    [products, salSearchText]
+  );
 
   // 批量搜索文字
   const [bpSearchText, setBpSearchText] = useState('');
@@ -1585,13 +1596,13 @@ export default function AdminInventory() {
                         <input type="text" value={purSearchText} onChange={(e) => { if (!purComposingRef.current) setPurSearchText(e.target.value); }} onCompositionStart={() => { purComposingRef.current = true; }} onCompositionEnd={(e) => { purComposingRef.current = false; setPurSearchText(e.currentTarget.value); }} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
                         {purSearchText && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).map(p => (
+                            {filteredPurProducts.map(p => (
                               <div key={p.id} onClick={() => { setPurchaseForm(f => ({ ...f, product_id: p.id })); setPurSearchText(''); }} className="px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF]">
                                 <span className="text-[#1A2E1A]">{p.name_cn}</span>
                                 <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
                               </div>
                             ))}
-                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(purSearchText.toLowerCase())).length === 0 && (
+                            {filteredPurProducts.length === 0 && (
                               <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
                             )}
                           </div>
@@ -1866,13 +1877,13 @@ export default function AdminInventory() {
                         <input type="text" value={salSearchText} onChange={(e) => { if (!salComposingRef.current) setSalSearchText(e.target.value); }} onCompositionStart={() => { salComposingRef.current = true; }} onCompositionEnd={(e) => { salComposingRef.current = false; setSalSearchText(e.currentTarget.value); }} placeholder="输入产品名称搜索..." className={`${inputCls} pl-8`} />
                         {salSearchText && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E0ECE0] rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).map(p => (
+                            {filteredSalProducts.map(p => (
                               <div key={p.id} onClick={() => { setSaleForm(f => ({ ...f, product_id: p.id })); setSalSearchText(''); }} className="px-3 py-2 text-sm cursor-pointer hover:bg-[#EEF4EF]">
                                 <span className="text-[#1A2E1A]">{p.name_cn}</span>
                                 <span className="text-[10px] text-[#8AA08A] ml-2">{SERIES_INFO[p.series_code as SeriesCode]?.name_cn || ''}</span>
                               </div>
                             ))}
-                            {products.filter(p => p.is_active !== false && p.name_cn.toLowerCase().includes(salSearchText.toLowerCase())).length === 0 && (
+                            {filteredSalProducts.length === 0 && (
                               <div className="px-3 py-3 text-xs text-[#9AAA9A] text-center">未找到匹配产品</div>
                             )}
                           </div>

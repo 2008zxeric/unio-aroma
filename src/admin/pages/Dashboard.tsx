@@ -14,6 +14,7 @@ import type { Product } from '../../lib/database.types';
 import { SERIES_INFO } from '../../lib/database.types';
 import type { SeriesCode } from '../../lib/database.types';
 import { isPieceUnit, parseSizeToMl, INBOUND_SIZES_ML, INBOUND_SIZES_PIECE, SALES_SIZES_ML, SALES_SIZES_PIECE, getReferencePrice } from '../lib/specUtils';
+import { matchProduct } from '../../lib/searchUtils';
 
 interface StatCard {
   title: string;
@@ -144,12 +145,7 @@ export default function AdminDashboard() {
   const composingRef = useRef(false);
   const filteredQuickProds = useMemo(() => {
     if (!quickKeyword) return allProducts.slice(0, 10);
-    const kw = quickKeyword.toLowerCase();
-    return allProducts.filter(p =>
-      p.name_cn?.toLowerCase().includes(kw) ||
-      p.name_en?.toLowerCase().includes(kw) ||
-      p.code?.toLowerCase().includes(kw)
-    ).slice(0, 8);
+    return allProducts.filter(p => matchProduct(p, quickKeyword)).slice(0, 8);
   }, [allProducts, quickKeyword]);
 
   const selectQuickProduct = (p: Product) => {
