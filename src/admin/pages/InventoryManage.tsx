@@ -275,13 +275,20 @@ export default function AdminInventory() {
   const [financeCsvDate, setFinanceCsvDate] = useState(new Date().toISOString().split('T')[0]);
   const [financeCsvImporting, setFinanceCsvImporting] = useState(false);
   // 看板汇总（从 financeRecords 实时计算，不依赖 state）
-  const totalOtherIncome = useMemo(() => 
-    financeRecords.filter(r => r.record_type === 'income').reduce((s, r) => s + Number(r.amount || 0), 0),
-  [financeRecords]);
+  // 优先使用轻量查询结果（Dashboard stats），没有则用 financeRecords
+  const [financeDashboardStats, setFinanceDashboardStats] = useState<{
+    totalIncome: number; totalExpense: number; pendingReimburse: number;
+  } | null>(null);
 
-  const totalOtherExpense = useMemo(() => 
-    financeRecords.filter(r => r.record_type !== 'income').reduce((s, r) => s + Number(r.amount || 0), 0),
-  [financeRecords]);
+  const totalOtherIncome = useMemo(() => {
+    if (financeDashboardStats) return financeDashboardStats.totalIncome;
+    return financeRecords.filter(r => r.record_type === 'income').reduce((s, r) => s + Number(r.amount || 0), 0);
+  }, [financeRecords, financeDashboardStats]);
+
+  const totalOtherExpense = useMemo(() => {
+    if (financeDashboardStats) return financeDashboardStats.totalExpense;
+    return financeRecords.filter(r => r.record_type !== 'income').reduce((s, r) => s + Number(r.amount || 0), 0);
+  }, [financeRecords, financeDashboardStats]);
 
   // 其他收支筛选后的数据
   const filteredFinanceRecords = useMemo(() => {
@@ -391,21 +398,30 @@ export default function AdminInventory() {
       }
       setLoading(true);
       const promises: Promise<any>[] = [];
+      const isFirstLoad = loadedTabsRef.current.size === 0;
       
-      // 强制的全量刷新：CRUD 后需要刷新 summaries（看板数据）
+      // CRUD 操作后强制刷新：在后台更新 summaries，并清除概览缓存让下次访问重新加载
       if (force && currentTab !== 'overview') {
-        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+        inventoryService.getAllSummaries().then(d => setSummaries(d)).catch(() => {});
+        loadedTabsRef.current.delete('overview');
       }
-      if (loadedTabsRef.current.size === 0) {
+      
+      // 首屏加载：产品列表 + 库存汇总（按产品分组的利润数据）
+      if (isFirstLoad) {
         promises.push(productService.getAll().then(d => setProducts(d)));
         promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
-        // 其他数据按需加载，不在首屏预加载
       }
       
-      // 库存概览 Tab — 首屏需要 summaries + financeRecords（看板卡片用到其他收支）
+      // 库存概览 Tab — 只需要轻量其他收支数据（看板统计卡片）
       if (currentTab === 'overview') {
-        promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
-        promises.push(financeRecordService.getAll().catch(() => []).then(d => setFinanceRecords(d as any)));
+        if (!isFirstLoad) {
+          promises.push(inventoryService.getAllSummaries().then(d => setSummaries(d)));
+        }
+        promises.push(
+          financeRecordService.getDashboardStats()
+            .then(stats => setFinanceDashboardStats(stats))
+            .catch(() => {})
+        );
       }
       // 进货记录 Tab
       if (currentTab === 'purchases') {
